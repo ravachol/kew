@@ -9,8 +9,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "common/appstate.h"
 #include "common/events.h"
+#include "common/model.h"
 
 #define NUM_DEFAULT_KEY_BINDINGS 52
 
@@ -109,7 +109,7 @@ int update_rc(const char *path, const char *key, const char *value);
  * @param find_only_one If true, stops after finding the first match; otherwise, returns all matches.
  * @return A string representing the key binding for the event.
  */
-const char *get_binding_string(enum EventType event, bool find_only_one);
+const char *get_binding_string(enum MsgType event, bool find_only_one);
 
 /**
  * @brief Initializes the application settings by loading configuration and preferences.
@@ -117,8 +117,21 @@ const char *get_binding_string(enum EventType event, bool find_only_one);
  * This function initializes the application settings by loading both the configuration and preferences
  * for the application and user interface.
  *
+ * @param settings
+ *
  * @return The initialized AppSettings structure.
  */
-AppSettings init_settings(void);
+void init_settings(AppSettings *settings);
+
+// FIXME docs
+void load_layout(void);
+
+void free_layout_config(void);
+
+bool config_has_section(const char *section);
+
+Layout *load_layout_from_config(const char *layout_name);
+
+bool ensure_default_layouts(void);
 
 #endif

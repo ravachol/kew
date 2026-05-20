@@ -18,6 +18,7 @@
 
 extern sound_system_t *sound_s;
 extern sound_playback_repeat_state_t repeat_state;
+extern pthread_mutex_t switch_mutex;
 
 /**
  * @brief Checks if the audio context has been initialized.
@@ -38,7 +39,7 @@ bool is_context_initialized(void);
  *
  * @return 0 on success, or -1 if an error occurs while switching the decoder type.
  */
-int sound_create_audio_device(void);
+sound_result_t sound_create_audio_device(void);
 
 /**
  * @brief Switches the decoder type for playback.
@@ -49,7 +50,7 @@ int sound_create_audio_device(void);
  *
  * @return 0 if successful, or -1 if there is an error in switching the type.
  */
-int sound_switch_decoder_type(void);
+sound_result_t sound_switch_decoder_type(void);
 
 /**
  * @brief Cleans up and uninitializes the audio context.
@@ -75,7 +76,7 @@ void cleanup_audio_context(void);
  * @note This function may trigger asynchronous decoding depending on
  *       the system design.
  */
-void sound_load_song(const char *file_path,
+sound_result_t sound_load_song(const char *file_path,
                      int is_first_decoder,
                      int is_next_song);
 

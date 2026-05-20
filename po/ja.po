@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-07 18:48+0200\n"
+"POT-Creation-Date: 2026-05-10 02:57+0200\n"
 "PO-Revision-Date: 2025-11-05 15:05+0100\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -71,12 +71,12 @@ msgstr "D-Bus 名の取得に失敗しました：%s\n"
 msgid "   Search: "
 msgstr "   検索："
 
-#: src/ui/cli.c:142
+#: src/ui/cli.c:143
 #, c-format
 msgid "Music Library: "
 msgstr "音楽ライブラリ："
 
-#: src/ui/cli.c:147
+#: src/ui/cli.c:148
 #, c-format
 msgid ""
 "Is this correct? Press Enter.\n"
@@ -85,7 +85,7 @@ msgstr ""
 "これでよろしいですか？Enter を押してください。\n"
 "\n"
 
-#: src/ui/cli.c:149
+#: src/ui/cli.c:150
 #, c-format
 msgid ""
 "Or type a path:\n"
@@ -94,209 +94,209 @@ msgstr ""
 "またはパスを入力してください：\n"
 "\n"
 
-#: src/ui/cli.c:156 src/ui/cli.c:180
+#: src/ui/cli.c:157 src/ui/cli.c:181
 #, c-format
 msgid "Error reading input.\n"
 msgstr "入力の読み取り中にエラーが発生しました。\n"
 
-#: src/ui/cli.c:174
+#: src/ui/cli.c:175
 #, c-format
 msgid ""
 "Type a path:\n"
 "\n"
 msgstr "パスを入力してください：\n"
 
-#: src/ui/player_ui.c:304
+#: src/ui/player_ui.c:196
 #, c-format
 msgid "Run man kew for help.\n"
 msgstr "ヘルプを見るには man kew を実行してください。\n"
 
-#: src/ui/player_ui.c:527 src/ui/player_ui.c:1033
+#: src/ui/player_ui.c:420 src/ui/player_ui.c:885
 #, c-format
 msgid "   kew version: "
 msgstr "   kew バージョン："
 
-#: src/ui/player_ui.c:1073
+#: src/ui/player_ui.c:926
 #, c-format
 msgid " Theme: "
 msgstr " テーマ："
 
-#: src/ui/player_ui.c:1077
+#: src/ui/player_ui.c:930
 #, c-format
 msgid "Using "
 msgstr "使用中："
 
-#: src/ui/player_ui.c:1079
+#: src/ui/player_ui.c:932
 #, c-format
 msgid "Colors "
 msgstr "色："
 
-#: src/ui/player_ui.c:1081
+#: src/ui/player_ui.c:934
 #, c-format
 msgid "From Track Covers"
 msgstr "（トラックカバーから）"
 
-#: src/ui/player_ui.c:1089
+#: src/ui/player_ui.c:942
 #, c-format
 msgid " Author: "
 msgstr " 作者："
 
-#: src/ui/player_ui.c:1096
+#: src/ui/player_ui.c:949
 #, c-format
 msgid " · Play/Pause: %s"
 msgstr " · 再生/一時停止：%s"
 
-#: src/ui/player_ui.c:1099
+#: src/ui/player_ui.c:952
 #, c-format
 msgid " · Enqueue/Dequeue: %s"
 msgstr " · プレイリストに追加/削除：%s"
 
-#: src/ui/player_ui.c:1102
+#: src/ui/player_ui.c:955
 #, c-format
 msgid " · Enqueue and Play: %s"
 msgstr " · プレイリストに追加して再生：%s"
 
-#: src/ui/player_ui.c:1105
+#: src/ui/player_ui.c:958
 #, c-format
 msgid " · Quit: %s"
 msgstr " · 終了：%s"
 
-#: src/ui/player_ui.c:1108
+#: src/ui/player_ui.c:961
 #, c-format
 msgid " · Switch tracks: %s"
 msgstr " · トラック切り替え：%s"
 
-#: src/ui/player_ui.c:1110
+#: src/ui/player_ui.c:963
 #, c-format
 msgid " and %s"
 msgstr "と %s"
 
-#: src/ui/player_ui.c:1114
+#: src/ui/player_ui.c:967
 #, c-format
 msgid " · Volume: %s "
 msgstr " · 音量：%s "
 
-#: src/ui/player_ui.c:1115
+#: src/ui/player_ui.c:968
 #, c-format
 msgid "and %s"
 msgstr "と %s"
 
-#: src/ui/player_ui.c:1118
+#: src/ui/player_ui.c:971
 #, c-format
 msgid " · Scroll: %s"
 msgstr " · スクロール：%s"
 
-#: src/ui/player_ui.c:1119
+#: src/ui/player_ui.c:972
 #, c-format
 msgid ", %s"
 msgstr "、%s"
 
-#: src/ui/player_ui.c:1122
+#: src/ui/player_ui.c:975
 #, c-format
 msgid " · Clear List: %s"
 msgstr " · プレイリストをクリア：%s"
 
-#: src/ui/player_ui.c:1125
+#: src/ui/player_ui.c:978
 #, c-format
 msgid " · Remove from playlist: %s"
 msgstr " · プレイリストから削除：%s"
 
-#: src/ui/player_ui.c:1128
+#: src/ui/player_ui.c:981
 #, c-format
 msgid " · Move songs: %s"
 msgstr " · 曲を移動：%s"
 
-#: src/ui/player_ui.c:1129
+#: src/ui/player_ui.c:982
 #, c-format
 msgid "/%s"
 msgstr "/%s"
 
-#: src/ui/player_ui.c:1132
+#: src/ui/player_ui.c:985
 #, c-format
 msgid " · Change View: %s or "
 msgstr " · 表示切替：%s または "
 
-#: src/ui/player_ui.c:1140
+#: src/ui/player_ui.c:993
 #, c-format
 msgid " or click the footer"
 msgstr " またはフッターをクリック"
 
-#: src/ui/player_ui.c:1144
+#: src/ui/player_ui.c:997
 #, c-format
 msgid " · Cycle Color Mode: %s (default theme, theme or cover colors)"
 msgstr " · カラーモード切替：%s（デフォルトテーマ、テーマ、カバー色）"
 
-#: src/ui/player_ui.c:1148
+#: src/ui/player_ui.c:1001
 #, c-format
 msgid " · Cycle Themes: %s"
 msgstr " · テーマ切替：%s"
 
-#: src/ui/player_ui.c:1151
+#: src/ui/player_ui.c:1004
 #, c-format
 msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
 msgstr " · クロマ可視化切替：%s（Chroma 必須）"
 
-#: src/ui/player_ui.c:1154
+#: src/ui/player_ui.c:1007
 #, c-format
 msgid " · Stop: %s"
 msgstr " · 停止：%s"
 
-#: src/ui/player_ui.c:1157
+#: src/ui/player_ui.c:1010
 #, c-format
 msgid " · Update Library: %s"
 msgstr " · ライブラリ更新：%s"
 
-#: src/ui/player_ui.c:1160
+#: src/ui/player_ui.c:1013
 #, c-format
 msgid " · Sort Library: %s"
 msgstr " · ライブラリを並べ替え：%s"
 
-#: src/ui/player_ui.c:1163
+#: src/ui/player_ui.c:1016
 #, c-format
 msgid " · Toggle Visualizer: %s"
 msgstr " · ビジュアライザー切替：%s"
 
-#: src/ui/player_ui.c:1166
+#: src/ui/player_ui.c:1019
 #, c-format
 msgid " · Toggle ASCII Cover: %s (disables Chroma)"
 msgstr " · ASCII カバー切替：%s （Chroma 無効）"
 
-#: src/ui/player_ui.c:1169
+#: src/ui/player_ui.c:1022
 #, c-format
 msgid " · Toggle Lyrics Page on Track View: %s"
 msgstr " · 歌詞ページ切替：%s"
 
-#: src/ui/player_ui.c:1172
+#: src/ui/player_ui.c:1025
 #, c-format
 msgid " · Toggle Notifications: %s"
 msgstr " · 通知切替：%s"
 
-#: src/ui/player_ui.c:1175
+#: src/ui/player_ui.c:1028
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr " · リピートモード：%s（繰り返し/リスト繰り返し/オフ）"
 
-#: src/ui/player_ui.c:1179
+#: src/ui/player_ui.c:1032
 #, c-format
 msgid " · Shuffle: %s"
 msgstr " · シャッフル再生：%s"
 
-#: src/ui/player_ui.c:1182
+#: src/ui/player_ui.c:1035
 #, c-format
 msgid " · Seek: %s and"
 msgstr " · シーク：%s と"
 
-#: src/ui/player_ui.c:1183
+#: src/ui/player_ui.c:1036
 #, c-format
 msgid " %s"
 msgstr " %s"
 
-#: src/ui/player_ui.c:1186
+#: src/ui/player_ui.c:1039
 #, c-format
 msgid " · Export Playlist: %s (named after the first song)"
 msgstr " · プレイリストをエクスポート：%s（最初の曲名を使用）"
 
-#: src/ui/player_ui.c:1190
+#: src/ui/player_ui.c:1043
 #, c-format
 msgid " · Show Folders in Playlist: %s"
 msgstr " · プレイリストにフォルダを表示する: %s"
@@ -306,131 +306,150 @@ msgstr " · プレイリストにフォルダを表示する: %s"
 msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
 msgstr " · 曲を 'kew favorites.m3u' に追加：%s（'kew .' で実行）"
 
-#: src/ui/player_ui.c:1200
+#: src/ui/player_ui.c:1049
 #, c-format
 msgid " Project URL: "
 msgstr " プロジェクト URL："
 
-#: src/ui/player_ui.c:1206
+#: src/ui/player_ui.c:1055
 #, c-format
 msgid " Please Donate: "
 msgstr " 寄付のお願い："
 
-#: src/ui/player_ui.c:1427
+#: src/ui/player_ui.c:1274
 #, c-format
 msgid " Select:↑/↓ or k/j."
 msgstr " 選択：↑/↓またはk/j。"
 
-#: src/ui/player_ui.c:1428
+#: src/ui/player_ui.c:1275
 #, c-format
 msgid " Accept:%s."
 msgstr " 承認:%s。"
 
-#: src/ui/player_ui.c:1429
+#: src/ui/player_ui.c:1276
 #, c-format
 msgid " Clear:%s."
 msgstr "クリア：%s"
 
-#: src/ui/player_ui.c:1434 src/ui/player_ui.c:2110
+#: src/ui/player_ui.c:1281 src/ui/player_ui.c:1931
 #, c-format
 msgid " Scroll:PgUp/PgDn."
 msgstr " スクロール:PgUp/PgDn。"
 
-#: src/ui/player_ui.c:1436 src/ui/player_ui.c:2112
+#: src/ui/player_ui.c:1283 src/ui/player_ui.c:1933
 #, c-format
 msgid " Scroll:Fn+↑/↓."
 msgstr " スクロール：Fn+↑/↓。"
 
-#: src/ui/player_ui.c:1438
+#: src/ui/player_ui.c:1285
 #, c-format
 msgid " Remove:%s."
 msgstr " 取り除く："
 
-#: src/ui/player_ui.c:1439
+#: src/ui/player_ui.c:1286
 #, c-format
 msgid " Move songs:%s"
 msgstr " 曲を移動する：%s"
 
-#: src/ui/player_ui.c:1440
+#: src/ui/player_ui.c:1287
 #, c-format
 msgid "/%s."
 msgstr "/%s."
 
-#: src/ui/player_ui.c:1479 src/ui/player_ui.c:2103
+#: src/ui/player_ui.c:1328 src/ui/player_ui.c:1924
 #, c-format
 msgid " Select:↑/↓."
 msgstr " 選択：↑/↓。"
 
-#: src/ui/player_ui.c:1480
+#: src/ui/player_ui.c:1329
 #, c-format
 msgid " Enqueue:%s."
 msgstr " 曲を追加：%s。"
 
-#: src/ui/player_ui.c:1481 src/ui/player_ui.c:2105
+#: src/ui/player_ui.c:1330 src/ui/player_ui.c:1926
 #, c-format
 msgid " Play:%s."
 msgstr " 遊ぶ：%s"
 
-#: src/ui/player_ui.c:1531
-#, c-format
+#: src/ui/player_ui.c:1382
+#, fuzzy, c-format
 msgid "   ─ PLAYLIST ─"
-msgstr "   ─ プレイリスト ─"
+msgstr "  ─ プレイリスト ─"
 
-#: src/ui/player_ui.c:1858
+#: src/ui/player_ui.c:1709
 msgid "─ MUSIC LIBRARY ─"
 msgstr "─ 音楽ライブラリ ─"
 
-#: src/ui/player_ui.c:2104
+#: src/ui/player_ui.c:1925
 #, c-format
 msgid " Enqueue/Dequeue:%s."
 msgstr " · プレイリストに追加/削除：%s"
 
-#: src/ui/player_ui.c:2114
+#: src/ui/player_ui.c:1935
 #, c-format
 msgid " Update:%s."
 msgstr "アップデート：%s。"
 
-#: src/ui/player_ui.c:2115
+#: src/ui/player_ui.c:1936
 #, c-format
 msgid " Sort:%s."
 msgstr " 並べ替え:%s。"
 
-#: src/ui/player_ui.c:2237
+#: src/ui/player_ui.c:2062
 #, c-format
 msgid " No lyrics available. Press %s to go back."
 msgstr " 歌詞はありません。%s を押して戻ります。"
 
-#: src/ui/player_ui.c:2763
+#: src/ui/player_ui.c:2793
+#, fuzzy, c-format
+msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
+msgstr " 選択：↑/↓またはk/j。"
+
+#: src/ui/player_ui.c:2798
+#, c-format
+msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s."
+msgstr ""
+
+#: src/ui/player_ui.c:2800
+#, c-format
+msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s."
+msgstr ""
+
+#: src/ui/player_ui.c:2814
+msgid "  ─ PLAYLIST ─"
+msgstr "  ─ プレイリスト ─"
+
+#: src/ui/player_ui.c:3245
 #, c-format
 msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
 msgstr "%s プレイリスト|%s ライブラリ|%s トラック|%s 検索|%s ヘルプ"
 
-#: src/kew.c:349
+#: src/kew.c:206
 #, c-format
 msgid "No Music found.\n"
 msgstr "音楽が見つかりません。\n"
 
-#: src/kew.c:350
+#: src/kew.c:207
 #, c-format
 msgid "Please make sure the path is set correctly. \n"
 msgstr "パスが正しく設定されていることを確認してください。\n"
 
-#: src/kew.c:351
+#: src/kew.c:208
 #, c-format
 msgid "To set it type: kew path \"/path/to/Music\". \n"
 msgstr "設定するには次を入力してください：kew path \"/path/to/Music\"。\n"
 
-#: src/kew.c:353
+#: src/kew.c:210
 #, c-format
 msgid "Music not found.\n"
 msgstr "音楽が見つかりません。\n"
 
-#: src/kew.c:357
+#: src/kew.c:214
 #, c-format
 msgid "%s\n"
 msgstr "%s\n"
 
-#: src/kew.c:539
+#: src/kew.c:411
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr " [F2 プレイリスト|F3 ライブラリ|F4 トラック|F5 検索|F6 ヘルプ]"
 

@@ -11,7 +11,7 @@
 
 #include "playback_ops.h"
 
-#include "common/common.h"
+#include "common/model.h"
 #include "playback_clock.h"
 #include "playback_state.h"
 #include "playback_system.h"
@@ -26,7 +26,12 @@
 
 void resume_playback(void)
 {
-        sound_system_play(sound_sys);
+        PlaybackState *ps = get_playback_state();
+
+        sound_result_t result = sound_system_play(sound_sys);
+
+        if (result == SOUND_NOTIFY_SWITCH)
+                ps->notifySwitch = 1;
 }
 
 void try_load_next(void)
@@ -60,10 +65,10 @@ void pause_song(void)
                 update_pause_time();
         }
 
-        AppState *state = get_app_state();
+        Model *model = get_model();
 
-        if (state->currentView != TRACK_VIEW) {
-                trigger_refresh();
+        if (model->state.currentView != TRACK_VIEW) {
+                set_dirty(DIRTY_ALL);
         }
 
         sound_system_pause(sound_sys);
@@ -236,7 +241,6 @@ void stop(void)
 
 void ops_toggle_pause(void)
 {
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
@@ -247,15 +251,16 @@ void ops_toggle_pause(void)
                 return;
         }
 
-        sound_system_toggle_pause(sound_sys);
+        sound_result_t result = sound_system_toggle_pause(sound_sys);
+
+        if (result == SOUND_NOTIFY_SWITCH)
+                ps->notifySwitch = 1;
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING && should_start_playing()) {
                 sound_system_set_end_of_list_reached(sound_sys, false);
         }
 
-        if (state->currentView != TRACK_VIEW) {
-                trigger_refresh();
-        }
+        set_dirty(DIRTY_ALL);
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");

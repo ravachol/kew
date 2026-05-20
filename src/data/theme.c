@@ -12,6 +12,7 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "common/model.h"
 #include "utils/utils.h"
 
 #include <ctype.h>
@@ -52,6 +53,7 @@ int hex_to_pixel(const char *hex, PixelData *result)
                 (*result).r = (unsigned char)strtol(r, NULL, 16);
                 (*result).g = (unsigned char)strtol(g, NULL, 16);
                 (*result).b = (unsigned char)strtol(b, NULL, 16);
+                (*result).a = 255;
         }
         return 0;
 }
@@ -97,6 +99,8 @@ int parse_hex_color(const char *hex, PixelData *out)
         out->r = (unsigned char)r;
         out->g = (unsigned char)g;
         out->b = (unsigned char)b;
+        out->a = 255;
+
         return 1;
 }
 
@@ -132,6 +136,7 @@ int parse_color_value(const char *value, ColorValue *out)
 
         out->type = COLOR_TYPE_ANSI;
         out->ansiIndex = (int8_t)index;
+
         return 1;
 }
 
@@ -206,7 +211,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
 
         ColorValue default_color;
         default_color.type = COLOR_TYPE_RGB;
-        default_color.rgb = state->uiSettings.defaultColorRGB;
+        default_color.rgb = state->settings.defaultColorRGB;
 
         for (size_t i = 0; i < mapping_count; ++i) {
                 *(mappings[i].field) = default_color;
@@ -244,6 +249,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                 }
 
                 for (size_t i = 0; i < mapping_count; ++i) {
+
                         if (strcmp(key, "name") == 0) {
                                 // Copy theme name safely
                                 strncpy(current_theme->theme_name, value,
@@ -264,7 +270,8 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                                 found = 1;
                                 break;
                         } else if (strcmp(key, mappings[i].key) == 0) {
-                                ColorValue color;
+
+                                ColorValue color = {0};
 
                                 if (!parse_color_value(value, &color)) {
                                         fprintf(stderr,

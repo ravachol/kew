@@ -38,7 +38,7 @@ void pause_playback(void);
  * playback state. If the audio is currently playing, it will pause. If it is
  * paused, it will resume.
  */
-void toggle_pause_playback(void);
+sound_result_t toggle_pause_playback(void);
 
 /**
  * @brief Checks if device is initialied
@@ -87,7 +87,7 @@ bool pb_is_playing(void);
  *
  * This function resumes the audio playback if it was previously paused.
  */
-int sound_resume_playback(void);
+sound_result_t sound_resume_playback(void);
 
 /**
  * @brief Sets the elapsed time for seeking.

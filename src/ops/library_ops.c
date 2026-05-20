@@ -60,7 +60,7 @@ void sort_library(void)
                 current_sort = 0;
         }
 
-        trigger_refresh();
+        set_dirty(DIRTY_LIBRARY);
 }
 
 bool mark_as_enqueued(FileSystemEntry *root, char *path)
@@ -179,7 +179,7 @@ void clear_all_m3u_enqueued_flags(FileSystemEntry *root)
 typedef struct
 {
         char *path;
-        AppState *state;
+        Model *model;
 } UpdateLibraryArgs;
 
 void *update_library_thread(void *arg)
@@ -190,10 +190,10 @@ void *update_library_thread(void *arg)
         updating_library = true;
 
         UpdateLibraryArgs *args = arg;
-        FileSystemEntry *library = get_library();
+
+        Model *model = args->model;
 
         char *path = args->path;
-        AppState *state = args->state;
         int tmp_directory_tree_entries = 0;
 
         char expanded_path[PATH_MAX];
@@ -204,27 +204,31 @@ void *update_library_thread(void *arg)
 
         if (!tmp) {
                 perror("create_directory_tree");
-                pthread_mutex_unlock(&(state->switch_mutex));
+                pthread_mutex_unlock(&(model->state.library_mutex));
                 free(args->path);
                 free(args);
                 updating_library = false;
                 return NULL;
         }
 
-        pthread_mutex_lock(&(state->switch_mutex));
+        pthread_mutex_lock(&(model->state.library_mutex));
 
-        copy_is_enqueued(library, tmp);
+        FileSystemEntry *old = model->library;
 
-        set_library(tmp);
-        free_tree(library);
+        copy_is_enqueued(old, tmp);
 
-        state->uiState.numDirectoryTreeEntries = tmp_directory_tree_entries;
+        model->library = tmp;
 
-        pthread_mutex_unlock(&(state->switch_mutex));
+        model->library_updated = true;
+
+        model->state.ui.numDirectoryTreeEntries = tmp_directory_tree_entries;
+
+        pthread_mutex_unlock(&(model->state.library_mutex));
+
+        free_tree(old);
 
         c_sleep(1000); // Don't refresh immediately or we risk the error message
                        // not clearing
-        trigger_refresh();
 
         free(args->path);
         free(args);
@@ -235,7 +239,7 @@ void *update_library_thread(void *arg)
 
 void update_library(char *path, bool wait_until_complete)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
         pthread_t thread_id;
 
         UpdateLibraryArgs *args = malloc(sizeof(UpdateLibraryArgs));
@@ -244,7 +248,7 @@ void update_library(char *path, bool wait_until_complete)
                 return; // handle allocation failure
 
         args->path = strdup(path);
-        args->state = state;
+        args->model = model;
 
         if (pthread_create(&thread_id, NULL, update_library_thread, args) != 0) {
                 perror("Failed to create thread");
@@ -254,7 +258,7 @@ void update_library(char *path, bool wait_until_complete)
         if (wait_until_complete)
                 pthread_join(thread_id, NULL);
 
-        state->uiSettings.last_time_app_ran = time(NULL);
+        model->state.settings.last_time_app_ran = time(NULL);
 }
 
 time_t get_modification_time(struct stat *path_stat)
@@ -269,7 +273,7 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
         char *path = args->path;
 
         AppState *state = args->state;
-        UISettings *ui = &(state->uiSettings);
+        UISettings *ui = &(state->settings);
 
         struct stat path_stat;
 
@@ -373,7 +377,20 @@ void update_library_if_changed_detected(bool wait_until_complete)
         }
 }
 
-void create_library(bool set_enqueued_status)
+void save_library(void)
+{
+        FileSystemEntry *library = get_library();
+        PlayList *playlist = get_playlist();
+        char *filepath = get_library_file_path();
+
+        reset_sort_library();
+
+        write_tree_to_binary(library, filepath, playlist);
+
+        free(filepath);
+}
+
+void create_library(Model *model, bool set_enqueued_status)
 {
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
@@ -387,31 +404,39 @@ void create_library(bool set_enqueued_status)
 
         library = read_tree_from_binary(
             lib_path, expanded,
-            &(state->uiState.numDirectoryTreeEntries), set_enqueued_status);
+            &(state->ui.numDirectoryTreeEntries), set_enqueued_status);
 
         free(lib_path);
 
-        set_library(library);
+        pthread_mutex_lock(&(model->state.library_mutex));
+
+        model->library = library;
+
+        pthread_mutex_unlock(&(model->state.library_mutex));
 
         bool wait_until_complete = true;
         update_library_if_changed_detected(wait_until_complete);
 
-        library = get_library();
-
         bool library_path_changed = false;
-        if (library && strcmp(library->full_path, expanded) != 0)
+        if (model->library && strcmp(model->library->full_path, expanded) != 0)
                 library_path_changed = true;
 
-        if (library == NULL || library->children == NULL || library_path_changed) {
+        if (model->library == NULL || model->library->children == NULL || library_path_changed) {
 
                 char expanded[PATH_MAX];
 
                 expand_path(settings->path, expanded);
 
-                library = create_directory_tree(expanded, &(state->uiState.numDirectoryTreeEntries));
+                FileSystemEntry *tmp = create_directory_tree(expanded, &(state->ui.numDirectoryTreeEntries));
+
+                pthread_mutex_lock(&(model->state.library_mutex));
+
+                model->library = tmp;
+
+                pthread_mutex_unlock(&(model->state.library_mutex));
         }
 
-        if (library == NULL || library->children == NULL) {
+        if (model->library == NULL || model->library->children == NULL) {
                 char message[PATH_MAX + 64];
 
                 snprintf(message, PATH_MAX + 64, "No music found at %s.", settings->path);
@@ -419,12 +444,10 @@ void create_library(bool set_enqueued_status)
                 set_error_message(message);
         }
 
-        set_library(library);
-
-        if (library != NULL) {
+        if (model->library != NULL) {
                 char lib_real[PATH_MAX];
-                if (realpath(library->full_path, lib_real) != NULL &&
-                    strcmp(lib_real, library->full_path) != 0)
+                if (realpath(model->library->full_path, lib_real) != NULL &&
+                    strcmp(lib_real, model->library->full_path) != 0)
                         set_library_real_path_if_diff(lib_real);
                 else
                         set_library_real_path_if_diff(NULL);
@@ -615,10 +638,11 @@ int enqueue_children(FileSystemEntry *child,
                                         has_enqueued = 1;
                         }
                 } else if (!is_m3u_file(child)) {
-                        if (!child->is_enqueued) {
 
-                                if (*first_enqueued_entry == NULL)
-                                        *first_enqueued_entry = child;
+                        if (*first_enqueued_entry == NULL)
+                                *first_enqueued_entry = child;
+
+                        if (!child->is_enqueued) {
 
                                 enqueue_song(child);
                         }
@@ -752,7 +776,7 @@ static gchar *normalize_to_library_path(const char *path, FileSystemEntry *libra
 }
 
 void enqueue_m3u(const char *filepath, FileSystemEntry *library,
-                 Node **first_enqueued_node)
+                 Node **first_enqueued_node, bool dont_dequeue)
 {
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
@@ -804,31 +828,39 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                         continue;
                 }
 
-                // Don't add songs that are already enqueued
-                if (find_path_in_playlist(normalized, unshuffled_playlist) != NULL) {
-                        g_free(normalized);
-                        continue;
+                Node *found = find_path_in_playlist(normalized, unshuffled_playlist);
+
+                if (dont_dequeue) {
+                        if (*first_enqueued_node == NULL)
+                                *first_enqueued_node = found;
+                } else {
+
+                        // Don't add songs that are already enqueued
+                        if (find_path_in_playlist(normalized, unshuffled_playlist) != NULL) {
+                                g_free(normalized);
+                                continue;
+                        }
+
+                        int id = increment_node_id();
+
+                        Node *node1 = NULL;
+                        create_node(&node1, normalized, id);
+                        if (add_to_list(unshuffled_playlist, node1) == -1) {
+                                destroy_node(node1);
+                                g_free(normalized);
+                                continue;
+                        }
+
+                        Node *node2 = NULL;
+                        create_node(&node2, normalized, id);
+                        if (add_to_list(playlist, node2) == -1)
+                                destroy_node(node2);
+
+                        mark_as_enqueued(library, normalized);
+
+                        if (*first_enqueued_node == NULL)
+                                *first_enqueued_node = node1;
                 }
-
-                int id = increment_node_id();
-
-                Node *node1 = NULL;
-                create_node(&node1, normalized, id);
-                if (add_to_list(unshuffled_playlist, node1) == -1) {
-                        destroy_node(node1);
-                        g_free(normalized);
-                        continue;
-                }
-
-                Node *node2 = NULL;
-                create_node(&node2, normalized, id);
-                if (add_to_list(playlist, node2) == -1)
-                        destroy_node(node2);
-
-                mark_as_enqueued(library, normalized);
-
-                if (*first_enqueued_node == NULL)
-                        *first_enqueued_node = node1;
 
                 g_free(normalized);
         }

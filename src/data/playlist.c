@@ -721,8 +721,7 @@ void load_favorites_playlist(const char *directory, PlayList **favorites_playlis
 {
         char expanded_path[PATH_MAX];
         expand_path(directory, expanded_path);
-        load_playlist(directory, favorites_playlist_name, favorites_playlist);
-        set_favorites_playlist(*favorites_playlist);
+        load_playlist(expanded_path, favorites_playlist_name, favorites_playlist);
 }
 
 void insert_at_position(PlayList *playlist, Node *node, int position)
@@ -889,22 +888,7 @@ Node *find_tail(Node *head)
         return current;
 }
 
-PlayList *deep_copy_playlist(const PlayList *original_list)
-{
-        if (original_list == NULL)
-                return NULL;
-
-        PlayList *new_list = NULL;
-        create_playlist(&new_list);
-
-        if (new_list == NULL)
-                return NULL;
-
-        deep_copy_play_list_onto_list(original_list, &new_list);
-        return new_list;
-}
-
-void deep_copy_play_list_onto_list(const PlayList *original_list, PlayList **new_list)
+void deep_copy_list(const PlayList *original_list, PlayList **new_list)
 {
         if (original_list == NULL || new_list == NULL)
                 return;
