@@ -48,13 +48,7 @@ Please open new issues and pull requests there.
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md).
-
-For NixOS, there is an official package but also a [Nix Flake](flake.nix) that tracks the latest commit.
-
-For Artix Linux it's in the [Artist repository](https://wiki.artixlinux.org/Main/Repositories#artist_repository).
-
-For Fedora there is an [unofficial RPM](https://copr.fedorainfracloud.org/coprs/fed500/kew).
+Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md). For NixOS, there is a [Nix Flake](flake.nix). For Artix it's available in the [artist repository](https://wiki.artixlinux.org/Main/Repositories#artist_repository).
 
 ## Usage
 
@@ -159,6 +153,10 @@ kew path "/home/joe/Musik/" (changes the path)
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
+
+## Contributing
+
+We very much welcome contributions, and will help if guidance is needed. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) first though and also [DEVELOPERS.md](docs/DEVELOPERS.md). It's important to discuss with the maintainer before doing a lot of work, or it might end up being rejected or having to be redone unnecessarily.
 
 ## Configuration
 

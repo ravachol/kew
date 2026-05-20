@@ -45,22 +45,6 @@ void clear_error_message(void);
 void mark_error_message_as_printed(void);
 
 /**
- * Triggers a screen refresh.
- *
- * Sets the internal refresh flag to true, indicating that
- * a refresh operation should be performed.
- */
-void trigger_refresh(void);
-
-/**
- * Cancels a pending screen refresh.
- *
- * Sets the internal refresh flag to false, preventing
- * a refresh operation from occurring.
- */
-void cancel_refresh(void);
-
-/**
  * Checks whether a refresh has been triggered.
  *
  * @return true if a refresh is currently triggered,

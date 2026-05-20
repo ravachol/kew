@@ -11,7 +11,6 @@
 #include "playback_state.h"
 
 #include "common/appstate.h"
-#include "common/common.h"
 
 #include "data/theme.h"
 
@@ -31,16 +30,19 @@ void start_playing(bool value)
 
 int create_sound_system(void)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
 
-        bool success = sound_system_create(&sound_sys) == SOUND_OK;
+        sound_result_t result = sound_system_create(&sound_sys);
 
-        if (success) {
-                sound_system_set_replay_gain_check_first(sound_sys, state->uiSettings.replayGainCheckFirst);
+        if (result >= 0) {
+                sound_system_set_replay_gain_check_first(sound_sys, model->state.settings.replayGainCheckFirst);
                 start_playing(true);
         }
 
-        return success;
+        if (result == SOUND_NOTIFY_SWITCH)
+                model->playbackState.notifySwitch = 1;
+
+        return result;
 }
 
 void shutdown_sound_system(void)
@@ -59,7 +61,12 @@ void uninit_device(void)
 
 void switch_decoder(void)
 {
-        sound_system_switch_decoder(sound_sys);
+        Model *model = get_model();
+
+        sound_result_t result = sound_system_switch_decoder(sound_sys);
+
+        if (result == SOUND_NOTIFY_SWITCH)
+                model->playbackState.notifySwitch = 1;
 }
 
 void skip(void)
@@ -79,9 +86,6 @@ void skip(void)
         } else {
                 sound_system_skip_to_next(sound_sys);
         }
-
-        if (!ps->skipOutOfOrder)
-                trigger_refresh();
 }
 
 void ensure_default_theme_pack()

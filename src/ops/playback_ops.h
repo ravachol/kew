@@ -10,7 +10,7 @@
 #ifndef PLAYBACK_OPS_H
 #define PLAYBACK_OPS_H
 
-#include "common/appstate.h"
+#include "common/model.h"
 
 /**
  * @brief Start playback of the specified song node.

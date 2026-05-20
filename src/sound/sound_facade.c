@@ -17,6 +17,8 @@
 
 #include "sound_facade.h"
 
+#include "common/appstate.h"
+#include "common/model.h"
 #include "loader/song_loader.h"
 
 #include "decoders.h"
@@ -49,9 +51,9 @@ sound_result_t sound_system_create(sound_system_t **out_system)
         sound_s->volume = get_current_volume();
         sound_s->state = SOUND_STATE_STOPPED;
 
-        result = sound_create_audio_device();
+        sound_result_t sound_result = sound_create_audio_device();
 
-        if (result < 0) {
+        if (sound_result < 0) {
                 sound_system_destroy(&sound_s);
 
                 return SOUND_ERROR_BACKEND_FAILURE;
@@ -59,7 +61,7 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         *out_system = sound_s;
 
-        return SOUND_OK;
+        return sound_result;
 }
 
 void sound_system_destroy(sound_system_t **system)
@@ -85,12 +87,12 @@ sound_result_t sound_system_switch_decoder(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        int result = sound_switch_decoder_type();
+        sound_result_t result = sound_switch_decoder_type();
 
         if (result < 0)
                 return SOUND_ERROR_BACKEND_FAILURE;
 
-        return SOUND_OK;
+        return result;
 }
 
 sound_result_t sound_system_load(
@@ -101,16 +103,20 @@ sound_result_t sound_system_load(
 {
         (void)system;
 
-        sound_load_song(file_path, is_first_decoder, is_next_song);
-
-        return SOUND_OK;
+        return sound_load_song(file_path, is_first_decoder, is_next_song);
 }
 
 sound_result_t sound_system_unload_songs(sound_system_t *system)
 {
         (void)system;
 
+        PlaybackState *ps = get_playback_state();
+
+        pthread_mutex_lock(&ps->switch_mutex);
+
         song_loader_unload_songs();
+
+        pthread_mutex_unlock(&ps->switch_mutex);
 
         return SOUND_OK;
 }
@@ -146,12 +152,7 @@ sound_result_t sound_system_play(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        int result = sound_resume_playback();
-
-        if (result < 0)
-                return SOUND_ERROR_BACKEND_FAILURE;
-
-        return SOUND_OK;
+        return sound_resume_playback();
 }
 
 sound_result_t sound_system_pause(sound_system_t *system)
@@ -160,6 +161,7 @@ sound_result_t sound_system_pause(sound_system_t *system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         pause_playback();
+        
         if (pb_is_paused())
                 system->state = SOUND_STATE_PAUSED;
 
@@ -172,6 +174,7 @@ sound_result_t sound_system_stop(sound_system_t *system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         stop_playback();
+
         if (pb_is_stopped())
                 system->state = SOUND_STATE_STOPPED;
 
@@ -223,7 +226,7 @@ sound_result_t sound_system_toggle_pause(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        toggle_pause_playback();
+        sound_result_t result = toggle_pause_playback();
         if (pb_is_stopped())
                 system->state = SOUND_STATE_STOPPED;
         if (pb_is_paused())
@@ -231,7 +234,7 @@ sound_result_t sound_system_toggle_pause(sound_system_t *system)
         if (pb_is_playing())
                 system->state = SOUND_STATE_PLAYING;
 
-        return SOUND_OK;
+        return result;
 }
 
 sound_result_t sound_system_seek_percentage(sound_system_t *system, float percent)
@@ -344,6 +347,7 @@ int sound_system_is_current_song_deleted(const sound_system_t *system)
         if (!system)
                 return 1;
 
+
         LoaderData *loader_data = get_loader_data();
 
         return (sound_is_using_slot_A())
@@ -359,7 +363,9 @@ uint64_t sound_system_get_duration_ms(
 
         SongData *song_data = sound_get_current_song_data();
 
-        return song_data->duration * 1000;
+        uint64_t duration = song_data->duration * 1000;
+
+        return duration;
 }
 
 int sound_system_get_repeat_state(void)
@@ -409,7 +415,11 @@ SongData *sound_system_get_current_song(const sound_system_t *system)
         if (!system)
                 return NULL;
 
-        return sound_get_current_song_data();
+        SongData *songdata = NULL;
+
+        songdata = sound_get_current_song_data();
+
+        return songdata;
 }
 
 sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, int value)

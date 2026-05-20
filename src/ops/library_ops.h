@@ -19,10 +19,11 @@
  * optionally restores the enqueued status of entries. If changes are detected
  * in the underlying filesystem, the library may be rebuilt.
  *
+ * @param model
  * @param set_enqueued_status If true, restore enqueued status from the cached
  *                            library representation.
  */
-void create_library(bool set_enqueued_status);
+void create_library(Model *model, bool set_enqueued_status);
 
 /**
  * @brief Update the library by rescanning the given path.
@@ -78,6 +79,14 @@ void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist);
  * @param child FileSystemEntry representing the song to enqueue.
  */
 void enqueue_song(FileSystemEntry *child);
+
+/**
+ * @brief Saves the current state of the media library.
+ *
+ * This function persists the current media library state, saving any changes made
+ * to the library to disk or a database.
+ */
+void save_library(void);
 
 /**
  * @brief Dequeue a single song from the active playlists.
@@ -238,9 +247,10 @@ void update_library_if_changed_detected(bool wait_until_complete);
  *                             should be set.
  * @param first_enqueued_node  Output: first Node added to the playlist, or
  *                             NULL if nothing was added.
+ * @param dont_dequeue  True if only enqueue is allowed
  */
 void enqueue_m3u(const char *filepath, FileSystemEntry *library,
-                 Node **first_enqueued_node);
+                 Node **first_enqueued_node, bool dont_dequeue);
 
 /**
  * @brief Dequeue all songs referenced by an M3U playlist file.

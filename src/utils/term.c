@@ -118,16 +118,6 @@ void restore_terminal_mode(void)
         }
 }
 
-void save_cursor_position(void)
-{
-        printf("\033[s");
-}
-
-void restore_cursor_position(void)
-{
-        printf("\033[u");
-}
-
 void set_default_text_color(void)
 {
         printf("\033[0m");

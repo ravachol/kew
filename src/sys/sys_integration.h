@@ -127,7 +127,6 @@ void process_d_bus_events(void);
  * This function handles resizing the terminal and refreshing the UI. It will
  * ensure that the UI is correctly updated when the terminal size changes.
  *
- * @param uis A pointer to the UIState structure containing UI settings.
  */
 void resize(UIState *uis);
 
@@ -163,6 +162,9 @@ void restart_kew(char *argv[]);
  * the terminal is resized.
  */
 void init_resize(void);
+
+// FIXME
+sig_atomic_t get_resize_flag();
 
 /**
  * @brief Retrieves the global D-Bus connection.

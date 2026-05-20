@@ -9,27 +9,15 @@
 #ifndef PLAYLIST_UI_H
 #define PLAYLIST_UI_H
 
-#include "common/appstate.h"
+#include "common/model.h"
 
-/**
- * @brief Displays the playlist items in a terminal-based user interface.
- *
- * This function prints the playlist items starting from the given node and iterates
- * through them up to the maximum number of items specified. The playlist rows are
- * displayed with optional color coding and formatting.
- *
- * @param row The starting row in the terminal where the playlist will be displayed.
- * @param col The starting column in the terminal where the playlist will be displayed.
- * @param list The playlist to display, containing the list of songs/nodes.
- * @param max_list_size The maximum number of playlist items to display.
- * @param chosen_song A pointer to the index of the currently selected song.
- * @param chosen_node_id A pointer to store the node ID of the selected song.
- * @param reset A flag indicating whether the playlist should be reset before displaying.
- *
- * @return The number of rows printed on the terminal.
- */
-int display_playlist(int row, int col, PlayList *list, int max_list_size,
-                     int *chosen_song, int *chosen_node_id, bool reset);
+// FIXME brief
+int determine_playlist_start(int *previous_start_iter, int found_at, int max_list_size,
+                             int *chosen_song, bool reset, bool end_of_list_reached);
+
+// FIXME brief
+Node *determine_start_node(Node *head, int *found_at, int list_size);
+
 
 /**
  * @brief Sets the state indicating that the end of the playlist has been reached.

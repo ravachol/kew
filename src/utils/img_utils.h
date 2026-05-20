@@ -13,7 +13,13 @@ typedef struct
         unsigned char r; /**< Red component (0–255). */
         unsigned char g; /**< Green component (0–255). */
         unsigned char b; /**< Blue component (0–255). */
+        int a; /**< Alpha component (0–255). */
 } PixelData;
+
+#define COLOR_DEFAULT      ((PixelData){ .r = 0, .g = 0, .b = 0, .a = -1 })
+#define COLOR_RGB(r, g, b) ((PixelData){ .r = r, .g = g, .b = b, .a = 255 })
+#define COLOR_RGBA(r,g,b,a)((PixelData){ .r = r, .g = g, .b = b, .a = a   })
+#define COLOR_IS_DEFAULT(c) ((c).a == -1)
 
 unsigned char *get_bitmap(const char *image_path, int *width, int *height);
 

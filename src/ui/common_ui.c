@@ -11,7 +11,6 @@
 #include "common_ui.h"
 
 #include "common/appstate.h"
-#include "common/common.h"
 #include "common/events.h"
 
 #include "data/theme.h"
@@ -41,52 +40,52 @@ void set_album_color(PixelData color)
 {
         if (color.r >= 210 && color.g >= 210 && color.b >= 210) {
                 AppState *state = get_app_state();
-                set_RGB(state->uiSettings.defaultColorRGB);
+                set_RGB(state->settings.defaultColorRGB);
         } else {
                 set_RGB(color);
         }
 }
 
-enum EventType get_mouse_action(int num)
+enum MsgType get_mouse_action(int num)
 {
-        enum EventType value = EVENT_NONE;
+        enum MsgType value = MSG_NONE;
 
         switch (num) {
         case 0:
-                value = EVENT_NONE;
+                value = MSG_NONE;
                 break;
         case 1:
-                value = EVENT_ENQUEUE;
+                value = MSG_ENQUEUE;
                 break;
         case 2:
-                value = EVENT_PLAY_PAUSE;
+                value = MSG_PLAY_PAUSE;
                 break;
         case 3:
-                value = EVENT_SCROLLUP;
+                value = MSG_SCROLLUP;
                 break;
         case 4:
-                value = EVENT_SCROLLDOWN;
+                value = MSG_SCROLLDOWN;
                 break;
         case 5:
-                value = EVENT_SEEKFORWARD;
+                value = MSG_SEEKFORWARD;
                 break;
         case 6:
-                value = EVENT_SEEKBACK;
+                value = MSG_SEEKBACK;
                 break;
         case 7:
-                value = EVENT_VOLUME_UP;
+                value = MSG_VOLUME_UP;
                 break;
         case 8:
-                value = EVENT_VOLUME_DOWN;
+                value = MSG_VOLUME_DOWN;
                 break;
         case 9:
-                value = EVENT_NEXTVIEW;
+                value = MSG_NEXTVIEW;
                 break;
         case 10:
-                value = EVENT_PREVVIEW;
+                value = MSG_PREVVIEW;
                 break;
         default:
-                value = EVENT_NONE;
+                value = MSG_NONE;
                 break;
         }
 
@@ -117,7 +116,7 @@ void transfer_settings_to_ui(void)
 {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
-        UISettings *ui = &(state->uiSettings);
+        UISettings *ui = &(state->settings);
 
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
@@ -192,7 +191,7 @@ void transfer_settings_to_ui(void)
 
         tmp = get_number(settings->mouseLeftClickAction);
 
-        enum EventType tmp_event = get_mouse_action(tmp);
+        enum MsgType tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseLeftClickAction = tmp_event;
 
@@ -415,7 +414,7 @@ void process_name_strip_suffix(const char *name, char *output)
 
 void process_name_strip_unneeded_chars(char *str)
 {
-        if (get_app_state()->uiSettings.stripTrackNumbers)
+        if (get_app_state()->settings.stripTrackNumbers)
                 format_filename(str);
 
         g_strstrip(str);
@@ -452,7 +451,7 @@ void process_name_scroll(const char *name, char *output, int max_width,
         if (scroll_delay_skipped_count <= start_scrolling_delay &&
             name_width > max_width) {
                 scroll_delay_skipped_count++;
-                trigger_refresh();
+                set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
                 is_long_name = true;
         }
 
@@ -471,7 +470,7 @@ void process_name_scroll(const char *name, char *output, int max_width,
                 g_free(tmp);
 
                 last_name_position++;
-                trigger_refresh();
+                set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
         }
 }
 
@@ -482,7 +481,7 @@ bool get_is_long_name()
 
 PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, bool reversed)
 {
-        PixelData pixel2;
+        PixelData pixel2 = {0};
 
         // Calculate how much each color can be lightened, based on how far the color is from white (255)
         float lightening_factor_r = (255 - pixel.r) / 255.0f;
@@ -521,15 +520,18 @@ PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, b
         pixel2.b = (current_b > 255) ? 255 : (current_b < 0) ? 0
                                                              : current_b;
 
+        pixel2.a = 255;
+
         return pixel2;
 }
 
 PixelData increase_luminosity(PixelData pixel, int amount)
 {
-        PixelData pixel2;
+        PixelData pixel2 = {0};
         pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
         pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
         pixel2.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
+        pixel2.a = 255;
 
         return pixel2;
 }
@@ -538,7 +540,7 @@ PixelData increase_luminosity(PixelData pixel, int amount)
 
 PixelData decrease_luminosity_pct(PixelData base, float pct)
 {
-        PixelData c;
+        PixelData c = {0};
 
         int r = (int)((float)base.r * pct);
         int g = (int)((float)base.g * pct);
@@ -547,6 +549,8 @@ PixelData decrease_luminosity_pct(PixelData base, float pct)
         c.r = (r < MIN_CHANNEL) ? MIN_CHANNEL : r;
         c.g = (g < MIN_CHANNEL) ? MIN_CHANNEL : g;
         c.b = (b < MIN_CHANNEL) ? MIN_CHANNEL : b;
+
+        c.a = 255;
 
         return c;
 }
@@ -574,3 +578,253 @@ PixelData get_gradient_color(PixelData base_color, int row, int max_list_size,
 
         return decrease_luminosity_pct(base_color, pct);
 }
+
+const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
+{
+        if (!lyrics || lyrics->count == 0)
+                return "";
+
+        static char line[1024];
+        line[0] = '\0';
+
+        double last_timestamp = -1.0;
+
+        for (size_t i = 0; i < lyrics->count; i++) {
+                double ts = lyrics->lines[i].timestamp;
+                const char *text = lyrics->lines[i].text;
+
+                if (elapsed_seconds < ts)
+                        break;
+
+                if (ts == last_timestamp) {
+                        // Same timestamp → append
+                        strncat(line, " | ", sizeof(line) - strlen(line) - 1);
+                        strncat(line, text, sizeof(line) - strlen(line) - 1);
+                } else {
+                        // New timestamp → start fresh
+                        snprintf(line, sizeof(line), "%s", text);
+                        last_timestamp = ts;
+                }
+        }
+
+        return line;
+}
+
+// Advance one UTF-8 codepoint, return it. *bytes_consumed is set to the
+// number of bytes eaten. Returns 0xFFFD on invalid sequences.
+uint32_t utf8_next(const char *s, int *bytes_consumed)
+{
+        unsigned char c = (unsigned char)*s;
+
+        if (c == 0) {
+                *bytes_consumed = 0;
+                return 0;
+        }
+        if (c < 0x80) {
+                *bytes_consumed = 1;
+                return c;
+        }
+        if (c < 0xC2) {
+                *bytes_consumed = 1;
+                return 0xFFFD;
+        } // continuation or overlong
+
+        int len;
+        uint32_t cp;
+
+        if (c < 0xE0) {
+                len = 2;
+                cp = c & 0x1F;
+        } else if (c < 0xF0) {
+                len = 3;
+                cp = c & 0x0F;
+        } else if (c < 0xF8) {
+                len = 4;
+                cp = c & 0x07;
+        } else {
+                *bytes_consumed = 1;
+                return 0xFFFD;
+        }
+
+        for (int i = 1; i < len; i++) {
+                unsigned char b = (unsigned char)s[i];
+                if ((b & 0xC0) != 0x80) {
+                        *bytes_consumed = i;
+                        return 0xFFFD;
+                }
+                cp = (cp << 6) | (b & 0x3F);
+        }
+
+        *bytes_consumed = len;
+        return cp;
+}
+
+int codepoint_display_width(uint32_t cp)
+{
+        int w = wcwidth((wchar_t)cp);
+        return (w > 0) ? w : 1; // treat non-printing as width 1
+}
+
+void draw_buffer_set_cell(DrawBuffer *buf,
+                          int row,
+                          int col,
+                          uint32_t cp,
+                          CellStyle style)
+{
+        if (!buf)
+                return;
+
+        if (row < 0 || row >= buf->rows)
+                return;
+
+        if (col < 0 || col >= buf->cols)
+                return;
+
+        int w = codepoint_display_width(cp);
+
+        if (col + w > buf->cols)
+                return;
+
+        Cell *anchor = &buf->cells[row * buf->cols + col];
+
+        anchor->codepoint = cp;
+        anchor->style.fg = style.fg;
+        anchor->style.bg = style.bg;
+        anchor->style.fgAnsi = style.fgAnsi;
+        anchor->style.bgAnsi = style.bgAnsi;
+        anchor->style.isAnsi = style.isAnsi;
+        anchor->attrs = style.attrs;
+        anchor->kind = CELL_NORMAL;
+
+        if (w == 2) {
+                Cell *cont =
+                    &buf->cells[row * buf->cols + col + 1];
+
+                cont->codepoint = 0;
+                cont->style = anchor->style;
+                cont->attrs = style.attrs;
+                cont->kind = CELL_WIDE_CONT;
+        }
+}
+
+// Write a UTF-8 string into the buffer at (row, col), stopping at
+// max_width display columns. Remaining columns up to max_width are
+// filled with spaces. Clips if row/col is outside the buffer.
+void draw_buffer_set_string_truncated(
+    DrawBuffer *restrict buf,
+    int row,
+    int col,
+    const char *restrict str,
+    int max_width,
+    CellStyle style)
+{
+    if ((unsigned)row >= (unsigned)buf->rows ||
+        (unsigned)col >= (unsigned)buf->cols)
+        return;
+
+    if (buf->dirty_rows)
+        buf->dirty_rows[row] = true;
+
+    int col_end = col + max_width;
+    if (col_end > buf->cols)
+        col_end = buf->cols;
+
+    Cell *cell = &buf->cells[row * buf->cols + col];
+    Cell *end  = &buf->cells[row * buf->cols + col_end];
+
+    const char *p = str;
+
+    while (cell < end && *p) {
+        int bytes;
+        uint32_t cp = utf8_next(p, &bytes);
+
+        if (bytes == 0)
+            break;
+
+        p += bytes;
+
+        int w = codepoint_display_width(cp);
+
+        if (cell + w > end)
+            break;
+
+        cell->codepoint = cp;
+        cell->style = style;
+        cell->attrs = style.attrs;
+        cell->kind = CELL_NORMAL;
+
+        if (w == 2) {
+            Cell *cont = cell + 1;
+
+            cont->codepoint = 0;
+            cont->style = style;
+            cont->attrs = style.attrs;
+            cont->kind = CELL_WIDE_CONT;
+        }
+
+        cell += w;
+    }
+
+    while (cell < end) {
+        cell->codepoint = ' ';
+        cell->style = style;
+        cell->attrs = ATTR_NONE;
+        cell->kind = CELL_NORMAL;
+        cell++;
+    }
+}
+
+void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
+                            const char *str, CellStyle style)
+{
+        int max_width = buf->cols - col;
+        draw_buffer_set_string_truncated(buf, row, col, str, max_width, style);
+}
+
+CellStyle cell_style_plain(void)
+{
+        return (CellStyle){.fg = COLOR_DEFAULT, .bg = COLOR_DEFAULT, .isAnsi = false, .attrs = ATTR_NONE};
+}
+
+CellStyle cell_style_fg(PixelData color)
+{
+        return (CellStyle){
+            .fg = color,
+            .bg = COLOR_DEFAULT,
+            .attrs = ATTR_NONE,
+        };
+}
+
+CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color)
+{
+        CellStyle style = cell_style_plain();
+        AppState *state = get_app_state();
+
+        switch (mode) {
+        case COLOR_MODE_ALBUM:
+
+                if (color.r >= state->settings.default_color &&
+                    color.g >= state->settings.default_color &&
+                    color.b >= state->settings.default_color) {
+
+                        style.fg = state->settings.defaultColorRGB;
+                } else {
+                        style.fg = color;
+                }
+                break;
+
+        case COLOR_MODE_THEME:
+        case COLOR_MODE_DEFAULT:
+
+                if (theme.type == COLOR_TYPE_RGB) {
+                        style.fg = theme.rgb;
+                } else {
+                        style.fgAnsi = theme.ansiIndex;
+                        style.isAnsi = true;
+                }
+                break;
+        }
+
+        return style;
+}
+
