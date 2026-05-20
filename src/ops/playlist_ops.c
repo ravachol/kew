@@ -10,6 +10,7 @@
 #include "playlist_ops.h"
 
 #include "common/common.h"
+#include "common/model.h"
 #include "playback_clock.h"
 #include "playback_ops.h"
 #include "playback_state.h"
@@ -24,7 +25,7 @@
 
 #include "sys/sys_integration.h"
 
-#include "ui/player_ui.h"
+#include "ui/render_ui.h"
 #include "utils/file.h"
 #include "utils/utils.h"
 
@@ -220,15 +221,14 @@ void remove_song(Node *node)
 
 void handle_remove(int chosen_row)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         Node *node = NULL;
 
-        if (state->currentView == PLAYLIST_VIEW) {
+        if (model->state.currentView == PLAYLIST_VIEW) {
                 node = find_selected_entry(unshuffled_playlist, chosen_row);
                 remove_song(node);
-                trigger_redraw_side_cover();
-                trigger_refresh();
+                set_dirty(DIRTY_PLAYLIST);
         } else {
                 Node *current = get_current_song();
                 if (current)
@@ -264,9 +264,7 @@ void add_to_favorites_playlist(void)
 }
 
 // Go through the display playlist and the shuffle playlist to remove all songs
-// except the current one. If no active song (if stopped rather than paused for
-// example) entire playlist will be removed
-void dequeue_all_except_playing_song(void)
+void dequeue_all(void)
 {
         bool clearAll = false;
         int current_id = -1;
@@ -277,7 +275,7 @@ void dequeue_all_except_playing_song(void)
         AppState *state = get_app_state();
 
         // If option is enabled, stop playback so clearAll becomes true.
-        if (state->uiSettings.clearListClearsAll) {
+        if (state->settings.clearListClearsAll) {
                 stop_and_clear_current_song();
                 current = NULL;
         }
@@ -332,8 +330,8 @@ void dequeue_all_except_playing_song(void)
         // Only refresh the screen if it makes sense to do so
         if (state->currentView == PLAYLIST_VIEW ||
             state->currentView == LIBRARY_VIEW ||
-            state->uiSettings.clearListClearsAll) {
-                trigger_refresh();
+            state->settings.clearListClearsAll) {
+                set_dirty(DIRTY_ALL);
         }
 }
 
@@ -401,7 +399,7 @@ void silent_switch_to_next(bool load_song)
 
         reset_clock();
 
-        trigger_refresh();
+        set_dirty(DIRTY_ALL);
 
         ps->skipping = false;
         ps->hasSilentlySwitched = true;
@@ -428,7 +426,8 @@ void silent_switch_to_prev(void)
         load_song(get_current_song(), true, false);
         finish_loading();
         reset_clock();
-        trigger_refresh();
+
+        set_dirty(DIRTY_ALL);
 
         ps->skipping = false;
         ps->nextSongNeedsRebuilding = true;
@@ -454,8 +453,10 @@ void skip_to_next_song(void)
                         clear_current_song();
                 } else if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING) {
                         stop();
+                        set_dirty(DIRTY_ALL);
                         return;
                 } else {
+                        set_dirty(DIRTY_VISUALIZER);
                         return;
                 }
         }
@@ -470,7 +471,7 @@ void skip_to_next_song(void)
         }
 
         if (is_shuffle_enabled())
-                state->uiState.resetPlaylistDisplay = true;
+                state->ui.resetPlaylistDisplay = true;
 
         double total_pause_seconds = get_total_pause_seconds();
         double pause_seconds = get_total_pause_seconds();
@@ -493,6 +494,7 @@ void skip_to_prev_song(void)
 
         if (skip_in_progress)
                 return;
+
         skip_in_progress = true;
 
         Node *current = get_current_song();
@@ -643,7 +645,6 @@ void repeat_list(void)
 void move_song_up(int *chosen_row)
 {
         AppState *state = get_app_state();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
@@ -653,7 +654,7 @@ void move_song_up(int *chosen_row)
 
         bool rebuild = false;
 
-        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
+        Node *node = find_selected_entry(playlist, *chosen_row);
 
         if (node == NULL) {
                 return;
@@ -683,11 +684,7 @@ void move_song_up(int *chosen_row)
                 }
         }
 
-        move_up_list(unshuffled_playlist, node);
-        Node *pl_node = find_selected_entry_by_id(playlist, node->id);
-
-        if (!is_shuffle_enabled())
-                move_up_list(playlist, pl_node);
+        move_up_list(playlist, node);
 
         *chosen_row = *chosen_row - 1;
         *chosen_row = (*chosen_row > 0) ? *chosen_row : 0;
@@ -705,14 +702,12 @@ void move_song_up(int *chosen_row)
 
         pthread_mutex_unlock(&(playlist->mutex));
 
-        trigger_redraw_side_cover();
-        trigger_refresh();
+        set_dirty(DIRTY_PLAYLIST);
 }
 
 void move_song_down(int *chosen_row)
 {
         AppState *state = get_app_state();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
@@ -722,7 +717,7 @@ void move_song_down(int *chosen_row)
 
         bool rebuild = false;
 
-        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
+        Node *node = find_selected_entry(playlist, *chosen_row);
 
         Node *current = get_current_song();
 
@@ -755,15 +750,11 @@ void move_song_down(int *chosen_row)
                 }
         }
 
-        move_down_list(unshuffled_playlist, node);
-        Node *pl_node = find_selected_entry_by_id(playlist, node->id);
-
-        if (!is_shuffle_enabled())
-                move_down_list(playlist, pl_node);
+        move_down_list(playlist, node);
 
         *chosen_row = *chosen_row + 1;
-        *chosen_row = (*chosen_row >= unshuffled_playlist->count)
-                          ? unshuffled_playlist->count - 1
+        *chosen_row = (*chosen_row >= playlist->count)
+                          ? playlist->count - 1
                           : *chosen_row;
 
         if (rebuild && current != NULL) {
@@ -778,8 +769,7 @@ void move_song_down(int *chosen_row)
 
         pthread_mutex_unlock(&(playlist->mutex));
 
-        trigger_redraw_side_cover();
-        trigger_refresh();
+        set_dirty(DIRTY_PLAYLIST);
 }
 
 void reshuffle_playlist(void)
@@ -833,8 +823,8 @@ Node *determine_next_song(PlayList *playlist)
                 }
 
                 // fallback if nothing else
-                if (state->uiState.startFromTop) {
-                        state->uiState.startFromTop = false;
+                if (state->ui.startFromTop) {
+                        state->ui.startFromTop = false;
                         return playlist->head;
                 } else {
                         return playlist->tail;
@@ -859,8 +849,8 @@ void play_post_processing(bool was_end_of_list)
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        if ((state->uiState.songWasRemoved && get_current_song() != NULL)) {
-                state->uiState.songWasRemoved = false;
+        if ((state->ui.songWasRemoved && get_current_song() != NULL)) {
+                state->ui.songWasRemoved = false;
         }
 
         if (was_end_of_list) {
@@ -891,12 +881,12 @@ void playlist_play(PlayList *playlist)
         Node *current = get_current_song();
 
         if (is_paused() && current != NULL &&
-            state->uiState.chosen_node_id == current->id) {
+            state->ui.chosen_node_id == current->id) {
                 ops_toggle_pause();
         } else {
                 Node *song = NULL;
                 find_node_in_list(playlist,
-                                  state->uiState.chosen_node_id,
+                                  state->ui.chosen_node_id,
                                   &song);
 
                 clear_and_play(song);
@@ -916,7 +906,7 @@ void play_favorites_playlist(void)
 
         FileSystemEntry *library = get_library();
 
-        deep_copy_play_list_onto_list(favorites_playlist, &playlist);
+        deep_copy_list(favorites_playlist, &playlist);
         shuffle_playlist(playlist);
 
         mark_list_as_enqueued(library, playlist);

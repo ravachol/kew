@@ -9,17 +9,18 @@
 #include "mpris.h"
 
 #include "common/common.h"
+#include "common/model.h"
 
+#include "common/events.h"
 #include "sys_integration.h"
 
 #include "ui/control_ui.h"
+#include "ui/input.h"
 
 #include "ops/playback_clock.h"
 #include "ops/playback_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playlist_ops.h"
-
-#include "sound/playback.h"
 
 #ifdef USE_MACOS_MEDIA
 #include "macos_nowplaying.h"
@@ -283,7 +284,7 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        if (!pb_is_stopped())
+        if (!is_stopped())
                 stop();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
@@ -303,7 +304,10 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        play();
+        if (get_current_song() == NULL)
+                dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
+        else
+                play();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -451,9 +455,9 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
 
         const gchar *status = "Stopped";
 
-        if (pb_is_paused()) {
+        if (is_paused()) {
                 status = "Paused";
-        } else if (get_current_song() == NULL || pb_is_stopped()) {
+        } else if (get_current_song() == NULL || is_stopped()) {
                 status = "Stopped";
         } else {
                 status = "Playing";
@@ -744,7 +748,9 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
-        if (get_current_song() == NULL)
+        Model *model = get_model();
+
+        if (get_current_song() == NULL && model->playlist->count == 0)
                 can_play = FALSE;
         else
                 can_play = TRUE;
@@ -935,7 +941,7 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         toggle_repeat();
                         return TRUE;
                 } else if (g_strcmp0(property_name, "Shuffle") == 0) {
-                        toggle_shuffle();
+                        toggle_shuffle(get_model());
                         return TRUE;
                 } else if (g_strcmp0(property_name, "Position") == 0) {
                         gint64 new_position;

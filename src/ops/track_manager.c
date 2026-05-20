@@ -10,11 +10,19 @@
 #include "track_manager.h"
 
 #include "common/appstate.h"
+#include "common/common.h"
 
+#include "playback_clock.h"
+#include "playback_ops.h"
+#include "playlist_ops.h"
+#include "playback_state.h"
 #include "playback_system.h"
 
 #include "sound/sound_facade.h"
 
+#include "sys/mpris.h"
+#include "sys/sys_integration.h"
+#include "utils/term.h"
 #include "utils/utils.h"
 
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
@@ -28,7 +36,10 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
                 return;
         }
 
-        sound_system_load(sound_sys, song->song.file_path, is_first_decoder, replace_next_song);
+        sound_result_t sound_result = sound_system_load(sound_sys, song->song.file_path, is_first_decoder, replace_next_song);
+
+        if (sound_result == SOUND_ERROR_SONG)
+                ps->songHasErrors = true;
 }
 
 void load_first_song(Node *song)
@@ -106,4 +117,196 @@ void autostart_if_stopped(const char *path)
         sound_system_set_end_of_list_reached(sound_sys, false);
         set_song_to_start_from(find_path_in_playlist(path, playlist));
         ps->lastPlayedId = -1;
+}
+
+void determine_song_and_notify(void)
+{
+        Model *model = get_model();
+        AppState *state = &model->state;
+        SongData *current_song_data = NULL;
+        bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
+        Node *current = get_current_song();
+        current_song_data = get_current_song_data();
+
+        if (current_song_data && current) {
+                current->song.duration = current_song_data->duration;
+        }
+
+        if (state->ui.lastNotifiedId != current->id) {
+                if (!isDeleted)
+                {
+                        notify_song_switch(current_song_data);
+
+                        set_dirty(DIRTY_ALL);
+                }
+        } else
+                get_playback_state()->notifySwitch = true;
+}
+
+void update_next_song_if_needed(void)
+{
+        load_next_song(true);
+        determine_song_and_notify();
+}
+
+void set_end_of_list_reached(void)
+{
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+
+        ps->skipping = false;
+        ps->skipOutOfOrder = false;
+
+        sound_system_set_end_of_list_reached(sound_sys, true);
+        start_playing(true);
+
+        clear_current_song();
+
+        uninit_device();
+
+        set_dirty(DIRTY_ALL);
+
+        if (is_repeat_list_enabled())
+                repeat_list();
+        else {
+                emit_playback_stopped_mpris();
+                emit_metadata_changed("", "", "", "",
+                                      "/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                                      NULL, 0);
+                state->currentView = LIBRARY_VIEW;
+        }
+}
+
+/**
+ * @brief Prepares and plays the specified song.
+ *
+ * This function sets up the player to play the specified song, unloads previous songs,
+ * and loads the new song. It then resumes playback, creating a playback device if needed.
+ *
+ * @param song Pointer to the song (Node) to be played.
+ *
+ * @return int Status of the operation: 0 on success, negative value on error.
+ */
+int prepare_and_play_song(Node *song)
+{
+        if (!song)
+                return -1;
+
+        set_current_song(song);
+
+        stop();
+
+        int res = load_first(get_current_song());
+
+        finish_loading();
+
+        if (res >= 0) {
+                resume_playback();
+        }
+
+        if (res < 0)
+                set_end_of_list_reached();
+
+        reset_clock();
+
+        return res;
+}
+
+void check_and_load_next_song(void)
+{
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+
+        if (should_start_playing()) {
+                PlayList *playlist = get_playlist();
+                if (playlist->head == NULL)
+                        return;
+
+                if (ps->waitingForPlaylist || ps->waitingForNext) {
+                        ps->songLoading = true;
+
+                        Node *next_song = determine_next_song(playlist);
+                        if (!next_song)
+                                return;
+
+                        start_playing(false);
+                        ps->waitingForPlaylist = false;
+                        ps->waitingForNext = false;
+                        state->ui.songWasRemoved = false;
+
+                        if (is_shuffle_enabled())
+                                reshuffle_playlist();
+
+                        int res = prepare_and_play_song(next_song);
+
+                        if (res < 0)
+                                set_end_of_list_reached();
+
+                        ps->loadedNextSong = false;
+                        set_next_song(NULL);
+                }
+        } else if (get_current_song() != NULL &&
+                   (ps->nextSongNeedsRebuilding || get_next_song() == NULL) &&
+                   !ps->songLoading) {
+                update_next_song_if_needed();
+        }
+}
+
+void prepare_next_song(void)
+{
+        Model *model = get_model();
+        AppState *state = &model->state;
+
+        reset_clock();
+        handle_skip_out_of_order();
+        finish_loading();
+
+        set_next_song(NULL);
+
+        set_dirty(DIRTY_ALL);
+
+        Node *current = get_current_song();
+
+        if (!is_repeat_enabled() || current == NULL) {
+
+                if (!sound_system_is_end_of_list_reached(sound_sys)) {
+                        PlaybackState *ps = get_playback_state();
+                        ps->loadedNextSong = false;
+                }
+        }
+
+        if (current == NULL) {
+                if (state->settings.quitAfterStopping) {
+                        quit();
+                } else {
+                        set_end_of_list_reached();
+                }
+        } else {
+                determine_song_and_notify();
+        }
+}
+
+void load_waiting_music(void)
+{
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
+
+        if (playlist->head != NULL) {
+                if ((ps->skipFromStopped || !ps->loadedNextSong ||
+                     ps->nextSongNeedsRebuilding) &&
+                    !sound_system_is_end_of_list_reached(sound_sys)) {
+                        check_and_load_next_song();
+                }
+
+                if (ps->songHasErrors)
+                        try_load_next();
+
+                if (is_EOF_reached()) {
+                        set_EOF_handled();
+                        prepare_next_song();
+                        switch_decoder();
+                }
+        } else {
+                set_EOF_handled();
+        }
 }
