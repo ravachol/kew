@@ -10,23 +10,10 @@
 #ifndef IMG_FUNC_H
 #define IMG_FUNC_H
 
+#include "common/model.h"
+
 #include <chafa.h>
 #include <stdbool.h>
-
-typedef struct
-{
-        gint width_cells, height_cells;
-        gint width_pixels, height_pixels;
-} TermSize;
-
-/**
- * Initializes TTY-specific settings.
- *
- * On Windows, enables ANSI escape sequence processing and
- * configures the console to use UTF-8 for input and output.
- * On other platforms, this function currently performs no action.
- */
-void tty_init(void);
 
 /**
  * Prints an image file as colored ASCII art.
@@ -71,6 +58,26 @@ int get_cover_color(unsigned char *pixels,
                     int *b);
 
 /**
+ * Draws a square bitmap image to a buffer using Chafa.
+ *
+ * Converts the RGBA pixel buffer into a printable terminal
+ * representation and renders it at the specified position.
+ * The width is adjusted to compensate for terminal cell
+ * aspect ratio.
+ *
+ * @param row         Starting row in the terminal
+ * @param col         Starting column in the terminal
+ * @param pixels      RGBA pixel buffer
+ * @param width       Image width in pixels
+ * @param height      Image height in pixels
+ * @param base_height Target height in terminal cells
+ * @param centered    Whether the output should be horizontally centered
+ */
+void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
+                               unsigned char *pixels, int width, int height, int max_width,
+                               int base_height, const TermSize *term_size, bool centered, size_t img_hash);
+
+/**
  * Returns the terminal cell aspect ratio.
  *
  * Calculates the ratio of cell height to cell width,
@@ -108,41 +115,6 @@ float calc_aspect_ratio(void);
 unsigned char *get_bitmap(const char *image_path,
                           int *width,
                           int *height);
-
-/**
- * Prints a square bitmap image in the terminal using Chafa.
- *
- * Converts the RGBA pixel buffer into a printable terminal
- * representation and renders it at the specified position.
- * The width is adjusted to compensate for terminal cell
- * aspect ratio.
- *
- * @param row         Starting row in the terminal
- * @param col         Starting column in the terminal
- * @param pixels      RGBA pixel buffer
- * @param width       Image width in pixels
- * @param height      Image height in pixels
- * @param base_height Target height in terminal cells
- * @param centered    Whether the output should be horizontally centered
- */
-void print_square_bitmap(int row,
-                         int col,
-                         unsigned char *pixels,
-                         int width,
-                         int height,
-                         int base_height,
-                         bool centered);
-
-/**
- * Retrieves the current terminal size.
- *
- * Fills the provided TermSize structure with terminal
- * dimensions in both character cells and pixels
- * (if available). Unsupported values are set to -1.
- *
- * @param term_size_out Output parameter receiving terminal size data
- */
-void get_tty_size(TermSize *term_size_out);
 
 #ifdef CHAFA_VERSION_1_16
 /**

@@ -126,9 +126,9 @@ void stop_playback(void)
                 sound_s->state = SOUND_STATE_STOPPED;
 }
 
-int sound_resume_playback(void)
+sound_result_t sound_resume_playback(void)
 {
-        int result = 0;
+        sound_result_t result = 0;
 
         if (!ma_device_is_started(&device)) {
                 if (ma_device_start(&device) != MA_SUCCESS) {
@@ -144,7 +144,7 @@ int sound_resume_playback(void)
 
         sound_s->state = SOUND_STATE_PLAYING;
 
-        return 0;
+        return result;
 }
 
 void pause_playback(void)
@@ -156,13 +156,17 @@ void pause_playback(void)
         sound_s->state = SOUND_STATE_PAUSED;
 }
 
-void toggle_pause_playback(void)
+sound_result_t toggle_pause_playback(void)
 {
+        sound_result_t result = SOUND_OK;
+
         if (ma_device_is_started(&device)) {
                 pause_playback();
         } else if (pb_is_paused() || pb_is_stopped()) {
-                sound_resume_playback();
+                result = sound_resume_playback();
         }
+
+        return result;
 }
 
 int init_playback_device(ma_context *context, sound_system_t *sound,

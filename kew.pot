@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 15:17+0100\n"
+"POT-Creation-Date: 2026-05-10 02:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/data/playlist.c:201
+#: src/data/playlist.c:202
 #, c-format
 msgid "Playlist too large to allocate.\n"
 msgstr ""
@@ -27,414 +27,417 @@ msgstr ""
 msgid "Memory allocation error.\n"
 msgstr ""
 
-#: src/data/playlist.c:287
+#: src/data/playlist.c:286
 #, c-format
 msgid "Failed to allocate memory."
 msgstr ""
 
-#: src/data/playlist.c:339
+#: src/data/playlist.c:338
 #, c-format
 msgid "Failed to open directory: %s\n"
 msgstr ""
 
-#: src/data/playlist.c:346
+#: src/data/playlist.c:345
 #, c-format
 msgid "Failed to compile regular expression\n"
 msgstr ""
 
-#: src/data/playlist.c:357
+#: src/data/playlist.c:356
 #, c-format
 msgid "Failed to scan directory: %s\n"
 msgstr ""
 
-#: src/data/playlist.c:641
+#: src/data/playlist.c:640
 #, c-format
 msgid "Music not found\n"
 msgstr ""
 
-#: src/ops/playlist_ops.c:921
+#: src/ops/playlist_ops.c:912
 #, c-format
 msgid ""
 "Couldn't find any songs in the special playlist. Add a song by pressing '.' "
 "while it's playing. \n"
 msgstr ""
 
-#: src/sound/sound.c:575
-#, c-format
-msgid ""
-"\n"
-"\n"
-"Failed to initialize opus file.\n"
-msgstr ""
-
-#: src/sound/sound.c:599
-#, c-format
-msgid ""
-"\n"
-"\n"
-"Failed to initialize webm file.\n"
-msgstr ""
-
-#: src/sys/mpris.c:1047
+#: src/sys/mpris.c:1054
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
 msgstr ""
 
-#: src/ui/cli.c:141
+#: src/ui/search_ui.c:333
+#, c-format
+msgid "   Search: "
+msgstr ""
+
+#: src/ui/cli.c:143
 #, c-format
 msgid "Music Library: "
 msgstr ""
 
-#: src/ui/cli.c:146
+#: src/ui/cli.c:148
 #, c-format
 msgid ""
 "Is this correct? Press Enter.\n"
 "\n"
 msgstr ""
 
-#: src/ui/cli.c:148
+#: src/ui/cli.c:150
 #, c-format
 msgid ""
 "Or type a path:\n"
 "\n"
 msgstr ""
 
-#: src/ui/cli.c:155 src/ui/cli.c:179
+#: src/ui/cli.c:157 src/ui/cli.c:181
 #, c-format
 msgid "Error reading input.\n"
 msgstr ""
 
-#: src/ui/cli.c:173
+#: src/ui/cli.c:175
 #, c-format
 msgid ""
 "Type a path:\n"
 "\n"
 msgstr ""
 
-#: src/ui/search_ui.c:297
-#, c-format
-msgid "   Search: "
-msgstr ""
-
-#: src/ui/player_ui.c:300
+#: src/ui/player_ui.c:196
 #, c-format
 msgid "Run man kew for help.\n"
 msgstr ""
 
-#: src/ui/player_ui.c:523 src/ui/player_ui.c:1033
+#: src/ui/player_ui.c:420 src/ui/player_ui.c:885
 #, c-format
 msgid "   kew version: "
 msgstr ""
 
-#: src/ui/player_ui.c:901
-#, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr ""
-
-#: src/ui/player_ui.c:1073
+#: src/ui/player_ui.c:926
 #, c-format
 msgid " Theme: "
 msgstr ""
 
-#: src/ui/player_ui.c:1077
+#: src/ui/player_ui.c:930
 #, c-format
 msgid "Using "
 msgstr ""
 
-#: src/ui/player_ui.c:1079
+#: src/ui/player_ui.c:932
 #, c-format
 msgid "Colors "
 msgstr ""
 
-#: src/ui/player_ui.c:1081
+#: src/ui/player_ui.c:934
 #, c-format
 msgid "From Track Covers"
 msgstr ""
 
-#: src/ui/player_ui.c:1089
+#: src/ui/player_ui.c:942
 #, c-format
 msgid " Author: "
 msgstr ""
 
-#: src/ui/player_ui.c:1096
+#: src/ui/player_ui.c:949
 #, c-format
 msgid " · Play/Pause: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1099
+#: src/ui/player_ui.c:952
 #, c-format
 msgid " · Enqueue/Dequeue: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1102
+#: src/ui/player_ui.c:955
 #, c-format
 msgid " · Enqueue and Play: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1105
+#: src/ui/player_ui.c:958
 #, c-format
 msgid " · Quit: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1108
+#: src/ui/player_ui.c:961
 #, c-format
 msgid " · Switch tracks: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1110
+#: src/ui/player_ui.c:963
 #, c-format
 msgid " and %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1114
+#: src/ui/player_ui.c:967
 #, c-format
 msgid " · Volume: %s "
 msgstr ""
 
-#: src/ui/player_ui.c:1115
+#: src/ui/player_ui.c:968
 #, c-format
 msgid "and %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1118
+#: src/ui/player_ui.c:971
 #, c-format
 msgid " · Scroll: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1119
+#: src/ui/player_ui.c:972
 #, c-format
 msgid ", %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1122
+#: src/ui/player_ui.c:975
 #, c-format
 msgid " · Clear List: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1125
+#: src/ui/player_ui.c:978
 #, c-format
 msgid " · Remove from playlist: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1128
+#: src/ui/player_ui.c:981
 #, c-format
 msgid " · Move songs: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1129
+#: src/ui/player_ui.c:982
 #, c-format
 msgid "/%s"
 msgstr ""
 
-#: src/ui/player_ui.c:1132
+#: src/ui/player_ui.c:985
 #, c-format
 msgid " · Change View: %s or "
 msgstr ""
 
-#: src/ui/player_ui.c:1140
+#: src/ui/player_ui.c:993
 #, c-format
 msgid " or click the footer"
 msgstr ""
 
-#: src/ui/player_ui.c:1144
+#: src/ui/player_ui.c:997
 #, c-format
 msgid " · Cycle Color Mode: %s (default theme, theme or cover colors)"
 msgstr ""
 
-#: src/ui/player_ui.c:1148
+#: src/ui/player_ui.c:1001
 #, c-format
 msgid " · Cycle Themes: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1151
+#: src/ui/player_ui.c:1004
 #, c-format
 msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
 msgstr ""
 
-#: src/ui/player_ui.c:1154
+#: src/ui/player_ui.c:1007
 #, c-format
 msgid " · Stop: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1157
+#: src/ui/player_ui.c:1010
 #, c-format
 msgid " · Update Library: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1160
+#: src/ui/player_ui.c:1013
 #, c-format
 msgid " · Sort Library: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1163
+#: src/ui/player_ui.c:1016
 #, c-format
 msgid " · Toggle Visualizer: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1166
+#: src/ui/player_ui.c:1019
 #, c-format
 msgid " · Toggle ASCII Cover: %s (disables Chroma)"
 msgstr ""
 
-#: src/ui/player_ui.c:1169
+#: src/ui/player_ui.c:1022
 #, c-format
 msgid " · Toggle Lyrics Page on Track View: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1172
+#: src/ui/player_ui.c:1025
 #, c-format
 msgid " · Toggle Notifications: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1175
+#: src/ui/player_ui.c:1028
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr ""
 
-#: src/ui/player_ui.c:1179
+#: src/ui/player_ui.c:1032
 #, c-format
 msgid " · Shuffle: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1182
+#: src/ui/player_ui.c:1035
 #, c-format
 msgid " · Seek: %s and"
 msgstr ""
 
-#: src/ui/player_ui.c:1183
+#: src/ui/player_ui.c:1036
 #, c-format
 msgid " %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1186
+#: src/ui/player_ui.c:1039
 #, c-format
 msgid " · Export Playlist: %s (named after the first song)"
 msgstr ""
 
-#: src/ui/player_ui.c:1190
+#: src/ui/player_ui.c:1043
 #, c-format
 msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
 msgstr ""
 
-#: src/ui/player_ui.c:1196
+#: src/ui/player_ui.c:1049
 #, c-format
 msgid " Project URL: "
 msgstr ""
 
-#: src/ui/player_ui.c:1202
+#: src/ui/player_ui.c:1055
 #, c-format
 msgid " Please Donate: "
 msgstr ""
 
-#: src/ui/player_ui.c:1415
+#: src/ui/player_ui.c:1274
 #, c-format
 msgid " Select:↑/↓ or k/j."
 msgstr ""
 
-#: src/ui/player_ui.c:1416
+#: src/ui/player_ui.c:1275
 #, c-format
 msgid " Accept:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1417
+#: src/ui/player_ui.c:1276
 #, c-format
 msgid " Clear:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1422 src/ui/player_ui.c:2099
+#: src/ui/player_ui.c:1281 src/ui/player_ui.c:1931
 #, c-format
 msgid " Scroll:PgUp/PgDn."
 msgstr ""
 
-#: src/ui/player_ui.c:1424 src/ui/player_ui.c:2101
+#: src/ui/player_ui.c:1283 src/ui/player_ui.c:1933
 #, c-format
 msgid " Scroll:Fn+↑/↓."
 msgstr ""
 
-#: src/ui/player_ui.c:1426
+#: src/ui/player_ui.c:1285
 #, c-format
 msgid " Remove:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1427
+#: src/ui/player_ui.c:1286
 #, c-format
 msgid " Move songs:%s"
 msgstr ""
 
-#: src/ui/player_ui.c:1428
+#: src/ui/player_ui.c:1287
 #, c-format
 msgid "/%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1465 src/ui/player_ui.c:2092
+#: src/ui/player_ui.c:1328 src/ui/player_ui.c:1924
 #, c-format
 msgid " Select:↑/↓."
 msgstr ""
 
-#: src/ui/player_ui.c:1466
+#: src/ui/player_ui.c:1329
 #, c-format
 msgid " Enqueue:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1467 src/ui/player_ui.c:2094
+#: src/ui/player_ui.c:1330 src/ui/player_ui.c:1926
 #, c-format
 msgid " Play:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1517
+#: src/ui/player_ui.c:1382
 #, c-format
 msgid "   ─ PLAYLIST ─"
 msgstr ""
 
-#: src/ui/player_ui.c:1841
+#: src/ui/player_ui.c:1709
 msgid "─ MUSIC LIBRARY ─"
 msgstr ""
 
-#: src/ui/player_ui.c:2093
+#: src/ui/player_ui.c:1925
 #, c-format
 msgid " Enqueue/Dequeue:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:2103
+#: src/ui/player_ui.c:1935
 #, c-format
 msgid " Update:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:2104
+#: src/ui/player_ui.c:1936
 #, c-format
 msgid " Sort:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:2202
+#: src/ui/player_ui.c:2062
 #, c-format
 msgid " No lyrics available. Press %s to go back."
 msgstr ""
 
-#: src/kew.c:389
-msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
+#: src/ui/player_ui.c:2793
+#, c-format
+msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
 msgstr ""
 
-#: src/kew.c:563
+#: src/ui/player_ui.c:2798
+#, c-format
+msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s."
+msgstr ""
+
+#: src/ui/player_ui.c:2800
+#, c-format
+msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s."
+msgstr ""
+
+#: src/ui/player_ui.c:2814
+msgid "  ─ PLAYLIST ─"
+msgstr ""
+
+#: src/ui/player_ui.c:3245
+#, c-format
+msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
+msgstr ""
+
+#: src/kew.c:206
 #, c-format
 msgid "No Music found.\n"
 msgstr ""
 
-#: src/kew.c:564
+#: src/kew.c:207
 #, c-format
 msgid "Please make sure the path is set correctly. \n"
 msgstr ""
 
-#: src/kew.c:565
+#: src/kew.c:208
 #, c-format
 msgid "To set it type: kew path \"/path/to/Music\". \n"
 msgstr ""
 
-#: src/kew.c:567
+#: src/kew.c:210
 #, c-format
 msgid "Music not found.\n"
 msgstr ""
 
-#: src/kew.c:571
+#: src/kew.c:214
 #, c-format
 msgid "%s\n"
+msgstr ""
+
+#: src/kew.c:411
+msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr ""

@@ -91,3 +91,21 @@ void autostart_if_stopped(const char *path);
  * @return 0 on success, -1 if no playable song could be loaded.
  */
 int load_first(Node *song);
+
+/**
+ * @brief Checks and loads the next song if necessary.
+ *
+ * This function checks if a song needs to be loaded, either due to a restart or if the
+ * playlist is in shuffle mode. It prepares and loads the next song in the playlist if needed.
+ */
+ void check_and_load_next_song(void);
+
+/**
+ * @brief Loads the next song if needed, considering the current state of the playlist and player.
+ *
+ * This function loads the next song from the playlist if the current song has finished or
+ * if the player is waiting for the next song. It handles various conditions, including
+ * handling end-of-list behavior and errors.
+ */
+ void load_waiting_music(void);
+
