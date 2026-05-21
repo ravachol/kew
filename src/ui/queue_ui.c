@@ -85,19 +85,17 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                                                    // the root
                                                 shuffle = true;
 
-                                        has_enqueued = enqueue_children_sorted(entry->children, &first_enqueued_entry);
+                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
 
                                         ps->nextSongNeedsRebuilding = true;
                                 } else if (!dont_dequeue) {
                                         dequeue_children(entry);
 
                                         ps->nextSongNeedsRebuilding = true;
-                                } else
-                                {
-                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
                                 }
                         }
 
+                        // FIXME move this stuff out of here and into update_view_state functions in update.c
                         if (state->currentView == LIBRARY_VIEW && state->ui.current_lib_entry && state->ui.current_lib_entry->is_directory)
                                 *chosen_dir = state->ui.current_lib_entry;
 
@@ -331,6 +329,7 @@ void view_enqueue(bool play_immediately)
         }
 
         if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW) {
+
                 if (state->currentView == LIBRARY_VIEW)
                         entry = state->ui.current_lib_entry;
                 else {
