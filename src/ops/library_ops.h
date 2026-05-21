@@ -133,7 +133,7 @@ int enqueue_album(FileSystemEntry *firstChild,
                   FileSystemEntry **first_enqueued);
 
 /**
- * @brief Recursively enqueue all songs under a directory.
+ * @brief Recursively enqueue all songs under a directory, with the option to be sorted by album, disc and track number.
  *
  * Traverses the subtree starting at the given entry and enqueues all
  * non-playlist song files. Optionally returns the first enqueued entry.
@@ -141,26 +141,13 @@ int enqueue_album(FileSystemEntry *firstChild,
  * @param child Root of the subtree to enqueue.
  * @param first_enqueued_entry Output parameter that receives the first
  *                             enqueued FileSystemEntry, if any.
+ * @param sort if true, sort by album, disc and track number
  *
  * @return 1 if at least one entry was enqueued, 0 otherwise.
  */
 int enqueue_children(FileSystemEntry *child,
-                     FileSystemEntry **first_enqueued_entry);
-
-/**
- * @brief Recursively enqueue all songs under a directory, sorted by album and track number.
- *
- * Traverses the subtree starting at the given entry and enqueues
- * albums when a leaf is reached, using enqueue_album()
- *
- * @param child Root of the subtree to enqueue.
- * @param first_enqueued_entry Output parameter that receives the first
- *                             enqueued FileSystemEntry, if any.
- *
- * @return 1 if at least one entry was enqueued, 0 otherwise.
- */
-int enqueue_children_sorted(FileSystemEntry *child,
-                     FileSystemEntry **first_enqueued_entry);
+                     FileSystemEntry **first_enqueued_entry,
+                     bool sort);
 
 /**
  * @brief Mark a specific entry as dequeued by path.
