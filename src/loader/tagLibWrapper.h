@@ -57,20 +57,16 @@ extern "C" {
 int extractTags(const char *input_file, TagSettings *tag_settings,
                 double *duration, const char *cover_file_path, Lyrics **lyrics);
 
-int getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc);
-
-uint32_t pullTrackNumber(const char *input_file);
-
 /*
- * @brief Extracts disc number from tags
+ * @brief Extracts disc and track number from tags
  *
  * @param filepath full file path
- * @param max if true, returns the total discs instead of current disc
- *
- * @return Always returns 1, unless max is true, then the total discs is returned,
- *          or the TPOS field states that it is a disc other than 1
+ * @param track A pointer to the variable where the extracted track number will be stored
+ * @param disc A pointer to the variable where the extracted disc number will be stored
  */
-uint32_t pullDiscNumber(const char *filepath, bool max);
+void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc);
+
+
 #ifdef __cplusplus
 }
 #endif
