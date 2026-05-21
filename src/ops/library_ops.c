@@ -584,7 +584,7 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
         }
 
         int* counterArray = calloc(numberOfDiscs, sizeof(int));
-        
+
         while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
                 if (!entry->is_directory && is_music_file(entry->name)) {
                     int track_disc_number = pullDiscNumber(entry->full_path, false);
