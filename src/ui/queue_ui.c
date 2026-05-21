@@ -117,15 +117,10 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                         if (entry->parent == NULL) // Shuffle playlist if it's
                                                                    // the root
                                                 shuffle = true;
-
-                                        if (count_music_files_in_directory(entry) > MAX_SORT_SIZE ||
-                                            check_songs_for_track_number(entry) // songs are already ordered if track number is in name
-                                        ) {
-                                            has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
-                                        }
-                                        else {
-                                            has_enqueued = enqueue_children_sorted(entry->children, &first_enqueued_entry);
-                                        }
+                                        bool sort = !(count_music_files_in_directory(entry) > MAX_SORT_SIZE ||
+                                                      check_songs_for_track_number(entry) // songs are already ordered if track number is in name
+                                                     );
+                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry, sort);
 
                                         ps->nextSongNeedsRebuilding = true;
                                 } else if (!dont_dequeue) {

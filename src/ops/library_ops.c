@@ -623,8 +623,10 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
         return has_enqueued;
 }
 
+
 int enqueue_children(FileSystemEntry *child,
-                     FileSystemEntry **first_enqueued_entry)
+                     FileSystemEntry **first_enqueued_entry,
+                     bool sort)
 {
         int has_enqueued = 0;
 
@@ -636,53 +638,21 @@ int enqueue_children(FileSystemEntry *child,
         while (child != NULL) {
                 if (child->is_directory) {
                         if (child->children != NULL) {
-                                child->is_enqueued = enqueue_children(child->children, first_enqueued_entry);
+                                child->is_enqueued = enqueue_children(child->children, first_enqueued_entry, sort);
 
                                 if (child->is_enqueued >= 1)
                                         has_enqueued = 1;
                         }
                 } else if (!is_m3u_file(child)) {
 
-                        if (*first_enqueued_entry == NULL)
+                        if (*first_enqueued_entry == NULL && !sort)
                                 *first_enqueued_entry = child;
 
                         if (!child->is_enqueued) {
-
-                                enqueue_song(child);
-                        }
-
-                        has_enqueued = 1;
-                }
-
-                child = child->next;
-        }
-
-        set_childrens_queued_status_on_parents(parent, true);
-
-        return has_enqueued;
-}
-
-int enqueue_children_sorted(FileSystemEntry *child,
-                     FileSystemEntry **first_enqueued_entry)
-{
-        int has_enqueued = 0;
-
-        if (!child)
-                return has_enqueued;
-
-        FileSystemEntry *parent = child->parent;
-
-        while (child != NULL) {
-                if (child->is_directory) {
-                        if (child->children != NULL) {
-                                child->is_enqueued = enqueue_children_sorted(child->children, first_enqueued_entry);
-
-                                if (child->is_enqueued >= 1)
-                                        has_enqueued = 1;
-                        }
-                } else if (!is_m3u_file(child)) {
-                        if (!child->is_enqueued) {
-                                enqueue_album(child, first_enqueued_entry);
+                                if (sort)
+                                    enqueue_album(child, first_enqueued_entry);
+                                else
+                                    enqueue_song(child);
                         }
 
                         has_enqueued = 1;
