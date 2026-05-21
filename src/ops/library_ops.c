@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <glib.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 
@@ -561,13 +562,6 @@ void dequeue_children(FileSystemEntry *parent)
         set_childrens_queued_status_on_parents(parent, false);
 }
 
-int compare_tracks_from_pointer(const void* trackA, const void* trackB) {
-    FileSystemEntry* track1 = *(FileSystemEntry**)trackA;
-    FileSystemEntry* track2 = *(FileSystemEntry**)trackB;
-
-    return track1->track_number - track2->track_number;
-}
-
 int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
 {
         int has_enqueued = 0;
@@ -575,49 +569,33 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
             return has_enqueued;
 
         FileSystemEntry *entry = firstChild;
-        int numberOfEntries = 0, numberOfDiscs = 1;
-        numberOfDiscs = pullDiscNumber(firstChild->full_path, true);
-        int max_disk_size = MAX_SORT_SIZE / numberOfDiscs;
+        int numberOfEntries = 0;
 
-        FileSystemEntry*** discArray = calloc(numberOfDiscs, sizeof(FileSystemEntry **));
-        for (int i = 0; i < numberOfDiscs; i++) {
-            discArray[i] = calloc(max_disk_size, sizeof(FileSystemEntry *));
-        }
-
-        int* counterArray = calloc(numberOfDiscs, sizeof(int));
+        FileSystemEntry* discArray[MAX_SORT_SIZE] = {0};
 
         while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
-                if (entry->is_directory || !is_music_file(entry->name)) {
-                    continue;
+                if (!entry->is_directory && is_music_file(entry->name)) {
+                        uint32_t disc_number = 0, track_number = 0;
+                        getTrackInfo(entry->full_path, &track_number, &disc_number);
+
+                        entry->track_number = track_number;
+                        entry->disc_number = disc_number;
+                        discArray[numberOfEntries] = entry;
+
+                        numberOfEntries++;
+                        entry = entry->next;
                 }
-                uint32_t disc_number = 0, track_number = 0;
-                getTrackInfo(entry->full_path, &track_number, &disc_number);
-                int *counterPos = disc_number == 0 ? counterArray : counterArray + (disc_number - 1);
-
-                entry->track_number = track_number;
-                discArray[disc_number - 1][*counterPos] = entry;
-                *counterPos = *counterPos < max_disk_size ? *counterPos + 1: *counterPos;
-                numberOfEntries++;
-                entry = entry->next;
         }
 
-        for (int i = 0; i < numberOfDiscs; i++) {
-            qsort(discArray[i], counterArray[i], sizeof(FileSystemEntry *), compare_tracks_from_pointer);
-        }
+        qsort(discArray, numberOfEntries, sizeof(FileSystemEntry *), compare_tracks_from_pointer);
 
         if (*first_enqueued == NULL) {
-            *first_enqueued = discArray[0][0];
+            *first_enqueued = discArray[0];
         }
 
-        for (int i = 0; i < numberOfDiscs; i++) {
-            for (int j = 0; j < counterArray[i]; j++) {
-                enqueue_song(discArray[i][j]);
-            }
-            free(discArray[i]);
+        for (int i = 0; i < numberOfEntries; i++) {
+            enqueue_song(discArray[i]);
         }
-        free(discArray);
-        free(counterArray);
-
 
         has_enqueued = 1;
         return has_enqueued;
