@@ -24,11 +24,6 @@
 #include <wchar.h>
 
 static unsigned int update_counter = 0;
-static const int start_scrolling_delay = 10;
-static bool finished_scrolling = false;
-static int last_name_position = 0;
-static bool is_long_name = false;
-static int scroll_delay_skipped_count = 0;
 
 void set_RGB(PixelData p)
 {
@@ -293,14 +288,6 @@ void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color)
         }
 }
 
-void reset_name_scroll()
-{
-        last_name_position = 0;
-        is_long_name = false;
-        finished_scrolling = false;
-        scroll_delay_skipped_count = 0;
-}
-
 /*
  * Markus Kuhn -- 2007-05-26 (Unicode 5.0)
  *
@@ -441,42 +428,22 @@ void process_name(const char *name, char *output, int max_width,
         str_truncate_display_width(output, output, max_width);
 }
 
-void process_name_scroll(const char *name, char *output, int max_width,
-                         bool is_same_name_as_last_time)
+int process_name_scroll(const Model *model, const char *name, char *output, int max_width)
 {
         process_name_strip_suffix(name, output);
         process_name_strip_unneeded_chars(output);
+
         int name_width = str_calculate_display_width(output);
 
-        if (scroll_delay_skipped_count <= start_scrolling_delay &&
-            name_width > max_width) {
-                scroll_delay_skipped_count++;
-                set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
-                is_long_name = true;
-        }
-
-        int start = (is_same_name_as_last_time) ? last_name_position : 0;
-
-        if (finished_scrolling || name_width <= max_width) {
+        if (name_width < max_width - 1) {
                 process_name(name, output, max_width, true, true);
-        } else {
-                is_long_name = true;
-                if (str_calculate_display_width(g_utf8_offset_to_pointer(output, start)) < max_width) {
-                        finished_scrolling = true;
-                }
-
-                gchar *tmp = g_utf8_substring(output, start, -1);
+        } else if (model->name_scroll.frame + max_width <= name_width) {
+                gchar *tmp = g_utf8_substring(output,  model->name_scroll.frame, -1);
                 str_truncate_display_width(tmp, output, max_width);
                 g_free(tmp);
-
-                last_name_position++;
-                set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
         }
-}
 
-bool get_is_long_name()
-{
-        return is_long_name;
+        return name_width;
 }
 
 PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, bool reversed)

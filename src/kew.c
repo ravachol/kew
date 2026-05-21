@@ -611,6 +611,7 @@ void init_state(void)
         state->ui.chosen_dir = NULL;
         state->ui.aspect_ratio = 0;
         state->ui.visualizer_width = 0;
+        state->ui.previous_chosen_song = -1;
 
         state->ui.start_lib_iter = 0;
         state->ui.chosen_lib_row = 0;

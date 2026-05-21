@@ -349,7 +349,7 @@ typedef struct
 typedef struct {
         int start_lib_iter;
         FileSystemEntry *chosen_dir;
-        bool is_same_name_as_last_time;
+        int previous_chosen_row;
 } TreeContext;
 
 /**
@@ -620,14 +620,9 @@ typedef struct {
         bool active;
         int frame;
         int num_frames;
+        int pre_anim_delay_frame;
         PixelData color;
-} GlimmerState;
-
-typedef struct {
-        bool active;
-        int frame;
-        int num_frames;
-} TitleDelayState;
+} AnimationState;
 
 typedef struct
 {
@@ -690,9 +685,11 @@ typedef struct Model {
 
         volatile sig_atomic_t dirty;
 
-        GlimmerState glimmer;
+        AnimationState glimmer;
 
-        TitleDelayState title_delay;
+        AnimationState title_delay;
+
+        AnimationState name_scroll;
 
         SearchResult *search_results;
 

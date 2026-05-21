@@ -1,9 +1,14 @@
 #include "update.h"
+
 #include "common/appstate.h"
 #include "common/common.h"
 #include "common/events.h"
 #include "common/model.h"
+
+#include "anims.h"
+
 #include "data/directorytree.h"
+
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
 #include "ops/playback_state.h"
@@ -52,22 +57,6 @@ size_t string_hash(const char *str)
         return hash;
 }
 
-void start_glimmer(Model *model)
-{
-        if (model->state.settings.hideGlimmeringText >= 1)
-                return;
-
-        model->glimmer.active = true;
-        model->glimmer.frame = 0;
-
-        char text[100] = "";
-        get_footer_text(text, sizeof(text));
-
-        model->glimmer.num_frames = strnlen(text, sizeof(text)) + 1; // one extra frame that displays the cursor
-
-        set_dirty(DIRTY_FOOTER);
-}
-
 void set_lyrics_line(Model *model)
 {
         if (model->songdata_ok)
@@ -83,32 +72,6 @@ void set_lyrics_line(Model *model)
 
         strncpy(prev_line, model->state.ui.lyrics_line, sizeof(prev_line) - 1);
         prev_line[sizeof(prev_line) - 1] = '\0';
-}
-
-void advance_animations(Model *model)
-{
-        int random_number = get_random_number(1, 808);
-
-        if (model->glimmer.active) {
-
-                model->glimmer.frame += 3;
-                if (model->glimmer.frame > model->glimmer.num_frames)
-                        model->glimmer.active = false;
-
-                set_dirty(DIRTY_FOOTER);
-        }
-
-        if (model->title_delay.active) {
-
-                model->title_delay.frame += 2;
-                if (model->title_delay.frame > model->title_delay.num_frames)
-                        model->title_delay.active = false;
-
-                set_dirty(DIRTY_TITLE);
-        }
-
-        if (!model->glimmer.active && random_number == 808 && !model->state.settings.hideGlimmeringText)
-                start_glimmer(model);
 }
 
 int parse_volume_arg(const char *arg_str)
@@ -250,8 +213,7 @@ void scroll_next(Model *model)
                         component_search_helper_collapse_view(model, model->state.ui.current_search_entry, 1);
 
                 set_dirty(DIRTY_SEARCH);
-        }
-        else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
+        } else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
                 model->state.ui.chosen_lyrics_row++;
         }
 }
@@ -285,8 +247,7 @@ void scroll_prev(Model *model)
                         component_search_helper_collapse_view(model, model->state.ui.current_search_entry, -1);
 
                 set_dirty(DIRTY_SEARCH);
-        }
-        else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
+        } else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
                 model->state.ui.chosen_lyrics_row--;
         }
 }
@@ -377,6 +338,10 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->songdata_ok = (model->songdata && model->songdata->metadata &&
                                       !model->songdata->hasErrors && (model->songdata->hasErrors < 1));
 
+                advance_title_delay_anim(model);
+                advance_name_scroll_anim(model);
+                advance_glimmer_anim(model);
+
                 if (!model->songdata_ok && model->state.currentView == TRACK_VIEW)
                         switch_view(LIBRARY_VIEW);
 
@@ -402,8 +367,6 @@ UpdateResult update(Model *model, struct Msg *msg)
                         set_dirty(DIRTY_VISUALIZER);
 
                 set_lyrics_line(model);
-
-                advance_animations(model);
 
                 if (is_refresh_triggered()) {
 
@@ -645,6 +608,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->state.ui.chosen_lib_row = msg->chosen_lib_row;
                 model->state.ui.current_lib_entry = msg->current_lib_entry;
                 model->state.ui.lib_row_count = msg->num_lib_rows;
+                if (model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256))
+                        model->name_scroll.active = false;
                 break;
 
         case MSG_SEARCH_ROW_SELECTED:
