@@ -219,8 +219,8 @@ void component_library_helper_reset(Model *model)
         model->state.ui.chosen_lib_row = 0;
 
         model->state.ui.treeCtx.chosen_dir = NULL;
-        model->state.ui.treeCtx.is_same_name_as_last_time = false;
         model->state.ui.treeCtx.start_lib_iter = 0;
+        model->state.ui.treeCtx.previous_chosen_row = -1;
 
         model->state.ui.current_lib_entry = NULL;
         model->state.ui.current_search_entry = NULL;
@@ -351,41 +351,37 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                         // Directory
                         if (entry->is_directory) {
-                                char dir_name[name_width * 4 + 1];
+                                char dir_name[256];
+                                char orig_name[256];
                                 dir_name[0] = '\0';
 
-                                if (strcmp(entry->name, "root") == 0) {
-                                        snprintf(dir_name, sizeof(dir_name), "%s", _("─ MUSIC LIBRARY ─"));
-                                } else {
-                                        str_truncate_display_width(entry->name, dir_name, name_width);
+                                snprintf(orig_name, sizeof(orig_name), "%s", entry->name);
+
+                                if (strcmp(orig_name, "root") == 0) {
+                                        snprintf(orig_name, sizeof(orig_name), "%s", _("─ MUSIC LIBRARY ─"));
                                 }
 
                                 if (depth == 1) {
-                                        char *upper = string_to_upper(dir_name);
-                                        draw_buffer_set_string(buf, draw_row, text_col, upper, item_style);
+                                        char *upper = string_to_upper(orig_name);
+                                        snprintf(orig_name, sizeof(orig_name), "%s", upper);
                                         free(upper);
-                                } else {
-                                        draw_buffer_set_string(buf, draw_row, text_col, dir_name, item_style);
                                 }
 
-                                // File
-                        } else {
-                                char filename[name_width * 4 + 1];
-                                filename[0] = '\0';
+                                snprintf(dir_name, sizeof(dir_name), "%s", orig_name);
 
                                 if (found_chosen != NULL)
-                                        process_name_scroll(entry->name, filename,
-                                                            name_width, model->state.ui.treeCtx.is_same_name_as_last_time);
+                                        process_name_scroll(model, orig_name, dir_name, name_width);
                                 else
-                                        process_name(entry->name, filename, name_width, true, true);
+                                        process_name(orig_name, dir_name, name_width, true, true);
 
+                                draw_buffer_set_string(buf, draw_row, text_col, dir_name, item_style);
+
+                        // File
+                        } else {
                                 // "└─ " prefix for files
                                 CellStyle file_style = item_style;
                                 if (is_playing && !is_chosen)
                                         file_style.attrs |= ATTR_UNDERLINE;
-
-                                draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
-                                text_col += 3;
 
                                 // playlist icon
                                 if (is_m3u_file(entry)) {
@@ -394,8 +390,22 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                         name_width -= 2;
                                 }
 
-                                draw_buffer_set_string_truncated(buf, draw_row, text_col,
-                                                                 filename, name_width, file_style);
+                                draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
+                                text_col += 3;
+                                name_width -= 3;
+
+                                char filename[name_width * 4 + 1];
+                                filename[0] = '\0';
+
+                                str_truncate_display_width(entry->name, filename, name_width);
+
+                                if (found_chosen != NULL)
+                                        process_name_scroll(model, entry->name, filename, name_width);
+                                else
+                                        process_name(entry->name, filename, name_width, true, true);
+
+
+                                draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
                         }
 
                         (*row_count)++;
@@ -426,7 +436,6 @@ void component_library_helper_update_view_state(Model *model)
 {
         TreeContext *ctx = &model->state.ui.treeCtx;
 
-        ctx->is_same_name_as_last_time = false,
         ctx->chosen_dir = model->state.ui.chosen_dir;
 
         ctx->start_lib_iter = 0;
@@ -565,7 +574,7 @@ bool is_ascii_only(const char *text)
 
 static void render_glimmer_frame(const Model *model, DrawBuffer *buf, const char *text, int text_length,
                                  const char *icons, PixelData color, int row, int col,
-                                 const GlimmerState *g, int max_width, CellStyle style)
+                                 const AnimationState *g, int max_width, CellStyle style)
 {
         if (!is_ascii_only(text))
                 return;
@@ -1273,10 +1282,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 int max_name_width = region.width - (col - region.col);
 
-                bool same_name = (model->state.ui.previous_chosen_song == uis->chosen_row);
-
                 if (is_chosen) {
-                        process_name_scroll(buffer, filename, max_name_width, same_name);
+                        process_name_scroll(model, buffer, filename, max_name_width);
                 } else {
                         process_name(buffer, filename, max_name_width, true, true);
                 }
@@ -2281,7 +2288,7 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         if (model->library == NULL)
                 return result;
 
-        int max_name_width = region.width - 10;
+        int max_name_width = region.width - 2;
         if (max_name_width < 0)
                 max_name_width = 0;
 

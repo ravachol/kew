@@ -81,16 +81,7 @@ void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color);
  * @param max_width The maximum width for the name.
  * @param is_same_name_as_last_time Boolean flag indicating if the name is the same as the previous one.
  */
-void process_name_scroll(const char *name, char *output, int max_width, bool is_same_name_as_last_time);
-
-/**
- * @brief Resets the name scrolling state.
- *
- * This function resets all variables related to name scrolling, including
- * the scroll position and any flags that determine if the name is long
- * enough to require scrolling.
- */
-void reset_name_scroll(void);
+int process_name_scroll(const Model *model, const char *name, char *output, int max_width);
 
 /**
  * @brief Resets the terminal color.
