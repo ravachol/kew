@@ -2,15 +2,21 @@
 
 ## 4.1.0
 
+kew 4.1 comes with a complete rewrite of the UI sub system. It now uses the popular Model-View-Update pattern and is structured around components. People can make their own layouts, too. Described in kewlayoutrc, which gets copied to .config/kew after you run kew. If cloning from git you also need to run sudo make install first. There's an altkewlayoutrc that has a different layout for kew.
+
 #### Enhancements
 
 - Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
+
 - Scrolling lyrics on lyrics page (press m) By @petoem. Suggested by @kewIT.
+
 
 #### Bugfixes
 
-There are no bugs. It's an illusion.
 
+#### Refactor
+
+- Centralize PATH_MAX into common/path_max.h. By @hartalex.
 
 ## 4.0.0 LOVE IS GONNA SAVE US EDITION
 
