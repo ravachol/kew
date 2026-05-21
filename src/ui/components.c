@@ -735,7 +735,7 @@ static int draw_cover_ascii(const TermSize *term_size, const char *path, int row
         return 0;
 }
 
-ComponentResult component_side_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const AppState *state = &model->state;
         const SongData *songdata = model->songdata;
@@ -743,7 +743,7 @@ ComponentResult component_side_cover(const Model *model, k_Rect region, DrawBuff
         const TermSize *term_size = &model->term_size;
 
         if (ui->hideSideCover || !songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         int indent = region.width * 4 / 5;
         int cover_indent = indent / 8;
@@ -771,14 +771,14 @@ ComponentResult component_side_cover(const Model *model, k_Rect region, DrawBuff
         }
 
         if (target_height <= MIN_COVER_SIZE)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Use region as base — row is centered within region, col is offset from region.col
         int row = region.row + lroundf((float)region.height / 2.0f - (float)target_height / 2.0f);
         int col = region.col + cover_indent + 3;
 
         if (corrected_width <= 0 || target_height <= 0)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         if (ui->coverAnsi) {
                 draw_cover_ascii(term_size, songdata->cover_art_path,
@@ -797,10 +797,10 @@ ComponentResult component_side_cover(const Model *model, k_Rect region, DrawBuff
                                           model->current_hash);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -810,7 +810,7 @@ ComponentResult component_cover(const Model *model, k_Rect region, DrawBuffer *b
         int row = region.row == 0 ? 1 : region.row; // Always print at least one row down
 
         if (!state->settings.coverEnabled || !songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         if (state->settings.coverAnsi) {
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
@@ -829,10 +829,10 @@ ComponentResult component_cover(const Model *model, k_Rect region, DrawBuffer *b
                                           model->current_hash);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_cover_centered(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -840,7 +840,7 @@ ComponentResult component_cover_centered(const Model *model, k_Rect region, Draw
         SongData *songdata = model->songdata;
 
         if (!state->settings.coverEnabled || !songdata || !songdata->cover)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         if (state->settings.coverAnsi) {
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
@@ -859,10 +859,10 @@ ComponentResult component_cover_centered(const Model *model, k_Rect region, Draw
                                           model->current_hash);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const AppState *state = &model->state;
         SongData *songdata = model->songdata;
@@ -870,7 +870,7 @@ ComponentResult component_landscape_cover(const Model *model, k_Rect region, Dra
         const TermSize *term_size = &model->term_size;
 
         if (ui->hideSideCover || !songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         int cover_indent = 1;
 
@@ -894,7 +894,7 @@ ComponentResult component_landscape_cover(const Model *model, k_Rect region, Dra
         }
 
         if (target_height <= MIN_COVER_SIZE)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Use region as base, row is centered within region, col is offset from region.col
         int row = region.row + lroundf((float)region.height / 2.0f - (float)target_height / 2.0f) + 1;
@@ -911,7 +911,7 @@ ComponentResult component_landscape_cover(const Model *model, k_Rect region, Dra
         }
 
         if (corrected_width <= 0 || target_height <= 0)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         if (ui->coverAnsi) {
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
@@ -930,26 +930,26 @@ ComponentResult component_landscape_cover(const Model *model, k_Rect region, Dra
                                           model->current_hash);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_now_playing(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_now_playing(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         bool show_artist = false;
         now_playing(show_artist, model, region, buf, dirty);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_now_playing_and_artist(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_now_playing_and_artist(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         bool show_artist = true;
         now_playing(show_artist, model, region, buf, dirty);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_logo_art(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_logo_art(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -975,10 +975,10 @@ ComponentResult component_logo_art(const Model *model, k_Rect region, DrawBuffer
                 draw_buffer_set_string(buf, row, region.col, LOGO[i], style);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_logo(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_logo(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const UISettings *ui = &model->state.settings;
 
@@ -1001,10 +1001,10 @@ ComponentResult component_logo(const Model *model, k_Rect region, DrawBuffer *bu
         };
         component_now_playing(model, header_rect, buf, dirty);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_footer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1012,10 +1012,10 @@ ComponentResult component_footer(const Model *model, k_Rect region, DrawBuffer *
         const UIState *uis = &model->state.ui;
 
         if (model->preferred_width < 0 || model->preferred_height < 0)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         if (ui->hideFooter)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Footer Color
         PixelData f_color = model->state.settings.footer_color;
@@ -1091,14 +1091,14 @@ ComponentResult component_footer(const Model *model, k_Rect region, DrawBuffer *
                 draw_buffer_set_string_truncated(buf, region.row, region.col,
                                                  android_line, region.width, style);
 #endif
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
         }
 
         if (model->glimmer.active) {
                 int text_length = strnlen(text, sizeof(text));
                 render_glimmer_frame(model, buf, text, text_length, icons, f_color, region.row,
                                      region.col, &model->glimmer, region.width, style);
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
         }
 
         char full_line[256];
@@ -1106,10 +1106,10 @@ ComponentResult component_footer(const Model *model, k_Rect region, DrawBuffer *
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          full_line, region.width, style);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_error_row(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1123,14 +1123,14 @@ ComponentResult component_error_row(const Model *model, k_Rect region, DrawBuffe
                 snprintf(msg, sizeof(msg), " %s", get_error_message());
                 draw_buffer_set_string_truncated(buf, region.row, region.col,
                                                  msg, region.width, style);
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
         }
 
         // Write blanks to clear any previous message
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          "", region.width, style);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
 void move_start_node_into_position(Model *model, int found_at, Node **start_node)
@@ -1178,7 +1178,7 @@ void component_playlist_helper_update_view_state(Model *model)
         }
 }
 
-ComponentResult component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1187,7 +1187,7 @@ ComponentResult component_playlist_rows(const Model *model, k_Rect region, DrawB
         const UIState *uis = &model->state.ui;
 
         if (!list)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         unsigned char def = ui->default_color;
 
@@ -1307,10 +1307,10 @@ ComponentResult component_playlist_rows(const Model *model, k_Rect region, DrawB
                 printed++;
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_playlist_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1347,10 +1347,10 @@ ComponentResult component_playlist_header(const Model *model, k_Rect region, Dra
 
         draw_buffer_set_string(buf, row, col, _(" ─ PLAYLIST ─"), style2);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_library_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1382,10 +1382,10 @@ ComponentResult component_library_header(const Model *model, k_Rect region, Draw
                 draw_buffer_set_string(buf, row + 1, col, line2, style);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_search_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1407,10 +1407,10 @@ ComponentResult component_search_header(const Model *model, k_Rect region, DrawB
                 draw_buffer_set_string(buf, row, col, line1, style);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_metadata(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1418,7 +1418,7 @@ ComponentResult component_metadata(const Model *model, k_Rect region, DrawBuffer
         SongData *songdata = model->songdata;
 
         if (!songdata || !songdata->metadata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         TagSettings *metadata = songdata->metadata;
         int max_width = region.width; // -1 for the leading space
@@ -1521,10 +1521,10 @@ ComponentResult component_metadata(const Model *model, k_Rect region, DrawBuffer
                 }
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_progress_bar(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1585,7 +1585,7 @@ ComponentResult component_progress_bar(const Model *model, k_Rect region, DrawBu
                 draw_col++;
         }
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
 
         result.has_msg = true;
         result.msg = (struct Msg){
@@ -1595,7 +1595,7 @@ ComponentResult component_progress_bar(const Model *model, k_Rect region, DrawBu
         return result;
 }
 
-ComponentResult component_time(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1604,7 +1604,7 @@ ComponentResult component_time(const Model *model, k_Rect region, DrawBuffer *bu
 
         int progress_width = 39;
         if (region.width < progress_width)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         double elapsed_seconds = model->elapsed_seconds;
         double total_seconds = get_current_song_duration();
@@ -1661,10 +1661,10 @@ ComponentResult component_time(const Model *model, k_Rect region, DrawBuffer *bu
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          line, region.width, style);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_visualizer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1672,7 +1672,7 @@ ComponentResult component_visualizer(const Model *model, k_Rect region, DrawBuff
         const UISettings *ui = &state->settings;
 
         if (!ui->visualizerEnabled)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         int height = region.height;
 
@@ -1681,15 +1681,15 @@ ComponentResult component_visualizer(const Model *model, k_Rect region, DrawBuff
                 height = region.height;
 
         if (height < 2)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         draw_spectrum_visualizer_to_buf(model, buf, sound_sys, region.row, region.col,
                                         height, region.width);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf,
+ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf,
                                              DirtyFlags dirty)
 {
         (void)dirty;
@@ -1698,7 +1698,7 @@ ComponentResult component_timestamped_lyrics(const Model *model, k_Rect region, 
         const UISettings *ui = &model->state.settings;
 
         if (!songdata || !songdata->lyrics || songdata->lyrics->isTimed != 1)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         CellStyle style = cell_style_from_color(ui->colorMode,
                                                 ui->theme.trackview_lyrics,
@@ -1706,17 +1706,17 @@ ComponentResult component_timestamped_lyrics(const Model *model, k_Rect region, 
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          model->state.ui.lyrics_line, region.width, style);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_track_landscape_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
         SongData *songdata = model->songdata;
 
         if (!songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         int height = region.height;
         int metadata_height = 4;
@@ -1776,7 +1776,7 @@ ComponentResult component_track_landscape_normal(const Model *model, k_Rect regi
                         component_timestamped_lyrics(model, lyrics_rect, buf, dirty);
         }
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
         // Visualizer
         if (height >= metadata_height + time_height + lyrics_height + visualizer_height) {
 
@@ -1803,7 +1803,7 @@ ComponentResult component_track_landscape_normal(const Model *model, k_Rect regi
         return result;
 }
 
-ComponentResult component_lyrics_page(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1811,7 +1811,7 @@ ComponentResult component_lyrics_page(const Model *model, k_Rect region, DrawBuf
         SongData *songdata = model->songdata;
 
         if (!songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         Lyrics *lyrics = songdata->lyrics;
 
@@ -1823,7 +1823,7 @@ ComponentResult component_lyrics_page(const Model *model, k_Rect region, DrawBuf
                 CellStyle plain = cell_style_plain();
                 draw_buffer_set_string_truncated(buf, region.row, region.col,
                                                  msg, region.width, plain);
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
         }
 
         double seconds = model->elapsed_seconds;
@@ -1883,7 +1883,7 @@ ComponentResult component_lyrics_page(const Model *model, k_Rect region, DrawBuf
                                                  "", region.width, plain);
         }
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
 
         if (offset_result >= 0) {
                 result.has_msg = true;
@@ -1895,12 +1895,12 @@ ComponentResult component_lyrics_page(const Model *model, k_Rect region, DrawBuf
         return result;
 }
 
-ComponentResult component_track_portrait_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_portrait_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         SongData *songdata = model->songdata;
 
         if (!songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Now playing header
         k_Rect header_rect = {
@@ -1918,17 +1918,17 @@ ComponentResult component_track_portrait_lyrics(const Model *model, k_Rect regio
             .width = region.width,
             .height = region.height - 2,
         };
-        ComponentResult result = component_lyrics_page(model, lyrics_rect, buf, dirty);
+        ComponentMsg result = component_lyrics_page(model, lyrics_rect, buf, dirty);
 
         return result;
 }
 
-ComponentResult component_track_landscape_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_landscape_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         SongData *songdata = model->songdata;
 
         if (!songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Now playing header
         k_Rect header_rect = {
@@ -1946,16 +1946,16 @@ ComponentResult component_track_landscape_lyrics(const Model *model, k_Rect regi
             .width = region.width,
             .height = region.height - 3,
         };
-        ComponentResult result = component_lyrics_page(model, lyrics_rect, buf, dirty);
+        ComponentMsg result = component_lyrics_page(model, lyrics_rect, buf, dirty);
 
         return result;
 }
 
-ComponentResult component_track_landscape(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const AppState *state = &model->state;
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
         if (state->ui.showLyricsPage)
                 result = component_track_landscape_lyrics(model, region, buf, dirty);
         else
@@ -1964,7 +1964,7 @@ ComponentResult component_track_landscape(const Model *model, k_Rect region, Dra
         return result;
 }
 
-ComponentResult component_vis_and_progress_bar(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
@@ -1989,7 +1989,7 @@ ComponentResult component_vis_and_progress_bar(const Model *model, k_Rect region
                 component_visualizer(model, viz_rect, buf, dirty);
 
         // Progress bar
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
         k_Rect progress_rect = {
             .row = region.row + viz_rect.height,
             .col = region.col,
@@ -2002,12 +2002,12 @@ ComponentResult component_vis_and_progress_bar(const Model *model, k_Rect region
         return result;
 }
 
-ComponentResult component_track_portrait_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         SongData *songdata = model->songdata;
 
         if (!songdata)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         int visualizer_width = model->state.ui.visualizer_width;
         int visualizer_height = model->state.settings.visualizer_height;
@@ -2055,7 +2055,7 @@ ComponentResult component_track_portrait_normal(const Model *model, k_Rect regio
         if (dirty & DIRTY_VISUALIZER && songdata->lyrics && songdata->lyrics->isTimed)
                 component_timestamped_lyrics(model, lyrics_rect, buf, dirty);
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
         // Visualizer
         k_Rect viz_rect = {
             .row = meta_row + metadata_height + 2,
@@ -2069,11 +2069,11 @@ ComponentResult component_track_portrait_normal(const Model *model, k_Rect regio
         return result;
 }
 
-ComponentResult component_track_portrait(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_portrait(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const AppState *state = &model->state;
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
         if (state->ui.showLyricsPage)
                 result = component_track_portrait_lyrics(model, region, buf, dirty);
         else
@@ -2082,17 +2082,17 @@ ComponentResult component_track_portrait(const Model *model, k_Rect region, Draw
         return result;
 }
 
-ComponentResult component_track_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
         (void)model;
         CellStyle plain = cell_style_plain();
         draw_buffer_set_string(buf, region.row, region.col, " ", plain);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_empty(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_empty(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)model;
         (void)dirty;
@@ -2103,17 +2103,17 @@ ComponentResult component_empty(const Model *model, k_Rect region, DrawBuffer *b
                 draw_buffer_set_string(buf, region.row + r, region.col, " ", plain);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_track(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_track(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
-        ComponentResult result = component_track_portrait(model, region, buf, dirty);
+        ComponentMsg result = component_track_portrait(model, region, buf, dirty);
 
         return result;
 }
 
-ComponentResult component_version(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
         const UISettings *ui = &model->state.settings;
@@ -2126,10 +2126,10 @@ ComponentResult component_version(const Model *model, k_Rect region, DrawBuffer 
                                region.col + (int)strlen(label),
                                ui->VERSION, version_style);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_help(const Model *model, k_Rect region, DrawBuffer *buf,
+ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                                DirtyFlags dirty)
 {
         (void)dirty;
@@ -2170,13 +2170,13 @@ ComponentResult component_help(const Model *model, k_Rect region, DrawBuffer *bu
         }
         row += 2;
         if (row >= region.row + region.height)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
 // Keybinding lines
 #define HELP_LINE(fmt, ...)                                                                      \
         do {                                                                                     \
                 if (row >= region.row + region.height)                                           \
-                        return (ComponentResult){0};                                             \
+                        return (ComponentMsg){0};                                             \
                 char _line[512];                                                                 \
                 snprintf(_line, sizeof(_line), fmt, ##__VA_ARGS__);                              \
                 draw_buffer_set_string_truncated(buf, row++, col, _line, max_width, help_style); \
@@ -2247,7 +2247,7 @@ ComponentResult component_help(const Model *model, k_Rect region, DrawBuffer *bu
 
         row += 2;
         if (row >= region.row + region.height)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Project links
         draw_buffer_set_string(buf, row, col, _(" Project URL: "), help_style);
@@ -2255,28 +2255,28 @@ ComponentResult component_help(const Model *model, k_Rect region, DrawBuffer *bu
                                "https://codeberg.org/ravachol/kew", link_style);
         row++;
         if (row >= region.row + region.height)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         draw_buffer_set_string(buf, row, col, _(" Please Donate: "), help_style);
         draw_buffer_set_string(buf, row, col + (int)strlen(_(" Please Donate: ")),
                                "https://ko-fi.com/ravachol", link_style);
         row += 3;
         if (row >= region.row + region.height)
-                return (ComponentResult){0};
+                return (ComponentMsg){0};
 
         // Copyright
         draw_buffer_set_string_truncated(buf, row, col,
                                          " Copyright © 2022-2026 Ravachol",
                                          max_width, text_style);
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
-ComponentResult component_library_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
 
         if (model->library == NULL)
                 return result;
@@ -2311,7 +2311,7 @@ ComponentResult component_library_rows(const Model *model, k_Rect region, DrawBu
         return result;
 }
 
-ComponentResult component_search_box(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -2327,7 +2327,7 @@ ComponentResult component_search_box(const Model *model, k_Rect region, DrawBuff
         draw_buffer_set_string_truncated(buf, region.row, region.col, line, max_width, style);
         draw_buffer_set_string(buf, region.row + 2, region.col, "", style); // blank line below
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }
 
 void component_search_helper_collapse_view(Model *model, FileSystemEntry *previous_entry, int diff_rows)
@@ -2359,11 +2359,11 @@ void component_search_helper_collapse_view(Model *model, FileSystemEntry *previo
         }
 }
 
-ComponentResult component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
-        ComponentResult result = (ComponentResult){0};
+        ComponentMsg result = (ComponentMsg){0};
 
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
@@ -2523,7 +2523,7 @@ ComponentResult component_search_results(const Model *model, k_Rect region, Draw
         return result;
 }
 
-ComponentResult component_search(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_search(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         const UISettings *ui = &model->state.settings;
 
@@ -2567,5 +2567,5 @@ ComponentResult component_search(const Model *model, k_Rect region, DrawBuffer *
                 component_search_results(model, search_results_rect, buf, dirty);
         }
 
-        return (ComponentResult){0};
+        return (ComponentMsg){0};
 }

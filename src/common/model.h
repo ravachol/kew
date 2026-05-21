@@ -144,9 +144,9 @@ typedef struct Model Model;
 typedef struct {
     bool has_msg;
     struct Msg msg;
-} ComponentResult;
+} ComponentMsg;
 
-typedef ComponentResult (*ComponentFn)(
+typedef ComponentMsg (*ComponentFn)(
     const Model *model,
     k_Rect region,
     DrawBuffer *buf,

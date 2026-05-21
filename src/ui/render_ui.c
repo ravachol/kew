@@ -1116,7 +1116,7 @@ void layout_render_dirty(const Layout *layout,
                                         ctx->render_search = true;
                                 }
 
-                                ComponentResult result = pane->fn(model, pane->region, buf, model->dirty);
+                                ComponentMsg result = pane->fn(model, pane->region, buf, model->dirty);
 
                                 if (result.has_msg)
                                         dispatch_msg(result.msg);
