@@ -1037,6 +1037,20 @@ int compare_tracks(const void* trackA, const void* trackB) {
     return ((FileSystemEntry*)trackA)->track_number - ((FileSystemEntry*)trackB)->track_number;
 }
 
+int compare_tracks_from_pointer(const void* trackA, const void* trackB) {
+    FileSystemEntry* track1 = *(FileSystemEntry**)trackA;
+    FileSystemEntry* track2 = *(FileSystemEntry**)trackB;
+
+    if (track1->disc_number == track2->disc_number) {
+        return track1->track_number - track2->track_number;
+    }
+    
+    if (track1->disc_number > track2->disc_number) {
+        return 1;
+    }
+    else return -1;
+
+}
 
 void add_album_to_play_list_unsorted(PlayList *list, FileSystemEntry *album, int playlist_max)
 {
@@ -1053,21 +1067,28 @@ void add_album_to_play_list_unsorted(PlayList *list, FileSystemEntry *album, int
 void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlist_max)
 {
         FileSystemEntry *entry = album->children;
-        FileSystemEntry entriesList[playlist_max];
+        FileSystemEntry* entriesList[playlist_max];
         int numberOfEntries = 0;
 
         while (entry != NULL && list->count < playlist_max) {
                 if (!entry->is_directory && is_music_file(entry->name)) {
-                    entriesList[numberOfEntries] = *entry;
-                    entriesList[numberOfEntries].track_number = pullTrackNumber(entry->full_path);
+                        uint32_t disc_number = 0, track_number = 0;
+                        getTrackInfo(entry->full_path, &track_number, &disc_number);
+
+                        entry->track_number = track_number;
+                        entry->disc_number = disc_number;
+                        entriesList[numberOfEntries] = entry;
+
+                        numberOfEntries++;
+                        entry = entry->next;
                 }
                 entry = entry->next;
                 numberOfEntries++;
         }
-        qsort(entriesList, numberOfEntries, sizeof(FileSystemEntry), compare_tracks);
+        qsort(entriesList, numberOfEntries, sizeof(FileSystemEntry *), compare_tracks_from_pointer);
 
         for (int i = 0; i < numberOfEntries; i++) {
-            add_song_to_play_list(list, entriesList[i].full_path, playlist_max);
+            add_song_to_play_list(list, entriesList[i]->full_path, playlist_max);
         }
 }
 

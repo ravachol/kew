@@ -28,6 +28,7 @@ typedef struct FileSystemEntry {
         int is_enqueued;
         int parent_id;
         int track_number;
+        int disc_number;
         struct FileSystemEntry *parent;
         struct FileSystemEntry *children;
         struct FileSystemEntry *next;      // For siblings (next node in the same directory)
@@ -41,6 +42,7 @@ typedef void (*SlowloadingCallback)(void);
 #endif
 
 #define MAX_SORT_SIZE 256
+#define MAX_DISKS 16
 
 /**
  * Creates a directory tree starting at the given path.
