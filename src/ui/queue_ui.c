@@ -93,6 +93,13 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
                                         ps->nextSongNeedsRebuilding = true;
                                 }
+                                else {
+                                        if (entry->parent == NULL) // Shuffle playlist if it's
+                                                                   // the root
+                                                shuffle = true;
+
+                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
+                                }
                         }
 
                         // FIXME move this stuff out of here and into update_view_state functions in update.c
