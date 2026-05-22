@@ -8,7 +8,7 @@ void start_glimmer(Model *model)
                 return;
 
         model->glimmer.active = true;
-        model->glimmer.frame = 0;
+        model->glimmer.frame = -1;
 
         char text[100] = "";
         get_footer_text(text, sizeof(text));
@@ -27,7 +27,7 @@ void start_title_delay(Model *model)
                 return;
 
         model->title_delay.active = true;
-        model->title_delay.frame = 0;
+        model->title_delay.frame = -1;
         model->title_delay.num_frames = strnlen(model->songdata->metadata->title, sizeof(model->songdata->metadata->title));
 
         set_dirty(DIRTY_TITLE | DIRTY_VISUALIZER);
@@ -37,7 +37,7 @@ void reset_animation(AnimationState *anim)
 {
         anim->active = false;
         anim->color = (PixelData){0};
-        anim->frame = 0;
+        anim->frame = -1;
         anim->num_frames = 0;
         anim->pre_anim_delay_frame = 0;
 }
@@ -106,7 +106,7 @@ void advance_title_delay_anim(Model *model)
 {
         if (model->title_delay.active) {
 
-                model->title_delay.frame += 2;
+                model->title_delay.frame += 1;
                 if (model->title_delay.frame > model->title_delay.num_frames)
                         model->title_delay.active = false;
 
