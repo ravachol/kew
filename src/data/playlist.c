@@ -176,8 +176,6 @@ void empty_playlist(PlayList *list)
         if (list == NULL)
                 return;
 
-        pthread_mutex_lock(&list->mutex);
-
         Node *current = list->head;
         while (current != NULL) {
                 Node *next = current->next;
@@ -189,8 +187,6 @@ void empty_playlist(PlayList *list)
         list->head = NULL;
         list->tail = NULL;
         list->count = 0;
-
-        pthread_mutex_unlock(&list->mutex);
 }
 
 void shuffle_playlist(PlayList *playlist)
