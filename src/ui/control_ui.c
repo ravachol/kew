@@ -299,7 +299,25 @@ void toggle_shuffle(Model *model)
 
                 if (model->playlist && model->unshuffled_playlist) {
 
-                        deep_copy_list(model->unshuffled_playlist, &model->playlist);
+                        PlayList *old_playlist = model->playlist;
+
+                        PlayList *new_playlist = NULL;
+
+                        create_playlist(&new_playlist);
+
+                        if (!new_playlist) {
+                                return;
+                        }
+
+                        deep_copy_list(model->unshuffled_playlist, &new_playlist);
+
+                        pthread_mutex_lock(&(model->playlist->mutex));
+
+                        model->playlist = new_playlist;
+
+                        pthread_mutex_unlock(&(model->playlist->mutex));
+
+                        free_playlist(&old_playlist);
                 }
 
                 if (current != NULL) {
