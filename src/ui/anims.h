@@ -5,6 +5,8 @@
 
 void start_glimmer(Model *model);
 
+void start_title_delay(Model *model);
+
 void reset_animation(AnimationState *anim);
 
 void advance_name_scroll_anim(Model *model);
