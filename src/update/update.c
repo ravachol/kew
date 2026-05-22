@@ -608,7 +608,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->state.ui.chosen_lib_row = msg->chosen_lib_row;
                 model->state.ui.current_lib_entry = msg->current_lib_entry;
                 model->state.ui.lib_row_count = msg->num_lib_rows;
-                if (model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256))
+                if (model->state.ui.current_lib_entry && model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256))
                         model->name_scroll.active = false;
                 break;
 
