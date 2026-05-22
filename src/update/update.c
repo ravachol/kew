@@ -5,7 +5,7 @@
 #include "common/events.h"
 #include "common/model.h"
 
-#include "anims.h"
+
 
 #include "data/directorytree.h"
 
@@ -16,8 +16,8 @@
 
 #include "sys/sys_integration.h"
 
-#include "ui/common_ui.h" // FIXME remove dep
-
+#include "ui/anims.h"
+#include "ui/common_ui.h"
 #include "ui/components.h"
 
 #include "utils/utils.h"
@@ -623,6 +623,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_START_TITLE_ANIM:
                 model->state.ui.num_progress_bars = msg->num_progress_bars;
+                start_title_delay(model);
                 break;
 
         case MSG_TOGGLEFOLDERDISPLAY:
