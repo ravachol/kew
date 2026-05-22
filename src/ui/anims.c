@@ -18,6 +18,21 @@ void start_glimmer(Model *model)
         set_dirty(DIRTY_FOOTER);
 }
 
+void start_title_delay(Model *model)
+{
+        if (model->state.settings.titleDelay <= 0 || !model->songdata_ok)
+                return;
+
+        if (model->is_paused || model->is_stopped)
+                return;
+
+        model->title_delay.active = true;
+        model->title_delay.frame = 0;
+        model->title_delay.num_frames = strnlen(model->songdata->metadata->title, sizeof(model->songdata->metadata->title));
+
+        set_dirty(DIRTY_TITLE | DIRTY_VISUALIZER);
+}
+
 void reset_animation(AnimationState *anim)
 {
         anim->active = false;

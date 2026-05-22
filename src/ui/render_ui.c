@@ -1031,21 +1031,6 @@ void ui_destroy(Model *model)
         }
 }
 
-void start_title_delay(Model *model)
-{
-        if (model->state.settings.titleDelay <= 0 || !model->songdata_ok)
-                return;
-
-        if (model->is_paused || model->is_stopped)
-                return;
-
-        model->title_delay.active = true;
-        model->title_delay.frame = 0;
-        model->title_delay.num_frames = strnlen(model->songdata->metadata->title, sizeof(model->songdata->metadata->title));
-
-        set_dirty(DIRTY_TITLE | DIRTY_VISUALIZER);
-}
-
 void layout_render_dirty(const Layout *layout,
                          Model *model,
                          DrawBuffer *buf, RenderContext *ctx)
