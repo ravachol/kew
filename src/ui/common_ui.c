@@ -117,6 +117,8 @@ void transfer_settings_to_ui(void)
         ui->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
+                 settings->coverStyle[0] ? settings->coverStyle : "auto");
         ui->hideHelp = (settings->hideHelp[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
         ui->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
@@ -139,6 +141,8 @@ void transfer_settings_to_ui(void)
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
+                 settings->coverStyle[0] ? settings->coverStyle : "auto");
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
 
         snprintf(ui->chromaPath, sizeof(ui->chromaPath), "%s", settings->chromaPath);
