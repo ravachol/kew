@@ -1376,8 +1376,7 @@ void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
     if (disc == NULL) return;
 
     auto mpeg = dynamic_cast<TagLib::MPEG::File *>(file.file());
-    if (!mpeg->isValid())
-        return;
+    if (mpeg == NULL || !mpeg->isValid()) return;
 
     auto mpegTag = mpeg->ID3v2Tag();
     if (!mpegTag) return;
@@ -1385,8 +1384,7 @@ void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
     TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
 
     auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
-    if (!frame)
-        return;
+    if (!frame) return;
 
     TagLib::String str = frame->toString();
     std::string raw = str.to8Bit(true);
