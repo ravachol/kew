@@ -292,6 +292,7 @@ typedef struct
         bool uiEnabled;          /**< Whether the user interface is rendered. */
         bool coverAnsi;          /**< Use high-quality chafa cover rendering if supported,
                                       otherwise ASCII/ANSI cover. */
+        char coverStyle[16];     /**< Chafa symbol style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad. */
         bool visualizerEnabled;  /**< Show spectrum visualizer. */
         bool discordRPCEnabled;  /**< Enable Discord Rich Presence integration. */
         bool hideLogo;           /**< Hide application logo at the top. */
@@ -460,6 +461,7 @@ typedef struct
         char colorMode[6];
         char coverEnabled[2];
         char coverAnsi[2];
+        char coverStyle[16];
         char useConfigColors[2];
         char visualizerEnabled[2];
         char discordRPCEnabled[2];
