@@ -1503,7 +1503,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         int frame = model->title_delay.frame;
                         int byte_pos = 0;
 
-                        for (int i = 0; i <= frame && *p; i++) {
+                        for (int i = 0; i < frame && *p; i++) {
                                 int bytes = 0;
                                 utf8_next(p, &bytes);
 
