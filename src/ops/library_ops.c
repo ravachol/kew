@@ -583,8 +583,8 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
                         discArray[numberOfEntries] = entry;
 
                         numberOfEntries++;
-                        entry = entry->next;
                 }
+                entry = entry->next;
         }
 
         qsort(discArray, numberOfEntries, sizeof(FileSystemEntry *), compare_tracks_from_pointer);
