@@ -75,7 +75,8 @@ int get_cover_color(unsigned char *pixels,
  */
 void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                unsigned char *pixels, int width, int height, int max_width,
-                               int base_height, const TermSize *term_size, bool centered, size_t img_hash);
+                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
+                               const char *cover_style);
 
 /**
  * Returns the terminal cell aspect ratio.

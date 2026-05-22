@@ -771,6 +771,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->allowNotifications, "1",
                  sizeof(settings->allowNotifications));
         c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
+        c_strcpy(settings->coverStyle, "auto", sizeof(settings->coverStyle));
         c_strcpy(settings->quitAfterStopping, "0",
                  sizeof(settings->quitAfterStopping));
         c_strcpy(settings->clearListClearsAll, "1",
@@ -1090,6 +1091,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "coveransi") == 0) {
                         snprintf(settings->coverAnsi, sizeof(settings->coverAnsi),
                                  "%s", pair->value);
+                } else if (strcmp(lowercase_key, "coverstyle") == 0) {
+                        if (!is_prefs)
+                                snprintf(settings->coverStyle, sizeof(settings->coverStyle),
+                                         "%s", pair->value);
                 } else if (strcmp(lowercase_key, "visualizerenabled") == 0) {
                         snprintf(settings->visualizerEnabled,
                                  sizeof(settings->visualizerEnabled), "%s",
@@ -1969,6 +1974,8 @@ void set_config(AppSettings *settings, UISettings *ui)
                                          sizeof(settings->coverAnsi))
                               : c_strcpy(settings->coverAnsi, "0",
                                          sizeof(settings->coverAnsi));
+        if (settings->coverStyle[0] == '\0')
+                c_strcpy(settings->coverStyle, "auto", sizeof(settings->coverStyle));
         if (settings->visualizerEnabled[0] == '\0')
                 ui->visualizerEnabled
                     ? c_strcpy(settings->visualizerEnabled, "1",
@@ -2143,7 +2150,9 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[track cover]\n\n");
         fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
-        fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
+        fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
+        fprintf(file, "# Cover render style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad\n");
+        fprintf(file, "coverStyle=%s\n\n", settings->coverStyle);
 
         fprintf(file, "\n[mouse]\n\n");
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
