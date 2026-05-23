@@ -2,14 +2,19 @@
 
 ## 4.1.0
 
-kew 4.1 comes with a complete rewrite of the UI sub system. It now uses the popular Model-View-Update pattern and is structured around components. People can make their own layouts, too. Described in kewlayoutrc, which gets copied to .config/kew after you run kew. If cloning from git you also need to run sudo make install first. There's an altkewlayoutrc that has a different layout for kew.
+kew 4.1 comes with a complete rewrite of the UI sub system. It now uses the popular Model-View-Update pattern and is structured around components. People can make their own layouts too. Described in kewlayoutrc, which gets copied to .config/kew after you run kew. If cloning from git you also need to run sudo make install first. There's an altkewlayoutrc that has a different layout for kew.
 
 #### Enhancements
 
+- Rewritten UI system, and introduction of user-defined layouts. By @ravachol.
+
 - Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
 
-- Scrolling lyrics on lyrics page (press m) By @petoem. Suggested by @kewIT.
+- Scrolling lyrics on lyrics page (press m on track view to access lyrics page) By @petoem. Suggested by @kewIT.
 
+- Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
+
+- New setting chafa coverstyle, which let's you decide how Chafa should render the covers. By @netodosrjoao.
 
 #### Bugfixes
 
