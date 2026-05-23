@@ -113,7 +113,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                         if (!has_song_children(entry) || entry->parent == NULL ||
                             ((*chosen_dir) != NULL &&
                              strcmp(entry->full_path, (*chosen_dir)->full_path) == 0)) {
-                                if (has_dequeued_children(entry)) {
+                                if (has_dequeued_children(entry) || dont_dequeue) {
                                         if (entry->parent == NULL) // Shuffle playlist if it's
                                                                    // the root
                                                 shuffle = true;
