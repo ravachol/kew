@@ -36,7 +36,7 @@ textMuted=7     # White (dim)
 logo=6          # Cyan
 header=6        # Cyan
 footer=#787878  # The old school gray, this works on most terminals
-help=6          # Cyan
+help=-1         # Default foreground
 link=14         # Bright Cyan
 nowplaying=-1   # Default foreground
 

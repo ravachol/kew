@@ -197,7 +197,7 @@ void component_library_helper_collapse_view(Model *model, FileSystemEntry *previ
                 set_dirty(DIRTY_LIBRARY);
 
                 uis->allowChooseSongs = false;
-                 model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
+                model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
 
                 int num_children = 0;
                 if (entry->parent != NULL && diff_rows > 0) {
@@ -2159,7 +2159,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         char theme_line[512];
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
-                CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.text, ui->color);
+                CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + (int)strlen(_(" Theme: "));
                 draw_buffer_set_string(buf, row, c, _("Using "), text_style);
