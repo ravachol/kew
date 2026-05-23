@@ -250,11 +250,34 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 }
 #endif
 
+static ChafaPixelMode style_to_pixel_mode(const char *style)
+{
+        if (strcmp(style, "kitty") == 0)   return CHAFA_PIXEL_MODE_KITTY;
+        if (strcmp(style, "sixels") == 0)  return CHAFA_PIXEL_MODE_SIXELS;
+        if (strcmp(style, "block") == 0 ||
+            strcmp(style, "braille") == 0 ||
+            strcmp(style, "ascii") == 0 ||
+            strcmp(style, "dot") == 0 ||
+            strcmp(style, "vhalf") == 0 ||
+            strcmp(style, "quad") == 0)    return CHAFA_PIXEL_MODE_SYMBOLS;
+        return (ChafaPixelMode)-1;
+}
+
+static ChafaSymbolTags style_to_symbol_tag(const char *style)
+{
+        if (strcmp(style, "braille") == 0) return CHAFA_SYMBOL_TAG_BRAILLE;
+        if (strcmp(style, "ascii") == 0)   return CHAFA_SYMBOL_TAG_ASCII;
+        if (strcmp(style, "dot") == 0)     return CHAFA_SYMBOL_TAG_DOT;
+        if (strcmp(style, "vhalf") == 0)   return CHAFA_SYMBOL_TAG_VHALF;
+        if (strcmp(style, "quad") == 0)    return CHAFA_SYMBOL_TAG_QUAD;
+        return CHAFA_SYMBOL_TAG_BLOCK;
+}
+
 static GString *
 convert_image(const void *pixels, gint pix_width, gint pix_height,
               gint pix_rowstride, ChafaPixelType pixel_type,
               gint width_cells, gint height_cells,
-              gint cell_width, gint cell_height)
+              gint cell_width, gint cell_height, const char *cover_style)
 {
         ChafaTermInfo *term_info;
         ChafaCanvasMode mode;
@@ -273,6 +296,16 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         detect_terminal(&term_info, &mode, &pixel_mode,
                         &passthrough, &symbol_map);
+
+        ChafaPixelMode forced_mode = style_to_pixel_mode(cover_style);
+        if (forced_mode != (ChafaPixelMode)-1) {
+                pixel_mode = forced_mode;
+                if (forced_mode == CHAFA_PIXEL_MODE_SYMBOLS)
+                        passthrough = CHAFA_PASSTHROUGH_NONE;
+                chafa_symbol_map_unref(symbol_map);
+                symbol_map = chafa_symbol_map_new();
+                chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
+        }
 
         if (passthrough == CHAFA_PASSTHROUGH_TMUX)
                 apply_passthrough_workarounds_tmux();
@@ -328,8 +361,12 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         detect_terminal(&term_info, &mode, &pixel_mode);
 
+        ChafaPixelMode forced_mode_14 = style_to_pixel_mode(cover_style);
+        if (forced_mode_14 != (ChafaPixelMode)-1)
+                pixel_mode = forced_mode_14;
+
         symbol_map = chafa_symbol_map_new();
-        chafa_symbol_map_add_by_tags(symbol_map, CHAFA_SYMBOL_TAG_BLOCK);
+        chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
 
         config = chafa_canvas_config_new();
         chafa_canvas_config_set_canvas_mode(config, mode);
@@ -370,10 +407,12 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 #else
         detect_terminal(&term_info, &mode, &pixel_mode);
 
-        /* Specify the symbols we want */
+        ChafaPixelMode forced_mode_old = style_to_pixel_mode(cover_style);
+        if (forced_mode_old != (ChafaPixelMode)-1)
+                pixel_mode = forced_mode_old;
 
         symbol_map = chafa_symbol_map_new();
-        chafa_symbol_map_add_by_tags(symbol_map, CHAFA_SYMBOL_TAG_BLOCK);
+        chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
 
         /* Set up a configuration with the symbols and the canvas size in characters */
 
@@ -466,7 +505,8 @@ float get_aspect_ratio()
 
 void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                unsigned char *pixels, int width, int height, int max_width,
-                               int base_height, const TermSize *term_size, bool centered, size_t img_hash)
+                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
+                               const char *cover_style)
 {
         if (!pixels || width == 0 || height == 0) {
                 set_error_message("Invalid pixel data.\n");
@@ -510,7 +550,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
             width * 4,
             CHAFA_PIXEL_RGBA8_UNASSOCIATED,
             corrected_width, base_height,
-            cell_width, cell_height);
+            cell_width, cell_height, cover_style);
 
         if (!printable)
                 return;
