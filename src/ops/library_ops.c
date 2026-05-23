@@ -577,23 +577,27 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
         FileSystemEntry *entry = firstChild;
         int numberOfEntries = 0, numberOfDiscs = 1;
         numberOfDiscs = pullDiscNumber(firstChild->full_path, true);
+        int max_disk_size = MAX_SORT_SIZE / numberOfDiscs;
 
         FileSystemEntry*** discArray = calloc(numberOfDiscs, sizeof(FileSystemEntry **));
         for (int i = 0; i < numberOfDiscs; i++) {
-            discArray[i] = calloc(MAX_SORT_SIZE / numberOfDiscs, sizeof(FileSystemEntry *));
+            discArray[i] = calloc(max_disk_size, sizeof(FileSystemEntry *));
         }
 
         int* counterArray = calloc(numberOfDiscs, sizeof(int));
 
         while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
-                if (!entry->is_directory && is_music_file(entry->name)) {
-                    int track_disc_number = pullDiscNumber(entry->full_path, false);
-
-                    discArray[track_disc_number - 1][counterArray[track_disc_number - 1]] = entry;
-                    discArray[track_disc_number - 1][counterArray[track_disc_number - 1]]->track_number = pullTrackNumber(entry->full_path);
-                    counterArray[track_disc_number - 1]++;
-                    numberOfEntries++;
+                if (entry->is_directory || !is_music_file(entry->name)) {
+                    continue;
                 }
+                uint32_t disc_number = 0, track_number = 0;
+                getTrackInfo(entry->full_path, &track_number, &disc_number);
+                int *counterPos = disc_number == 0 ? counterArray : counterArray + (disc_number - 1);
+
+                entry->track_number = track_number;
+                discArray[disc_number - 1][*counterPos] = entry;
+                *counterPos = *counterPos < max_disk_size ? *counterPos + 1: *counterPos;
+                numberOfEntries++;
                 entry = entry->next;
         }
 
