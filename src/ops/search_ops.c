@@ -146,6 +146,7 @@ void free_search_results(void)
 
         results_capacity = 0;
         model->state.ui.search_results_count = 0;
+        model->state.ui.chosen_search_result_row = 0;
 }
 
 void calculate_group_distances(void)
