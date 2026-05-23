@@ -64,7 +64,9 @@ Node *get_list_next(Node *node);
  */
 Node *get_list_prev(Node *node);
 
-/**
+int compare_tracks_from_pointer(const void* trackA, const void* trackB);
+
+    /**
  * @brief Adds a node to the end of a playlist.
  *
  * @param list Pointer to the playlist.
