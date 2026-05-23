@@ -7,8 +7,6 @@
 
 #include <stdio.h>
 
-
-
 typedef struct {
         PixelData fg;
         PixelData bg;
@@ -129,8 +127,13 @@ static void emit_style_diff(const Cell *cell,
                 if (!st->ansi_mode ||
                     st->ansi_fg != cell->style.fgAnsi) {
 
-                        printf("\033[%dm",
-                               30 + cell->style.fgAnsi);
+                        int fg_code;
+                        if (cell->style.fgAnsi < 8) {
+                                fg_code = 30 + cell->style.fgAnsi;
+                        } else {
+                                fg_code = 90 + (cell->style.fgAnsi - 8);
+                        }
+                        printf("\033[%dm", fg_code);
 
                         st->ansi_mode = true;
                         st->ansi_fg = cell->style.fgAnsi;
