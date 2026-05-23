@@ -57,6 +57,8 @@ extern "C" {
 int extractTags(const char *input_file, TagSettings *tag_settings,
                 double *duration, const char *cover_file_path, Lyrics **lyrics);
 
+int getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc);
+
 uint32_t pullTrackNumber(const char *input_file);
 
 /*
