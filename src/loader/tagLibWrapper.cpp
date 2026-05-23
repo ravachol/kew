@@ -11,6 +11,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <complex.h>
+#include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -1347,6 +1350,51 @@ static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
 
         *lyricsOut = lyrics;
         return true;
+}
+
+int getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
+    TagLib::FileRef file(filepath);
+    if (file.isNull() || !file.file()) {
+            fprintf(stderr,
+                    "FileRef is null or file could not be opened: "
+                    "'%s'\n",
+                    filepath);
+
+            return -1;
+    }
+
+    const TagLib::Tag *tag = file.tag();
+    if (!tag) {
+            fprintf(stderr, "Tag is null for file '%s'\n",
+                    filepath);
+            return -2;
+    }
+
+    uint32_t trackNumber = tag->track();
+
+    if (track != NULL) *track = trackNumber;
+    if (disc == NULL) return 1;
+
+    auto mpeg = dynamic_cast<TagLib::MPEG::File *>(file.file());
+    if (!mpeg->isValid())
+        return -1;
+
+    auto mpegTag = mpeg->ID3v2Tag();
+    if (!mpegTag) return -1;
+
+    TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
+
+    auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
+    if (!frame)
+        return -1;
+
+    TagLib::String str = frame->toString();
+    std::string raw = str.to8Bit(true);
+    char *delimiter;
+    uint32_t disc_number = strtoul(raw.c_str(), &delimiter, 10);
+    *disc = disc_number;
+
+    return 2;
 }
 
 uint32_t pullDiscNumber(const char *filepath, bool max)
