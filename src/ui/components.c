@@ -803,7 +803,8 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                           target_height,
                                           term_size,
                                           false,
-                                          model->current_hash);
+                                          model->current_hash,
+                                          ui->coverStyle);
         }
 
         return (ComponentMsg){0};
@@ -835,7 +836,8 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
                                           region.height,
                                           &model->term_size,
                                           false,
-                                          model->current_hash);
+                                          model->current_hash,
+                                          state->settings.coverStyle);
         }
 
         return (ComponentMsg){0};
@@ -865,7 +867,8 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
                                           region.height,
                                           &model->term_size,
                                           true,
-                                          model->current_hash);
+                                          model->current_hash,
+                                          state->settings.coverStyle);
         }
 
         return (ComponentMsg){0};
@@ -936,7 +939,8 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                                           target_height,
                                           term_size,
                                           false,
-                                          model->current_hash);
+                                          model->current_hash,
+                                          ui->coverStyle);
         }
 
         return (ComponentMsg){0};
