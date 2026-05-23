@@ -441,7 +441,7 @@ int process_name_scroll(const Model *model, const char *name, char *output, int 
 
         if (name_width < max_width - 1) {
                 process_name(name, output, max_width, true, true);
-        } else if (model->name_scroll.frame + max_width <= name_width) {
+        } else if (model->name_scroll.frame >= 0 && model->name_scroll.frame + max_width <= name_width) {
                 gchar *tmp = g_utf8_substring(output,  model->name_scroll.frame, -1);
                 str_truncate_display_width(tmp, output, max_width);
                 g_free(tmp);
