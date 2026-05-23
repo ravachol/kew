@@ -268,7 +268,7 @@ gboolean mainloop_callback(gpointer data)
 
         Model *model = get_model();
 
-        bool has_active_animation = model->glimmer.active || model->title_delay.active;
+        bool has_active_animation = model->glimmer.active || model->title_delay.active || model->name_scroll.active;
 
         RenderContext *ctx = get_render_context();
 
@@ -295,8 +295,6 @@ gboolean mainloop_callback(gpointer data)
                 fprintf(stderr, "Failed to lock switch mutex.\n");
                 return TRUE;
         }
-
-
 
         player_tick(model, ctx);
 
