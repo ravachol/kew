@@ -21,8 +21,8 @@
 #include "utils/file.h"
 #include "utils/utils.h"
 
-#include <stdio.h>
 #include <glib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -562,16 +562,16 @@ void dequeue_children(FileSystemEntry *parent)
         set_childrens_queued_status_on_parents(parent, false);
 }
 
-int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
+int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry **first_enqueued)
 {
         int has_enqueued = 0;
         if (firstChild == NULL)
-            return has_enqueued;
+                return has_enqueued;
 
         FileSystemEntry *entry = firstChild;
         int numberOfEntries = 0;
 
-        FileSystemEntry* discArray[MAX_SORT_SIZE] = {0};
+        FileSystemEntry *discArray[MAX_SORT_SIZE] = {0};
 
         while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
                 if (!entry->is_directory && is_music_file(entry->name)) {
@@ -590,17 +590,17 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
         qsort(discArray, numberOfEntries, sizeof(FileSystemEntry *), compare_tracks_from_pointer);
 
         if (*first_enqueued == NULL) {
-            *first_enqueued = discArray[0];
+                *first_enqueued = discArray[0];
         }
 
         for (int i = 0; i < numberOfEntries; i++) {
-            enqueue_song(discArray[i]);
+                if (!discArray[i]->is_enqueued)
+                        enqueue_song(discArray[i]);
         }
 
         has_enqueued = 1;
         return has_enqueued;
 }
-
 
 int enqueue_children(FileSystemEntry *child,
                      FileSystemEntry **first_enqueued_entry,
@@ -626,12 +626,11 @@ int enqueue_children(FileSystemEntry *child,
                         if (*first_enqueued_entry == NULL && !sort)
                                 *first_enqueued_entry = child;
 
-                        if (!child->is_enqueued) {
-                                if (sort)
-                                    enqueue_album(child, first_enqueued_entry);
-                                else
-                                    enqueue_song(child);
-                        }
+                        if (sort)
+                                enqueue_album(child, first_enqueued_entry);
+                        else
+                                if (!child->is_enqueued)
+                                        enqueue_song(child);
 
                         has_enqueued = 1;
                 }
