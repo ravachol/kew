@@ -22,7 +22,9 @@
 #include "sys/sys_integration.h"
 
 #include "utils/utils.h"
+#include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 atomic_bool enqueueing = false;
 
@@ -65,6 +67,37 @@ void reset_list_after_dequeuing_playing_song(void)
         }
 }
 
+bool starts_with_track_number(const char *name) {
+    if (!isdigit((unsigned char)*name))
+        return false;
+
+    while (isdigit((unsigned char)*name))
+        name++;
+
+    // Accept common separators
+    switch (*name) {
+        case ' ':
+        case '.':
+        case '-':
+        case '_':
+            return true;
+    }
+
+    return false;
+}
+
+bool check_songs_for_track_number(FileSystemEntry* entry) {
+    if (entry == NULL) return false;
+    if (entry->is_directory) {
+        if (entry->children == NULL) return false;
+        return check_songs_for_track_number(entry->children);
+    }
+    else if (entry->next == NULL) {
+        return false;
+    }
+    return (starts_with_track_number(entry->name) && starts_with_track_number(entry->next->name));
+}
+
 FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue)
 {
         Model *model = get_model();
@@ -85,20 +118,20 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                                                    // the root
                                                 shuffle = true;
 
-                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
+                                        if (count_music_files_in_directory(entry) > MAX_SORT_SIZE ||
+                                            check_songs_for_track_number(entry) // songs are already ordered if track number is in name
+                                        ) {
+                                            has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
+                                        }
+                                        else {
+                                            has_enqueued = enqueue_children_sorted(entry->children, &first_enqueued_entry);
+                                        }
 
                                         ps->nextSongNeedsRebuilding = true;
                                 } else if (!dont_dequeue) {
                                         dequeue_children(entry);
 
                                         ps->nextSongNeedsRebuilding = true;
-                                }
-                                else {
-                                        if (entry->parent == NULL) // Shuffle playlist if it's
-                                                                   // the root
-                                                shuffle = true;
-
-                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
                                 }
                         }
 
