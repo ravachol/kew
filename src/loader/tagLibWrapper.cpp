@@ -1383,6 +1383,8 @@ void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
 
     TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
 
+    if (discNumber.isEmpty()) return;
+
     auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
     if (!frame) return;
 
