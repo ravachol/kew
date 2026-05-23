@@ -33,6 +33,7 @@
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Michael Petö @petoem
 * @Moksh-Parikh
+* @netodosrjoao
 * @Overionised
 * Ravachol @ravachol <kew-player@proton.me>
 * Rioprastyo17
