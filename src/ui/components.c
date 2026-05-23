@@ -197,7 +197,7 @@ void component_library_helper_collapse_view(Model *model, FileSystemEntry *previ
                 set_dirty(DIRTY_LIBRARY);
 
                 uis->allowChooseSongs = false;
-                ctx->chosen_dir = NULL;
+                 model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
 
                 int num_children = 0;
                 if (entry->parent != NULL && diff_rows > 0) {
