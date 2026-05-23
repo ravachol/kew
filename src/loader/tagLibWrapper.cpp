@@ -11,6 +11,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <complex.h>
+#include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -1349,64 +1352,47 @@ static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
         return true;
 }
 
-uint32_t pullDiscNumber(const char *filepath, bool max)
-{
-    TagLib::MPEG::File file(filepath);
+void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
+    TagLib::FileRef file(filepath);
+    if (file.isNull() || !file.file()) {
+            fprintf(stderr,
+                    "FileRef is null or file could not be opened: "
+                    "'%s'\n",
+                    filepath);
 
-    if (!file.isValid())
-        return 1;
+            return;
+    }
 
-    TagLib::ID3v2::Tag *tag = file.ID3v2Tag();
-    if (!tag)
-        return 1;
+    const TagLib::Tag *tag = file.tag();
+    if (!tag) {
+            fprintf(stderr, "Tag is null for file '%s'\n",
+                    filepath);
+            return;
+    }
 
-    TagLib::ID3v2::FrameList frames = tag->frameListMap()["TPOS"];
+    uint32_t trackNumber = tag->track();
 
-    if (frames.isEmpty())
-        return 1;
+    if (track != NULL) *track = trackNumber;
+    if (disc == NULL) return;
 
-    auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(frames.front());
-    if (!frame)
-        return 1;
+    auto mpeg = dynamic_cast<TagLib::MPEG::File *>(file.file());
+    if (mpeg == NULL || !mpeg->isValid()) return;
+
+    auto mpegTag = mpeg->ID3v2Tag();
+    if (!mpegTag) return;
+
+    TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
+
+    auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
+    if (!frame) return;
 
     TagLib::String str = frame->toString();
     std::string raw = str.to8Bit(true);
     char *delimiter;
     uint32_t disc_number = strtoul(raw.c_str(), &delimiter, 10);
-    if (max) {
-        if (*(delimiter + 1) != '\0' &&
-            *(delimiter + 1) >= '0' &&
-            *(delimiter + 1) <= '9')
-        {
-            disc_number = strtoul(delimiter + 1, NULL, 10);
-        }
-    }
+    *disc = disc_number;
 
-    return disc_number;
-}
-
-uint32_t pullTrackNumber(const char *input_file) {
-        // Use TagLib's FileRef for generic file parsing.
-        TagLib::FileRef f(input_file);
-        if (f.isNull() || !f.file()) {
-                fprintf(stderr,
-                        "FileRef is null or file could not be opened: "
-                        "'%s'\n",
-                        input_file);
-
-                return -1;
-        }
-
-        const TagLib::Tag *tag = f.tag();
-        if (!tag) {
-                fprintf(stderr, "Tag is null for file '%s'\n",
-                        input_file);
-                return -2;
-        }
-
-        uint32_t trackNumber = tag->track();
-
-        return trackNumber;
+    return;
 }
 
 int extractTags(const char *input_file, TagSettings *tag_settings,
