@@ -48,7 +48,14 @@ Please open new issues and pull requests there.
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md). For NixOS, there is a [Nix Flake](flake.nix).
+Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md).
+
+For NixOS, there is an official package but also a [Nix Flake](flake.nix) that is tied to the latest commit.
+
+For Artix it's available in the [artist repository](https://wiki.artixlinux.org/Main/Repositories#artist_repository).
+
+For Fedora there is an [unofficial repo](https://copr.fedorainfracloud.org/coprs/fed500/kew).
+
 
 ## Usage
 
@@ -203,7 +210,7 @@ git clone https://github.com/yuri-xyz/chroma.git
 
 cd chroma
 
-git checkout 0d2fd5151b0c9df19b0122f82ed65f65dd03cb79
+git checkout fb00b6e
 
 cargo install --path . --features audio
 ```
