@@ -1218,7 +1218,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
         unsigned char def = ui->default_color;
 
-        int max_rows = region.height;
+        int max_rows = model->state.ui.max_playlist_rows;
         int row_offset = region.row;
 
         int start_iter = model->state.ui.start_iter;
@@ -1226,6 +1226,11 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int printed = 0;
 
         Node *node = model->state.ui.playlist_node;
+        CellStyle header = cell_style_from_color(ui->colorMode, ui->theme.playlist_title, ui->color);
+
+        draw_buffer_set_string(buf, row_offset, region.col, _(" ─ PLAYLIST ─"), header);
+
+        row_offset++;
 
         for (int i = start_iter; i < start_iter + max_rows; i++) {
                 char buffer[NAME_MAX + 1];
@@ -1341,7 +1346,6 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
 
         const UISettings *ui = &model->state.settings;
         CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-        CellStyle style2 = cell_style_from_color(ui->colorMode, ui->theme.header, ui->color);
 
         int row = region.row;
         int col = region.col;
@@ -1369,8 +1373,6 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
 
                 row += 3;
         }
-
-        draw_buffer_set_string(buf, row, col, _(" ─ PLAYLIST ─"), style2);
 
         return (ComponentMsg){0};
 }
