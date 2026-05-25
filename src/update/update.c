@@ -201,7 +201,7 @@ void scroll_next(Model *model)
 
                 if ((model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
                      ((model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id != model->state.ui.treeCtx.chosen_dir->id))))
-                        component_library_helper_collapse_view(model, model->state.ui.current_lib_entry, 1);
+                        component_library_helper_collapse_view(model, 1);
 
                 set_dirty(DIRTY_LIBRARY);
         } else if (model->state.currentView == SEARCH_VIEW) {
@@ -233,7 +233,7 @@ void scroll_prev(Model *model)
                 if (model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->parent &&
                                                           (model->state.ui.current_lib_entry == model->state.ui.current_lib_entry->parent->children ||
                                                            (model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id == model->state.ui.treeCtx.chosen_dir->id))))
-                        component_library_helper_collapse_view(model, model->state.ui.current_lib_entry, -1);
+                        component_library_helper_collapse_view(model, -1);
 
                 set_dirty(DIRTY_LIBRARY);
 
