@@ -584,7 +584,7 @@ Layout *build_playlist_layout(Model *model)
 
         Pane *list = find_pane(layout, component_playlist_rows);
         if (list)
-                model->state.ui.max_playlist_rows = list->region.height;
+                model->state.ui.max_playlist_rows = list->region.height - 1;
 
         return layout;
 }
