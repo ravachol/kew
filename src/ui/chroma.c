@@ -41,8 +41,6 @@ Chroma g_viz = {
 
 #define MAX_HEIGHT 4000
 
-#define MAX_PRESET 11
-
 volatile int chroma_new_frame = 0;
 
 static int centered_indent = 0;
