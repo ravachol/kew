@@ -376,7 +376,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 draw_buffer_set_string(buf, draw_row, text_col, dir_name, item_style);
 
-                        // File
+                                // File
                         } else {
                                 // "└─ " prefix for files
                                 CellStyle file_style = item_style;
@@ -403,7 +403,6 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                         process_name_scroll(model, entry->name, filename, name_width);
                                 else
                                         process_name(entry->name, filename, name_width, true, true);
-
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
                         }
@@ -1475,19 +1474,16 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         }
 
         // Title
-        if (strnlen(metadata->title, METADATA_MAX_LENGTH)  > 0 && region.height >= 1) {
+        if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0 && region.height >= 1) {
 
                 PixelData pixel = ui->color;
 
-                if (!model->title_delay.active && dirty & DIRTY_SONG) {
+                pixel = increase_luminosity(ui->color, 20);
 
-                        pixel = increase_luminosity(ui->color, 20);
-
-                        // If increase_luminosity blew out to white, fall back to default
-                        if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
-                                pixel.r = pixel.g = pixel.b = ui->default_color;
-                                pixel.a = 255;
-                        }
+                // If increase_luminosity blew out to white, fall back to default
+                if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
+                        pixel.r = pixel.g = pixel.b = ui->default_color;
+                        pixel.a = 255;
                 }
 
                 CellStyle style = cell_style_from_color(ui->colorMode,
@@ -1702,7 +1698,7 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
 }
 
 ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf,
-                                             DirtyFlags dirty)
+                                          DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -1775,8 +1771,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 };
                 if (dirty & DIRTY_VISUALIZER)
                         component_time(model, time_rect, buf, dirty);
-        }
-        else {
+        } else {
                 time_height = 0;
         }
 
@@ -1790,8 +1785,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 };
                 if (dirty & DIRTY_VISUALIZER)
                         component_timestamped_lyrics(model, lyrics_rect, buf, dirty);
-        }
-        else {
+        } else {
                 lyrics_height = 0;
         }
 
@@ -1807,14 +1801,13 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 };
                 if (dirty & DIRTY_VISUALIZER)
                         component_visualizer(model, viz_rect, buf, dirty);
-        }
-        else {
+        } else {
                 visualizer_height = 0;
         }
 
         // Progress bar
         if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height) {
-                        // Progress bar on last row of visualizer
+                // Progress bar on last row of visualizer
                 k_Rect progress_rect = {
                     .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height - 1,
                     .col = region.col + col,
@@ -2155,7 +2148,7 @@ ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *bu
 }
 
 ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
-                               DirtyFlags dirty)
+                            DirtyFlags dirty)
 {
         (void)dirty;
 
@@ -2201,7 +2194,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 #define HELP_LINE(fmt, ...)                                                                      \
         do {                                                                                     \
                 if (row >= region.row + region.height)                                           \
-                        return (ComponentMsg){0};                                             \
+                        return (ComponentMsg){0};                                                \
                 char _line[512];                                                                 \
                 snprintf(_line, sizeof(_line), fmt, ##__VA_ARGS__);                              \
                 draw_buffer_set_string_truncated(buf, row++, col, _line, max_width, help_style); \
@@ -2355,11 +2348,9 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
         return (ComponentMsg){0};
 }
 
-void component_search_helper_collapse_view(Model *model, FileSystemEntry *previous_entry, int diff_rows)
+void component_search_helper_collapse_view(Model *model, int diff_rows)
 {
         UIState *uis = &model->state.ui;
-
-        FileSystemEntry *entry = previous_entry;
 
         if (uis->allowChooseSearchSongs && (model->state.ui.chosen_search_dir == NULL ||
                                             (uis->current_search_entry != NULL && uis->current_search_entry->parent != NULL &&
@@ -2368,17 +2359,18 @@ void component_search_helper_collapse_view(Model *model, FileSystemEntry *previo
                 set_dirty(DIRTY_LIBRARY);
 
                 uis->allowChooseSearchSongs = false;
-                model->state.ui.chosen_search_dir = NULL;
 
                 int num_children = 0;
-                if (entry->parent != NULL && diff_rows > 0) {
-                        FileSystemEntry *child = entry->parent->children;
+                if (model->state.ui.chosen_search_dir != NULL && diff_rows > 0) {
+                        FileSystemEntry *child = model->state.ui.chosen_search_dir->children;
 
                         while (child != NULL) {
                                 child = child->next;
                                 num_children++;
                         }
                 }
+
+                model->state.ui.chosen_search_dir = NULL;
 
                 model->state.ui.chosen_search_result_row -= num_children;
         }

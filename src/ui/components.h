@@ -79,7 +79,7 @@ ComponentMsg component_track(const Model *model, k_Rect region, DrawBuffer *buf,
 
 ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
-void component_search_helper_collapse_view(Model *model, FileSystemEntry *previous_entry, int diff_rows);
+void component_search_helper_collapse_view(Model *model, int diff_rows);
 
 ComponentMsg component_search(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
