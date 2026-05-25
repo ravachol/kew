@@ -258,7 +258,7 @@ void chroma_stop()
 
         Model *model = get_model();
         model->state.ui.chroma_started = false;
-         model->state.ui.chroma_start_requested = false;
+        model->state.ui.chroma_start_requested = false;
 }
 
 void chroma_print_frame(int row, int col, int height, bool centered)

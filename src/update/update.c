@@ -396,6 +396,9 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView != PLAYLIST_VIEW)
                         model->state.ui.resetPlaylistDisplay = true;
 
+                if (model->state.ui.chroma_start_requested && !model->state.ui.chroma_started)
+                        set_dirty(DIRTY_ALL);
+
                 if (model->library_updated) {
                         set_dirty(DIRTY_ALL);
                         model->library_updated = false;

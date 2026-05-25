@@ -28,8 +28,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef __USE_POSIX
 #define __USE_POSIX
-#include "sound/sound_facade.h"
-#include "ui/components.h"
 #endif
 
 #ifdef __FreeBSD__
@@ -49,6 +47,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "sys/notifications.h"
 #include "sys/sys_integration.h"
 
+#include "sound/sound_facade.h"
+
+#include "ui/components.h"
 #include "ui/chroma.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"

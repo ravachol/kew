@@ -11,8 +11,6 @@
 #include "common/common.h"
 #include "common/model.h"
 
-#include "utils/img_utils.h"
-
 #include "img_func.h"
 
 #include <stdbool.h>
@@ -525,11 +523,6 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                int base_height, const TermSize *term_size, bool centered, size_t img_hash,
                                const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
 {
-        if (width == 0 || height == 0) {
-                set_error_message("Invalid pixel data.\n");
-                return;
-        }
-
         int cell_width = 8;
         int cell_height = 16;
 
@@ -605,7 +598,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 }
         }
 
-        if (!pixels) {
+        if (width == 0 || height == 0 || !pixels) {
                 set_error_message("Invalid pixel data.\n");
                 return;
         }
