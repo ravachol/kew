@@ -260,7 +260,7 @@ void ops_toggle_pause(void)
                 sound_system_set_end_of_list_reached(sound_sys, false);
         }
 
-        set_dirty(DIRTY_ALL);
+        set_dirty(DIRTY_VISUALIZER);
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
