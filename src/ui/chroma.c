@@ -6,10 +6,9 @@
  */
 
 #include "chroma.h"
+
 #include "common/appstate.h"
 #include "common/common.h"
-
-#include "ui/common_ui.h"
 
 #include <pthread.h>
 #include <stdbool.h>

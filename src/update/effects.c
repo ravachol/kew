@@ -280,8 +280,10 @@ void run_command(UpdateResult result)
                 break;
 
         case CMD_VIEW_CHANGED:
-                chroma_stop();
-                model->state.ui.chroma_start_requested = true;
+                if (model->state.ui.chroma_started) {
+                        chroma_stop();
+                        model->state.ui.chroma_start_requested = true;
+                }
                 break;
 
         case CMD_NONE:
