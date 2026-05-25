@@ -15,8 +15,6 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
 
 ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
-ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
-
 ComponentMsg component_now_playing(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_now_playing_and_artist(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
@@ -57,13 +55,15 @@ ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, D
 
 ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
-ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
-
 ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_track_portrait_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_track_landscape_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 

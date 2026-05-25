@@ -20,6 +20,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <sys/param.h>
 
 // clang-format off
 const char *LOGO[] =  {"  __",
@@ -909,7 +910,7 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                 return (ComponentMsg){0};
 
         // Use region as base, row is centered within region, col is offset from region.col
-        int row = region.row + lroundf((float)region.height / 2.0f - (float)target_height / 2.0f) + 1;
+        int row = region.row + lroundf((float)region.height / 2.0f - (float)target_height / 2.0f);
         int col = region.col + cover_indent;
 
         // Clear skipped lines
@@ -1436,7 +1437,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
         if (dirty & DIRTY_SONG) {
                 // Artist
-                if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0) {
+                if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 && region.height >= 2) {
                         CellStyle style = cell_style_from_color(ui->colorMode,
                                                                 ui->theme.trackview_artist,
                                                                 ui->color);
@@ -1447,7 +1448,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 }
 
                 // Album
-                if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0) {
+                if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0 && region.height >= 3) {
                         CellStyle style = cell_style_from_color(ui->colorMode,
                                                                 ui->theme.trackview_album,
                                                                 ui->color);
@@ -1458,7 +1459,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 }
 
                 // Year
-                if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0) {
+                if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0 && region.height >= 4) {
                         CellStyle style = cell_style_from_color(ui->colorMode,
                                                                 ui->theme.trackview_year,
                                                                 ui->color);
@@ -1475,7 +1476,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         }
 
         // Title
-        if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0) {
+        if (strnlen(metadata->title, METADATA_MAX_LENGTH)  > 0 && region.height >= 1) {
 
                 PixelData pixel = ui->color;
 
@@ -1498,16 +1499,17 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 pretty_title[0] = '\0';
                 process_name(metadata->title, pretty_title, max_width, false, false);
 
+                int frame = model->title_delay.frame;
+                int width = MIN(frame, max_width);
+
                 // Title delay animation
-                if (model->title_delay.active) {
+                if (model->title_delay.active && frame <= width) {
                         char display[PATH_MAX + 4];
                         char current_text[PATH_MAX + 1];
-
                         const char *p = pretty_title;
-                        int frame = model->title_delay.frame;
                         int byte_pos = 0;
 
-                        for (int i = 0; i < frame && *p; i++) {
+                        for (int i = 0; i < width && *p; i++) {
                                 int bytes = 0;
                                 utf8_next(p, &bytes);
 
@@ -1735,9 +1737,10 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         int lyrics_height = 1;
         int visualizer_width = region.width;
         int visualizer_height = ui->visualizer_height;
+        int progress_bar_height = 1;
         int col = 0;
 
-        visualizer_height = region.height - 3 - metadata_height - time_height - lyrics_height;
+        visualizer_height = region.height - 1 - metadata_height - time_height - lyrics_height;
 
         if (visualizer_height > ui->visualizer_height) {
                 visualizer_height = ui->visualizer_height;
@@ -1746,13 +1749,13 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         if (visualizer_height < 0)
                 visualizer_height = 0;
 
-        int meta_row = region.height - metadata_height - time_height - lyrics_height - visualizer_height;
+        int meta_row = region.height - metadata_height - time_height - lyrics_height - visualizer_height - 2;
 
-        if (meta_row < 0)
-                meta_row = (region.height > 10) ? 2 : 1;
+        if (meta_row < 1)
+                meta_row = 1;
 
         // Metadata
-        if (height > metadata_height) {
+        if (height > meta_row) {
                 k_Rect meta_rect = {
                     .row = region.row + meta_row,
                     .col = region.col + col,
@@ -1764,7 +1767,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         }
 
         // Time
-        if (height > metadata_height + time_height) {
+        if (height > meta_row + metadata_height + time_height) {
                 k_Rect time_rect = {
                     .row = region.row + meta_row + metadata_height,
                     .col = region.col + col,
@@ -1774,9 +1777,12 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 if (dirty & DIRTY_VISUALIZER)
                         component_time(model, time_rect, buf, dirty);
         }
+        else {
+                time_height = 0;
+        }
 
         // Timestamped lyrics
-        if (height > metadata_height + time_height + lyrics_height) {
+        if (height > meta_row + metadata_height + time_height + lyrics_height) {
                 k_Rect lyrics_rect = {
                     .row = region.row + meta_row + metadata_height + time_height,
                     .col = region.col + col,
@@ -1786,10 +1792,13 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 if (dirty & DIRTY_VISUALIZER)
                         component_timestamped_lyrics(model, lyrics_rect, buf, dirty);
         }
+        else {
+                lyrics_height = 0;
+        }
 
         ComponentMsg result = (ComponentMsg){0};
         // Visualizer
-        if (height >= metadata_height + time_height + lyrics_height + visualizer_height) {
+        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height) {
 
                 k_Rect viz_rect = {
                     .row = region.row + meta_row + metadata_height + lyrics_height + time_height,
@@ -1799,13 +1808,19 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 };
                 if (dirty & DIRTY_VISUALIZER)
                         component_visualizer(model, viz_rect, buf, dirty);
+        }
+        else {
+                visualizer_height = 0;
+        }
 
-                // Progress bar on last row of visualizer
+        // Progress bar
+        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height) {
+                        // Progress bar on last row of visualizer
                 k_Rect progress_rect = {
-                    .row = viz_rect.row + viz_rect.height,
+                    .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height - 1,
                     .col = region.col + col,
                     .width = visualizer_width,
-                    .height = 1,
+                    .height = progress_bar_height,
                 };
                 if (dirty & DIRTY_VISUALIZER)
                         result = component_progress_bar(model, progress_rect, buf, dirty);
