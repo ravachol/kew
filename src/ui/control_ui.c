@@ -10,8 +10,8 @@
 
 #include "ops/playlist_ops.h"
 #include "ui/chroma.h"
-#include "ui/render_ui.h"
 #include "ui/queue_ui.h"
+#include "ui/render_ui.h"
 
 #include "common/appstate.h"
 #include "ops/playback_ops.h"
@@ -128,10 +128,35 @@ void cycle_color_mode(void)
 
 void cycle_visualization(void)
 {
-        if (chroma_is_started())
-                request_stop_visualization();
+        Model *model = get_model();
 
-        request_next_visualization();
+        if (model->songdata_ok && model->state.settings.coverEnabled) {
+
+                if (model->state.ui.has_chroma == -1)
+                        model->state.ui.has_chroma = chroma_is_installed();
+
+                if (model->state.ui.has_chroma == 1) {
+
+                        if (model->state.ui.chroma_started) {
+
+                                model->state.ui.chroma_next_preset_requested = true;
+
+                        } else {
+
+                                if (model->state.settings.chromaPreset >= 0)
+                                        chroma_set_current_preset(model->state.settings.chromaPreset);
+
+                                model->state.ui.chroma_start_requested = true;
+                        }
+
+                        model->state.settings.visualizations_instead_of_cover = true;
+
+                        if (!chroma_is_started())
+                                model->state.settings.visualizations_instead_of_cover = false;
+
+                        set_dirty(DIRTY_ALL);
+                }
+        }
 }
 
 void cycle_themes(void)
@@ -299,10 +324,9 @@ void toggle_shuffle(Model *model)
 
                 if (model->playlist && model->unshuffled_playlist) {
 
-
                         pthread_mutex_lock(&(model->playlist->mutex));
 
-                         int id = -1;
+                        int id = -1;
                         if (current)
                                 id = current->id;
 
