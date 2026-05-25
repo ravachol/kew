@@ -41,8 +41,6 @@ void chroma_print_frame(int row, int col, int height, bool centered);
 /**
  * Changes the Chroma (externally provided visualisations) preset to the next.
  *
- * Stops visualizations if we hit MAX_PRESET
- *
  */
 void chroma_set_next_preset(void);
 
