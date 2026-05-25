@@ -212,8 +212,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                 while (col < buf->cols) {
 
-                        Cell *cell =
-                            &buf->cells[row * buf->cols + col];
+                        Cell *cell = &buf->cells[row * buf->cols + col];
 
                         if (state->render_chroma) {
 
@@ -261,8 +260,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                                                 emit_image(cell->image);
 
-                                                state->last_image_id =
-                                                    cell->image->id;
+                                                state->last_image_id = cell->image->id;
 
                                                 state->last_row = row;
                                                 state->last_col = col;

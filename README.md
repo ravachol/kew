@@ -207,7 +207,7 @@ git clone https://github.com/yuri-xyz/chroma.git
 
 cd chroma
 
-git checkout 0d2fd5151b0c9df19b0122f82ed65f65dd03cb79
+git checkout fb00b6e
 
 cargo install --path . --features audio
 ```
