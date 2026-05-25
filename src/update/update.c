@@ -210,7 +210,7 @@ void scroll_next(Model *model)
 
                 if ((model->state.ui.current_search_entry && (model->state.ui.current_search_entry->next == NULL || !is_contained_within(model->state.ui.current_search_entry, model->state.ui.chosen_search_dir)) &&
                      ((model->state.ui.chosen_search_dir && model->state.ui.current_search_entry->id != model->state.ui.chosen_search_dir->id))))
-                        component_search_helper_collapse_view(model, model->state.ui.current_search_entry, 1);
+                        component_search_helper_collapse_view(model, 1);
 
                 set_dirty(DIRTY_SEARCH);
         } else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
@@ -244,7 +244,7 @@ void scroll_prev(Model *model)
                 if (model->state.ui.current_lib_entry && (model->state.ui.current_search_entry->parent &&
                                                           (model->state.ui.current_search_entry == model->state.ui.current_search_entry->parent->children ||
                                                            (model->state.ui.chosen_search_dir && model->state.ui.current_search_entry->id == model->state.ui.chosen_search_dir->id))))
-                        component_search_helper_collapse_view(model, model->state.ui.current_search_entry, -1);
+                        component_search_helper_collapse_view(model, -1);
 
                 set_dirty(DIRTY_SEARCH);
         } else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
