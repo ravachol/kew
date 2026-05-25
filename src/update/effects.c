@@ -1,7 +1,7 @@
 #include "effects.h"
 
 #include "common/common.h"
-#include "common/events.h"
+
 #include "messages.h"
 
 #include "ui/chroma.h"

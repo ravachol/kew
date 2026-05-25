@@ -1057,7 +1057,8 @@ void layout_render_dirty(const Layout *layout,
                                     pane->fn == component_track_portrait_normal ||
                                     pane->fn == component_track_landscape ||
                                     pane->fn == component_track_landscape_normal ||
-                                    pane->fn == component_vis_and_progress_bar) {
+                                    pane->fn == component_vis_and_progress_bar ||
+                                    model->state.ui.chroma_started) {
 
                                         ctx->render_often = true;
                                 }
