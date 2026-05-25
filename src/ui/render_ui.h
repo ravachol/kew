@@ -127,14 +127,6 @@ bool init_theme(int argc, char *argv[]);
 
 
 /**
- * @brief Requests the next visualization.
- *
- * This function triggers the next visualization to be displayed in the UI.
- */
-void request_next_visualization(void);
-
-
-/**
  * @brief Requests the stopping of the current visualization.
  *
  * This function halts the current visualization from being displayed.

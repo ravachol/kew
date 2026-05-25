@@ -610,6 +610,8 @@ void init_state(void)
         state->ui.aspect_ratio = 0;
         state->ui.visualizer_width = 0;
         state->ui.previous_chosen_song = -1;
+        state->ui.has_chroma = -1;
+
 
         state->ui.start_lib_iter = 0;
         state->ui.chosen_lib_row = 0;
@@ -624,6 +626,11 @@ void init_state(void)
         state->ui.render_often = false;
         state->ui.render_search = false;
         state->ui.chosen_lyrics_row = 0;
+
+        state->ui.chroma_started = false;
+        state->ui.chroma_next_preset_requested = false;
+        state->ui.chroma_start_requested = false;
+        state->ui.chroma_height = 0;
 
         PlaybackState *ps = get_playback_state();
 
