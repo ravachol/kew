@@ -5,10 +5,11 @@
  * Displays current track info, progress bar, and playback status.
  * Acts as the central visual component of the terminal player.
  */
-#include "common/events.h"
 #define _XOPEN_SOURCE 700
 
 #include "render_ui.h"
+
+#include "common/events.h"
 
 #include "chroma.h"
 #include "common_ui.h"
