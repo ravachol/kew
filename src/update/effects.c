@@ -1,6 +1,7 @@
 #include "effects.h"
 
 #include "common/common.h"
+#include "common/events.h"
 #include "messages.h"
 
 #include "ui/chroma.h"
@@ -50,6 +51,11 @@ void ui_resize(Model *model)
         calc_indent(model);
 
         model->state.ui.num_progress_bars = model->term_w / 2 - model->indent;
+
+        if (model->state.ui.chroma_started) {
+                chroma_stop();
+                model->state.ui.chroma_start_requested = true;
+        }
 
         set_dirty(DIRTY_ALL);
 }
@@ -127,6 +133,11 @@ void run_tick_commands(Model *model)
                 model->last_paused_state = is_paused();
         }
 
+        if (model->state.ui.chroma_started && model->state.last_view != model->state.currentView) {
+                chroma_stop();
+                model->state.ui.chroma_start_requested = true;
+        }
+
         if (is_refresh_triggered() && model->state.settings.trackTitleAsWindowTitle) {
 
                 if (model->songdata_ok) {
@@ -136,7 +147,7 @@ void run_tick_commands(Model *model)
                         set_terminal_window_title("kew");
                 }
 
-                if ((model->state.currentView != TRACK_VIEW || is_refresh_triggered()) && chroma_is_started())
+                if (model->state.currentView != TRACK_VIEW && chroma_is_started())
                         chroma_stop();
 
                 if (can_refresh_player() && is_refresh_triggered() && !should_exit())
@@ -191,7 +202,8 @@ void run_command(UpdateResult result)
                 break;
 
         case CMD_CYCLE_VISUALIZATION:
-                cycle_visualization();
+                if (model->state.ui.chroma_next_preset_requested)
+                        chroma_set_next_preset();
                 break;
 
         case CMD_QUIT:
@@ -265,6 +277,11 @@ void run_command(UpdateResult result)
 
         case CMD_SORT_LIBRARY:
                 sort_library();
+                break;
+
+        case CMD_VIEW_CHANGED:
+                chroma_stop();
+                model->state.ui.chroma_start_requested = true;
                 break;
 
         case CMD_NONE:
