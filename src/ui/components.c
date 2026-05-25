@@ -184,12 +184,10 @@ int calc_indentation(int depth)
         return depth * 2;
 }
 
-void component_library_helper_collapse_view(Model *model, FileSystemEntry *previous_entry, int diff_rows)
+void component_library_helper_collapse_view(Model *model, int diff_rows)
 {
         UIState *uis = &model->state.ui;
         TreeContext *ctx = &model->state.ui.treeCtx;
-
-        FileSystemEntry *entry = previous_entry;
 
         if (uis->allowChooseSongs && (ctx->chosen_dir == NULL ||
                                       (uis->current_lib_entry != NULL && uis->current_lib_entry->parent != NULL &&
@@ -198,17 +196,18 @@ void component_library_helper_collapse_view(Model *model, FileSystemEntry *previ
                 set_dirty(DIRTY_LIBRARY);
 
                 uis->allowChooseSongs = false;
-                model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
 
                 int num_children = 0;
-                if (entry->parent != NULL && diff_rows > 0) {
-                        FileSystemEntry *child = entry->parent->children;
+                if (ctx->chosen_dir != NULL && diff_rows > 0) {
+                        FileSystemEntry *child = ctx->chosen_dir->children;
 
                         while (child != NULL) {
                                 child = child->next;
                                 num_children++;
                         }
                 }
+
+                model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
 
                 model->state.ui.chosen_lib_row -= num_children;
         }
