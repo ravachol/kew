@@ -931,8 +931,8 @@ void rebuild_layout(Model *model)
         Pane *footer = find_pane(s_layout, component_footer);
         if (footer)
         {
-                model->state.ui.footer_row = footer->region.row;
-                model->state.ui.footer_col = footer->region.col;
+                model->state.ui.footer_row = footer->region.row + 1;
+                model->state.ui.footer_col = footer->region.col + 1;
         }
 
         rebuilding = false;
