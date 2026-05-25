@@ -1749,7 +1749,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         if (visualizer_height < 0)
                 visualizer_height = 0;
 
-        int meta_row = region.height - metadata_height - time_height - lyrics_height - visualizer_height - 2;
+        int meta_row = region.height - metadata_height - time_height - lyrics_height - visualizer_height;
 
         if (meta_row < 1)
                 meta_row = 1;
