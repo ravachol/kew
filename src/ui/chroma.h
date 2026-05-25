@@ -8,6 +8,7 @@
 #ifndef CHROMA_H
 #define CHROMA_H
 
+#include "common/model.h"
 #include <stdbool.h>
 
 /**
@@ -28,22 +29,22 @@ void chroma_start(int height);
 void chroma_stop(void);
 
 /**
- * Prints a Chroma frame to terminal window.
+ * Prints a Chroma frame to a buffer
  *
  * @param row  The row where this frame should be printed
  * @param col  The col where this frame should be printed
+ * @param height
  * @param centered  whether the frame should be centered (col ignored)
  */
-void chroma_print_frame(int row, int col, bool centered);
+void chroma_print_frame(int row, int col, int height, bool centered);
 
 /**
  * Changes the Chroma (externally provided visualisations) preset to the next.
  *
  * Stops visualizations if we hit MAX_PRESET
  *
- * @param height  Height of terminal window in characters
  */
-void chroma_set_next_preset(int height);
+void chroma_set_next_preset(void);
 
 /**
  * Returns true if Chroma (externally provided visualisations) is installed.

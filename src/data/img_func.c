@@ -7,9 +7,9 @@
  * and different rendering modes (truecolor, ASCII, etc.).
  */
 
- #include "common/appstate.h"
-#include "common/model.h"
+#include "common/appstate.h"
 #include "common/common.h"
+#include "common/model.h"
 
 #include "utils/img_utils.h"
 
@@ -252,24 +252,32 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
 static ChafaPixelMode style_to_pixel_mode(const char *style)
 {
-        if (strcmp(style, "kitty") == 0)   return CHAFA_PIXEL_MODE_KITTY;
-        if (strcmp(style, "sixels") == 0)  return CHAFA_PIXEL_MODE_SIXELS;
+        if (strcmp(style, "kitty") == 0)
+                return CHAFA_PIXEL_MODE_KITTY;
+        if (strcmp(style, "sixels") == 0)
+                return CHAFA_PIXEL_MODE_SIXELS;
         if (strcmp(style, "block") == 0 ||
             strcmp(style, "braille") == 0 ||
             strcmp(style, "ascii") == 0 ||
             strcmp(style, "dot") == 0 ||
             strcmp(style, "vhalf") == 0 ||
-            strcmp(style, "quad") == 0)    return CHAFA_PIXEL_MODE_SYMBOLS;
+            strcmp(style, "quad") == 0)
+                return CHAFA_PIXEL_MODE_SYMBOLS;
         return (ChafaPixelMode)-1;
 }
 
 static ChafaSymbolTags style_to_symbol_tag(const char *style)
 {
-        if (strcmp(style, "braille") == 0) return CHAFA_SYMBOL_TAG_BRAILLE;
-        if (strcmp(style, "ascii") == 0)   return CHAFA_SYMBOL_TAG_ASCII;
-        if (strcmp(style, "dot") == 0)     return CHAFA_SYMBOL_TAG_DOT;
-        if (strcmp(style, "vhalf") == 0)   return CHAFA_SYMBOL_TAG_VHALF;
-        if (strcmp(style, "quad") == 0)    return CHAFA_SYMBOL_TAG_QUAD;
+        if (strcmp(style, "braille") == 0)
+                return CHAFA_SYMBOL_TAG_BRAILLE;
+        if (strcmp(style, "ascii") == 0)
+                return CHAFA_SYMBOL_TAG_ASCII;
+        if (strcmp(style, "dot") == 0)
+                return CHAFA_SYMBOL_TAG_DOT;
+        if (strcmp(style, "vhalf") == 0)
+                return CHAFA_SYMBOL_TAG_VHALF;
+        if (strcmp(style, "quad") == 0)
+                return CHAFA_SYMBOL_TAG_QUAD;
         return CHAFA_SYMBOL_TAG_BLOCK;
 }
 
@@ -503,12 +511,21 @@ float get_aspect_ratio()
         return (float)cell_height / (float)cell_width;
 }
 
+void free_image_payload(ImagePayload *img)
+{
+        if (!img)
+                return;
+
+        free(img->data);
+        free(img);
+}
+
 void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                unsigned char *pixels, int width, int height, int max_width,
                                int base_height, const TermSize *term_size, bool centered, size_t img_hash,
-                               const char *cover_style)
+                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
 {
-        if (!pixels || width == 0 || height == 0) {
+        if (width == 0 || height == 0) {
                 set_error_message("Invalid pixel data.\n");
                 return;
         }
@@ -545,32 +562,27 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         if (centered && term_size->width_cells > 0)
                 col = ((term_size->width_cells - corrected_width) / 2) + 1;
 
-        GString *printable = convert_image(
-            pixels, width, height,
-            width * 4,
-            CHAFA_PIXEL_RGBA8_UNASSOCIATED,
-            corrected_width, base_height,
-            cell_width, cell_height, cover_style);
+        Cell *anchor = &buf->cells[row * buf->cols + col];
 
-        if (!printable)
-                return;
-
-        g_string_append_c(printable, '\0');
+        if (anchor->image)
+                free_image_payload(anchor->image);
 
         // Store the encoded blob in an ImagePayload and place it in the buffer.
         // The terminal backend emits it verbatim at commit time — same as sixels.
         ImagePayload *img = calloc(1, sizeof(ImagePayload));
         if (!img) {
-                g_string_free(printable, TRUE);
                 return;
         }
 
         img->protocol = IMAGE_SIXEL;
-        img->data = (uint8_t *)g_string_free(printable, FALSE);
-        img->data_len = strlen((char *)img->data);
         img->pixel_w = corrected_width * cell_width;
         img->pixel_h = base_height * cell_height;
         img->id = img_hash;
+        img->screen_h = base_height;
+        img->screen_w = corrected_width;
+
+        anchor->kind = CELL_IMAGE_ANCHOR;
+        anchor->image = img;
 
         // Place anchor cell
         if (row < 0 || row >= buf->rows || col < 0 || col >= buf->cols) {
@@ -579,161 +591,38 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 return;
         }
 
-        Cell *anchor = &buf->cells[row * buf->cols + col];
-        anchor->kind = CELL_IMAGE_ANCHOR;
-        anchor->image = img;
+        if (draw_occupied_markers) {
+                int rows = MIN(row + base_height, buf->rows);
+                int cols = MIN(col + corrected_width, buf->cols);
 
-        int rows = MIN(row + base_height, buf->rows);
-        int cols = MIN(col + corrected_width, buf->cols);
-
-        // Mark occupied region
-        for (int r = row; r < rows; r++) {
-                for (int c = col; c < cols; c++) {
-                        if (r == row && c == col)
-                                continue;
-                        buf->cells[r * buf->cols + c].kind = CELL_IMAGE_OCCUPIED;
+                // Mark occupied region
+                for (int r = row; r < rows; r++) {
+                        for (int c = col; c < cols; c++) {
+                                if (r == row && c == col)
+                                        continue;
+                                buf->cells[r * buf->cols + c].kind = CELL_IMAGE_OCCUPIED;
+                        }
                 }
         }
-}
 
-int convert_to_ascii(int row, int col, const char *filepath, unsigned int height, bool centered)
-{
-        /*
-        Modified, originally by Danny Burrows:
-        https://github.com/danny-burrows/img_to_txt
-
-        MIT License
-
-        Copyright (c) 2021 Danny Burrows
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        */
-
-        TermSize term_size;
-        gint cell_width = -1, cell_height = -1;
-
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
+        if (!pixels) {
+                set_error_message("Invalid pixel data.\n");
+                return;
         }
 
-        // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1) {
-                cell_width = 8;
-                cell_height = 16;
+        if (!just_mark_cover) {
+                GString *printable = convert_image(
+                    pixels, width, height,
+                    width * 4,
+                    CHAFA_PIXEL_RGBA8_UNASSOCIATED,
+                    corrected_width, base_height,
+                    cell_width, cell_height, cover_style);
+
+                if (!printable)
+                        return;
+
+                g_string_append_c(printable, '\0');
+                img->data = (uint8_t *)g_string_free(printable, FALSE);
+                img->data_len = strlen((char *)img->data);
         }
-
-        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        unsigned int corrected_width = (int)(height * aspect_ratio_correction);
-
-        int rwidth, rheight, rchannels;
-        unsigned char *read_data = image_load_rgb(filepath, &rwidth, &rheight, &rchannels);
-
-        if (read_data == NULL) {
-                return -1;
-        }
-
-        float scale_w = (float)corrected_width / (float)rwidth;
-        float scale_h = (float)height / (float)rheight;
-
-        int fit_w = (int)(rwidth * scale_w + 0.5f);
-        int fit_h = (int)(rheight * scale_h + 0.5f);
-        if (fit_w < 1)
-                fit_w = 1;
-        if (fit_h < 1)
-                fit_h = 1;
-        if (fit_w > (int)corrected_width)
-                fit_w = (int)corrected_width;
-        if (fit_h > (int)height)
-                fit_h = (int)height;
-
-        unsigned char *composed =
-            calloc((size_t)3 * corrected_width * height, 1);
-        if (composed == NULL) {
-                image_free(read_data);
-                return -1;
-        }
-
-        unsigned char *fit_pixels = read_data;
-        gboolean did_resize = FALSE;
-        if (fit_w != rwidth || fit_h != rheight) {
-                fit_pixels = malloc((size_t)3 * fit_w * fit_h);
-                if (fit_pixels == NULL) {
-                        image_free(read_data);
-                        free(composed);
-                        return -1;
-                }
-                image_resize_uint8_srgb(read_data, rwidth, rheight, fit_pixels,
-                                        fit_w, fit_h, 3);
-                image_free(read_data);
-                did_resize = TRUE;
-        }
-
-        int off_x = ((int)corrected_width - fit_w) / 2;
-        int off_y = ((int)height - fit_h) / 2;
-        for (int y = 0; y < fit_h; y++) {
-                for (int x = 0; x < fit_w; x++) {
-                        size_t dst =
-                            (size_t)((off_y + y) * (int)corrected_width +
-                                     (off_x + x)) *
-                            3;
-                        size_t src = ((size_t)y * (size_t)fit_w + (size_t)x) * 3;
-                        composed[dst + 0] = fit_pixels[src + 0];
-                        composed[dst + 1] = fit_pixels[src + 1];
-                        composed[dst + 2] = fit_pixels[src + 2];
-                }
-        }
-        if (did_resize)
-                free(fit_pixels);
-        else
-                image_free(fit_pixels);
-
-        PixelData *data = (PixelData *)composed;
-
-        // Calculate indentation to center the image
-        if (centered)
-                col = ((term_size.width_cells - corrected_width) / 2) + 1;
-
-        printf("\033[%d;%dH", row, col);
-
-        for (unsigned int d = 0; d < corrected_width * height; d++) {
-                if (d % corrected_width == 0 && d != 0) {
-                        row++;
-                        printf("\033[%d;%dH", row, col);
-                }
-
-                PixelData *c = data + d;
-
-                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
-        }
-
-        image_free(data);
-        return 0;
-}
-
-int print_in_ascii(int row, int col, const char *path_to_img_file, int height, bool centered)
-{
-        int ret = convert_to_ascii(row, col, path_to_img_file, (unsigned)height, centered);
-        if (ret == -1)
-                printf("\033[0m");
-        return 0;
 }

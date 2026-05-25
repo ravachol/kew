@@ -49,25 +49,15 @@ static Layout *s_layout;
 static DrawBuffer *s_buf;
 static TerminalBackendState s_backend_state;
 
-static bool next_visualization_requested = false;
-
 static bool rebuilding = false;
 
 static bool rendering = false;
-
-void request_next_visualization(void)
-{
-        AppState *state = get_app_state();
-        state->settings.visualizations_instead_of_cover = true;
-
-        next_visualization_requested = true;
-}
 
 void request_stop_visualization(void)
 {
         AppState *state = get_app_state();
         state->settings.visualizations_instead_of_cover = false;
-        next_visualization_requested = false;
+        state->ui.chroma_next_preset_requested = false;
         chroma_stop();
 }
 
@@ -684,15 +674,6 @@ DrawBuffer *draw_buffer_create(int cols, int rows)
         return buf;
 }
 
-static void free_image_payload(ImagePayload *img)
-{
-        if (!img)
-                return;
-
-        free(img->data);
-        free(img);
-}
-
 void draw_buffer_destroy(DrawBuffer *buf)
 {
         if (!buf)
@@ -929,8 +910,7 @@ void rebuild_layout(Model *model)
         }
 
         Pane *footer = find_pane(s_layout, component_footer);
-        if (footer)
-        {
+        if (footer) {
                 model->state.ui.footer_row = footer->region.row + 1;
                 model->state.ui.footer_col = footer->region.col + 1;
         }
@@ -1118,12 +1098,15 @@ void render_ui(Model *model, RenderContext *ctx)
         if (rendering || rebuilding)
                 return;
 
-        memset(s_buf->dirty_rows, 0, s_buf->rows);
-
-        if (model->dirty == DIRTY_ALL)
+        if (model->dirty == DIRTY_ALL) {
+                memset(s_buf->dirty_rows, 0, s_buf->rows);
                 rebuild_layout(model);
+        }
 
         rendering = true;
+
+        s_backend_state.render_chroma = (model->state.ui.chroma_start_requested || model->state.ui.chroma_started) &&
+                                        model->state.currentView == TRACK_VIEW;
 
         layout_render_dirty(s_layout, model, s_buf, ctx);
         terminal_backend_commit(s_buf, model->dirty, &s_backend_state);

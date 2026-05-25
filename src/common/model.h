@@ -49,6 +49,7 @@ typedef enum {
         DIRTY_SEARCH = 1 << 6,
         DIRTY_FOOTER = 1 << 7,
         DIRTY_LAYOUT = 1 << 8,
+        DIRTY_CHROMA = 1 << 9,
 
         // redraw on full-screen refresh
         DIRTY_REFRESH    = 1 << 9,
@@ -121,6 +122,8 @@ typedef struct {
     int           pixel_w;
     int           pixel_h;
     uint64_t      id;         // for change detection / kitty image IDs
+    int screen_w;
+    int screen_h;
 } ImagePayload;
 
 typedef struct {
@@ -424,6 +427,12 @@ typedef struct
         int lib_row_count;
 
         int chosen_lyrics_row;
+
+        int has_chroma;
+        bool chroma_started;
+        bool chroma_next_preset_requested;
+        bool chroma_start_requested;
+        int chroma_height;
 } UIState;
 
 /**

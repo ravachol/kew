@@ -55,7 +55,8 @@ typedef enum {
         CMD_MOVE_SONG_DOWN,
 
         CMD_STOP,
-        CMD_SORT_LIBRARY
+        CMD_SORT_LIBRARY,
+        CMD_VIEW_CHANGED
 
 } CmdType;
 

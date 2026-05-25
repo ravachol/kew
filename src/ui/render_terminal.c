@@ -2,6 +2,7 @@
 
 #include "common/model.h"
 
+#include "ui/chroma.h"
 #include "utils/img_utils.h"
 #include "utils/term.h"
 
@@ -214,47 +215,69 @@ void terminal_backend_commit(const DrawBuffer *buf,
                         Cell *cell =
                             &buf->cells[row * buf->cols + col];
 
-                        // Image anchor
-                        if (cell->kind == CELL_IMAGE_ANCHOR) {
+                        if (state->render_chroma) {
 
-                                bool same_image =
-                                    (cell->image->id ==
-                                     state->last_image_id);
+                                if (cell->kind == CELL_IMAGE_ANCHOR) {
 
-                                bool same_position =
-                                    (row == state->last_row &&
-                                     col == state->last_col);
+                                        chroma_print_frame(row + 1, col + 1, cell->image->screen_h, false);
 
-                                if (!same_image ||
-                                    !same_position ||
-                                    (dirty & DIRTY_SONG)) {
-                                        // Move only if needed.
-                                        if (cur_row != row ||
-                                            cur_col != col) {
+                                        // Mark rows as dirtys
+                                        for (int i = 0; i < cell->image->screen_h; i++) {
+                                                buf->dirty_rows[row + i] = true;
+                                        }
+
+                                        cursor_move(row, col);
+
+                                        cur_row = row;
+                                        cur_col = col;
+
+                                        col++;
+                                        continue;
+                                }
+
+                        } else {
+
+                                // Image anchor
+                                if (cell->kind == CELL_IMAGE_ANCHOR) {
+
+                                        bool same_image =
+                                            (cell->image->id ==
+                                             state->last_image_id);
+
+                                        bool same_position =
+                                            (row == state->last_row &&
+                                             col == state->last_col);
+
+                                        if (!same_image || !same_position || (dirty & DIRTY_SONG)) {
+
+                                                // Move only if needed.
+                                                if (cur_row != row || cur_col != col) {
+
+                                                        cursor_move(row, col);
+
+                                                        cur_row = row;
+                                                        cur_col = col;
+                                                }
+
+                                                emit_image(cell->image);
+
+                                                state->last_image_id =
+                                                    cell->image->id;
+
+                                                state->last_row = row;
+                                                state->last_col = col;
+
+                                                // Terminal image protocols
+                                                // often disturb cursor position.
                                                 cursor_move(row, col);
 
                                                 cur_row = row;
                                                 cur_col = col;
                                         }
 
-                                        emit_image(cell->image);
-
-                                        state->last_image_id =
-                                            cell->image->id;
-
-                                        state->last_row = row;
-                                        state->last_col = col;
-
-                                        // Terminal image protocols
-                                        // often disturb cursor position.
-                                        cursor_move(row, col);
-
-                                        cur_row = row;
-                                        cur_col = col;
+                                        col++;
+                                        continue;
                                 }
-
-                                col++;
-                                continue;
                         }
 
                         // Image occupied, skip cells
@@ -262,8 +285,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                                 while (col < buf->cols) {
 
-                                        Cell *next =
-                                            &buf->cells[row * buf->cols + col];
+                                        Cell *next = &buf->cells[row * buf->cols + col];
 
                                         if (next->kind !=
                                             CELL_IMAGE_OCCUPIED) {
@@ -276,6 +298,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
                                 // Single cursor move after skipping.
                                 if (cur_row != row ||
                                     cur_col != col) {
+
                                         cursor_move(row, col);
 
                                         cur_row = row;
@@ -288,6 +311,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
                         // Move only if cursor drifted.
                         if (cur_row != row ||
                             cur_col != col) {
+
                                 cursor_move(row, col);
 
                                 cur_row = row;

@@ -5,8 +5,6 @@
 #include "common/events.h"
 #include "common/model.h"
 
-
-
 #include "data/directorytree.h"
 
 #include "ops/library_ops.h"
@@ -17,6 +15,7 @@
 #include "sys/sys_integration.h"
 
 #include "ui/anims.h"
+#include "ui/control_ui.h"
 #include "ui/common_ui.h"
 #include "ui/components.h"
 
@@ -115,6 +114,7 @@ void view_changed(Model *model)
                 model->state.currentView = LIBRARY_VIEW;
         }
         model->state.ui.resetPlaylistDisplay = true;
+
         set_dirty(DIRTY_ALL);
 }
 
@@ -478,6 +478,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_CYCLEVISUALIZATION:
+                cycle_visualization();
                 result.cmd.type = CMD_CYCLE_VISUALIZATION;
                 break;
 
@@ -556,30 +557,37 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_SHOWPLAYLIST:
                 switch_view(PLAYLIST_VIEW);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_SHOWLIBRARY:
                 switch_view(LIBRARY_VIEW);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_SHOWTRACK:
                 switch_view(TRACK_VIEW);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_SHOWSEARCH:
                 switch_view(SEARCH_VIEW);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_SHOWHELP:
                 switch_view(HELP_VIEW);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_NEXTVIEW:
                 switch_to_next_view(model);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_PREVVIEW:
                 switch_to_prev_view(model);
+                result.cmd.type = CMD_VIEW_CHANGED;
                 break;
 
         case MSG_CLEARPLAYLIST:

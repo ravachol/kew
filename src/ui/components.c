@@ -12,6 +12,7 @@
 
 #include "common_ui.h"
 #include "settings.h"
+#include "ui/chroma.h"
 #include "ui/playlist_ui.h"
 #include "visuals.h"
 
@@ -750,7 +751,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         const UISettings *ui = &state->settings;
         const TermSize *term_size = &model->term_size;
 
-        if (ui->hideSideCover || !songdata)
+        if (ui->hideSideCover || !songdata || !songdata->cover)
                 return (ComponentMsg){0};
 
         int indent = region.width * 4 / 5;
@@ -792,7 +793,8 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                 draw_cover_ascii(term_size, songdata->cover_art_path,
                                  row, col, target_height,
                                  false, buf, dirty);
-        } else if (songdata->cover) {
+        } else {
+
                 draw_square_bitmap_to_buf(buf,
                                           row, col,
                                           songdata->cover,
@@ -803,7 +805,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                           term_size,
                                           false,
                                           model->current_hash,
-                                          ui->coverStyle);
+                                          ui->coverStyle, false, true);
         }
 
         return (ComponentMsg){0};
@@ -821,23 +823,28 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
         if (!state->settings.coverEnabled || !songdata)
                 return (ComponentMsg){0};
 
-        if (state->settings.coverAnsi) {
+        if (state->settings.coverAnsi && songdata->cover) {
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
                                  row, region.col,
                                  region.height, false, buf, dirty);
-        } else if (songdata->cover) {
-                draw_square_bitmap_to_buf(buf,
-                                          row, region.col,
-                                          songdata->cover,
-                                          songdata->coverWidth,
-                                          songdata->coverHeight,
-                                          region.width,
-                                          region.height,
-                                          &model->term_size,
-                                          false,
-                                          model->current_hash,
-                                          state->settings.coverStyle);
         }
+
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+
+        bool draw_occupied_markers = model->state.ui.chroma_started || !model->state.settings.coverAnsi;
+
+        draw_square_bitmap_to_buf(buf,
+                                  row, region.col,
+                                  songdata->cover,
+                                  songdata->coverWidth,
+                                  songdata->coverHeight,
+                                  region.width,
+                                  region.height,
+                                  &model->term_size,
+                                  false,
+                                  model->current_hash,
+                                  state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
+        ;
 
         return (ComponentMsg){0};
 }
@@ -849,26 +856,30 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
         const AppState *state = &model->state;
         SongData *songdata = model->songdata;
 
-        if (!state->settings.coverEnabled || !songdata || !songdata->cover)
+        if (!state->settings.coverEnabled || !songdata)
                 return (ComponentMsg){0};
 
-        if (state->settings.coverAnsi) {
+        if (state->settings.coverAnsi && songdata->cover) {
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
                                  region.row, region.col,
                                  region.height, true, buf, dirty);
-        } else {
-                draw_square_bitmap_to_buf(buf,
-                                          region.row, region.col,
-                                          songdata->cover,
-                                          songdata->coverWidth,
-                                          songdata->coverHeight,
-                                          region.width,
-                                          region.height,
-                                          &model->term_size,
-                                          true,
-                                          model->current_hash,
-                                          state->settings.coverStyle);
         }
+
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+
+        bool draw_occupied_markers = model->state.ui.chroma_started || !model->state.settings.coverAnsi;
+
+        draw_square_bitmap_to_buf(buf,
+                                  region.row, region.col,
+                                  songdata->cover,
+                                  songdata->coverWidth,
+                                  songdata->coverHeight,
+                                  region.width,
+                                  region.height,
+                                  &model->term_size,
+                                  true,
+                                  model->current_hash,
+                                  state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
 
         return (ComponentMsg){0};
 }
@@ -928,19 +939,23 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
                                  row, col, target_height,
                                  false, buf, dirty);
-        } else if (songdata->cover) {
-                draw_square_bitmap_to_buf(buf,
-                                          row, col,
-                                          songdata->cover,
-                                          songdata->coverWidth,
-                                          songdata->coverHeight,
-                                          corrected_width,
-                                          target_height,
-                                          term_size,
-                                          false,
-                                          model->current_hash,
-                                          ui->coverStyle);
         }
+
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+
+        bool draw_occupied_markers = model->state.ui.chroma_started || !model->state.settings.coverAnsi;
+
+        draw_square_bitmap_to_buf(buf,
+                                  row, col,
+                                  songdata->cover,
+                                  songdata->coverWidth,
+                                  songdata->coverHeight,
+                                  corrected_width,
+                                  target_height,
+                                  term_size,
+                                  false,
+                                  model->current_hash,
+                                  state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
 
         return (ComponentMsg){0};
 }
