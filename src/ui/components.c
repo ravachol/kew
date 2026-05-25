@@ -831,7 +831,7 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
 
         bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
-        bool draw_occupied_markers = model->state.ui.chroma_started || !model->state.settings.coverAnsi;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi ||model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   row, region.col,
@@ -867,7 +867,7 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
         bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
-        bool draw_occupied_markers = model->state.ui.chroma_started || !model->state.settings.coverAnsi;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi ||model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   region.row, region.col,
@@ -943,7 +943,7 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
 
         bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
-        bool draw_occupied_markers = model->state.ui.chroma_started || !model->state.settings.coverAnsi;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   row, col,

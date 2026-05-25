@@ -8,7 +8,6 @@
 #ifndef CHROMA_H
 #define CHROMA_H
 
-#include "common/model.h"
 #include <stdbool.h>
 
 /**

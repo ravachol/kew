@@ -130,6 +130,8 @@ void cycle_visualization(void)
 {
         Model *model = get_model();
 
+        model->state.settings.coverAnsi = false;
+
         if (model->songdata_ok && model->state.settings.coverEnabled) {
 
                 if (model->state.ui.has_chroma == -1)
@@ -150,11 +152,6 @@ void cycle_visualization(void)
                         }
 
                         model->state.settings.visualizations_instead_of_cover = true;
-
-                        if (!chroma_is_started())
-                                model->state.settings.visualizations_instead_of_cover = false;
-
-                        set_dirty(DIRTY_ALL);
                 }
         }
 }
@@ -244,12 +241,8 @@ void toggle_ascii(void)
                 return;
         }
 
-        AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
-
         state->settings.coverAnsi = !state->settings.coverAnsi;
-        c_strcpy(settings->coverAnsi, state->settings.coverAnsi ? "1" : "0",
-                 sizeof(settings->coverAnsi));
         set_dirty(DIRTY_ALL);
 }
 
