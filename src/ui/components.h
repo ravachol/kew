@@ -33,7 +33,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
 ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
-void component_library_helper_collapse_view(Model *model, FileSystemEntry *previous_entry, int diff_rows);
+void component_library_helper_collapse_view(Model *model, int diff_rows);
 
 void component_library_helper_reset(Model *model);
 
