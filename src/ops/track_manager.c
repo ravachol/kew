@@ -12,6 +12,7 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "common/model.h"
 #include "playback_clock.h"
 #include "playback_ops.h"
 #include "playlist_ops.h"
@@ -22,7 +23,6 @@
 
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
-#include "utils/term.h"
 #include "utils/utils.h"
 
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
@@ -177,6 +177,33 @@ void set_end_of_list_reached(void)
         }
 }
 
+void try_load_next(bool is_first_decoder, bool replace_next_song)
+{
+        PlaybackState *ps = get_playback_state();
+        Node *current = get_current_song();
+        Node *try_next_song = get_try_next_song();
+
+        ps->songHasErrors = false;
+        ps->clearingErrors = true;
+
+        if (try_next_song == NULL && current != NULL)
+        {
+                try_next_song = current->next;
+                set_try_next_song(try_next_song);
+        }
+        else if (try_next_song != NULL)
+        {
+                try_next_song = try_next_song->next;
+                set_try_next_song(try_next_song);
+        }
+        if (try_next_song != NULL) {
+                ps->songLoading = true;
+                load_song(try_next_song, is_first_decoder, replace_next_song);
+        } else {
+                ps->clearingErrors = false;
+        }
+}
+
 /**
  * @brief Prepares and plays the specified song.
  *
@@ -200,7 +227,15 @@ int prepare_and_play_song(Node *song)
 
         finish_loading();
 
-        if (res >= 0) {
+        PlaybackState *ps = get_playback_state();
+        while (ps->songHasErrors)
+        {
+               try_load_next(true, false);
+               finish_loading();
+        }
+
+        if (res >= 0 && !ps->songHasErrors) {
+                set_try_next_song(NULL);
                 resume_playback();
         }
 
@@ -299,7 +334,7 @@ void load_waiting_music(void)
                 }
 
                 if (ps->songHasErrors)
-                        try_load_next();
+                        try_load_next(false, true);
 
                 if (is_EOF_reached()) {
                         set_EOF_handled();
