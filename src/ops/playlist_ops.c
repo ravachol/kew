@@ -448,10 +448,12 @@ void skip_to_next_song(void)
         PlaybackState *ps = get_playback_state();
 
         // Stop if there is no song or no next song
+
         if (current == NULL || current->next == NULL) {
                 if (is_repeat_list_enabled()) {
                         clear_current_song();
-                } else if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING) {
+                } else if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING ||
+                           sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                         stop();
                         set_dirty(DIRTY_ALL);
                         return;
