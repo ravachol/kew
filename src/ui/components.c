@@ -2158,7 +2158,7 @@ ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *bu
         const char *label = _("kew version: ");
         draw_buffer_set_string(buf, region.row, region.col, label, text_style);
         draw_buffer_set_string(buf, region.row,
-                               region.col + (int)strlen(label),
+                               region.col + utf8_display_width(label),
                                ui->VERSION, version_style);
 
         return (ComponentMsg){0};
@@ -2185,21 +2185,21 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         if (ui->colorMode == COLOR_MODE_ALBUM) {
                 CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
-                int c = col + (int)strlen(_(" Theme: "));
+                int c = col + utf8_display_width(_(" Theme: "));
                 draw_buffer_set_string(buf, row, c, _("Using "), text_style);
-                c += (int)strlen(_("Using "));
+                c += utf8_display_width(_("Using "));
                 draw_buffer_set_string(buf, row, c, _("Colors "), color_style);
-                c += (int)strlen(_("Colors "));
+                c += utf8_display_width(_("Colors "));
                 draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
         } else {
                 snprintf(theme_line, sizeof(theme_line), _(" Theme: "));
                 draw_buffer_set_string(buf, row, col, theme_line, text_style);
-                int c = col + (int)strlen(theme_line);
+                int c = col + utf8_display_width(theme_line);
                 draw_buffer_set_string(buf, row, c, ui->theme.theme_name, help_style);
                 if (strcmp(ui->theme.theme_author, "Ravachol") != 0) {
-                        c += (int)strlen(ui->theme.theme_name);
+                        c += utf8_display_width(ui->theme.theme_name);
                         draw_buffer_set_string(buf, row, c, _(" Author: "), text_style);
-                        c += (int)strlen(_(" Author: "));
+                        c += utf8_display_width(_(" Author: "));
                         draw_buffer_set_string(buf, row, c, ui->theme.theme_author, help_style);
                 }
         }
@@ -2286,14 +2286,14 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         // Project links
         draw_buffer_set_string(buf, row, col, _(" Project URL: "), help_style);
-        draw_buffer_set_string(buf, row, col + (int)strlen(_(" Project URL: ")),
+        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Project URL: ")),
                                "https://codeberg.org/ravachol/kew", link_style);
         row++;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
         draw_buffer_set_string(buf, row, col, _(" Please Donate: "), help_style);
-        draw_buffer_set_string(buf, row, col + (int)strlen(_(" Please Donate: ")),
+        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Please Donate: ")),
                                "https://ko-fi.com/ravachol", link_style);
         row += 3;
         if (row >= region.row + region.height)

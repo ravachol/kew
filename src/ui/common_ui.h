@@ -313,4 +313,12 @@ CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData colo
  */
 int get_footer_text(char *restrict text, size_t size);
 
+/**
+ * @brief Returns the display width of a UTF-8 string.
+
+ * @param s the string
+ * @return An int indicating the length in display columns
+ */
+int utf8_display_width(const char *s);
+
 #endif
