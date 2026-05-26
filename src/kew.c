@@ -41,6 +41,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "common/appstate.h"
 #include "common/common.h"
 #include "common/events.h"
+#include "common/model.h"
 
 #include "sys/discord_rpc.h"
 #include "sys/mpris.h"
@@ -361,6 +362,9 @@ void run(bool start_playing)
         if (playlist->head == NULL) {
                 state->currentView = LIBRARY_VIEW;
         }
+
+        if (state->currentView == LIBRARY_VIEW)
+                set_dirty(DIRTY_ALL);
 
         init_mpris();
 
