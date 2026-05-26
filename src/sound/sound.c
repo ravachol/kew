@@ -928,12 +928,16 @@ int load_decoder(SongData *song_data, bool *song_data_deleted)
 
                 // This should only be done for the second song, as
                 // switch_audio_implementation() handles the first one
+                const CodecOps *ops = find_codec_ops(song_data->file_path);
                 if (!loader_data->loadingFirstDecoder) {
-                        const CodecOps *ops = find_codec_ops(song_data->file_path);
+
                         if (!ops)
                                 result = -1;
                         else
                                 result = prepare_next_decoder(song_data->file_path, song_data, ops);
+                }
+                else {
+                        result = is_decoding_possible(song_data->file_path, ops);
                 }
         }
         return result;
