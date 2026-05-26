@@ -935,7 +935,7 @@ Layout *build_layout_by_name(const char *name)
         }
 
         if (!layout) {
-                set_error_message("Layout not found. Please reinstall kew.");
+                set_error_message("Layout not found. Please reinstall kew, or run 'sudo make install' if kew was installed by running make.");
                 dispatch_msg((struct Msg){.type = MSG_QUIT});
         }
 
