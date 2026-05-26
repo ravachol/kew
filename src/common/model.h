@@ -677,7 +677,7 @@ typedef struct Model {
 
         int term_w;
         int term_h;
-        TermSize term_size; // FIXME only one of these are needed
+        TermSize term_size; // FIXME only one of (term_w, term_h) and term_size are needed
 
         int preferred_width;
         int preferred_height;

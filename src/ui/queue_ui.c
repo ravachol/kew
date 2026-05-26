@@ -130,7 +130,6 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                 }
                         }
 
-                        // FIXME move this stuff out of here and into update_view_state functions in update.c
                         if (state->currentView == LIBRARY_VIEW && state->ui.current_lib_entry && state->ui.current_lib_entry->is_directory)
                                 *chosen_dir = state->ui.current_lib_entry;
 

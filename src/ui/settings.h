@@ -123,15 +123,44 @@ const char *get_binding_string(enum MsgType event, bool find_only_one);
  */
 void init_settings(AppSettings *settings);
 
-// FIXME docs
-void load_layout(void);
+/**
+ * @brief Loads the layout config from file
+ *
+ * This function loads the layout config file, that contains the different layouts for the views.
+ *
+ */
+void load_layout_config(void);
 
+/**
+ * @brief Frees the layout config from memory.
+ *
+ */
 void free_layout_config(void);
 
+/**
+ * @brief Returns true if a layout section with section name exists in memory.
+ *
+ * @param section The name of the section.
+ * @return True if the section was found.
+ */
 bool config_has_section(const char *section);
 
+/**
+ * @brief Loads the layout config from file
+ *
+ * This function loads the layout for an individual view, from the config file in memory.
+ * load_layout_config() should first be called.
+ *
+ * @param layout_name
+ * @return a layout.
+ */
 Layout *load_layout_from_config(const char *layout_name);
 
+/**
+ * @brief Copies the layouts to the users config folder, if needed.
+ *
+ * @return True of the layouts have changed.
+ */
 bool ensure_default_layouts(void);
 
 #endif

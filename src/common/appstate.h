@@ -58,10 +58,9 @@ typedef struct {
  */
 void tty_init(void);
 
-
-
 /* ========================= CONSTRUCTOR ========================= */
 
+/**@brief initializes the model */
 void init_model(void);
 
 /* ========================= GETTERS ========================= */
@@ -131,12 +130,11 @@ char *get_library_file_path(void);
 
 /* ========================= SETTERS ========================= */
 
-void model_update_cover(Model *model);
 
 /** @brief Set pause duration in seconds. */
 void set_pause_seconds(double seconds);
 
-// FIXME
+/** @brief Sets dirty flags for the renderer. */
 void set_dirty(DirtyFlags dirty);
 
 /** @brief Set total accumulated pause duration. */
