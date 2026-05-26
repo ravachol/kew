@@ -386,7 +386,6 @@ void silent_switch_to_next(bool load_song)
 
         set_next_song(NULL);
         set_current_song_to_next();
-        sound_system_switch_song_immediate(sound_sys);
 
         ps->skipOutOfOrder = true;
 
@@ -398,6 +397,8 @@ void silent_switch_to_next(bool load_song)
         }
 
         reset_clock();
+
+        sound_system_switch_song_immediate(sound_sys);
 
         set_dirty(DIRTY_ALL);
 
