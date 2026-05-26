@@ -351,7 +351,6 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView == LIBRARY_VIEW)
                         component_library_helper_update_view_state(model);
 
-                model->elapsed_seconds = get_elapsed_seconds();
                 model->is_paused = is_paused();
                 model->is_stopped = is_stopped();
                 model->state.ui.resizeFlag = get_resize_flag();
