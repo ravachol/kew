@@ -210,11 +210,13 @@ apply_gain_f32(float *restrict samples,
 
 void reset_ring_buffer(sound_system_t *sound)
 {
+        bool resume = (sound->state == SOUND_STATE_PLAYING);
         stop_playback();
 
         ma_pcm_rb_reset(&pcm_rb);
 
-        sound_system_play(sound);
+        if (resume)
+                sound_system_play(sound);
 }
 
 void set_switch_files(bool value)
