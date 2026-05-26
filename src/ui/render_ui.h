@@ -31,24 +31,44 @@
  */
 int print_logo_art(int row, int col, const UISettings *ui, bool centered, bool print_tag_line, bool use_gradient);
 
-
 /**
  * @brief Renders the kew player in the terminal
  *
- *
  * @param model
+ * @param ctx Contains rendering related information
  */
 void render_ui(Model *model, RenderContext *ctx);
 
-
-// FIXME
+/**
+ * @brief Resize the draw buffer to cols, rows size
+ *
+ * @param cols The number of rows.
+ * @param rows The number of columns.
+ */
 void draw_buffer_resize(int cols, int rows);
 
-// FIXME
+/**
+ * @brief Initializes the UI.
+ *
+ * @param model
+ */
 void ui_init(Model *model);
 
-// FIXME
-void rebuild_layout(Model *model);
+/**
+ * @brief Shuts down the UI.
+ *
+ * @param model
+ */
+void ui_destroy(Model *model);
+
+/**
+ * @brief Rebuilds the layout, and region sizes
+ *
+ * Should be called on for instance resize.
+ *
+ * @param model
+ */
+ void rebuild_layout(Model *model);
 
 /**
  * @brief Calculates the indentation value for normal text output.
@@ -60,19 +80,12 @@ void rebuild_layout(Model *model);
  */
 int calc_indent_normal(void);
 
-// FIXME flytta till player_ui
+/**
+ * @brief Calculates the indentation value for a view.
+ *
+ * @return The calculated indentation value.
+ */
 void calc_indent(Model *model);
-
-void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
-                            const char *str, CellStyle style);
-
-void draw_buffer_set_string_truncated(DrawBuffer *buf,
-                                      int row, int col,
-                                      const char *str,
-                                      int max_width,
-                                      CellStyle style);
-
-CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color);
 
 /**
  * @brief Prints the "About" information for the current version of the application.
@@ -101,7 +114,6 @@ void print_help(void);
  */
 void set_track_title_as_window_title(void);
 
-
 /**
  * @brief Retrieves the file path for the library.
  *
@@ -110,7 +122,6 @@ void set_track_title_as_window_title(void);
  * @return The file path to the library.
  */
 char *get_library_file_path(void);
-
 
 /**
  * @brief Initializes the theme based on command-line arguments.
@@ -125,14 +136,12 @@ char *get_library_file_path(void);
  */
 bool init_theme(int argc, char *argv[]);
 
-
 /**
  * @brief Requests the stopping of the current visualization.
  *
  * This function halts the current visualization from being displayed.
  */
 void request_stop_visualization(void);
-
 
 /**
  * @brief Retrieves the footer text to display.
@@ -146,7 +155,5 @@ void request_stop_visualization(void);
  * @return Returns the length of the footer text written to the buffer.
  */
 int get_footer_text(char *restrict text, size_t size);
-
-void ui_destroy(Model *model);
 
 #endif

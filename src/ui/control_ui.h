@@ -137,5 +137,7 @@ bool can_refresh_player(void);
  */
 int load_theme(const char *theme_name, bool is_ansi_theme);
 
-//FIXME
+/**
+ * @brief Cycles visualizations (Chroma).
+ */
 void cycle_visualization(void);

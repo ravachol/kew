@@ -431,8 +431,7 @@ void free_layout_config(void)
         config_head = NULL;
 }
 
-// Load the layout config file into memory
-void load_layout(void)
+void load_layout_config(void)
 {
         free_layout_config();
 

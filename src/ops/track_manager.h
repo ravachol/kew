@@ -7,7 +7,8 @@
  * functions for finding and referencing track data.
  */
 
-#include "common/appstate.h"
+#include "data/playlist_type.h"
+#include <stdbool.h>
 
 /**
  * @brief Load a song into a decoder buffer.
@@ -20,6 +21,7 @@
  * @param is_first_decoder Whether to start a new decoder chain.
  * @param replace_next_song Whether to replace the song in the next slot.
  */
+
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song);
 
 /**

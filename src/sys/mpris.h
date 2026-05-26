@@ -9,8 +9,6 @@
 #ifndef MPRIS_H
 #define MPRIS_H
 
-#include "common/appstate.h"
-
 #include "data/playlist.h"
 
 #include <gio/gio.h>
