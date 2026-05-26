@@ -34,30 +34,6 @@ void resume_playback(void)
                 ps->notifySwitch = 1;
 }
 
-void try_load_next(void)
-{
-        PlaybackState *ps = get_playback_state();
-        Node *current = get_current_song();
-        Node *try_next_song = get_try_next_song();
-
-        ps->songHasErrors = false;
-        ps->clearingErrors = true;
-
-        if (try_next_song == NULL && current != NULL)
-                try_next_song = current->next;
-        else if (try_next_song != NULL)
-        {
-                try_next_song = try_next_song->next;
-                set_try_next_song(try_next_song);
-        }
-        if (try_next_song != NULL) {
-                ps->songLoading = true;
-                load_song(try_next_song, false, false);
-        } else {
-                ps->clearingErrors = false;
-        }
-}
-
 void pause_song(void)
 {
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {

@@ -60,15 +60,6 @@ void unload_song_a(void);
 void unload_song_b(void);
 
 /**
- * @brief Attempt to load the next song if required.
- *
- * Triggers loading of the next track when playback state indicates
- * that a new song should be prepared. Typically used in conjunction
- * with preloading and seamless transitions.
- */
-void try_load_next(void);
-
-/**
  * @brief Automatically prepare playback if currently stopped.
  *
  * If a valid file path is provided, locates the corresponding song

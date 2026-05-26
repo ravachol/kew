@@ -599,6 +599,23 @@ void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
         }
 }
 
+
+int is_decoding_possible(const char *filepath, const CodecOps *ops)
+{
+        void *decoder = malloc(ops->decoderSize);
+        ma_decoding_backend_config config = {0};
+        config.preferredFormat = ma_format_f32;
+        config.seekPointCount = 0;
+
+        if (ops->init(filepath, &config, decoder) != MA_SUCCESS) {
+                free(decoder);
+                return -1;
+        }
+
+        free(decoder);
+        return 0;
+}
+
 /* Prepare next decoder */
 
 int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *ops)

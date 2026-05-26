@@ -10,7 +10,8 @@
 #ifndef PLAYBACK_OPS_H
 #define PLAYBACK_OPS_H
 
-#include "common/model.h"
+#include "data/playlist_type.h"
+#include <stdbool.h>
 
 /**
  * @brief Start playback of the specified song node.
@@ -24,6 +25,7 @@
  *
  * @return 0 on success, -1 if the node is invalid or playback could not start.
  */
+
 int play_song(Node *node);
 
 /**
