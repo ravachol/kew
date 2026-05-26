@@ -93,10 +93,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-AppState *state_ptr = NULL;
-
-
-
 /**
  * @brief Runs the Model-View-Update Tick
  *
@@ -206,7 +202,7 @@ void kew_shutdown()
                 perror("freopen error");
         }
 
-        if (state_ptr->settings.mouseEnabled)
+        if (model->state.settings.mouseEnabled)
                 disable_terminal_mouse_buttons();
 
         printf("\n");
@@ -214,7 +210,7 @@ void kew_shutdown()
         exit_alternate_screen_buffer();
         restore_terminal_mode();
 
-        if (state_ptr->settings.trackTitleAsWindowTitle)
+        if (model->state.settings.trackTitleAsWindowTitle)
                 restore_terminal_window_title();
 
         if (noMusicFound) {
@@ -659,8 +655,6 @@ void init_state(void)
         init_logging(model);
 
         init_model();
-
-        state_ptr = state;
 }
 
 /**
