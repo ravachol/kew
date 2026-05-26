@@ -2,7 +2,9 @@
 
 ## 4.1.0
 
-kew 4.1 comes with the ability for users to make their own layouts. The whole UI system has been rewritten and is now much more clean and nice and great.
+kew 4.1 comes with the ability for users to make their own layouts. It's as minimal as possible though, the syntax for layouts is very simple and the files are small. There aren't a ton of options, but it allows you to rearrange things to your liking.
+
+The whole UI system has been rewritten and is now much more clean and nice and great.
 
 #### Enhancements
 
