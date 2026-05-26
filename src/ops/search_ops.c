@@ -298,7 +298,6 @@ int add_to_search_text(Model *model, const char *str)
                 return -1;
         }
 
-        // FIXME bug? MAX_SEARCH LEN should be * 4 ???
         size_t len = strnlen(str, MAX_SEARCH_LEN);
 
         // Check if the string can fit into the search text buffer

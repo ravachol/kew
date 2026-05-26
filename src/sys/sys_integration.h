@@ -9,7 +9,9 @@
 #ifndef SYS_INTEGRATION_H
 #define SYS_INTEGRATION_H
 
-#include "common/appstate.h"
+#include "common/model.h"
+
+#include "loader/songdatatype.h"
 
 #include "gio/gio.h"
 #include "glib.h"
@@ -163,7 +165,12 @@ void restart_kew(char *argv[]);
  */
 void init_resize(void);
 
-// FIXME
+
+/**
+ * @brief Returns the resize flag.
+ *
+ * @return An either 0 or 1 value.
+ */
 sig_atomic_t get_resize_flag();
 
 /**

@@ -10,7 +10,7 @@
 #ifndef LIBRARY_OPS_H
 #define LIBRARY_OPS_H
 
-#include "common/appstate.h"
+#include "common/model.h"
 
 /**
  * @brief Create and initialize the music library.
