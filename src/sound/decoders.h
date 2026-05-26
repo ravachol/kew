@@ -264,4 +264,12 @@ void set_next_decoder(void *decoder, const enum decoder_type_t decoder_type);
  */
 int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *ops);
 
+/**
+ * @brief Checks if a song can be decoded.
+ *
+ * @param filepath The file path to prepare.
+ * @return 0 on success, -1 on failure.
+ */
+int is_decoding_possible(const char *filepath, const CodecOps *ops);
+
 #endif
