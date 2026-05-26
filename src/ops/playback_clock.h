@@ -101,13 +101,6 @@ bool flush_seek(void);
 double get_elapsed_seconds(void);
 
 /**
- * @brief Get the timestamp at which playback was paused.
- *
- * @return The stored pause timestamp as a struct timespec.
- */
-struct timespec get_pause_time(void);
-
-/**
  * @brief Get the duration of the currently playing track.
  *
  * Retrieves the total duration of the active track.

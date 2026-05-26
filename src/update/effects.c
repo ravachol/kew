@@ -113,21 +113,21 @@ void run_tick_commands(Model *model)
                 notify_mpris_switch(model->songdata);
 
                 if (model->state.settings.discordRPCEnabled && model->songdata)
-                        notify_discord_update(model->songdata, get_elapsed_seconds(), model->songdata->duration);
+                        notify_discord_update(model->songdata, model->elapsed_seconds, model->songdata->duration);
         }
 
         if (ps->notifySeek) {
                 ps->notifySeek = false;
 
                 if (model->state.settings.discordRPCEnabled && model->songdata)
-                        notify_discord_update(model->songdata, get_elapsed_seconds(), model->songdata->duration);
+                        notify_discord_update(model->songdata, model->elapsed_seconds, model->songdata->duration);
         }
 
         if (model->state.settings.discordRPCEnabled && model->songdata) {
                 if (is_paused() && !model->last_paused_state) {
                         notify_discord_pause();
                 } else if (!is_paused() && model->last_paused_state) {
-                        notify_discord_update(model->songdata, get_elapsed_seconds(), model->songdata->duration);
+                        notify_discord_update(model->songdata, model->elapsed_seconds, model->songdata->duration);
                 }
 
                 model->last_paused_state = is_paused();

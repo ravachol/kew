@@ -191,6 +191,8 @@ void init_model(void)
         model.glimmer.active = false;
         model.title_delay.active = false;
 
+        model.elapsed_seconds = 0.0;
+
         model.tick = 17;
 
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &model.state.ui.windowSize);

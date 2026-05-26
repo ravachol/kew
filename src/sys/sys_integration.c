@@ -226,7 +226,8 @@ void notify_mpris_switch(SongData *current_song_data)
 
 void notify_song_switch(SongData *current_song_data)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
+        AppState *state = &model->state;
         UISettings *ui = &(state->settings);
         if (current_song_data != NULL && current_song_data->hasErrors == 0 &&
             current_song_data->metadata &&
@@ -242,7 +243,7 @@ void notify_song_switch(SongData *current_song_data)
                 notify_mpris_switch(current_song_data);
 
                 if (ui->discordRPCEnabled)
-                        notify_discord_update(current_song_data, get_elapsed_seconds(), get_current_song_duration());
+                        notify_discord_update(current_song_data, model->elapsed_seconds, get_current_song_duration());
 
                 Node *current = get_current_song();
 
