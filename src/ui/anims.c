@@ -1,6 +1,7 @@
 
 #include "common/appstate.h"
 
+#include "common/model.h"
 #include "ui/common_ui.h"
 #include "utils/utils.h"
 
@@ -54,6 +55,9 @@ void advance_name_scroll_anim(Model *model)
         bool same_name = false;
         int *previous = &uis->treeCtx.previous_chosen_row;
         int *chosen = &uis->chosen_lib_row;
+
+        if (!(model->state.currentView == PLAYLIST_VIEW || model->state.currentView == LIBRARY_VIEW))
+                return;
 
         if (model->state.currentView == PLAYLIST_VIEW)
         {
