@@ -1495,7 +1495,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 PixelData pixel = ui->color;
 
-                pixel = increase_luminosity(ui->color, 20);
+                pixel = increase_luminosity(ui->color, 10);
 
                 // If increase_luminosity blew out to white, fall back to default
                 if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
