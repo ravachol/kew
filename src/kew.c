@@ -131,16 +131,6 @@ void player_tick(Model *model, RenderContext *ctx)
         dispatch_msg((struct Msg){.type = MSG_LOAD_WAITING_MUSIC});
 }
 
-void free_library(void)
-{
-        FileSystemEntry *library = get_library();
-
-        if (library == NULL)
-                return;
-
-        free_tree(library);
-}
-
 /**
  * @brief Shuts down the application and cleans up resources.
  *
@@ -189,7 +179,7 @@ void kew_shutdown()
 
         ui_destroy(model);
 
-        free_library();
+        free_tree(model->library);
 
         free_playlist(&model->playlist);
         free_playlist(&model->unshuffled_playlist);
@@ -404,6 +394,10 @@ void init_locale(void)
         textdomain("kew");
 }
 
+/**
+ * @brief Initializes logging to error.log if DEBUG is set.
+ *
+ */
 void init_logging(Model *model)
 {
 #ifdef DEBUG

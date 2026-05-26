@@ -2,7 +2,11 @@
 
 #include <stdbool.h>
 
-//FIXME docs
+/**
+ * @brief Dispacthes a message to the update function message queue.
+ *
+ * @param msg The message
+ */
 void dispatch_msg(struct Msg msg);
 
 /**

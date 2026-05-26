@@ -167,7 +167,7 @@ void init_model(void)
 
         set_term_size();
         get_term_size(&model.term_w, &model.term_h);
-        get_tty_size(&model.term_size); // FIXME use only one of these
+        get_tty_size(&model.term_size);
 
         model.indent = 0;
         model.updateCounter = 0;

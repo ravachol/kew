@@ -4,7 +4,6 @@
  */
 
 #include "common/model.h"
-#include "common/events.h"
 
 #include <stdbool.h>
 
@@ -16,13 +15,6 @@
  * @return true if any digits have been pressed, false otherwise.
  */
 bool is_digits_pressed(void);
-
-/**
- * @brief Dispatches a message
- *
- * @param msg
- */
-void dispatch_msg(struct Msg msg);
 
 /**
  * @brief Retrieves the string of digits that have been pressed.

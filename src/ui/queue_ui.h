@@ -4,7 +4,7 @@
  *
  */
 
-#include "common/appstate.h"
+#include "data/directorytree.h"
 
 /**
  * @brief Determines the current song and sends a notification if needed.

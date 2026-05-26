@@ -17,7 +17,6 @@ void dispatch_msg(struct Msg msg)
         int next = (queue.tail + 1) % MAX_MSG_QUEUE;
 
         if (next == queue.head) {
-                // FIXME: queue full → drop or handle overflow
                 return;
         }
 

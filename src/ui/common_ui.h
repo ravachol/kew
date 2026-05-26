@@ -9,7 +9,7 @@
 #ifndef COMMON_UI_H
 #define COMMON_UI_H
 
-#include "common/appstate.h"
+#include "common/model.h"
 
 #include <stdbool.h>
 
@@ -213,14 +213,31 @@ PixelData decrease_luminosity_pct(PixelData base, float pct);
  */
 PixelData get_gradient_color(PixelData base_color, int row, int max_list_size, int start_gradient, float min_pct);
 
-//FIXME documentation
-
+/**
+ * @brief Returns the current line of lyrics.
+ *
+ * @param lyrics A struct containing the lyrics.
+ * @param elapsed_seconds How far we are into the song.
+ * @return The current line of lyrics.
+ */
 const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds);
 
-// Advance one UTF-8 codepoint, return it. *bytes_consumed is set to the
-// number of bytes eaten. Returns 0xFFFD on invalid sequences.
+/**
+ * @brief Returns the next UTF-8 codepoint
+ *
+ * @param s A string.
+ * @param bytes_consumed How many bytes were used.
+ * @return The next codepoint.
+ */
 uint32_t utf8_next(const char *s, int *bytes_consumed);
 
+/**
+ * @brief Returns the display width of a Unicode code point in columns.
+ *
+ * @param cp The Unicode code point.
+ * @return The number of display columns required (e.g., 1 or 2),
+ *         or 0 for non-printing characters.
+ */
 int codepoint_display_width(uint32_t cp);
 
 // Write a UTF-8 string into the buffer at (row, col), stopping at
@@ -232,22 +249,68 @@ void draw_buffer_set_string_truncated(DrawBuffer *buf,
                                       int max_width,
                                       CellStyle style);
 
+/**
+ * @brief Writes a UTF-8 string into the buffer, stopping at buf->cols.
+ *
+ * @param buf The draw buffer.
+ * @param row The target row index.
+ * @param col The target column index.
+ * @param str The UTF-8 string to write.
+ * @param style The cell style to apply.
+ */
+void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
+                            const char *str, CellStyle style);
+
+/**
+ * @brief Sets a single cell in the buffer to a specific code point and style.
+ *
+ * Clips if row/col is outside the buffer.
+ *
+ * @param buf The draw buffer.
+ * @param row The target row index.
+ * @param col The target column index.
+ * @param cp The Unicode code point to display.
+ * @param style The cell style to apply.
+ */
 void draw_buffer_set_cell(DrawBuffer *buf,
                           int row,
                           int col,
                           uint32_t cp,
                           CellStyle style);
 
-void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
-                            const char *str, CellStyle style);
 
-
+/**
+ * @brief Returns the default cell style.
+ *
+ * @return The cell style
+ */
 CellStyle cell_style_plain(void);
 
+/**
+ * @brief Returns a cell style based on a color.
+ *
+ * @param color
+ * @return The cell style
+ */
 CellStyle cell_style_fg(PixelData color);
 
+/**
+ * @brief Returns a cell style.
+ *
+ * @param mode The color mode.
+ * @param theme The theme color settings.
+ * @param color
+ * @return The cell style
+ */
 CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color);
 
+/**
+ * @brief Returns the footer text.
+
+ * @param text The footer text that we get.
+ * @param size The max size of the text.
+ * @return An int indicating whether the footer was copied to text successfully
+ */
 int get_footer_text(char *restrict text, size_t size);
 
 #endif
