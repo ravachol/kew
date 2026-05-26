@@ -437,7 +437,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_PLAY_PAUSE:
-                set_dirty(DIRTY_FOOTER | DIRTY_SONG);
+                set_dirty(DIRTY_FOOTER | DIRTY_TITLE);
                 result.cmd.type = CMD_TOGGLE_PAUSE;
                 break;
 
