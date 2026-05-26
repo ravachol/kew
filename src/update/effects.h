@@ -71,14 +71,15 @@ typedef struct {
 } UpdateResult;
 
 /**
- * @brief updates the model
+ * @brief Runs a command indicated in result.
  *
- * @param model
- *
- * @param result
- *
- * @return updateResult
+ * @param result The UpdateResult that contains the command and related info.
  */
 void run_command(UpdateResult result);
 
+/**
+ * @brief Checks if a resize is needed and resizes if it is.
+ *
+ * @return True if a resize occured.
+ */
 bool resize_if_needed(void);

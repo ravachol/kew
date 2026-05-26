@@ -26,6 +26,8 @@
 #include "common/model.h"
 #include "common_ui.h"
 
+#include "update/messages.h"
+
 #include "ops/playback_state.h"
 
 #include "data/img_func.h"
@@ -931,7 +933,7 @@ Layout *build_layout_by_name(const char *name)
 
         ensure_default_layouts();
         free_layout_config();
-        load_layout();
+        load_layout_config();
 
         if (config_has_section(name)) {
                 layout = load_layout_from_config(name);
@@ -951,7 +953,7 @@ void ui_init(Model *model)
 {
         calc_indent(model);
 
-        load_layout();
+        load_layout_config();
 
         // Build templates from config or hardcoded fallback
         model->library_layout = build_layout_by_name("library");

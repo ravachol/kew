@@ -9,13 +9,22 @@
 #ifndef PLAYLIST_UI_H
 #define PLAYLIST_UI_H
 
-#include "common/model.h"
+#include "data/playlist_type.h"
 
-// FIXME brief
+#include <stdbool.h>
+
+/**
+ * @brief Returns the row number that the playlist should start showing.
+ *
+ * Should be called after determine_start_node.
+ */
 int determine_playlist_start(int *previous_start_iter, int found_at, int max_list_size,
                              int *chosen_song, bool reset, bool end_of_list_reached);
 
-// FIXME brief
+/**
+ * @brief Returns the node that the playlist should start showing.
+ *
+ */
 Node *determine_start_node(Node *head, int *found_at, int list_size);
 
 

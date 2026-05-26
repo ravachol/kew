@@ -21,7 +21,11 @@
  */
 int add_to_search_text(Model *model, const char *str);
 
-// FIXME docs
+/**
+ * @brief Resets the search results.
+ *
+ * @param model
+ */
 void reset_search_result(Model *model);
 
 /**

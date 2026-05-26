@@ -10,8 +10,6 @@
 #ifndef PLAYLIST_OPS_H
 #define PLAYLIST_OPS_H
 
-#include "common/appstate.h"
-
 #include "data/playlist.h"
 
 /**
