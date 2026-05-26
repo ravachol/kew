@@ -1499,7 +1499,9 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 // If increase_luminosity blew out to white, fall back to default
                 if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
-                        pixel.r = pixel.g = pixel.b = ui->default_color;
+                        pixel.r = ui->color.r;
+                        pixel.g = ui->color.g;
+                        pixel.b = ui->color.b;
                         pixel.a = 255;
                 }
 
