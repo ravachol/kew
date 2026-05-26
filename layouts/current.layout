@@ -1,54 +1,4 @@
-#
-# How to make your own kew:
-#
-# First, every layout file needs to have a version. Otherwise it gets backed up and replaced by the current vanilla layout.
-# The version needs to be the same as the one in the vanilla kewlayoutrc. The version will only change if there are breaking changes.
-#
-# Then Put panes inside rows. A pane can have a child layout.
-#
-# A row has a height size, a starting column and numbered panes.
-#
-# A pane has a component, an optional dirty flag (when is it redrawn), a width size, and optionally a child layout.
-#
-# There's also offsetX and offsetY.
-#
-# The frame rate depends on the components that are displayed, visualizer = 30 fps, search = 15 fps, the rest are 10 fps.
-#
-# Size values are:
-#
-# fixed:value
-# percent:value
-# auto
-# indent (the indentation kew is normally adjusted with)
-# indent_wide  (the extended indentation when using a side cover)
-# from_width (sets the height from width)
-# from_height (sets the width from the height)
-# window_minus:value (the full width or height minus the value)
-#
-# Dirty values are:
-#
-# visualizer, progress, song, playlist, library, search, footer, layout
-#
-# Components are:
-#
-# empty, logo, now_playing, now_playing_and_artist, footer, error_row,
-#
-# side_cover, cover, cover_centered, landscape_cover
-#
-# playlist_header, playlist_rows,
-#
-# library_header, library_rows
-#
-# track, track_portrait, track_header, track_portrait_normal, track_portrait_lyrics,
-# track_landscape_normal, track_landscape_lyrics, track_landscape, lyrics_page
-# metadata, time, timestamped_lyrics, vis_and_progress_bar, visualizer, progress_bar
-#
-# search, search_results, search_header, search_box
-#
-# help, version
-#
-
-version=5
+version=6
 
 [footer_pane]
 
@@ -73,33 +23,23 @@ width=auto
 [playlist_pane]
 
 row
-height=percent:30
+height=fixed:5
 col=0
 
 pane
-component=cover_centered
+component=logo
 dirty=song
-size=auto
-offsetY=1
+width=auto
+offsetX=1
 
 row
 height=fixed:3
 col=0
 
 pane
-component=now_playing_and_artist
-dirty=song
-size=auto
-offsetY=2
-
-row
-height=fixed:1
-col=0
-
-pane
-component=timestamped_lyrics
-dirty=visualizer
-size=auto
+component=playlist_header
+width=auto
+offsetX=2
 
 row
 height=auto
@@ -109,33 +49,29 @@ pane
 component=playlist_rows
 dirty=playlist
 width=auto
-
-row
-height=fixed:7
-col=0
-
-pane
-component=vis_and_progress_bar
-dirty=visualizer
-size=auto
-offsetY=1
-
-row
-height=fixed:2
-col=0
-
-pane
-layout=footer_pane
-width=auto
+offsetX=3
 
 [playlist]
 
 row
 height=auto
-col=indent
+col=0
+
+pane
+component=side_cover
+dirty=song
+width=indent_wide
 
 pane
 layout=playlist_pane
+width=auto
+
+row
+height=fixed:2
+col=indent
+
+pane
+layout=footer_pane
 width=auto
 
 [library_pane]
@@ -182,16 +118,6 @@ width=indent_wide
 pane
 layout=library_pane
 width=auto
-
-row
-height=fixed:7
-col=indent
-
-pane
-component=vis_and_progress_bar
-dirty=visualizer
-size=auto
-offsetY=1
 
 row
 height=fixed:2
@@ -253,6 +179,7 @@ row
 height=window_minus:2
 col=0
 
+
 pane
 component=landscape_cover
 dirty=song
@@ -302,6 +229,7 @@ pane
 component=search_results
 dirty=search
 width=auto
+offsetX=2
 
 [search]
 
@@ -316,17 +244,8 @@ width=indent_wide
 
 pane
 layout=search_pane
+dirty=search
 width=auto
-
-row
-height=fixed:7
-col=indent
-
-pane
-component=vis_and_progress_bar
-dirty=visualizer
-size=auto
-offsetY=1
 
 row
 height=fixed:2

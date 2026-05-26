@@ -322,12 +322,12 @@ install: all
 	fi
 
 	@if [ -d $(LAYOUTSRCDIR) ]; then \
-	        for layout in $(LAYOUTSRCDIR)/*rc; do \
+	        for layout in $(LAYOUTSRCDIR)/*.layout; do \
 			if [ -f "$$layout" ]; then \
 				install -m 0644 "$$layout" $(DESTDIR)$(LAYOUTDIR)/; \
 			fi; \
 		done; \
-		for layout in $(LAYOUTSRCDIR)/*.txt; do \
+		for layout in $(LAYOUTSRCDIR)/*.md; do \
 			if [ -f "$$layout" ]; then \
 				install -m 0644 "$$layout" $(DESTDIR)$(LAYOUTDIR)/; \
 			fi; \

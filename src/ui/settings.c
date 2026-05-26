@@ -38,9 +38,9 @@
 
 const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
-const char LAYOUT_FILE[] = "kewlayoutrc";
+const char LAYOUT_FILE[] = "/layouts/current.layout";
 
-#define KEW_LAYOUT_VERSION 5
+#define KEW_LAYOUT_VERSION 6
 
 #define MAX_LINE 1024
 
@@ -2656,7 +2656,7 @@ static bool ensure_layout_file(const char *config_path,
 
                         fclose(fp);
 
-                        if (version < KEW_LAYOUT_VERSION)
+                        if (version == 0 || version < KEW_LAYOUT_VERSION)
                                 regenerate = true;
 
                 } else {
@@ -2682,11 +2682,16 @@ bool ensure_default_layouts(void)
         if (!config_path)
                 return false;
 
-        struct stat st;
+        char layouts_path[PATH_MAX];
+        if (snprintf(layouts_path, sizeof(layouts_path), "%s/layouts", config_path) >= (int)sizeof(layouts_path)) {
+                free(config_path);
+                return false;
+        }
 
-        // Ensure ~/.config/kew exists
-        if (stat(config_path, &st) == -1) {
-                if (mkdir(config_path, 0755) == -1) {
+        struct stat st;
+        if (stat(layouts_path, &st) == -1) {
+                // Directory doesn't exist → create it
+                if (mkdir(layouts_path, 0755) == -1) {
                         free(config_path);
                         return false;
                 }
@@ -2694,9 +2699,11 @@ bool ensure_default_layouts(void)
 
         bool changed = false;
 
-        changed |= ensure_layout_file(config_path, "kewlayoutrc", "kewlayoutrc.bak");
+        changed |= ensure_layout_file(layouts_path, "current.layout", "current.layout.bak");
 
-        changed |= ensure_layout_file(config_path, "altkewlayoutrc", "altkewlayoutrc.bak");
+        changed |= ensure_layout_file(layouts_path, "alt.layout", "alt.layout.bak");
+
+        changed |= ensure_layout_file(layouts_path, "LAYOUTS-HOWTO.md", "LAYOUTS-HOWTO.md.bak");
 
         free(config_path);
 
