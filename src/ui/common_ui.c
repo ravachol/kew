@@ -799,3 +799,23 @@ CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData colo
         return style;
 }
 
+int utf8_display_width(const char *s)
+{
+    wchar_t *ws;
+    int width;
+    size_t len;
+
+    len = mbstowcs(NULL, s, 0);
+    if (len == (size_t)-1)
+        return -1;
+
+    ws = malloc((len + 1) * sizeof(wchar_t));
+    if (!ws)
+        return -1;
+
+    mbstowcs(ws, s, len + 1);
+    width = wcswidth(ws, len);
+
+    free(ws);
+    return width;
+}
