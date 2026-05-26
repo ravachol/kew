@@ -228,17 +228,11 @@ void activate_switch(void)
 
         if (!pb_is_repeat_enabled()) {
 
-                PlaybackState *ps = get_playback_state();
-
-                pthread_mutex_lock(&ps->switch_mutex);
-
                 bool using_slot_A = atomic_load(&sound_s->using_song_slot_A); // fetch
 
                 using_slot_A = !using_slot_A; // invert
 
                 atomic_store(&sound_s->using_song_slot_A, using_slot_A); // store
-
-                pthread_mutex_unlock(&ps->switch_mutex);
         }
 
         set_switch_files(true);
