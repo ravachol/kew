@@ -328,18 +328,28 @@ static bool key_str_already_added(const char *buf, const char *token)
 
 const char *get_binding_string(enum MsgType event, bool find_only_one)
 {
-        static char buf[256];
+        enum { NUM_BUFS = 8, BUF_SIZE = 256 };
+
+        static char bufs[NUM_BUFS][BUF_SIZE];
+        static int buf_index = 0;
+
+        char *buf = bufs[buf_index];
+        buf_index = (buf_index + 1) % NUM_BUFS;
+
         buf[0] = '\0';
 
         int found = 0;
 
         for (int i = 0; i < MAX_KEY_BINDINGS; i++) {
+
+                if (found > 0 && find_only_one)
+                        return buf;
+
                 if (key_bindings[i].eventType != event)
                         continue;
 
                 const char *key_part = "?";
 
-                // Determine key name
                 if (key_bindings[i].key != 0)
                         key_part = get_key_name(key_bindings[i].key);
                 else if (key_bindings[i].ch != 0) {
@@ -349,32 +359,31 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
                         key_part = cbuf;
                 }
 
-                const char *mod_part = get_modifier_string(key_bindings[i].mods);
+                const char *mod_part =
+                        get_modifier_string(key_bindings[i].mods);
 
-                // Build "Alt+Enter" style string for this binding
                 char full_key[64];
-                if (mod_part[0] != '\0')
-                        snprintf(full_key, sizeof(full_key), "%s+%s", mod_part, key_part);
-                else
-                        snprintf(full_key, sizeof(full_key), "%s", key_part);
 
-                // Skip duplicate key names (e.g. "Space" vs " ")
+                if (mod_part[0] != '\0')
+                        snprintf(full_key, sizeof(full_key),
+                                 "%s+%s", mod_part, key_part);
+                else
+                        snprintf(full_key, sizeof(full_key),
+                                 "%s", key_part);
+
                 if (key_str_already_added(buf, full_key))
                         continue;
 
-                // Append to output buffer
-                if (found > 0) {
-                        if (find_only_one)
-                                return buf;
-                        strncat(buf, ", ", sizeof(buf) - strlen(buf) - 1);
-                }
-                strncat(buf, full_key, sizeof(buf) - strlen(buf) - 1);
+                if (found > 0)
+                        strncat(buf, ", ", BUF_SIZE - strlen(buf) - 1);
+
+                strncat(buf, full_key, BUF_SIZE - strlen(buf) - 1);
 
                 found++;
         }
 
         if (!found)
-                snprintf(buf, sizeof(buf), "?");
+                snprintf(buf, BUF_SIZE, "?");
 
         return buf;
 }
