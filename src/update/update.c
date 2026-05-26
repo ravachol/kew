@@ -15,9 +15,9 @@
 #include "sys/sys_integration.h"
 
 #include "ui/anims.h"
-#include "ui/control_ui.h"
 #include "ui/common_ui.h"
 #include "ui/components.h"
+#include "ui/control_ui.h"
 
 #include "utils/utils.h"
 
@@ -396,7 +396,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView != PLAYLIST_VIEW)
                         model->state.ui.resetPlaylistDisplay = true;
 
-                if (model->state.ui.chroma_start_requested && !model->state.ui.chroma_started)
+                if (model->state.ui.chroma_start_requested && !model->state.ui.chroma_started &&
+                    model->state.currentView == TRACK_VIEW)
                         set_dirty(DIRTY_ALL);
 
                 if (model->library_updated) {
