@@ -8,14 +8,17 @@
 
 #include "mpris.h"
 
+#include "common/appstate.h"
 #include "common/common.h"
 #include "common/model.h"
-
 #include "common/events.h"
+
 #include "sys_integration.h"
 
 #include "ui/control_ui.h"
 #include "ui/input.h"
+
+#include "update/messages.h"
 
 #include "ops/playback_clock.h"
 #include "ops/playback_ops.h"

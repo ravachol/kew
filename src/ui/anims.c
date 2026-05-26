@@ -1,4 +1,6 @@
 
+#include "common/appstate.h"
+
 #include "ui/common_ui.h"
 #include "utils/utils.h"
 
