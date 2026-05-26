@@ -845,18 +845,11 @@ int calc_indent_normal()
 
 void calc_indent(Model *model)
 {
-        int old_indent = model->indent;
-
         if ((model->state.currentView == TRACK_VIEW && model->songdata == NULL) ||
             model->state.currentView != TRACK_VIEW) {
                 model->indent = calc_indent_normal();
         } else {
                 model->indent = calc_indent_track_view(model);
-        }
-
-        if (model->indent != old_indent) {
-                old_indent = model->indent;
-                set_dirty(DIRTY_ALL);
         }
 
         model->indent_wide = model->indent + (model->indent / 4);

@@ -176,7 +176,7 @@ void init_model(void)
         model.current_hash = 0;
         model.last_cover_path_hash = (size_t)-1;
 
-        model.dirty |= DIRTY_ALL;
+        set_dirty(DIRTY_NONE);
 
         model.glimmer.active = false;
         model.title_delay.active = false;
