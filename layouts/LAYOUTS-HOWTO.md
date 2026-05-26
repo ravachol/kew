@@ -31,12 +31,19 @@ There's also offsetX and offsetY.
 Size values are:
 
 fixed:value
+
 percent:value
-auto
+
+auto (fills available space, or divides it among other auto sized regions)
+
 indent (the indentation kew is normally adjusted with)
+
 indent_wide  (the extended indentation when using a side cover)
+
 from_width (sets the height from width)
+
 from_height (sets the width from the height)
+
 window_minus:value (the full width or height minus the value)
 
 
