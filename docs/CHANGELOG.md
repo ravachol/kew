@@ -2,11 +2,11 @@
 
 ## 4.1.0
 
-kew 4.1 comes with a complete rewrite of the UI sub system. It now uses the popular Model-View-Update pattern and is structured around components. People can make their own layouts too. Described in kewlayoutrc, which gets copied to .config/kew after you run kew. If cloning from git you also need to run sudo make install first. There's an altkewlayoutrc that has a different layout for kew.
+kew 4.1 comes with the ability for users to make their own layouts. The whole UI system has been rewritten and is now much more clean and nice and great.
 
 #### Enhancements
 
-- Rewritten UI system, and introduction of user-defined layouts. By @ravachol.
+- Rewritten UI system, introduces user-defined layouts, and now uses Model-View-Update and stateless rendering. By @ravachol.
 
 - Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
 
@@ -18,6 +18,7 @@ kew 4.1 comes with a complete rewrite of the UI sub system. It now uses the popu
 
 #### Bugfixes
 
+- Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
 
 #### Refactor
 
