@@ -260,4 +260,13 @@ bool is_m3u_file(const FileSystemEntry *entry);
  */
 unsigned long count_music_files_in_directory(FileSystemEntry *directory);
 
+/**
+ * Counts the number of directories in a directory
+ *
+ * @param directory Pointer to the FileSystemEntry to the directory root
+ *
+ * @return the number of directories in the directory and it's subdirectories
+ */
+unsigned long count_directories_in_directory(FileSystemEntry *directory);
+
 #endif
