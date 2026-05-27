@@ -22,6 +22,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
 
+- Fix new settings in kewrc not being respected if they also appear in kewstaterc. By @ravachol.
+
 #### Refactor
 
 - Centralize PATH_MAX into common/path_max.h. By @hartalex.
