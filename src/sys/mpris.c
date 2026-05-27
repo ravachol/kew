@@ -939,6 +939,7 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         new_volume *= 100;
 
                         set_volume((int)new_volume);
+                        set_dirty(DIRTY_VISUALIZER);
                         return TRUE;
                 } else if (g_strcmp0(property_name, "LoopStatus") == 0) {
                         toggle_repeat();

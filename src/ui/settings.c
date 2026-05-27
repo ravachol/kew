@@ -847,7 +847,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->visualizerEnabled, "1",
                  sizeof(settings->visualizerEnabled));
 #ifdef __APPLE__
-        c_strcpy(settings->colorMode, "0",
+        c_strcpy(settings->colorMode, "1",
                  sizeof(settings->colorMode));
 #else
         c_strcpy(settings->colorMode, "1",
@@ -862,6 +862,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideFooter, "0", sizeof(settings->hideFooter));
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
         c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
+        c_strcpy(settings->collapseTopLevel, "0", sizeof(settings->collapseTopLevel));
         c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
@@ -1377,6 +1378,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "hidesidecover") == 0) {
                         snprintf(settings->hideSideCover, sizeof(settings->hideSideCover),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "collapsetoplevel") == 0) {
+                        snprintf(settings->collapseTopLevel, sizeof(settings->collapseTopLevel),
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
@@ -2111,6 +2115,11 @@ void set_config(AppSettings *settings, UISettings *ui)
                                              sizeof(settings->hideSideCover))
                                   : c_strcpy(settings->hideSideCover, "0",
                                              sizeof(settings->hideSideCover));
+        if (settings->collapseTopLevel[0] == '\0')
+                ui->collapseTopLevel ? c_strcpy(settings->collapseTopLevel, "1",
+                                             sizeof(settings->collapseTopLevel))
+                                  : c_strcpy(settings->collapseTopLevel, "0",
+                                             sizeof(settings->collapseTopLevel));
         if (settings->visualizer_height[0] == '\0')
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
@@ -2137,7 +2146,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
         fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
-        fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
+        fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
+        fprintf(file, "collapseTopLevel=%s\n\n", settings->collapseTopLevel);
 
         fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);

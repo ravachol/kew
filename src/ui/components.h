@@ -2,6 +2,7 @@
 #define COMPONENTS_H
 
 #include "common/model.h"
+#include "data/directorytree.h"
 
 extern const char *LOGO[];
 
@@ -32,6 +33,10 @@ void component_playlist_helper_update_view_state(Model *model);
 ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+FileSystemEntry *get_first_parent(FileSystemEntry *entry);
+
+void component_library_helper_collapse_top_level(Model *model, int direction);
 
 void component_library_helper_collapse_view(Model *model, int diff_rows);
 

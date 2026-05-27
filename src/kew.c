@@ -579,6 +579,8 @@ void init_state(void)
         state->settings.chromaPreset = -1;
         state->settings.visualizations_instead_of_cover = false;
         state->settings.lastVolume = 100;
+        state->settings.collapseTopLevel = true;
+        state->settings.colorMode = 1;
 
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
@@ -606,8 +608,7 @@ void init_state(void)
         state->ui.visualizer_width = 0;
         state->ui.previous_chosen_song = -1;
         state->ui.has_chroma = -1;
-
-
+        state->ui.flipped_next = false;
         state->ui.start_lib_iter = 0;
         state->ui.chosen_lib_row = 0;
         state->ui.lib_row_count = 0;

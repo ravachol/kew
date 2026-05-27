@@ -67,35 +67,38 @@ void reset_list_after_dequeuing_playing_song(void)
         }
 }
 
-bool starts_with_track_number(const char *name) {
-    if (!isdigit((unsigned char)*name))
-        return false;
+bool starts_with_track_number(const char *name)
+{
+        if (!isdigit((unsigned char)*name))
+                return false;
 
-    while (isdigit((unsigned char)*name))
-        name++;
+        while (isdigit((unsigned char)*name))
+                name++;
 
-    // Accept common separators
-    switch (*name) {
+        // Accept common separators
+        switch (*name) {
         case ' ':
         case '.':
         case '-':
         case '_':
-            return true;
-    }
+                return true;
+        }
 
-    return false;
+        return false;
 }
 
-bool check_songs_for_track_number(FileSystemEntry* entry) {
-    if (entry == NULL) return false;
-    if (entry->is_directory) {
-        if (entry->children == NULL) return false;
-        return check_songs_for_track_number(entry->children);
-    }
-    else if (entry->next == NULL) {
-        return false;
-    }
-    return (starts_with_track_number(entry->name) && starts_with_track_number(entry->next->name));
+bool check_songs_for_track_number(FileSystemEntry *entry)
+{
+        if (entry == NULL)
+                return false;
+        if (entry->is_directory) {
+                if (entry->children == NULL)
+                        return false;
+                return check_songs_for_track_number(entry->children);
+        } else if (entry->next == NULL) {
+                return false;
+        }
+        return (starts_with_track_number(entry->name) && starts_with_track_number(entry->next->name));
 }
 
 FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue)
@@ -110,7 +113,8 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
         if (entry != NULL) {
                 if (entry->is_directory) {
-                        if (!has_song_children(entry) || entry->parent == NULL ||
+                        if ((!has_song_children(entry) && !model->state.settings.collapseTopLevel) ||
+                            entry->parent == NULL ||
                             ((*chosen_dir) != NULL &&
                              strcmp(entry->full_path, (*chosen_dir)->full_path) == 0)) {
                                 if (has_dequeued_children(entry) || dont_dequeue) {
@@ -119,7 +123,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                                 shuffle = true;
                                         bool sort = !(count_music_files_in_directory(entry) > MAX_SORT_SIZE ||
                                                       check_songs_for_track_number(entry) // songs are already ordered if track number is in name
-                                                     );
+                                        );
                                         has_enqueued = enqueue_children(entry->children, &first_enqueued_entry, sort);
 
                                         ps->nextSongNeedsRebuilding = true;
@@ -157,8 +161,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
                                 if (!dont_dequeue) {
                                         dequeue_song(entry);
-                                }
-                                else {
+                                } else {
                                         first_enqueued_entry = entry;
                                 }
                                 set_childrens_queued_status_on_parents(entry->parent, false);
@@ -223,8 +226,7 @@ Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue)
 
                 dequeue_m3u(entry->full_path, get_library());
                 entry->is_enqueued = 0;
-        }
-        else {
+        } else {
                 set_next_song(NULL);
                 ps->nextSongNeedsRebuilding = true;
                 enqueue_m3u(entry->full_path, get_library(), &first_enqueued_node, dont_dequeue);
@@ -242,7 +244,7 @@ Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue)
 FileSystemEntry *get_chosen_dir(void)
 {
         Model *model = get_model();
-        return  model->state.ui.chosen_dir;
+        return model->state.ui.chosen_dir;
 }
 
 void set_chosen_dir(FileSystemEntry *entry)
@@ -287,7 +289,7 @@ FileSystemEntry *enqueue(FileSystemEntry *entry, bool dont_dequeue)
                 chosen_dir = model->state.ui.chosen_dir;
 
         if (state->currentView == SEARCH_VIEW)
-                 chosen_dir = model->state.ui.chosen_search_dir;
+                chosen_dir = model->state.ui.chosen_search_dir;
 
         first_enqueued_entry = enqueue_songs(entry, &chosen_dir, dont_dequeue);
 
