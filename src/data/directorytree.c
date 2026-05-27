@@ -1173,6 +1173,21 @@ void sort_file_system_tree(FileSystemEntry *root,
         }
 }
 
+unsigned long count_directories_in_directory(FileSystemEntry *directory) {
+    unsigned long dir_count = 0;
+    FileSystemEntry* child = directory->children;
+
+    while (child != NULL) {
+        if (child->is_directory && child->children != NULL) {
+            dir_count += count_directories_in_directory(child);
+            dir_count++;
+        }
+        child = child->next;
+    }
+
+    return dir_count;
+}
+
 unsigned long count_music_files_in_directory(FileSystemEntry *directory) {
     unsigned long file_count = 0;
     FileSystemEntry* child = directory->children;

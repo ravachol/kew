@@ -8,7 +8,7 @@
 #include "data/directorytree.h"
 
 #include "ops/library_ops.h"
-#include "ops/playback_clock.h"
+
 #include "ops/playback_state.h"
 #include "ops/search_ops.h"
 
@@ -265,6 +265,8 @@ void flip_next_page(Model *model)
                     (model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count)
                         ? model->state.ui.lib_row_count - 1
                         : model->state.ui.chosen_lib_row;
+
+                model->state.ui.flipped_next = true;
                 set_dirty(DIRTY_LIBRARY);
 
         } else if (state->currentView == PLAYLIST_VIEW) {
@@ -616,9 +618,30 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_LIBRARY_ROW_SELECTED:
-                model->state.ui.chosen_lib_row = msg->chosen_lib_row;
+
                 model->state.ui.current_lib_entry = msg->current_lib_entry;
+                model->state.ui.chosen_lib_row = msg->chosen_lib_row;
+
+                if (model->state.ui.flipped_next) {
+
+                        FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
+                        FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
+
+                        bool same_parent = first_parent && entry_first_parent &&
+                                        strcmp(first_parent->full_path, entry_first_parent->full_path) == 0;
+
+                        if (!same_parent)
+                        {
+                                if (model->state.settings.collapseTopLevel)
+                                        component_library_helper_collapse_top_level(model, 1);
+                                else
+                                        component_library_helper_collapse_view(model, 1);
+                        }
+                        model->state.ui.flipped_next = false;
+                }
+
                 model->state.ui.lib_row_count = msg->num_lib_rows;
+
                 if (model->state.ui.current_lib_entry && model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256))
                         model->name_scroll.active = false;
                 break;

@@ -185,18 +185,58 @@ int calc_indentation(int depth)
         return depth * 2;
 }
 
+FileSystemEntry *get_first_parent(FileSystemEntry *entry)
+{
+        FileSystemEntry *first_parent = entry;
+        while (first_parent != NULL) {
+                // if root is above first_parent
+                if (first_parent->parent != NULL && first_parent->parent->parent == NULL)
+                        break;
+
+                first_parent = first_parent->parent;
+        }
+
+        return first_parent;
+}
+
+void component_library_helper_collapse_top_level(Model *model, int direction)
+{
+        TreeContext *ctx = &model->state.ui.treeCtx;
+
+        FileSystemEntry *first_parent = get_first_parent(ctx->chosen_dir);
+        if (model->state.ui.allowChooseSongs &&
+            model->state.settings.collapseTopLevel &&
+            ctx->chosen_dir) {
+                int num_dirs = count_directories_in_directory(first_parent);
+                int num_children = 0;
+                if (ctx->chosen_dir != NULL) {
+                        FileSystemEntry *child = ctx->chosen_dir->children;
+
+                        while (child != NULL) {
+                                if (!child->is_directory)
+                                        num_children++;
+                                child = child->next;
+                        }
+                }
+
+                model->state.ui.allowChooseSongs = false;
+                if (direction > 0)
+                        model->state.ui.chosen_lib_row -= num_dirs + num_children;
+                model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
+        }
+}
+
 void component_library_helper_collapse_view(Model *model, int diff_rows)
 {
         UIState *uis = &model->state.ui;
         TreeContext *ctx = &model->state.ui.treeCtx;
 
-        if (uis->allowChooseSongs && (ctx->chosen_dir == NULL ||
-                                      (uis->current_lib_entry != NULL && uis->current_lib_entry->parent != NULL &&
-                                       ctx->chosen_dir != NULL))) {
+        if ((uis->allowChooseSongs || model->state.settings.collapseTopLevel) &&
+            (ctx->chosen_dir == NULL ||
+             (uis->current_lib_entry != NULL && uis->current_lib_entry->parent != NULL &&
+              ctx->chosen_dir != NULL))) {
 
                 set_dirty(DIRTY_LIBRARY);
-
-                uis->allowChooseSongs = false;
 
                 int num_children = 0;
                 if (ctx->chosen_dir != NULL && diff_rows > 0) {
@@ -208,9 +248,23 @@ void component_library_helper_collapse_view(Model *model, int diff_rows)
                         }
                 }
 
-                model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
-
-                model->state.ui.chosen_lib_row -= num_children;
+                // Handle case for when library is collapsed and only artists are visible
+                if (model->state.settings.collapseTopLevel) {
+                        // If we are exiting the artist, collapse all the albums in it
+                        if (ctx->chosen_dir && ctx->chosen_dir->parent && !ctx->chosen_dir->parent->parent &&
+                            (strcmp(model->state.ui.current_lib_entry->parent->full_path, ctx->chosen_dir->full_path) == 0 ||
+                             (strcmp(model->state.ui.current_lib_entry->full_path, ctx->chosen_dir->full_path) == 0 && diff_rows < 0))) {
+                                component_library_helper_collapse_top_level(model, diff_rows);
+                        } else if (ctx->chosen_dir && ctx->chosen_dir->parent && ctx->chosen_dir->parent->parent) {
+                                // Else if we are exiting a folder within the artist, collapse only that album
+                                model->state.ui.chosen_lib_row -= num_children;
+                                model->state.ui.chosen_dir = ctx->chosen_dir = get_first_parent(ctx->chosen_dir);
+                        }
+                } else {
+                        uis->allowChooseSongs = false;
+                        model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
+                        model->state.ui.chosen_lib_row -= num_children;
+                }
         }
 }
 
@@ -261,9 +315,19 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                 is_playing = 1;
 
         // Visibility check
-        bool show = entry->is_directory || (!entry->is_directory && depth == 1) || (entry->is_directory && depth == 0) ||
+        bool show = (entry->is_directory && depth == 1) ||
+                    (entry->is_directory && !model->state.settings.collapseTopLevel) ||
+                    (!entry->is_directory && depth == 1) ||
+                    (entry->is_directory && depth == 0) ||
                     (ctx.chosen_dir != NULL && uis->allowChooseSongs && entry->parent != NULL &&
                      (strcmp(entry->parent->full_path, ctx.chosen_dir->full_path) == 0 || strcmp(entry->full_path, ctx.chosen_dir->full_path) == 0));
+
+        if (ctx.chosen_dir && entry->is_directory && model->state.settings.collapseTopLevel) {
+                FileSystemEntry *artist = get_first_parent(ctx.chosen_dir);
+                FileSystemEntry *entry_artist = get_first_parent(entry);
+
+                show = show || (artist && entry_artist && strcmp(artist->full_path, entry_artist->full_path) == 0);
+        }
 
         if (!show)
                 return NULL;
@@ -1729,7 +1793,7 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
         if (height > region.height)
                 height = region.height;
 
-        if (height < 2)
+        if (height < 2 || model->is_paused)
                 return (ComponentMsg){0};
 
         draw_spectrum_visualizer_to_buf(model, buf, sound_sys, region.row, region.col,

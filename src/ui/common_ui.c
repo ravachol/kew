@@ -132,6 +132,7 @@ void transfer_settings_to_ui(void)
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideFooter = (settings->hideFooter[0] == '1');
         ui->hideSideCover = (settings->hideSideCover[0] == '1');
+        ui->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
         ui->saveRepeatShuffleSettings =
             (settings->saveRepeatShuffleSettings[0] == '1');
         ui->trackTitleAsWindowTitle =

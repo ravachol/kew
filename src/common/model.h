@@ -303,6 +303,7 @@ typedef struct
         bool hideFooter;         /**< Hide footer section. */
         bool hideTimeStatus;     /**< Hide elapsed, song length, vol, bitrate. */
         bool hideSideCover;      /**< Hide side cover panel. */
+        bool collapseTopLevel;      /**< Hide contents of top level folders. */
         bool allowNotifications; /**< Enable desktop notifications. */
 
         int visualizer_height;      /**< Height (in terminal rows) of the spectrum visualizer. */
@@ -425,6 +426,7 @@ typedef struct
         int max_lib_rows;
         int max_search_rows;
         int lib_row_count;
+        bool flipped_next;
 
         int chosen_lyrics_row;
 
@@ -555,6 +557,7 @@ typedef struct
         char hideHelp[2];
         char hideFooter[2];
         char hideSideCover[2];
+        char collapseTopLevel[2];
         char hideTimeStatus[2];
         char quitAfterStopping[2];
         char clearListClearsAll[2];
