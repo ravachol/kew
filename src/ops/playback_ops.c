@@ -177,6 +177,7 @@ void volume_change(int change_percent)
         sound_volume += change_percent;
 
         set_volume(sound_volume);
+        set_dirty(DIRTY_VISUALIZER);
 }
 
 void skip_to_song(int id, bool start_playing)
