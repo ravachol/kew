@@ -256,8 +256,12 @@ void component_library_helper_collapse_view(Model *model, int diff_rows)
                              (strcmp(model->state.ui.current_lib_entry->full_path, ctx->chosen_dir->full_path) == 0 && diff_rows < 0))) {
                                 component_library_helper_collapse_top_level(model, diff_rows);
                         } else if (ctx->chosen_dir && ctx->chosen_dir->parent && ctx->chosen_dir->parent->parent) {
+
                                 // Else if we are exiting a folder within the artist, collapse only that album
-                                model->state.ui.chosen_lib_row -= num_children;
+                                if (diff_rows > 0 && !ctx->chosen_dir->next)
+                                        component_library_helper_collapse_top_level(model, diff_rows);
+                                else
+                                        model->state.ui.chosen_lib_row -= num_children;
                                 model->state.ui.chosen_dir = ctx->chosen_dir = get_first_parent(ctx->chosen_dir);
                         }
                 } else {
