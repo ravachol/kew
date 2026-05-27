@@ -266,7 +266,7 @@ void flip_next_page(Model *model)
                         ? model->state.ui.lib_row_count - 1
                         : model->state.ui.chosen_lib_row;
 
-                model->state.ui.flipped_next = true;
+                model->state.ui.check_collapse_top_level = true;
                 set_dirty(DIRTY_LIBRARY);
 
         } else if (state->currentView == PLAYLIST_VIEW) {
@@ -622,7 +622,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->state.ui.current_lib_entry = msg->current_lib_entry;
                 model->state.ui.chosen_lib_row = msg->chosen_lib_row;
 
-                if (model->state.ui.flipped_next) {
+                if (model->state.ui.check_collapse_top_level) {
 
                         FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
                         FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
@@ -637,7 +637,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 else
                                         component_library_helper_collapse_view(model, 1);
                         }
-                        model->state.ui.flipped_next = false;
+                        model->state.ui.check_collapse_top_level = false;
                 }
 
                 model->state.ui.lib_row_count = msg->num_lib_rows;

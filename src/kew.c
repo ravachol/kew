@@ -608,7 +608,7 @@ void init_state(void)
         state->ui.visualizer_width = 0;
         state->ui.previous_chosen_song = -1;
         state->ui.has_chroma = -1;
-        state->ui.flipped_next = false;
+        state->ui.check_collapse_top_level = false;
         state->ui.start_lib_iter = 0;
         state->ui.chosen_lib_row = 0;
         state->ui.lib_row_count = 0;
