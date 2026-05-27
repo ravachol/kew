@@ -1231,7 +1231,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         Node *node = model->state.ui.playlist_node;
         CellStyle header = cell_style_from_color(ui->colorMode, ui->theme.playlist_title, ui->color);
 
-        draw_buffer_set_string(buf, row_offset, region.col, _(" ─ PLAYLIST ─"), header);
+        draw_buffer_set_string(buf, row_offset, region.col, _("─ PLAYLIST ─"), header);
 
         row_offset++;
 
@@ -1293,7 +1293,10 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 // Row number
                 char rownum[18];
-                snprintf(rownum, sizeof(rownum), "%d. ", i + 1);
+                if (i < 9)
+                        snprintf(rownum, sizeof(rownum), "%d.  ", i + 1);
+                else
+                        snprintf(rownum, sizeof(rownum), "%d. ", i + 1);
 
                 draw_buffer_set_string(buf, draw_row, col, rownum, rownum_style);
                 col += (int)strlen(rownum);
