@@ -831,7 +831,7 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
 
         bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi ||model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   row, region.col,
@@ -867,7 +867,7 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
         bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi ||model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   region.row, region.col,
@@ -1184,6 +1184,9 @@ void component_playlist_helper_update_view_state(Model *model)
                                                               model->state.ui.current_at_row, model->state.ui.max_playlist_rows, &model->state.ui.chosen_row,
                                                               model->state.ui.resetPlaylistDisplay,
                                                               sound_system_is_end_of_list_reached(sound_sys));
+
+        if (!model->state.ui.playlist_node)
+                return;
 
         move_start_node_into_position(model, model->state.ui.current_at_row, &model->state.ui.playlist_node);
 
@@ -1575,35 +1578,51 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         int elapsed_bars = calc_elapsed_bars(model->elapsed_seconds,
                                              model->songdata ? model->songdata->duration : 0, region.width);
 
+        PixelData empty_color = color;
+        if (ui->colorMode == COLOR_MODE_ALBUM) {
+
+                empty_color = increase_luminosity(color, 50);
+
+                if (empty_color.r >= model->state.settings.default_color &&
+                    empty_color.g >= model->state.settings.default_color &&
+                    empty_color.b >= model->state.settings.default_color) {
+                        empty_color = decrease_luminosity_pct(color, 50);
+                }
+        }
+
+        CellStyle empty_style = cell_style_from_color(ui->colorMode,
+                                                      ui->theme.progress_empty,
+                                                      empty_color);
+
+        CellStyle filled_style = cell_style_from_color(ui->colorMode,
+                                                       ui->theme.progress_filled,
+                                                       color);
+
+        CellStyle current_style = cell_style_from_color(ui->colorMode,
+                                                        ui->theme.progress_elapsed,
+                                                        color);
+
+        CellStyle style = empty_style;
+
         for (int i = 0; i < region.width; i++) {
                 const char *ch;
-                CellStyle style;
 
                 if (i > elapsed_bars) {
                         // Empty / Approaching
-                        PixelData empty_color = color;
-                        if (ui->colorMode == COLOR_MODE_ALBUM)
-                                empty_color = increase_luminosity(color, 50);
+                        style = empty_style;
 
-                        style = cell_style_from_color(ui->colorMode,
-                                                      ui->theme.progress_empty,
-                                                      empty_color);
                         ch = (i % 2 == 0) ? settings->progressBarApproachingEvenChar
                                           : settings->progressBarApproachingOddChar;
 
                 } else if (i < elapsed_bars) {
                         // Filled / Elapsed
-                        style = cell_style_from_color(ui->colorMode,
-                                                      ui->theme.progress_filled,
-                                                      color);
+                        style = filled_style;
                         ch = (i % 2 == 0) ? settings->progressBarElapsedEvenChar
                                           : settings->progressBarElapsedOddChar;
 
                 } else {
                         // Current position
-                        style = cell_style_from_color(ui->colorMode,
-                                                      ui->theme.progress_elapsed,
-                                                      color);
+                        style = current_style;
                         ch = (i % 2 == 0) ? settings->progressBarCurrentEvenChar
                                           : settings->progressBarCurrentOddChar;
                 }
