@@ -16,7 +16,9 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
 
-- New setting chafa coverstyle, which let's you decide how Chafa should render the covers. By @netodosrjoao.
+- New setting coverstyle, which let's you decide how Chafa should render the covers. By @netodosrjoao.
+
+- New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.
 
 #### Bugfixes
 
