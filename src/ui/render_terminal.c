@@ -26,12 +26,41 @@ static void cursor_move(int row, int col)
         printf("\033[%d;%dH", row + 1, col + 1);
 }
 
-void emit_image(ImagePayload *image)
+void emit_image(ImagePayload *image,
+                int row,
+                int col,
+                bool centered,
+                int term_width_cells,
+                int corrected_width)
 {
         if (!image || !image->data)
                 return;
 
-        fwrite(image->data, 1, image->data_len, stdout);
+        if (centered)
+                col = ((term_width_cells - corrected_width) / 2) + 1;
+
+        const char *p = (const char *)image->data;
+        int current_row = row + 1;
+
+        while (*p) {
+                const char *line_start = p;
+
+                // Find end of line
+                while (*p && *p != '\n')
+                        p++;
+
+                size_t line_len = p - line_start;
+
+                // Move cursor
+                printf("\033[%d;%dH", current_row++, col + 1);
+
+                // Print line without requiring temporary allocation
+                fwrite(line_start, 1, line_len, stdout);
+
+                // Skip newline if present
+                if (*p == '\n')
+                        p++;
+        }
 }
 
 static inline void emit_codepoint(uint32_t cp)
@@ -249,16 +278,12 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                                         if (!same_image || !same_position || (dirty & DIRTY_SONG)) {
 
-                                                // Move only if needed.
-                                                if (cur_row != row || cur_col != col) {
+                                                cursor_move(row, col);
 
-                                                        cursor_move(row, col);
+                                                cur_row = row;
+                                                cur_col = col;
 
-                                                        cur_row = row;
-                                                        cur_col = col;
-                                                }
-
-                                                emit_image(cell->image);
+                                                emit_image(cell->image, row, col, false, buf->rows, cell->image->screen_w);
 
                                                 state->last_image_id = cell->image->id;
 

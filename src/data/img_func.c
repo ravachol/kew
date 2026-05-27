@@ -526,6 +526,8 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         int cell_width = 8;
         int cell_height = 16;
 
+        printf("\033[%d;%dH", row, col);
+
         if (term_size->width_cells > 0 && term_size->height_cells > 0 &&
             term_size->width_pixels > 0 && term_size->height_pixels > 0) {
                 cell_width = term_size->width_pixels / term_size->width_cells;
