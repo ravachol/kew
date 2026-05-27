@@ -426,7 +426,7 @@ typedef struct
         int max_lib_rows;
         int max_search_rows;
         int lib_row_count;
-        bool flipped_next;
+        bool check_collapse_top_level;
 
         int chosen_lyrics_row;
 
