@@ -574,14 +574,47 @@ void load_layout_config(void)
         fclose(file);
 }
 
+static time_t get_file_mtime(const char *path)
+{
+        struct stat st;
+
+        if (stat(path, &st) == 0)
+                return st.st_mtime;
+
+        return 0;
+}
+
 void init_settings(AppSettings *settings)
 {
         AppState *state = get_app_state();
 
         keybinding_count = NUM_DEFAULT_KEY_BINDINGS;
 
-        get_config(settings, &(state->settings));
-        get_prefs(settings, &(state->settings));
+        char *configdir = get_config_path();
+
+        char *kewrc =
+            get_settings_file_path(configdir, SETTINGS_FILE);
+
+        char *kewstaterc =
+            get_settings_file_path(configdir, STATE_FILE);
+
+        time_t kewrc_time = get_file_mtime(kewrc);
+        time_t state_time = get_file_mtime(kewstaterc);
+
+        // Whatever is the newest file should be loaded last
+        // So that users can drop in a new settings file in there
+        // And it takes precedence over the kewstaterc (prefs) file.
+        if (kewrc_time <= state_time) {
+                get_config(settings, &(state->settings));
+                get_prefs(settings, &(state->settings));
+        } else {
+                get_prefs(settings, &(state->settings));
+                get_config(settings, &(state->settings));
+        }
+
+        free(kewrc);
+        free(kewstaterc);
+        free(configdir);
 }
 
 void free_key_value_pairs(KeyValuePair *pairs, int count)
