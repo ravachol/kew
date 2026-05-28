@@ -245,6 +245,7 @@ void ops_toggle_pause(void)
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
+                set_dirty(DIRTY_VISUALIZER);
         } else {
                 if (ps->hasSilentlySwitched && !ps->skipping) {
                         set_total_pause_seconds(0);

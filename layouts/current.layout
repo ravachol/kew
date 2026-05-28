@@ -28,7 +28,7 @@ col=0
 
 pane
 component=logo
-dirty=song
+dirty=visualizer
 width=auto
 offsetX=1
 
@@ -82,7 +82,7 @@ col=0
 
 pane
 component=logo
-dirty=song
+dirty=visualizer
 width=auto
 offsetX=1
 
@@ -189,7 +189,7 @@ col=0
 
 pane
 component=logo
-dirty=song
+dirty=visualizer
 width=auto
 offsetX=1
 
@@ -254,7 +254,7 @@ col=0
 
 pane
 component=logo
-dirty=song
+dirty=visualizer
 width=auto
 offsetX=1
 
