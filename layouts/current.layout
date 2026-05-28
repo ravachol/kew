@@ -1,4 +1,4 @@
-version=7
+version=8
 
 [footer_pane]
 
@@ -170,7 +170,6 @@ width=auto
 row
 height=window_minus:2
 col=0
-
 
 pane
 component=landscape_cover
