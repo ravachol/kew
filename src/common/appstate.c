@@ -164,6 +164,7 @@ void init_model(void)
         model.is_paused = false;
         model.is_stopped = true;
         model.should_refresh = true;
+        model.restore_volume = false;
 
         set_term_size();
         get_term_size(&model.term_w, &model.term_h);
