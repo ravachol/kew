@@ -1732,7 +1732,7 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
         if (height < 2)
                 return (ComponentMsg){0};
 
-        draw_spectrum_visualizer_to_buf(model, buf, sound_sys, region.row, region.col,
+        draw_spectrum_visualizer_to_buf((Model *)model, buf, sound_sys, region.row, region.col,
                                         height, region.width);
 
         return (ComponentMsg){0};
