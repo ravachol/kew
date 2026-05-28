@@ -433,10 +433,16 @@ void process_name(const char *name, char *output, int max_width,
         str_truncate_display_width(output, output, max_width);
 }
 
-int process_name_scroll(const Model *model, const char *name, char *output, int max_width)
+int process_name_scroll(const Model *model, const char *name, char *output, int max_width,
+                        bool strip_unneeded_chars, bool strip_suffix)
 {
-        process_name_strip_suffix(name, output);
-        process_name_strip_unneeded_chars(output);
+        if (strip_suffix)
+                process_name_strip_suffix(name, output);
+        else
+                g_utf8_strncpy(output, name, g_utf8_strlen(name, -1));
+
+        if (strip_unneeded_chars)
+                process_name_strip_unneeded_chars(output);
 
         int name_width = str_calculate_display_width(output);
 
