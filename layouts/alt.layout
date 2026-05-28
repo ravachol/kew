@@ -1,4 +1,4 @@
-version=6
+version=7
 
 [footer_pane]
 
@@ -187,14 +187,6 @@ col=0
 pane
 component=track_landscape
 dirty=visualizer
-width=auto
-
-row
-height=fixed:2
-col=0
-
-pane
-layout=footer_pane
 width=auto
 
 [track_landscape]
