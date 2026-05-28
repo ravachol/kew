@@ -40,7 +40,7 @@ const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
 const char LAYOUT_FILE[] = "/layouts/current.layout";
 
-#define KEW_LAYOUT_VERSION 6
+#define KEW_LAYOUT_VERSION 7
 
 #define MAX_LINE 1024
 
