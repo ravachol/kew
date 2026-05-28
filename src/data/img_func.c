@@ -601,7 +601,6 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         }
 
         if (width == 0 || height == 0 || !pixels) {
-                set_error_message("Invalid pixel data.\n");
                 return;
         }
 
