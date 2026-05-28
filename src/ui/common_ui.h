@@ -80,8 +80,11 @@ void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color);
  * @param output The output buffer to store the processed name.
  * @param max_width The maximum width for the name.
  * @param is_same_name_as_last_time Boolean flag indicating if the name is the same as the previous one.
+ * @param strip_unneeded_chars Flag indicating whether unneeded characters should be stripped.
+ * @param strip_suffix Flag indicating whether the suffix (e.g., file extension) should be stripped.
  */
-int process_name_scroll(const Model *model, const char *name, char *output, int max_width);
+int process_name_scroll(const Model *model, const char *name, char *output, int max_width,
+                        bool strip_unneeded_chars, bool strip_suffix);
 
 /**
  * @brief Resets the terminal color.
