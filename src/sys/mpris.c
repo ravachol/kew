@@ -1050,7 +1050,8 @@ void init_mpris(void)
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to connect to D-Bus\n");
-                quit();
+                #undef USE_DBUS
+                return;
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
@@ -1062,7 +1063,8 @@ void init_mpris(void)
 
         if (bus_name_id == 0) {
                 printf(_("Failed to own D-Bus name: %s\n"), app_name);
-                quit();
+                #undef USE_DBUS
+                return;
         }
 
         registration_id = g_dbus_connection_register_object(
@@ -1072,10 +1074,10 @@ void init_mpris(void)
 
         if (!registration_id) {
                 g_dbus_node_info_unref(introspection_data);
-                g_printerr("Failed to register media player object: %s\n",
-                           error->message);
+                g_printerr("Failed to register mpris");
                 g_error_free(error);
-                quit();
+                #undef USE_DBUS
+                return;
         }
 
         player_registration_id = g_dbus_connection_register_object(
@@ -1085,10 +1087,10 @@ void init_mpris(void)
 
         if (!player_registration_id) {
                 g_dbus_node_info_unref(introspection_data);
-                g_printerr("Failed to register media player object: %s\n",
-                           error->message);
+                g_printerr("Failed to register mpris");
                 g_error_free(error);
-                quit();
+                #undef USE_DBUS
+                return;
         }
 
         g_dbus_node_info_unref(introspection_data);
