@@ -24,6 +24,8 @@
 #include "utils/file.h"
 #include "utils/utils.h"
 
+#include "update/messages.h"
+
 #include <ctype.h>
 #include <locale.h>
 #include <pwd.h>
@@ -40,7 +42,7 @@ const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
 const char LAYOUT_FILE[] = "/layouts/current.layout";
 
-#define KEW_LAYOUT_VERSION 7
+#define KEW_LAYOUT_VERSION 8
 
 #define MAX_LINE 1024
 
@@ -451,10 +453,47 @@ void load_layout_config(void)
 
         free(filepath);
 
-        if (!file)
+        if (!file) {
+                set_error_message(
+                        "Layout was not found. "
+                        "Please reinstall kew, or run 'sudo make install' "
+                        "if kew was installed by running make.");
+
+                dispatch_msg((struct Msg){.type = MSG_QUIT});
+
+                free(configdir);
+
                 return;
+        }
 
         char line[512];
+        int version = -1;
+
+        // Find version
+        while (fgets(line, sizeof(line), file)) {
+
+                if (sscanf(line, "version=%d", &version) == 1)
+                        break;
+        }
+
+        if (version < KEW_LAYOUT_VERSION) {
+
+                fclose(file);
+
+                free(configdir);
+
+                set_error_message(
+                        "Layout with the correct version not found. "
+                        "Please reinstall kew, or run 'sudo make install' "
+                        "if kew was installed by running make.");
+
+                dispatch_msg((struct Msg){.type = MSG_QUIT});
+
+                return;
+        }
+
+        rewind(file);
+
         char current_section[64] = "";
 
         ConfigEntry *tail = NULL;
@@ -493,7 +532,6 @@ void load_layout_config(void)
 
                         *section_end = '\0';
 
-                        snprintf(current_section, sizeof(current_section), "%s", s + 1);
                         snprintf(current_section, sizeof(current_section), "%.63s", s + 1);
 
                         current_section[sizeof(current_section) - 1] = '\0';

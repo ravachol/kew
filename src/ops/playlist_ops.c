@@ -176,6 +176,8 @@ void remove_song(Node *node)
                 }
         }
 
+        PlaybackState *ps = get_playback_state();
+
         pthread_mutex_lock(&(playlist->mutex));
 
         if (node != NULL && song != NULL && current != NULL) {
@@ -208,7 +210,7 @@ void remove_song(Node *node)
                 reshuffle_playlist();
 
                 set_try_next_song(current->next);
-                PlaybackState *ps = get_playback_state();
+
                 ps->nextSongNeedsRebuilding = false;
                 set_next_song(NULL);
                 set_next_song(get_list_next(current));
@@ -217,6 +219,9 @@ void remove_song(Node *node)
         }
 
         pthread_mutex_unlock(&(playlist->mutex));
+
+        if (playlist->head == NULL)
+                ps->waitingForPlaylist = true;
 }
 
 void handle_remove(int chosen_row)
