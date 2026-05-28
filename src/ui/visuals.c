@@ -26,12 +26,347 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "common/model.h"
+#include "loader/songdatatype.h"
+#include "utils/img_utils.h"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
 #define MAX_BARS 26 // Counting 1/3 octave per bar, 50hz-10000hz range
+
+#define PALETTE_SONG_HASH_UNSET ((size_t)-2)
+
+static size_t cached_palette_song_hash = PALETTE_SONG_HASH_UNSET;
+
+static void generate_legacy_palette(ColorPalette *palette, PixelData base, int height, int mode) {
+        int count = height < 16 ? height : 16;
+        palette->count = count;
+        for (int j = 1; j <= count; j++) {
+                if (mode == 0)
+                        palette->colors[j - 1] = increase_luminosity_for_height(base, height, j, false);
+                else if (mode == 2)
+                        palette->colors[j - 1] = increase_luminosity_for_height(base, height, j, true);
+                else
+                        palette->colors[j - 1] = get_gradient_color(base, j, height, 1, 0.6f);
+        }
+}
+
+#define KMEANS_K 8
+#define KMEANS_SAMPLES 400
+#define KMEANS_ITERATIONS 20
+
+static void generate_kmeans_palette(ColorPalette *palette, const unsigned char *pixels, int w, int h, int channels) {
+        int total_pixels = w * h;
+        if (total_pixels <= 0 || pixels == NULL) {
+                palette->count = 0;
+                return;
+        }
+
+        int step = total_pixels / KMEANS_SAMPLES;
+        if (step < 1) step = 1;
+
+        float centroids[KMEANS_K][3];
+        int counts[KMEANS_K];
+        int assigned[KMEANS_SAMPLES];
+        int sample_count = 0;
+
+        for (int i = 0; i < KMEANS_K && i * step < total_pixels; i++) {
+                int idx = (i * step) * channels;
+                centroids[i][0] = (float)pixels[idx];
+                centroids[i][1] = (float)pixels[idx + 1];
+                centroids[i][2] = (float)pixels[idx + 2];
+                sample_count++;
+        }
+        int k_used = sample_count < KMEANS_K ? sample_count : KMEANS_K;
+
+        for (int iter = 0; iter < KMEANS_ITERATIONS; iter++) {
+                memset(counts, 0, sizeof(counts));
+
+                for (int s = 0; s < total_pixels; s += step) {
+                        int idx = s * channels;
+                        float r = (float)pixels[idx];
+                        float g = (float)pixels[idx + 1];
+                        float b = (float)pixels[idx + 2];
+
+                        float best_dist = FLT_MAX;
+                        int best_c = 0;
+                        for (int c = 0; c < k_used; c++) {
+                                float dr = r - centroids[c][0];
+                                float dg = g - centroids[c][1];
+                                float db = b - centroids[c][2];
+                                float dist = dr * dr + dg * dg + db * db;
+                                if (dist < best_dist) {
+                                        best_dist = dist;
+                                        best_c = c;
+                                }
+                        }
+                        assigned[s / step] = best_c;
+                        counts[best_c]++;
+                }
+
+                float new_centroids[KMEANS_K][3];
+                memset(new_centroids, 0, sizeof(new_centroids));
+                for (int s = 0; s < total_pixels; s += step) {
+                        int idx = s * channels;
+                        int c = assigned[s / step];
+                        new_centroids[c][0] += (float)pixels[idx];
+                        new_centroids[c][1] += (float)pixels[idx + 1];
+                        new_centroids[c][2] += (float)pixels[idx + 2];
+                }
+                for (int c = 0; c < k_used; c++) {
+                        if (counts[c] > 0) {
+                                centroids[c][0] = new_centroids[c][0] / counts[c];
+                                centroids[c][1] = new_centroids[c][1] / counts[c];
+                                centroids[c][2] = new_centroids[c][2] / counts[c];
+                        }
+                }
+        }
+
+        palette->count = k_used;
+        for (int c = 0; c < k_used; c++) {
+                palette->colors[c] = (PixelData){
+                        .r = (unsigned char)(centroids[c][0] > 255 ? 255 : centroids[c][0]),
+                        .g = (unsigned char)(centroids[c][1] > 255 ? 255 : centroids[c][1]),
+                        .b = (unsigned char)(centroids[c][2] > 255 ? 255 : centroids[c][2]),
+                        .a = 255
+                };
+        }
+}
+
+#define BIN_SHIFT 5
+#define BIN_SIZE (256 >> BIN_SHIFT)
+#define BIN_TOP 12
+
+static void generate_binning_palette(ColorPalette *palette, const unsigned char *pixels, int w, int h, int channels) {
+        int total_pixels = w * h;
+        if (total_pixels <= 0 || pixels == NULL) {
+                palette->count = 0;
+                return;
+        }
+
+        int bin_counts[BIN_SIZE][BIN_SIZE][BIN_SIZE];
+        memset(bin_counts, 0, sizeof(bin_counts));
+
+        for (int i = 0; i < total_pixels; i++) {
+                int idx = i * channels;
+                int br = pixels[idx] >> BIN_SHIFT;
+                int bg = pixels[idx + 1] >> BIN_SHIFT;
+                int bb = pixels[idx + 2] >> BIN_SHIFT;
+                int max_bin = BIN_SIZE - 1;
+                if (br > max_bin) br = max_bin;
+                if (bg > max_bin) bg = max_bin;
+                if (bb > max_bin) bb = max_bin;
+                bin_counts[br][bg][bb]++;
+        }
+
+        typedef struct { int count, r_idx, g_idx, b_idx; } BinEntry;
+        BinEntry top[BIN_TOP];
+        int top_count = 0;
+
+        for (int r = 0; r < BIN_SIZE; r++) {
+                for (int g = 0; g < BIN_SIZE; g++) {
+                        for (int b = 0; b < BIN_SIZE; b++) {
+                                int cnt = bin_counts[r][g][b];
+                                if (cnt == 0) continue;
+                                int pos = top_count < BIN_TOP ? top_count : BIN_TOP - 1;
+                                for (int p = 0; p < top_count && p < BIN_TOP; p++) {
+                                        if (cnt > top[p].count) {
+                                                pos = p;
+                                                break;
+                                        }
+                                }
+                                if (top_count < BIN_TOP) top_count++;
+                                for (int p = top_count - 1; p > pos; p--) top[p] = top[p - 1];
+                                top[pos].count = cnt;
+                                top[pos].r_idx = r;
+                                top[pos].g_idx = g;
+                                top[pos].b_idx = b;
+                        }
+                }
+        }
+
+        palette->count = top_count;
+        for (int i = 0; i < top_count; i++) {
+                palette->colors[i] = (PixelData){
+                        .r = (unsigned char)((top[i].r_idx << BIN_SHIFT) | (BIN_SHIFT > 0 ? (1 << (BIN_SHIFT - 1)) : 0)),
+                        .g = (unsigned char)((top[i].g_idx << BIN_SHIFT) | (BIN_SHIFT > 0 ? (1 << (BIN_SHIFT - 1)) : 0)),
+                        .b = (unsigned char)((top[i].b_idx << BIN_SHIFT) | (BIN_SHIFT > 0 ? (1 << (BIN_SHIFT - 1)) : 0)),
+                        .a = 255
+                };
+        }
+}
+
+#define TOPN_VIBRANT_N 8
+#define TOPN_SAMPLES 600
+#define TOPN_LUM_THRESHOLD 80
+#define TOPN_MIN_DIST_SQ 3600.0f
+#define TOPN_HALF (TOPN_VIBRANT_N / 2)
+
+typedef struct {
+        float score;
+        unsigned char r, g, b;
+} VibEntry;
+
+static void init_vib_entries(VibEntry *entries, int n) {
+        for (int i = 0; i < n; i++)
+                entries[i].score = -1.0f;
+}
+
+static int insert_vib_entry(VibEntry *entries, int count, int max, float vibrance, unsigned char r, unsigned char g, unsigned char b) {
+        int pos = -1;
+        for (int p = 0; p < count && p < max; p++) {
+                if (vibrance > entries[p].score) {
+                        pos = p;
+                        break;
+                }
+        }
+        if (pos == -1 && count < max)
+                pos = count;
+
+        if (pos < 0)
+                return count;
+
+        for (int p = 0; p < count; p++) {
+                if (p == pos) continue;
+                float dr = (float)r - entries[p].r;
+                float dg = (float)g - entries[p].g;
+                float db = (float)b - entries[p].b;
+                if (dr * dr + dg * dg + db * db < TOPN_MIN_DIST_SQ)
+                        return count;
+        }
+
+        for (int p = max - 1; p > pos; p--)
+                entries[p] = entries[p - 1];
+        entries[pos].score = vibrance;
+        entries[pos].r = r;
+        entries[pos].g = g;
+        entries[pos].b = b;
+        if (count < max)
+                count++;
+        return count;
+}
+
+static void generate_topn_vibrant_palette(ColorPalette *palette, const unsigned char *pixels, int w, int h, int channels) {
+        int total_pixels = w * h;
+        if (total_pixels <= 0 || pixels == NULL) {
+                palette->count = 0;
+                return;
+        }
+
+        VibEntry dark[TOPN_HALF];
+        VibEntry bright[TOPN_HALF];
+        init_vib_entries(dark, TOPN_HALF);
+        init_vib_entries(bright, TOPN_HALF);
+        int dark_count = 0;
+        int bright_count = 0;
+
+        int step = total_pixels / TOPN_SAMPLES;
+        if (step < 1) step = 1;
+
+        for (int i = 0; i < total_pixels; i += step) {
+                int idx = i * channels;
+                unsigned char cr = pixels[idx];
+                unsigned char cg = pixels[idx + 1];
+                unsigned char cb = pixels[idx + 2];
+                float r = (float)cr;
+                float g = (float)cg;
+                float b = (float)cb;
+
+                float max_c = r > g ? r : g;
+                if (b > max_c) max_c = b;
+                float min_c = r < g ? r : g;
+                if (b < min_c) min_c = b;
+                float chroma = max_c - min_c;
+                float lum = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+                float vibrance = chroma * (1.0f - fabsf(lum - 128.0f) / 128.0f);
+
+                if (lum < TOPN_LUM_THRESHOLD)
+                        dark_count = insert_vib_entry(dark, dark_count, TOPN_HALF, vibrance, cr, cg, cb);
+                else
+                        bright_count = insert_vib_entry(bright, bright_count, TOPN_HALF, vibrance, cr, cg, cb);
+        }
+
+        palette->count = 0;
+        for (int i = dark_count - 1; i >= 0 && palette->count < TOPN_VIBRANT_N; i--) {
+                palette->colors[palette->count++] = (PixelData){
+                        .r = dark[i].r, .g = dark[i].g,
+                        .b = dark[i].b, .a = 255
+                };
+        }
+        for (int i = 0; i < bright_count && palette->count < TOPN_VIBRANT_N; i++) {
+                palette->colors[palette->count++] = (PixelData){
+                        .r = bright[i].r, .g = bright[i].g,
+                        .b = bright[i].b, .a = 255
+                };
+        }
+}
+
+static float pixel_luminance(const PixelData *c) {
+        return 0.2126f * c->r + 0.7152f * c->g + 0.0722f * c->b;
+}
+
+static void sort_palette_by_luminosity(ColorPalette *palette) {
+        for (int a = 1; a < palette->count; a++) {
+                PixelData key = palette->colors[a];
+                float key_lum = pixel_luminance(&key);
+                int b = a - 1;
+                while (b >= 0 && pixel_luminance(&palette->colors[b]) > key_lum) {
+                        palette->colors[b + 1] = palette->colors[b];
+                        b--;
+                }
+                palette->colors[b + 1] = key;
+        }
+}
+
+void generate_all_visualizer_palettes(Model *model, int height) {
+        const UISettings *ui = &model->state.settings;
+
+        PixelData base_color = {0, 0, 0, 255};
+        if (ui->colorMode == COLOR_MODE_ALBUM) {
+                base_color = ui->color;
+        } else if (ui->colorMode == COLOR_MODE_THEME &&
+                   ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
+                base_color = ui->theme.trackview_visualizer.rgb;
+        }
+
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[0], base_color, height, 0);
+
+        model->state.ui.visualizer_palettes[1].count = 0;
+
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[2], base_color, height, 2);
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[3], base_color, height, 3);
+
+        const unsigned char *cover = NULL;
+        int cover_w = 0, cover_h = 0, cover_ch = 0;
+        if (model->songdata && model->songdata->cover) {
+                cover = model->songdata->cover;
+                cover_w = model->songdata->coverWidth;
+                cover_h = model->songdata->coverHeight;
+                cover_ch = 4;
+        }
+
+        if (cover && cover_w > 0 && cover_h > 0) {
+                generate_kmeans_palette(&model->state.ui.visualizer_palettes[4], cover, cover_w, cover_h, cover_ch);
+                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[4]);
+                generate_binning_palette(&model->state.ui.visualizer_palettes[5], cover, cover_w, cover_h, cover_ch);
+                if (model->state.ui.visualizer_palettes[5].count > 8)
+                        model->state.ui.visualizer_palettes[5].count = 8;
+                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[5]);
+                generate_topn_vibrant_palette(&model->state.ui.visualizer_palettes[6], cover, cover_w, cover_h, cover_ch);
+        } else {
+                model->state.ui.visualizer_palettes[4].count = 0;
+                model->state.ui.visualizer_palettes[5].count = 0;
+                model->state.ui.visualizer_palettes[6].count = 0;
+        }
+}
 
 static sound_system_t *sound_s;
 
@@ -523,6 +858,13 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                           visualizer_width > max_thin_bars_in_auto_mode));
         int bar_chars = wide_bar ? 3 : 2;
 
+        // Resolve pre-computed palette for modes 0,2,3,4,5,6
+        const ColorPalette *palette = NULL;
+        if (visualizer_color_type >= 0 && visualizer_color_type <= 6 &&
+            visualizer_color_type != 1) {
+                palette = &model->state.ui.visualizer_palettes[visualizer_color_type];
+        }
+
         // Clear if not playing
         if (!is_playing || model->is_paused || model->is_stopped) {
                 CellStyle blank = cell_style_plain();
@@ -539,20 +881,25 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 // Row color
                 PixelData row_color = color;
 
-                if (color.r != 0 || color.g != 0 || color.b != 0) {
-                        switch (visualizer_color_type) {
-                        case 0:
-                                row_color = increase_luminosity_for_height(color, height, j, false);
-                                break;
-                        case 2:
-                                row_color = increase_luminosity_for_height(color, height, j, true);
-                                break;
-                        case 3:
-                                row_color = get_gradient_color(color, j, height, 1, 0.6f);
-                                break;
-                        default:
-                                break;
+                if (palette != NULL && palette->count > 0 &&
+                    (color.r != 0 || color.g != 0 || color.b != 0)) {
+                        int pidx;
+                        if (visualizer_color_type <= 3) {
+                                // Legacy: direct row-to-palette mapping
+                                pidx = j - 1;
+                                if (pidx >= palette->count)
+                                        pidx = palette->count - 1;
+                        } else {
+                                // Album-art: spread palette colors across height
+                                // Use the full palette by stepping through it evenly
+                                if (height >= palette->count)
+                                        pidx = (j - 1) * palette->count / height;
+                                else
+                                        pidx = (j - 1) % palette->count;
+                                if (pidx >= palette->count)
+                                        pidx = palette->count - 1;
                         }
+                        row_color = palette->colors[pidx];
                 }
 
                 CellStyle row_style;
@@ -569,9 +916,46 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
 
                 for (int i = 0; i < num_bars; i++) {
 
-                        // Per-bar color override for color type 1
+                        // Per-bar color: album-art modes (4,5,6) use magnitude-indexed
+                        // palette with smooth interpolation between entries
                         CellStyle bar_style = row_style;
-                        if (ui->colorMode != COLOR_MODE_DEFAULT && visualizer_color_type == 1) {
+                        if (visualizer_color_type >= 4 && visualizer_color_type <= 6 &&
+                            palette != NULL && palette->count > 0 &&
+                            (color.r != 0 || color.g != 0 || color.b != 0)) {
+                                PixelData bar_color;
+                                if (palette->count == 1 || height <= 1) {
+                                        bar_color = palette->colors[0];
+                                } else {
+                                        float scaled;
+                                        if (magnitudes[i] <= 1.0f)
+                                                scaled = 0.0f;
+                                        else if (magnitudes[i] >= (float)height)
+                                                scaled = (float)(palette->count - 1);
+                                        else
+                                                scaled = (magnitudes[i] - 1.0f) *
+                                                          (palette->count - 1) /
+                                                          (height - 1);
+                                        int lo = (int)scaled;
+                                        int hi = lo + 1;
+                                        if (hi >= palette->count) hi = palette->count - 1;
+                                        float frac = scaled - (float)lo;
+                                        PixelData c0 = palette->colors[lo];
+                                        PixelData c1 = palette->colors[hi];
+                                        bar_color = (PixelData){
+                                                .r = (unsigned char)(c0.r + (int)((c1.r - c0.r) * frac)),
+                                                .g = (unsigned char)(c0.g + (int)((c1.g - c0.g) * frac)),
+                                                .b = (unsigned char)(c0.b + (int)((c1.b - c0.b) * frac)),
+                                                .a = 255
+                                        };
+                                }
+                                if (ui->colorMode == COLOR_MODE_ALBUM ||
+                                    ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB)
+                                        bar_style = cell_style_fg(bar_color);
+                                else
+                                        bar_style = cell_style_from_color(ui->colorMode,
+                                                                          ui->theme.trackview_visualizer,
+                                                                          bar_color);
+                        } else if (ui->colorMode != COLOR_MODE_DEFAULT && visualizer_color_type == 1) {
                                 PixelData tmp = {color.r / 2, color.g / 2, color.b / 2, 255};
                                 tmp = increase_luminosity(tmp, (int)round(magnitudes[i] * 10 * 4));
                                 bar_style = cell_style_fg(tmp);
@@ -618,7 +1002,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
         }
 }
 
-void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width)
+void draw_spectrum_visualizer_to_buf(Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width)
 {
         AppState *state = get_app_state();
         sound_s = system;
@@ -645,6 +1029,11 @@ void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_
 
         if (height <= 0 || num_bars <= 0) {
                 return;
+        }
+
+        if (model->current_hash != cached_palette_song_hash) {
+                cached_palette_song_hash = model->current_hash;
+                generate_all_visualizer_palettes(model, height);
         }
 
         sound_system_update_audio_buffer(sound_s);
