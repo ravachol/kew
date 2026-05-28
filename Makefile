@@ -121,7 +121,11 @@ else ifeq ($(DEBUG), 2)
           -fno-optimize-sibling-calls
     LDFLAGS += -fsanitize=address,undefined
 else
-    COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
+    ifeq ($(IS_ANDROID), 1)
+        COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -D_FORTIFY_SOURCE=2
+    else
+        COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
+    endif
 endif
 
 ifneq ($(strip $(KEW_VERSION)),)
