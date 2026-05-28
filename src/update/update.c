@@ -596,6 +596,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_CLEARPLAYLIST:
+                model->playbackState.waitingForPlaylist = true;
                 result.cmd.type = CMD_CLEAR_PLAYLIST;
                 break;
 
