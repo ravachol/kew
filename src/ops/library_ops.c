@@ -53,8 +53,7 @@ void sort_library(void)
         FileSystemEntry *library = get_library();
 
         if (current_sort == 0) {
-                sort_file_system_tree(library,
-                                      compare_folders_by_age_files_alphabetically);
+                sort_file_system_tree(library, compare_folders_by_age_files_alphabetically);
                 current_sort = 1;
         } else {
                 sort_file_system_tree(library, compare_entry_natural);
