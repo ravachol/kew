@@ -869,7 +869,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->visualizer_color_type, "2",
                  sizeof(settings->visualizer_color_type));
         c_strcpy(settings->titleDelay, "9", sizeof(settings->titleDelay));
-
+        c_strcpy(settings->auto_resume, "1", sizeof(settings->auto_resume));
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
         c_strcpy(settings->color, "6", sizeof(settings->color));
         c_strcpy(settings->artistColor, "6", sizeof(settings->artistColor));
@@ -1164,6 +1164,18 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "titledelay") == 0) {
                         snprintf(settings->titleDelay,
                                  sizeof(settings->titleDelay), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "autoresume") == 0) {
+                        snprintf(settings->auto_resume,
+                                 sizeof(settings->auto_resume), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "currentsongid") == 0) {
+                        snprintf(settings->currentSongId,
+                                 sizeof(settings->currentSongId), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "currentsongseconds") == 0) {
+                        snprintf(settings->currentSongSeconds,
+                                 sizeof(settings->currentSongSeconds), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "volumeup") == 0) {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
@@ -1785,7 +1797,15 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         free(filepath);
         construct_app_settings(settings, pairs, pair_count, true);
 
-        int tmp = get_number(settings->repeatState);
+        int tmp = get_number(settings->currentSongId);
+        if (tmp > 0)
+                ui->currentSongId = tmp;
+
+        tmp = get_float(settings->currentSongSeconds);
+        if (tmp > 0)
+                ui->currentSongSeconds = tmp;
+
+        tmp = get_number(settings->repeatState);
         if (tmp >= 0)
                 set_repeat_state(tmp);
 
@@ -1930,6 +1950,15 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "[colors]\n\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
         fprintf(file, "theme=%s\n\n", ui->theme_name);
+
+        Node *current = get_current_song();
+        Model *model = get_model();
+
+        if (current)
+        {
+                fprintf(file, "currentSongId=%d\n", current->id);
+                fprintf(file, "currentSongSeconds=%f\n", model->elapsed_seconds);
+        }
 
         fclose(file);
         free(configdir);
@@ -2131,6 +2160,9 @@ void set_config(AppSettings *settings, UISettings *ui)
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay),
                          "%d", ui->titleDelay);
+        if (settings->auto_resume[0] == '\0')
+                snprintf(settings->auto_resume, sizeof(settings->auto_resume),
+                         "%d", ui->auto_resume);
 
         if (settings->replayGainCheckFirst[0] == '\0')
                 snprintf(settings->replayGainCheckFirst,
@@ -2147,7 +2179,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
-        fprintf(file, "collapseTopLevel=%s\n\n", settings->collapseTopLevel);
+        fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);
+        fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
 
         fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);

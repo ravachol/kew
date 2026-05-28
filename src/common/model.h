@@ -349,6 +349,10 @@ typedef struct
         PixelData footer_color;
 
         bool showFoldersInPlaylist;           /**< Group playlist tracks by folder. */
+
+        double currentSongSeconds;
+        int currentSongId;
+        int auto_resume;
 } UISettings;
 
 typedef struct {
@@ -499,6 +503,7 @@ typedef struct
         char toggle_ascii[6];
         char toggle_repeat[6];
         char toggle_shuffle[6];
+        char auto_resume[6];
         char seekBackward[6];
         char seek_forward[6];
         char save_playlist[6];
@@ -577,6 +582,8 @@ typedef struct
         char progressBarApproachingOddChar[12];
         char progressBarCurrentEvenChar[12];
         char progressBarCurrentOddChar[12];
+        char currentSongId[12];
+        char currentSongSeconds[12];
         char visualizer_bar_width[2];
         char replayGainCheckFirst[2];
         char saveRepeatShuffleSettings[2];

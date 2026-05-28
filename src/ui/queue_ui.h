@@ -7,15 +7,6 @@
 #include "data/directorytree.h"
 
 /**
- * @brief Determines the current song and sends a notification if needed.
- *
- * This function checks the current song data and updates its duration. It also
- * checks if the song has changed since the last notification and, if so, sends
- * a notification about the song switch.
- */
-void determine_song_and_notify(void);
-
-/**
  * @brief Resets the playlist and playback state after dequeuing the currently playing song.
  *
  * This function resets various application states related to the playlist and playback

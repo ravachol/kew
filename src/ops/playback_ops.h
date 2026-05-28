@@ -68,8 +68,9 @@ void ops_toggle_pause(void);
  *
  * Calls the underlying audio backend to resume playback without modifying
  * clock or pause accounting state.
+ * @param seconds How far into the song
  */
-void resume_playback(void);
+void resume_playback(double seconds);
 
 /**
  * @brief Adjust the playback volume.

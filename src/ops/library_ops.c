@@ -63,22 +63,22 @@ void sort_library(void)
         set_dirty(DIRTY_LIBRARY);
 }
 
-bool mark_as_enqueued(FileSystemEntry *root, char *path)
+int mark_as_enqueued(FileSystemEntry *root, char *path)
 {
         if (root == NULL)
-                return false;
+                return 0;
 
         if (path == NULL)
-                return false;
+                return 0;
 
         if (!root->is_directory) {
                 if (strcmp(root->full_path, path) == 0) {
                         root->is_enqueued = true;
-                        return true;
+                        return root->id;
                 }
         } else {
                 FileSystemEntry *child = root->children;
-                bool found = false;
+                int found = 0;
                 while (child != NULL) {
                         found = mark_as_enqueued(child, path);
                         child = child->next;
@@ -90,11 +90,11 @@ bool mark_as_enqueued(FileSystemEntry *root, char *path)
                 if (found) {
                         root->is_enqueued = true;
 
-                        return true;
+                        return found;
                 }
         }
 
-        return false;
+        return 0;
 }
 
 void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist)
@@ -108,7 +108,10 @@ void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist)
                 if (node->song.file_path == NULL)
                         break;
 
-                mark_as_enqueued(root, node->song.file_path);
+                int id = mark_as_enqueued(root, node->song.file_path);
+
+                if (id > 0)
+                        node->id = id;
 
                 node = node->next;
         }
@@ -456,7 +459,13 @@ void create_library(Model *model, bool set_enqueued_status)
 
 void enqueue_song(FileSystemEntry *child)
 {
-        int id = increment_node_id();
+        if (!child)
+                return;
+
+        int id = child->id;
+
+        if (id <= 0)
+                id = increment_node_id();
 
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
@@ -778,7 +787,7 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                         continue;
                 }
 
-                Node *found = find_path_in_playlist(normalized, unshuffled_playlist);
+                Node *found = find_path_in_playlist(normalized, playlist);
 
                 if (dont_dequeue) {
                         if (*first_enqueued_node == NULL)
@@ -786,12 +795,15 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                 } else {
 
                         // Don't add songs that are already enqueued
-                        if (find_path_in_playlist(normalized, unshuffled_playlist) != NULL) {
+                        if (find_path_in_playlist(normalized, playlist) != NULL) {
                                 g_free(normalized);
                                 continue;
                         }
 
-                        int id = increment_node_id();
+                        int id = mark_as_enqueued(library, normalized);
+
+                        if (id <= 0)
+                                id = increment_node_id();
 
                         Node *node1 = NULL;
                         create_node(&node1, normalized, id);
@@ -806,7 +818,6 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                         if (add_to_list(playlist, node2) == -1)
                                 destroy_node(node2);
 
-                        mark_as_enqueued(library, normalized);
 
                         if (*first_enqueued_node == NULL)
                                 *first_enqueued_node = node1;

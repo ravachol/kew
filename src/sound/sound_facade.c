@@ -161,7 +161,7 @@ sound_result_t sound_system_pause(sound_system_t *system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         pause_playback();
-        
+
         if (pb_is_paused())
                 system->state = SOUND_STATE_PAUSED;
 
