@@ -50,12 +50,6 @@ bool has_error_message(void)
 void mark_error_message_as_printed(void)
 {
         has_printed_error = true;
-
-        if (has_error_message())
-        {
-                set_dirty(DIRTY_FOOTER);
-                clear_error_message();
-        }
 }
 
 char *get_error_message(void)
