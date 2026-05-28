@@ -28,6 +28,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef __USE_POSIX
 #define __USE_POSIX
+#include "ops/playback_clock.h"
 #endif
 
 #ifdef __FreeBSD__
@@ -359,8 +360,24 @@ void run(bool start_playing)
                 state->currentView = LIBRARY_VIEW;
         }
 
-        if (state->currentView == LIBRARY_VIEW)
+        double seconds = 0.0;
+        if (!start_playing)
+        {
+                if (model->state.settings.currentSongId > 0)
+                {
+                        Node *song = NULL;
+                        find_node_in_list(playlist, model->state.settings.currentSongId, &song);
+
+                        if (song)
+                        {
+                                set_song_to_start_from(song);
+                                ps->waitingForNext = true;
+                                sound_system_set_end_of_list_reached(sound_sys, false);
+                                seconds = model->state.settings.currentSongSeconds;
+                        }
+                }
                 set_dirty(DIRTY_ALL);
+        }
 
         init_mpris();
 
@@ -375,7 +392,7 @@ void run(bool start_playing)
                 ps->waitingForPlaylist = true;
 
         if (playlist->count != 0)
-                check_and_load_next_song();
+                check_and_load_next_song(seconds);
 
         create_loop();
 }
@@ -549,6 +566,7 @@ void init_state(void)
         state->settings.visualizerBrailleMode = false;
         state->settings.visualizer_bar_mode = 2;
         state->settings.titleDelay = 9;
+        state->settings.auto_resume = true;
         state->settings.cacheLibrary = -1;
         state->settings.mouseEnabled = true;
         state->settings.mouseLeftClickAction = 0;
@@ -778,7 +796,6 @@ int main(int argc, char *argv[])
                 run(true);
         } else if (run_for_play_command_with_playlist) {
                 kew_init(false);
-                mark_list_as_enqueued(model->library, model->playlist);
                 run(true);
         } else if (argc >= 2) {
                 kew_init(false);
@@ -790,7 +807,6 @@ int main(int argc, char *argv[])
                         kew_shutdown();
                 }
 
-                mark_list_as_enqueued(model->library, model->playlist);
                 run(true);
         }
 

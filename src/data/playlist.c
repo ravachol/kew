@@ -1,4 +1,3 @@
-#include "directorytree.h"
 #define _XOPEN_SOURCE 700
 #define __USE_XOPEN_EXTENDED 1
 
@@ -16,9 +15,12 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "directorytree.h"
+#include "ops/library_ops.h"
+
+#include "loader/tagLibWrapper.h"
 #include "utils/file.h"
 #include "utils/utils.h"
-#include "loader/tagLibWrapper.h"
 
 #include <glib.h>
 #include <limits.h>
@@ -321,11 +323,22 @@ void build_playlist_recursive(const char *directory_path,
 
         int res = is_directory(expanded_path);
 
+        Model *model = get_model();
+
         if (res != 1 && res != -1 && directory_path != NULL) {
                 Node *node = NULL;
 
                 exit_if_overflow(node_id_counter);
-                create_node(&node, expanded_path, node_id_counter++);
+
+                int id = 0;
+
+                if (model->library)
+                        id = mark_as_enqueued(model->library, expanded_path);
+
+                if (id == 0)
+                        id = node_id_counter++;
+
+                create_node(&node, expanded_path, id);
                 if (add_to_list(playlist, node) == -1)
                         destroy_node(node);
 
@@ -380,21 +393,35 @@ void build_playlist_recursive(const char *directory_path,
                 snprintf(file_path, sizeof(file_path), "%s/%s", expanded_path, entry->d_name);
 
                 if (is_directory(file_path) == 1) {
+
                         int song_count = playlist->count;
                         build_playlist_recursive(file_path, allowed_extensions,
                                                  playlist);
                         if (playlist->count > song_count)
                                 num_dirs++;
+
                 } else {
                         extract_extension(entry->d_name, sizeof(exto) - 1, exto);
+
                         if (match_regex(&regex, exto) == 0) {
+
                                 snprintf(file_path, sizeof(file_path), "%s/%s",
                                          directory_path, entry->d_name);
 
                                 Node *node = NULL;
 
                                 exit_if_overflow(node_id_counter);
-                                create_node(&node, file_path, node_id_counter++);
+
+                                int id = 0;
+
+                                if (model->library)
+                                        id = mark_as_enqueued(model->library, file_path);
+
+                                if (id == 0)
+                                        id = node_id_counter++;
+
+                                create_node(&node, file_path, id);
+
                                 if (add_to_list(playlist, node) == -1)
                                         destroy_node(node);
                         }
@@ -622,8 +649,7 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
 
                                         join_playlist(*playlist, &partial_playlist);
 
-                                        pthread_mutex_unlock(
-                                            &((*playlist)->mutex));
+                                        pthread_mutex_unlock(&((*playlist)->mutex));
                                 }
                         }
                         free(searching);
@@ -722,57 +748,57 @@ void load_favorites_playlist(const char *directory, PlayList **favorites_playlis
 
 void insert_at_position(PlayList *playlist, Node *node, int position)
 {
-    if (position <= 1 || !playlist->head) {
-        // Insert at head
-        node->next = playlist->head;
-        node->prev = NULL;
+        if (position <= 1 || !playlist->head) {
+                // Insert at head
+                node->next = playlist->head;
+                node->prev = NULL;
 
-        if (playlist->head)
-            playlist->head->prev = node;
+                if (playlist->head)
+                        playlist->head->prev = node;
+                else
+                        playlist->tail = node;
+
+                playlist->head = node;
+                return;
+        }
+
+        Node *current = playlist->head;
+        int index = 1;
+
+        while (current->next && index < position - 1) {
+                current = current->next;
+                index++;
+        }
+
+        node->next = current->next;
+        node->prev = current;
+
+        if (current->next)
+                current->next->prev = node;
         else
-            playlist->tail = node;
+                playlist->tail = node;
 
-        playlist->head = node;
-        return;
-    }
-
-    Node *current = playlist->head;
-    int index = 1;
-
-    while (current->next && index < position - 1) {
-        current = current->next;
-        index++;
-    }
-
-    node->next = current->next;
-    node->prev = current;
-
-    if (current->next)
-        current->next->prev = node;
-    else
-        playlist->tail = node;
-
-    current->next = node;
+        current->next = node;
 }
 
 void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist)
 {
-    if (!root)
-        return;
+        if (!root)
+                return;
 
-    if (root->is_enqueued > 0 && root->is_directory == 0 && !is_m3u_file(root)) {
-        Node *node = malloc(sizeof(Node));
-        node->song.file_path = strdup(root->full_path);
-        node->id = root->id;
-        node->song.duration = 0.0;
-        node->prev = node->next = NULL;
+        if (root->is_enqueued > 0 && root->is_directory == 0 && !is_m3u_file(root)) {
+                Node *node = malloc(sizeof(Node));
+                node->song.file_path = strdup(root->full_path);
+                node->id = root->id;
+                node->song.duration = 0.0;
+                node->prev = node->next = NULL;
 
-        insert_at_position(playlist, node, root->is_enqueued);
-        playlist->count++;
-    }
+                insert_at_position(playlist, node, root->is_enqueued);
+                playlist->count++;
+        }
 
-    for (FileSystemEntry *child = root->children; child; child = child->next)
-        add_enqueued_songs_to_playlist(child, playlist);
+        for (FileSystemEntry *child = root->children; child; child = child->next)
+                add_enqueued_songs_to_playlist(child, playlist);
 }
 
 void save_named_playlist(const char *directory, const char *playlist_name,
@@ -1033,23 +1059,24 @@ int contains_music_files(FileSystemEntry *entry)
         return 0;
 }
 
-int compare_tracks(const void* trackA, const void* trackB) {
-    return ((FileSystemEntry*)trackA)->track_number - ((FileSystemEntry*)trackB)->track_number;
+int compare_tracks(const void *trackA, const void *trackB)
+{
+        return ((FileSystemEntry *)trackA)->track_number - ((FileSystemEntry *)trackB)->track_number;
 }
 
-int compare_tracks_from_pointer(const void* trackA, const void* trackB) {
-    FileSystemEntry* track1 = *(FileSystemEntry**)trackA;
-    FileSystemEntry* track2 = *(FileSystemEntry**)trackB;
+int compare_tracks_from_pointer(const void *trackA, const void *trackB)
+{
+        FileSystemEntry *track1 = *(FileSystemEntry **)trackA;
+        FileSystemEntry *track2 = *(FileSystemEntry **)trackB;
 
-    if (track1->disc_number == track2->disc_number) {
-        return track1->track_number - track2->track_number;
-    }
-    
-    if (track1->disc_number > track2->disc_number) {
-        return 1;
-    }
-    else return -1;
+        if (track1->disc_number == track2->disc_number) {
+                return track1->track_number - track2->track_number;
+        }
 
+        if (track1->disc_number > track2->disc_number) {
+                return 1;
+        } else
+                return -1;
 }
 
 void add_album_to_play_list_unsorted(PlayList *list, FileSystemEntry *album, int playlist_max)
@@ -1067,7 +1094,7 @@ void add_album_to_play_list_unsorted(PlayList *list, FileSystemEntry *album, int
 void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlist_max)
 {
         FileSystemEntry *entry = album->children;
-        FileSystemEntry* entriesList[playlist_max];
+        FileSystemEntry *entriesList[playlist_max];
         int numberOfEntries = 0;
 
         while (entry != NULL && list->count < playlist_max) {
@@ -1088,7 +1115,7 @@ void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlist
         qsort(entriesList, numberOfEntries, sizeof(FileSystemEntry *), compare_tracks_from_pointer);
 
         for (int i = 0; i < numberOfEntries; i++) {
-            add_song_to_play_list(list, entriesList[i]->full_path, playlist_max);
+                add_song_to_play_list(list, entriesList[i]->full_path, playlist_max);
         }
 }
 
@@ -1155,7 +1182,7 @@ void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list,
         unsigned long file_count = count_music_files_in_directory(root);
         if (file_count > MAX_SORT_SIZE) {
 
-            sort = false;
+                sort = false;
         }
 
         collect_albums(root, albums, &albumCount);
@@ -1163,14 +1190,13 @@ void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list,
         shuffle_entries(albums, albumCount);
 
         if (sort) {
-            for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
-                    add_album_to_play_list(list, albums[i], playlist_max);
-            }
-        }
-        else {
-            for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
-                    add_album_to_play_list_unsorted(list, albums[i], playlist_max);
-            }
+                for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
+                        add_album_to_play_list(list, albums[i], playlist_max);
+                }
+        } else {
+                for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
+                        add_album_to_play_list_unsorted(list, albums[i], playlist_max);
+                }
         }
 }
 

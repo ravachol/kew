@@ -163,6 +163,19 @@ int enqueue_children(FileSystemEntry *child,
 bool mark_as_dequeued(FileSystemEntry *root, char *path);
 
 /**
+ * @brief Mark a specific entry as enqueued by path.
+ *
+ * Recursively searches the tree for the entry matching the given path,
+ * sets the enqueued flag, and updates parent flags if necessary.
+ *
+ * @param root Root of the library tree.
+ * @param path Full path of the entry to enqueued.
+ *
+ * @return Id of the enqueued entry.
+ */
+int mark_as_enqueued(FileSystemEntry *root, char *path);
+
+/**
  * @brief Clear is_enqueued on all M3U file entries in the library tree.
  *
  * Used when clearing the playlist to ensure M3U files lose their

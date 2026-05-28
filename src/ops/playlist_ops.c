@@ -14,6 +14,7 @@
 #include "playback_clock.h"
 #include "playback_ops.h"
 #include "playback_state.h"
+#include "library_ops.h"
 #include "playback_system.h"
 
 #include "library_ops.h"
@@ -25,7 +26,6 @@
 
 #include "sys/sys_integration.h"
 
-#include "ui/render_ui.h"
 #include "utils/file.h"
 #include "utils/utils.h"
 

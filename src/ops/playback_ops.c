@@ -24,11 +24,16 @@
 
 #include "utils/utils.h"
 
-void resume_playback(void)
+void resume_playback(double seconds)
 {
         PlaybackState *ps = get_playback_state();
 
         sound_result_t result = sound_system_play(sound_sys);
+
+        if (seconds > 0.0)
+        {
+                add_to_accumulated_seconds(seconds);
+        }
 
         if (result == SOUND_NOTIFY_SWITCH)
                 ps->notifySwitch = 1;
@@ -98,7 +103,7 @@ void play(void)
                 skip_to_begginning_of_song();
         }
 
-        resume_playback();
+        resume_playback(0.0);
 
         if (ps->hasSilentlySwitched) {
                 set_total_pause_seconds(0);
