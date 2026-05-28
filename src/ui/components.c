@@ -1844,7 +1844,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         int progress_bar_height = 1;
         int col = 0;
 
-        visualizer_height = region.height - 1 - metadata_height - time_height - lyrics_height;
+        visualizer_height = region.height - metadata_height - time_height - lyrics_height;
 
         if (visualizer_height > ui->visualizer_height) {
                 visualizer_height = ui->visualizer_height;
@@ -1857,6 +1857,9 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
 
         if (meta_row < 1)
                 meta_row = 1;
+
+        if (meta_row > 3)
+                meta_row -= 2; // include footer and error row
 
         // Metadata
         if (height > meta_row) {
@@ -1900,7 +1903,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
 
         ComponentMsg result = (ComponentMsg){0};
         // Visualizer
-        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height) {
+        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height - 1) {
 
                 k_Rect viz_rect = {
                     .row = region.row + meta_row + metadata_height + lyrics_height + time_height,
@@ -1915,7 +1918,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         }
 
         // Progress bar
-        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height) {
+        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height - 1) {
                 // Progress bar on last row of visualizer
                 k_Rect progress_rect = {
                     .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height - 1,
@@ -1925,6 +1928,32 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 };
                 if (dirty & DIRTY_VISUALIZER)
                         result = component_progress_bar(model, progress_rect, buf, dirty);
+        }
+
+        // Error row
+        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height + 1) {
+                // Progress bar on last row of visualizer
+                k_Rect progress_rect = {
+                    .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height,
+                    .col = region.col + col,
+                    .width = visualizer_width,
+                    .height = 1,
+                };
+                if (dirty & DIRTY_VISUALIZER)
+                        result = component_error_row(model, progress_rect, buf, dirty);
+        }
+
+        // Footer
+        if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height + 2) {
+                // Progress bar on last row of visualizer
+                k_Rect progress_rect = {
+                    .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height + 1,
+                    .col = region.col + col,
+                    .width = visualizer_width,
+                    .height = 1,
+                };
+                if (dirty & DIRTY_VISUALIZER)
+                        result = component_footer(model, progress_rect, buf, dirty);
         }
 
         return result;
