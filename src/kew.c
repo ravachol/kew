@@ -373,7 +373,10 @@ void run(bool start_playing)
                                 set_song_to_start_from(song);
                                 ps->waitingForNext = true;
                                 sound_system_set_end_of_list_reached(sound_sys, false);
+                                sound_system_set_volume(sound_sys, 0.0);
                                 seconds = model->state.settings.currentSongSeconds;
+
+                                model->restore_volume = true;
                         }
                 }
                 set_dirty(DIRTY_ALL);
