@@ -363,7 +363,7 @@ void run(bool start_playing)
         double seconds = 0.0;
         if (!start_playing)
         {
-                if (model->state.settings.currentSongId > 0)
+                if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume)
                 {
                         Node *song = NULL;
                         find_node_in_list(playlist, model->state.settings.currentSongId, &song);
@@ -373,9 +373,10 @@ void run(bool start_playing)
                                 set_song_to_start_from(song);
                                 ps->waitingForNext = true;
                                 sound_system_set_end_of_list_reached(sound_sys, false);
-                                sound_system_set_volume(sound_sys, 0.0);
-                                seconds = model->state.settings.currentSongSeconds;
+                                if (model->state.settings.currentSongSeconds > 1.0)
+                                        seconds = model->state.settings.currentSongSeconds;
 
+                                sound_system_set_volume(sound_sys, 0.0);
                                 model->restore_volume = true;
                         }
                 }
