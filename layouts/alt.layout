@@ -8,6 +8,7 @@ col=1
 
 pane
 component=now_playing_and_artist
+dirty=visualizer
 width=auto
 offsetX=2
 offsetY=1
@@ -64,6 +65,7 @@ col=1
 
 pane
 component=now_playing_and_artist
+dirty=visualizer
 width=auto
 offsetX=2
 offsetY=1
@@ -167,6 +169,7 @@ col=1
 
 pane
 component=now_playing_and_artist
+dirty=visualizer
 width=auto
 offsetX=2
 offsetY=1
@@ -241,6 +244,7 @@ col=1
 
 pane
 component=now_playing_and_artist
+dirty=visualizer
 width=auto
 offsetX=2
 offsetY=1
