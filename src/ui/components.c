@@ -326,11 +326,13 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                     (ctx.chosen_dir != NULL && uis->allowChooseSongs && entry->parent != NULL &&
                      (strcmp(entry->parent->full_path, ctx.chosen_dir->full_path) == 0 || strcmp(entry->full_path, ctx.chosen_dir->full_path) == 0));
 
-        if (ctx.chosen_dir && entry->is_directory && model->state.settings.collapseTopLevel) {
+        if (ctx.chosen_dir && model->state.settings.collapseTopLevel) {
                 FileSystemEntry *artist = get_first_parent(ctx.chosen_dir);
                 FileSystemEntry *entry_artist = get_first_parent(entry);
 
-                show = show || (artist && entry_artist && strcmp(artist->full_path, entry_artist->full_path) == 0);
+                show = show ||
+                       (artist && entry_artist &&
+                        ((entry->is_directory && strcmp(artist->full_path, entry_artist->full_path) == 0) || (strcmp(artist->full_path, entry->parent->full_path) == 0)));
         }
 
         if (!show)

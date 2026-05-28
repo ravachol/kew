@@ -16,6 +16,7 @@
 #include "sound/sound_facade.h"
 
 #include "sys/sys_integration.h"
+#include "utils/utils.h"
 
 #include <math.h>
 
@@ -155,6 +156,7 @@ bool flush_seek(void)
 
                 if (model->restore_volume)
                 {
+                        c_sleep(200);
                         set_volume(model->volume);
                         model->restore_volume = false;
                 }

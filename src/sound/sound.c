@@ -354,7 +354,6 @@ void *decode_loop(void *arg)
                 // Handle pause
                 while (pb_is_paused() && atomic_load(&sound->decode_thread_running)) {
                         c_sleep(10);
-                        continue;
                 }
 
                 ma_uint32 frames_to_decode = (writable > sound->chunk_frames) ? sound->chunk_frames : writable;
