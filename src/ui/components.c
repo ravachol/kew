@@ -1657,7 +1657,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                 if (empty_color.r >= model->state.settings.default_color &&
                     empty_color.g >= model->state.settings.default_color &&
                     empty_color.b >= model->state.settings.default_color) {
-                        empty_color = decrease_luminosity_pct(color, 1.4);
+                        empty_color = decrease_luminosity_pct(color, 0.7);
                 }
         }
 
