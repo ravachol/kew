@@ -28,7 +28,7 @@
 #define FSDB_MAGIC 0x46534442 // "FSDB"
 
 static int last_used_id = 0;
-static uint32_t DB_VERSION = 2;
+static uint32_t DB_VERSION = 3;
 
 // Header for the DB
 typedef struct {
@@ -48,6 +48,7 @@ typedef struct {
         int32_t is_directory;
         int32_t is_enqueued;
         uint32_t name_offset;
+        uint64_t mtime;
 } FileSystemEntryDisk;
 
 typedef struct {
@@ -135,6 +136,7 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
                 d->parent_id = n->parent_id;
                 d->is_directory = n->is_directory;
                 d->is_enqueued = n->is_enqueued;
+                d->mtime = (uint64_t)n->mtime;
 
                 if (n->name) {
                         d->name_offset = (uint32_t)offset;
@@ -214,7 +216,7 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
 }
 
 FileSystemEntry *create_entry(const char *name, int is_directory,
-                              FileSystemEntry *parent)
+                              FileSystemEntry *parent, time_t mtime)
 {
         if (last_used_id == INT_MAX)
                 return NULL;
@@ -232,6 +234,7 @@ FileSystemEntry *create_entry(const char *name, int is_directory,
 
                 new_entry->is_directory = is_directory;
                 new_entry->is_enqueued = 0;
+                new_entry->mtime = mtime;
                 new_entry->parent = parent;
                 new_entry->children = NULL;
                 new_entry->next = NULL;
@@ -626,7 +629,7 @@ int read_directory(const char *path, FileSystemEntry *parent)
                         if (is_audio == 0 || is_dir) {
 
                                 FileSystemEntry *child =
-                                    create_entry(entry->d_name, is_dir, parent);
+                                    create_entry(entry->d_name, is_dir, parent, file_stats.st_mtime);
 
                                 if (child == NULL)
                                         continue;
@@ -659,7 +662,7 @@ int read_directory(const char *path, FileSystemEntry *parent)
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
 {
-        FileSystemEntry *root = create_entry("root", 1, NULL);
+        FileSystemEntry *root = create_entry("root", 1, NULL, 0);
 
         set_full_path(root, start_path, "");
 
@@ -790,6 +793,7 @@ FileSystemEntry *read_tree_from_binary(
                 n->id = d->id;
                 n->parent_id = d->parent_id;
                 n->is_directory = d->is_directory;
+                n->mtime = (time_t)d->mtime;
 
                 if (set_enqueued_status)
                 {
@@ -1100,13 +1104,8 @@ int compare_folders_by_age_files_alphabetically(const void *a, const void *b)
 
         // Both are directories → sort by mtime descending
         if (entry_a->is_directory && entry_b->is_directory) {
-                struct stat stat_a, statB;
 
-                if (stat(entry_a->full_path, &stat_a) != 0 ||
-                    stat(entry_b->full_path, &statB) != 0)
-                        return 0;
-
-                return (int)(statB.st_mtime - stat_a.st_mtime); // newer first
+                return (int)(entry_b->mtime - entry_a->mtime); // newer first
         }
 
         // Both are files → sort alphabetically

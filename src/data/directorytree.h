@@ -16,6 +16,7 @@
 
 #include <dirent.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 
 #ifndef FILE_SYSTEM_ENTRY
@@ -33,6 +34,8 @@ typedef struct FileSystemEntry {
         struct FileSystemEntry *children;
         struct FileSystemEntry *next;      // For siblings (next node in the same directory)
         struct FileSystemEntry *lastChild; // TEMP: only for construction
+
+        time_t mtime;
 } FileSystemEntry;
 #endif
 
