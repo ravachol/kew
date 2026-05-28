@@ -438,9 +438,6 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 snprintf(dir_name, sizeof(dir_name), "%s", orig_name);
 
-                                if (strcmp(dir_name, "O.C") == 0)
-                                        set_error_message("hej");
-
                                 if (found_chosen != NULL)
                                         process_name_scroll(model, orig_name, dir_name, name_width, false, false);
                                 else
