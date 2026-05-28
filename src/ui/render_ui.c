@@ -273,8 +273,12 @@ void draw_buffer_clear(DrawBuffer *buf)
 
         for (int i = 0; i < total; i++) {
                 if (buf->cells[i].kind == CELL_IMAGE_ANCHOR && buf->cells[i].image) {
-                        free(buf->cells[i].image->data);
-                        buf->cells[i].image->data = NULL;
+
+                        if (buf->cells[i].image->data)
+                        {
+                                free(buf->cells[i].image->data);
+                                buf->cells[i].image->data = NULL;
+                        }
                         free(buf->cells[i].image);
                         buf->cells[i].image = NULL;
                 }
