@@ -77,8 +77,11 @@ void set_seek_requested(bool value)
 
 void seek_percentage(float percent)
 {
-        seek_percent = percent;
-        set_seek_requested(true);
+        if (percent >= 0.0f)
+        {
+                seek_percent = percent;
+                set_seek_requested(true);
+        }
 }
 
 bool pb_is_EOF_reached(void)

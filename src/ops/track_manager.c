@@ -211,10 +211,11 @@ void try_load_next(bool is_first_decoder, bool replace_next_song)
  * and loads the new song. It then resumes playback, creating a playback device if needed.
  *
  * @param song Pointer to the song (Node) to be played.
+ * @param seconds How far into the song to play.
  *
  * @return int Status of the operation: 0 on success, negative value on error.
  */
-int prepare_and_play_song(Node *song)
+int prepare_and_play_song(Node *song, double seconds)
 {
         if (!song)
                 return -1;
@@ -236,7 +237,7 @@ int prepare_and_play_song(Node *song)
 
         if (res >= 0 && !ps->songHasErrors) {
                 set_try_next_song(NULL);
-                resume_playback();
+                resume_playback(seconds);
         }
 
         if (res < 0)
@@ -247,7 +248,7 @@ int prepare_and_play_song(Node *song)
         return res;
 }
 
-void check_and_load_next_song(void)
+void check_and_load_next_song(double seconds)
 {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
@@ -272,7 +273,7 @@ void check_and_load_next_song(void)
                         if (is_shuffle_enabled())
                                 reshuffle_playlist();
 
-                        int res = prepare_and_play_song(next_song);
+                        int res = prepare_and_play_song(next_song, seconds);
 
                         if (res < 0)
                                 set_end_of_list_reached();
@@ -330,7 +331,7 @@ void load_waiting_music(void)
                 if ((ps->skipFromStopped || !ps->loadedNextSong ||
                      ps->nextSongNeedsRebuilding) &&
                     !sound_system_is_end_of_list_reached(sound_sys)) {
-                        check_and_load_next_song();
+                        check_and_load_next_song(0.0);
                 }
 
                 if (ps->songHasErrors)

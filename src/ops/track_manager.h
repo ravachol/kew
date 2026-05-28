@@ -90,8 +90,10 @@ int load_first(Node *song);
  *
  * This function checks if a song needs to be loaded, either due to a restart or if the
  * playlist is in shuffle mode. It prepares and loads the next song in the playlist if needed.
+ *
+ * @param seconds How far into the song to start playing.
  */
- void check_and_load_next_song(void);
+void check_and_load_next_song(double seconds);
 
 /**
  * @brief Loads the next song if needed, considering the current state of the playlist and player.
@@ -101,4 +103,13 @@ int load_first(Node *song);
  * handling end-of-list behavior and errors.
  */
  void load_waiting_music(void);
+
+/**
+ * @brief Determines the current song and sends a notification if needed.
+ *
+ * This function checks the current song data and updates its duration. It also
+ * checks if the song has changed since the last notification and, if so, sends
+ * a notification about the song switch.
+ */
+void determine_song_and_notify(void);
 
