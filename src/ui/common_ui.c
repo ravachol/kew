@@ -133,12 +133,10 @@ void transfer_settings_to_ui(void)
         ui->hideFooter = (settings->hideFooter[0] == '1');
         ui->hideSideCover = (settings->hideSideCover[0] == '1');
         ui->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
-        ui->saveRepeatShuffleSettings =
-            (settings->saveRepeatShuffleSettings[0] == '1');
-        ui->trackTitleAsWindowTitle =
-            (settings->trackTitleAsWindowTitle[0] == '1');
-        ui->showFoldersInPlaylist =
-            (settings->showFoldersInPlaylist[0] == '1');
+        ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
+        ui->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
+        ui->auto_resume = (settings->auto_resume[0] == '1');
+        ui->showFoldersInPlaylist = (settings->showFoldersInPlaylist[0] == '1');
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
@@ -449,7 +447,7 @@ int process_name_scroll(const Model *model, const char *name, char *output, int 
         if (name_width < max_width - 1) {
                 process_name(name, output, max_width, true, true);
         } else if (model->name_scroll.frame >= 0 && model->name_scroll.frame + max_width <= name_width) {
-                gchar *tmp = g_utf8_substring(output,  model->name_scroll.frame, -1);
+                gchar *tmp = g_utf8_substring(output, model->name_scroll.frame, -1);
                 str_truncate_display_width(tmp, output, max_width);
                 g_free(tmp);
         }
@@ -696,60 +694,60 @@ void draw_buffer_set_string_truncated(
     int max_width,
     CellStyle style)
 {
-    if ((unsigned)row >= (unsigned)buf->rows ||
-        (unsigned)col >= (unsigned)buf->cols)
-        return;
+        if ((unsigned)row >= (unsigned)buf->rows ||
+            (unsigned)col >= (unsigned)buf->cols)
+                return;
 
-    if (buf->dirty_rows)
-        buf->dirty_rows[row] = true;
+        if (buf->dirty_rows)
+                buf->dirty_rows[row] = true;
 
-    int col_end = col + max_width;
-    if (col_end > buf->cols)
-        col_end = buf->cols;
+        int col_end = col + max_width;
+        if (col_end > buf->cols)
+                col_end = buf->cols;
 
-    Cell *cell = &buf->cells[row * buf->cols + col];
-    Cell *end  = &buf->cells[row * buf->cols + col_end];
+        Cell *cell = &buf->cells[row * buf->cols + col];
+        Cell *end = &buf->cells[row * buf->cols + col_end];
 
-    const char *p = str;
+        const char *p = str;
 
-    while (cell < end && *p) {
-        int bytes;
-        uint32_t cp = utf8_next(p, &bytes);
+        while (cell < end && *p) {
+                int bytes;
+                uint32_t cp = utf8_next(p, &bytes);
 
-        if (bytes == 0)
-            break;
+                if (bytes == 0)
+                        break;
 
-        p += bytes;
+                p += bytes;
 
-        int w = codepoint_display_width(cp);
+                int w = codepoint_display_width(cp);
 
-        if (cell + w > end)
-            break;
+                if (cell + w > end)
+                        break;
 
-        cell->codepoint = cp;
-        cell->style = style;
-        cell->attrs = style.attrs;
-        cell->kind = CELL_NORMAL;
+                cell->codepoint = cp;
+                cell->style = style;
+                cell->attrs = style.attrs;
+                cell->kind = CELL_NORMAL;
 
-        if (w == 2) {
-            Cell *cont = cell + 1;
+                if (w == 2) {
+                        Cell *cont = cell + 1;
 
-            cont->codepoint = 0;
-            cont->style = style;
-            cont->attrs = style.attrs;
-            cont->kind = CELL_WIDE_CONT;
+                        cont->codepoint = 0;
+                        cont->style = style;
+                        cont->attrs = style.attrs;
+                        cont->kind = CELL_WIDE_CONT;
+                }
+
+                cell += w;
         }
 
-        cell += w;
-    }
-
-    while (cell < end) {
-        cell->codepoint = ' ';
-        cell->style = style;
-        cell->attrs = ATTR_NONE;
-        cell->kind = CELL_NORMAL;
-        cell++;
-    }
+        while (cell < end) {
+                cell->codepoint = ' ';
+                cell->style = style;
+                cell->attrs = ATTR_NONE;
+                cell->kind = CELL_NORMAL;
+                cell++;
+        }
 }
 
 void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
@@ -808,21 +806,21 @@ CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData colo
 
 int utf8_display_width(const char *s)
 {
-    wchar_t *ws;
-    int width;
-    size_t len;
+        wchar_t *ws;
+        int width;
+        size_t len;
 
-    len = mbstowcs(NULL, s, 0);
-    if (len == (size_t)-1)
-        return -1;
+        len = mbstowcs(NULL, s, 0);
+        if (len == (size_t)-1)
+                return -1;
 
-    ws = malloc((len + 1) * sizeof(wchar_t));
-    if (!ws)
-        return -1;
+        ws = malloc((len + 1) * sizeof(wchar_t));
+        if (!ws)
+                return -1;
 
-    mbstowcs(ws, s, len + 1);
-    width = wcswidth(ws, len);
+        mbstowcs(ws, s, len + 1);
+        width = wcswidth(ws, len);
 
-    free(ws);
-    return width;
+        free(ws);
+        return width;
 }

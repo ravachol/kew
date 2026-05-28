@@ -22,6 +22,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Optimized sorting. No longer uses stat calls when sorting, which should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
+- Persistent playback state. On by default, but can be turned off in settings. By @ravachol. Suggested by @thbemme.
+
 #### Bugfixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.

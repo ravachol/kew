@@ -243,7 +243,7 @@ void notify_song_switch(SongData *current_song_data)
                 notify_mpris_switch(current_song_data);
 
                 if (ui->discordRPCEnabled)
-                        notify_discord_update(current_song_data, model->elapsed_seconds, get_current_song_duration());
+                        notify_discord_update(current_song_data, model->elapsed_seconds, current_song_data->duration);
 
                 Node *current = get_current_song();
 
