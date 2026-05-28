@@ -149,9 +149,6 @@ void run_tick_commands(Model *model)
 
                 if (model->state.currentView != TRACK_VIEW && chroma_is_started())
                         chroma_stop();
-
-                if (can_refresh_player() && is_refresh_triggered() && !should_exit())
-                        clear_error_message();
         }
 }
 

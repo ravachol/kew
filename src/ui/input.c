@@ -13,6 +13,7 @@
 
 #include "input.h"
 
+#include "common/common.h"
 #include "common/events.h"
 #include "common/model.h"
 #include "common/appstate.h"
@@ -556,6 +557,8 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         }
 
                         dispatch_msg(msg);
+
+                        clear_error_message(); // Error messages are cleared when the user does something
 
                         return TRUE;
                 }
