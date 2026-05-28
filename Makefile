@@ -128,7 +128,6 @@ ifneq ($(strip $(KEW_VERSION)),)
     COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
 endif
 
-COMMONFLAGS += -DMA_NO_AAUDIO
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
 
 GC_SECTIONS_FLAG :=
