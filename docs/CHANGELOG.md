@@ -20,6 +20,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.
 
+- Optimized sorting. No longer uses stat calls when sorting, which should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
+
 #### Bugfixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
