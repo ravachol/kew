@@ -356,6 +356,11 @@ typedef struct {
         int previous_chosen_row;
 } TreeContext;
 
+typedef struct {
+        PixelData colors[16];
+        int count;
+} ColorPalette;
+
 /**
  * @brief Stores dynamic UI runtime state.
  */
@@ -433,6 +438,8 @@ typedef struct
         bool chroma_next_preset_requested;
         bool chroma_start_requested;
         int chroma_height;
+
+        ColorPalette visualizer_palettes[7];
 } UIState;
 
 /**
