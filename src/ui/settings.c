@@ -1797,13 +1797,15 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         free(filepath);
         construct_app_settings(settings, pairs, pair_count, true);
 
+
+
+        double sec = get_float(settings->currentSongSeconds);
+        if (sec > 0)
+                ui->currentSongSeconds = sec;
+
         int tmp = get_number(settings->currentSongId);
         if (tmp > 0)
                 ui->currentSongId = tmp;
-
-        tmp = get_float(settings->currentSongSeconds);
-        if (tmp > 0)
-                ui->currentSongSeconds = tmp;
 
         tmp = get_number(settings->repeatState);
         if (tmp >= 0)
