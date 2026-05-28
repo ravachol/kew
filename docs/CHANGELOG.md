@@ -24,11 +24,13 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
-#### Bugfixes
+#### Bug fixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
 
 - Fix new settings in kewrc not being respected if they also appear in kewstaterc. By @ravachol.
+
+- AAUDIO wasn't being used by miniaudio on Android/Termux. This is now fixed, and gives higher quality sound on Android. By @ravachol. Reported by @TNT4ME.
 
 #### Refactor
 
