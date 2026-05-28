@@ -1,113 +1,72 @@
-version=7
-
-[footer_pane]
-
-row
-height=fixed:1
-col=0
-
-pane
-component=error_row
-dirty=footer
-width=auto
-
-row
-height=fixed:1
-col=0
-
-pane
-component=footer
-dirty=footer
-width=auto
+version=8
 
 [playlist_pane]
 
 row
-height=percent:30
-col=0
-
-pane
-component=cover_centered
-dirty=song
-size=auto
-offsetY=1
-
-row
 height=fixed:3
-col=0
+col=1
 
 pane
 component=now_playing_and_artist
-dirty=song
-size=auto
-offsetY=2
-
-row
-height=fixed:1
-col=0
-
-pane
-component=timestamped_lyrics
-dirty=visualizer
-size=auto
-
-row
-height=auto
-col=0
-
-pane
-component=playlist_rows
-dirty=playlist
 width=auto
-
-row
-height=fixed:7
-col=0
-
-pane
-component=vis_and_progress_bar
-dirty=visualizer
-size=auto
+offsetX=2
 offsetY=1
 
 row
-height=fixed:2
-col=0
+height=auto
+col=3
 
 pane
-layout=footer_pane
+component=playlist_rows
+dirty=library
 width=auto
 
 [playlist]
 
 row
 height=auto
-col=indent
+col=0
+
+pane
+component=side_cover
+dirty=song
+width=indent_wide
 
 pane
 layout=playlist_pane
 width=auto
 
+row
+height=fixed:2
+col=indent_wide
+
+
+pane
+component=timestamped_lyrics
+dirty=visualizer
+width=auto
+offsetY=1
+
+row
+height=fixed:7
+col=indent_wide
+
+pane
+component=vis_and_progress_bar
+dirty=visualizer
+width=auto
+
 [library_pane]
 
 row
-height=fixed:5
-col=0
-
-pane
-component=logo
-dirty=song
-width=auto
-offsetX=1
-
-row
 height=fixed:3
-col=0
+col=1
 
 pane
-component=library_header
+component=now_playing_and_artist
 width=auto
 offsetX=2
+offsetY=1
 
 row
 height=auto
@@ -134,32 +93,35 @@ layout=library_pane
 width=auto
 
 row
+height=fixed:2
+col=indent_wide
+
+pane
+component=timestamped_lyrics
+dirty=visualizer
+width=auto
+offsetY=1
+
+row
 height=fixed:7
-col=indent
+col=indent_wide
 
 pane
 component=vis_and_progress_bar
 dirty=visualizer
-size=auto
-offsetY=1
-
-row
-height=fixed:2
-col=indent
-
-pane
-layout=footer_pane
 width=auto
 
 [track]
 
 row
-height=fixed:1
-col=indent
+height=fixed:2
+col=0
 
 pane
-component=track_header
-width=fixed:1
+component=empty
+width=auto
+offsetX=2
+offsetY=1
 
 row
 height=auto
@@ -168,14 +130,6 @@ col=indent
 pane
 component=track
 dirty=visualizer
-width=auto
-
-row
-height=fixed:2
-col=indent
-
-pane
-layout=footer_pane
 width=auto
 
 [track_landscape_pane]
@@ -208,14 +162,14 @@ offsetX=1
 [search_pane]
 
 row
-height=fixed:5
-col=0
+height=fixed:3
+col=1
 
 pane
-component=logo
-dirty=song
+component=now_playing_and_artist
 width=auto
-offsetX=1
+offsetX=2
+offsetY=1
 
 row
 height=fixed:2
@@ -261,34 +215,35 @@ layout=search_pane
 width=auto
 
 row
+height=fixed:2
+col=indent_wide
+
+pane
+component=timestamped_lyrics
+dirty=visualizer
+width=auto
+offsetY=1
+
+row
 height=fixed:7
-col=indent
+col=indent_wide
 
 pane
 component=vis_and_progress_bar
 dirty=visualizer
-size=auto
-offsetY=1
-
-row
-height=fixed:2
-col=indent
-
-pane
-layout=footer_pane
 width=auto
 
 [help_pane]
 
 row
-height=fixed:5
-col=0
+height=fixed:3
+col=1
 
 pane
-component=logo
-dirty=song
+component=now_playing_and_artist
 width=auto
-offsetX=1
+offsetX=2
+offsetY=1
 
 row
 height=fixed:2
@@ -325,8 +280,19 @@ width=auto
 
 row
 height=fixed:2
-col=indent
+col=indent_wide
 
 pane
-layout=footer_pane
+component=timestamped_lyrics
+dirty=visualizer
+width=auto
+offsetY=1
+
+row
+height=fixed:7
+col=indent_wide
+
+pane
+component=vis_and_progress_bar
+dirty=visualizer
 width=auto
