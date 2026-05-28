@@ -153,6 +153,12 @@ bool flush_seek(void)
 
                 emit_seeked_signal(model->elapsed_seconds);
 
+                if (model->restore_volume)
+                {
+                        set_volume(model->volume);
+                        model->restore_volume = false;
+                }
+
                 get_playback_state()->notifySeek = true;
 
                 return true;

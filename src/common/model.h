@@ -682,6 +682,7 @@ typedef struct Model {
         bool is_stopped;
         bool should_refresh;
         bool last_paused_state;
+        bool restore_volume;
 
         bool songdata_ok;
 

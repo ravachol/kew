@@ -20,9 +20,9 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.
 
-- Optimized sorting. No longer uses stat calls when sorting, which should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
+- New setting autoResume. Persists playback state between sessions, on by default. By @ravachol. Suggested by @thbemme.
 
-- Persistent playback state. On by default, but can be turned off in settings. By @ravachol. Suggested by @thbemme.
+- Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
 #### Bugfixes
 
