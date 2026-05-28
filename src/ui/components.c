@@ -438,10 +438,13 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 snprintf(dir_name, sizeof(dir_name), "%s", orig_name);
 
+                                if (strcmp(dir_name, "O.C") == 0)
+                                        set_error_message("hej");
+
                                 if (found_chosen != NULL)
-                                        process_name_scroll(model, orig_name, dir_name, name_width);
+                                        process_name_scroll(model, orig_name, dir_name, name_width, false, false);
                                 else
-                                        process_name(orig_name, dir_name, name_width, true, true);
+                                        process_name(orig_name, dir_name, name_width, false, false);
 
                                 draw_buffer_set_string(buf, draw_row, text_col, dir_name, item_style);
 
@@ -469,7 +472,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 str_truncate_display_width(entry->name, filename, name_width);
 
                                 if (found_chosen != NULL)
-                                        process_name_scroll(model, entry->name, filename, name_width);
+                                        process_name_scroll(model, entry->name, filename, name_width, true, true);
                                 else
                                         process_name(entry->name, filename, name_width, true, true);
 
@@ -1380,7 +1383,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 int max_name_width = region.width - (col - region.col);
 
                 if (is_chosen) {
-                        process_name_scroll(model, buffer, filename, max_name_width);
+                        process_name_scroll(model, buffer, filename, max_name_width, true, true);
                 } else {
                         process_name(buffer, filename, max_name_width, true, true);
                 }
