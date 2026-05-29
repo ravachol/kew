@@ -479,6 +479,7 @@ typedef struct
         char coverStyle[16];
         char useConfigColors[2];
         char visualizer_mode[2];
+        char visualizer_color_type[2];
         char discordRPCEnabled[2];
         char visualizer_height[6];
                 char titleDelay[6];

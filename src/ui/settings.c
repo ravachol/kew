@@ -1138,6 +1138,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->visualizer_mode,
                                  sizeof(settings->visualizer_mode), "%s",
                                  pair->value);
+                } else if (strcmp(lowercase_key, "visualizercolortype") == 0) {
+                        snprintf(settings->visualizer_color_type,
+                                 sizeof(settings->visualizer_color_type), "%s",
+                                 pair->value);
                 } else if (strcmp(lowercase_key, "hidetimestatus") == 0) {
                         snprintf(settings->hideTimeStatus,
                                  sizeof(settings->hideTimeStatus), "%s",
@@ -1540,6 +1544,17 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 }
 
                 free(lowercase_key);
+        }
+
+        /* Fallback: if visualizerMode was not in config but the old
+         * visualizerColorType was, map it (0-4 -> 1-5). Mode 0 (off)
+         * was not representable by the old key. */
+        if (settings->visualizer_mode[0] == ' ' &&
+            settings->visualizer_color_type[0] != ' ') {
+                int ct = get_number(settings->visualizer_color_type);
+                if (ct >= 0 && ct <= 4)
+                        snprintf(settings->visualizer_mode,
+                                 sizeof(settings->visualizer_mode), "%d", ct + 1);
         }
 
         free_key_value_pairs(pairs, count);
