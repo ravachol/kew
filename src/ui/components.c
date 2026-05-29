@@ -1571,7 +1571,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 PixelData pixel = ui->color;
 
-                pixel = increase_luminosity(ui->color, 10);
+                pixel = increase_luminosity(ui->color, 30);
 
                 // If increase_luminosity blew out to white, fall back to default
                 if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
@@ -2647,7 +2647,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                 printed_rows++;
 
                 // Skip children of collapsed directory
-                if (model->search_results[i].entry->is_directory && model->search_results[i].entry->parent != NULL && model->search_results[i].entry->parent->parent != NULL && (!uis->allowChooseSearchSongs || model->search_results[i].entry->id != chosen_dir->id)) {
+                if (model->search_results[i].entry->is_directory && model->search_results[i].entry->parent != NULL && model->search_results[i].entry->parent->parent != NULL && (!uis->allowChooseSearchSongs || (chosen_dir && model->search_results[i].entry->id != chosen_dir->id))) {
 
                         FileSystemEntry *child = model->search_results[i].entry->children;
 
