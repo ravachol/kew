@@ -501,6 +501,8 @@ void *decode_loop(void *arg)
 
         free(temp);
         atomic_store(&sound->decode_thread_running, false);
+        atomic_store(&sound_s->drain_callbacks_remaining, 0);
+        atomic_store(&sound_s->request_pause, false);
         return NULL;
 }
 
