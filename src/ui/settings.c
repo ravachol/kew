@@ -76,7 +76,6 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     // Controls
     {0, 'p', 0, MSG_PLAY_PAUSE, ""},
     {0, 'n', 0, MSG_TOGGLENOTIFICATIONS, ""},
-    {0, 'v', 0, MSG_CYCLE_VISUALIZER_MODE, ""},
     {0, 'b', 0, MSG_TOGGLEASCII, ""},
     {0, 'r', 0, MSG_TOGGLEREPEAT, ""},
     {0, 'i', 0, MSG_CYCLECOLORMODE, ""},
@@ -866,6 +865,8 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
+        c_strcpy(settings->toggle_visualizer, "v",
+                 sizeof(settings->toggle_visualizer));
         c_strcpy(settings->titleDelay, "9", sizeof(settings->titleDelay));
 
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
