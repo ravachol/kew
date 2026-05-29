@@ -314,7 +314,7 @@ void handle_layout_options(Model *model, Layout *layout, Pane *pane, int row_num
             pane->fn == component_vis_and_progress_bar ||
             pane->fn == component_progress_bar) {
 
-                if (row->pane_count == 1 && !model->state.settings.visualizerEnabled) {
+                if (row->pane_count == 1 && model->state.settings.visualizer_mode == 0) {
                         if (row_num > 0) {
                                 layout->rows[row_num - 1].resolved_height += row->resolved_height;
                         }
@@ -826,10 +826,10 @@ int calc_ideal_img_size(int *width, int *height, const int visualizer_height,
 
 void calc_preferred_img_size(Model *model)
 {
-        model->min_height = 2 + (model->state.settings.visualizerEnabled ? model->state.settings.visualizer_height : 0);
+        model->min_height = 2 + (model->state.settings.visualizer_mode > 0 ? model->state.settings.visualizer_height : 0);
         int metadata_height = 4;
         calc_ideal_img_size(&model->preferred_width, &model->preferred_height,
-                            (model->state.settings.visualizerEnabled ? model->state.settings.visualizer_height : 0),
+                            (model->state.settings.visualizer_mode > 0 ? model->state.settings.visualizer_height : 0),
                             metadata_height);
 }
 
