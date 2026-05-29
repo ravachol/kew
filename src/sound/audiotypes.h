@@ -39,6 +39,9 @@ struct sound_system {
         ma_uint32 sample_rate;
         ma_format format;
 
+        atomic_bool request_pause;
+        atomic_int drain_callbacks_remaining;
+
         ma_uint64 currentPCMFrame;
 
         ma_uint32 avg_bit_rate;
