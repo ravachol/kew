@@ -779,9 +779,9 @@ CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData colo
         switch (mode) {
         case COLOR_MODE_ALBUM:
 
-                if (color.r >= state->settings.default_color &&
-                    color.g >= state->settings.default_color &&
-                    color.b >= state->settings.default_color) {
+                if (color.r >= 230 &&
+                    color.g >= 230 &&
+                    color.b >= 230) {
 
                         style.fg = state->settings.defaultColorRGB;
                 } else {
