@@ -2212,8 +2212,8 @@ void set_config(AppSettings *settings, UISettings *ui)
                 settings->visualizerBrailleMode);
 
         fprintf(file, "# How colors are laid out in the spectrum visualizer. "
-                      "0=lighten, 1=brightness depending on bar height, "
-                      "2=reversed, 3=reversed darken.\n");
+                      "0=lighten, 1=reversed, 2=k-means album-art, "
+                      "3=color-binning album-art, 4=vibrant album-art.\n");
         fprintf(file, "visualizerColorType=%s\n\n",
                 settings->visualizer_color_type);
 
