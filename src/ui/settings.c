@@ -657,6 +657,7 @@ static const EventMap event_map[] = {
     {"prevSong", MSG_PREV},
     {"quit", MSG_QUIT},
     {"toggleRepeat", MSG_TOGGLEREPEAT},
+    {"toggleVisualizer", MSG_CYCLE_VISUALIZER_MODE},
     {"cycleVisualizerMode", MSG_CYCLE_VISUALIZER_MODE},
     {"toggleAscii", MSG_TOGGLEASCII},
     {"addToFavorites_playlist", MSG_ADDTOFAVORITESPLAYLIST},
@@ -1226,7 +1227,7 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->toggle_visualizer,
                                  sizeof(settings->toggle_visualizer), "%s",
                                  pair->value);
-                        add_legacy_key_binding(MSG_TOGGLEVISUALIZER, pair->value);
+                        add_legacy_key_binding(MSG_CYCLE_VISUALIZER_MODE, pair->value);
                 } else if (strcmp(lowercase_key, "toggleascii") == 0) {
                         snprintf(settings->toggle_ascii,
                                  sizeof(settings->toggle_ascii), "%s",
@@ -1654,7 +1655,7 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[8] = (EventMapping){settings->quit, MSG_QUIT};
         mappings[9] = (EventMapping){settings->altQuit, MSG_QUIT};
         mappings[10] = (EventMapping){settings->toggle_shuffle, MSG_SHUFFLE};
-        mappings[11] = (EventMapping){settings->toggle_visualizer, MSG_TOGGLEVISUALIZER};
+        mappings[11] = (EventMapping){settings->toggle_visualizer, MSG_CYCLE_VISUALIZER_MODE};
         mappings[12] = (EventMapping){settings->toggle_ascii, MSG_TOGGLEASCII};
         mappings[13] = (EventMapping){settings->switchNumberedSong, MSG_ENQUEUE};
         mappings[14] = (EventMapping){settings->seekBackward, MSG_SEEKBACK};
