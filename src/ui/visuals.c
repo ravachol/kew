@@ -711,7 +711,7 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                 color.a = ui->theme.trackview_visualizer.rgb.a;
         }
 
-        int visualizer_color_type = ui->visualizer_color_type;
+        int visualizer_color_type = ui->visualizer_mode > 0 ? ui->visualizer_mode - 1 : 0;
         bool brailleMode = ui->visualizerBrailleMode;
 
         PixelData tmp;
@@ -848,7 +848,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 color = ui->theme.trackview_visualizer.rgb;
         }
 
-        int visualizer_color_type = ui->visualizer_color_type;
+        int visualizer_color_type = ui->visualizer_mode > 0 ? ui->visualizer_mode - 1 : 0;
         bool brailleMode = ui->visualizerBrailleMode;
         bool is_playing = (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING);
         bool wide_bar = (visualizer_bar_mode == 1 ||
