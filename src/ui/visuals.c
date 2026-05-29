@@ -54,86 +54,65 @@ static void generate_legacy_palette(ColorPalette *palette, PixelData base, int h
         }
 }
 
-#define KMEANS_K 8
-#define KMEANS_SAMPLES 400
-#define KMEANS_ITERATIONS 20
-
 static void generate_kmeans_palette(ColorPalette *palette, const unsigned char *pixels, int w, int h, int channels) {
-        int total_pixels = w * h;
-        if (total_pixels <= 0 || pixels == NULL) {
-                palette->count = 0;
-                return;
-        }
+	int total_pixels = w * h;
+	if (total_pixels <= 0 || pixels == NULL) {
+		palette->count = 0;
+		return;
+	}
 
-        int step = total_pixels / KMEANS_SAMPLES;
-        if (step < 1) step = 1;
+	int bucket_best_r[8], bucket_best_g[8], bucket_best_b[8];
+	int bucket_best_vib[8];
+	for (int i = 0; i < 8; i++) {
+		bucket_best_r[i] = 0;
+		bucket_best_g[i] = 0;
+		bucket_best_b[i] = 0;
+		bucket_best_vib[i] = -1;
+	}
 
-        float centroids[KMEANS_K][3];
-        int counts[KMEANS_K];
-        int assigned[KMEANS_SAMPLES];
-        int sample_count = 0;
+	int step = total_pixels < 1600 ? 1 : total_pixels / 1600;
+	if (step < 1) step = 1;
 
-        for (int i = 0; i < KMEANS_K && i * step < total_pixels; i++) {
-                int idx = (i * step) * channels;
-                centroids[i][0] = (float)pixels[idx];
-                centroids[i][1] = (float)pixels[idx + 1];
-                centroids[i][2] = (float)pixels[idx + 2];
-                sample_count++;
-        }
-        int k_used = sample_count < KMEANS_K ? sample_count : KMEANS_K;
+	for (int s = 0; s < total_pixels; s += step) {
+		int idx = s * channels;
+		int r = pixels[idx];
+		int g = pixels[idx + 1];
+		int b = pixels[idx + 2];
 
-        for (int iter = 0; iter < KMEANS_ITERATIONS; iter++) {
-                memset(counts, 0, sizeof(counts));
+		int lum = (54 * r + 183 * g + 19 * b) >> 8;
+		int bucket = lum >> 5;
+		if (bucket > 7) bucket = 7;
 
-                for (int s = 0; s < total_pixels; s += step) {
-                        int idx = s * channels;
-                        float r = (float)pixels[idx];
-                        float g = (float)pixels[idx + 1];
-                        float b = (float)pixels[idx + 2];
+		int maxc = r;
+		if (g > maxc) maxc = g;
+		if (b > maxc) maxc = b;
+		int minc = r;
+		if (g < minc) minc = g;
+		if (b < minc) minc = b;
+		int sat = maxc - minc;
+		int brightness = maxc;
+		int vib = sat * 3 + brightness;
 
-                        float best_dist = FLT_MAX;
-                        int best_c = 0;
-                        for (int c = 0; c < k_used; c++) {
-                                float dr = r - centroids[c][0];
-                                float dg = g - centroids[c][1];
-                                float db = b - centroids[c][2];
-                                float dist = dr * dr + dg * dg + db * db;
-                                if (dist < best_dist) {
-                                        best_dist = dist;
-                                        best_c = c;
-                                }
-                        }
-                        assigned[s / step] = best_c;
-                        counts[best_c]++;
-                }
+		if (vib > bucket_best_vib[bucket]) {
+			bucket_best_vib[bucket] = vib;
+			bucket_best_r[bucket] = r;
+			bucket_best_g[bucket] = g;
+			bucket_best_b[bucket] = b;
+		}
+	}
 
-                float new_centroids[KMEANS_K][3];
-                memset(new_centroids, 0, sizeof(new_centroids));
-                for (int s = 0; s < total_pixels; s += step) {
-                        int idx = s * channels;
-                        int c = assigned[s / step];
-                        new_centroids[c][0] += (float)pixels[idx];
-                        new_centroids[c][1] += (float)pixels[idx + 1];
-                        new_centroids[c][2] += (float)pixels[idx + 2];
-                }
-                for (int c = 0; c < k_used; c++) {
-                        if (counts[c] > 0) {
-                                centroids[c][0] = new_centroids[c][0] / counts[c];
-                                centroids[c][1] = new_centroids[c][1] / counts[c];
-                                centroids[c][2] = new_centroids[c][2] / counts[c];
-                        }
-                }
-        }
-
-        palette->count = k_used;
-        for (int c = 0; c < k_used; c++) {
-                palette->colors[c] = (PixelData){
-                        .r = (unsigned char)(centroids[c][0] > 255 ? 255 : centroids[c][0]),
-                        .g = (unsigned char)(centroids[c][1] > 255 ? 255 : centroids[c][1]),
-                        .b = (unsigned char)(centroids[c][2] > 255 ? 255 : centroids[c][2]),
-                        .a = 255
-                };
-        }
+	int count = 0;
+	for (int i = 0; i < 8; i++) {
+		if (bucket_best_vib[i] >= 0) {
+			palette->colors[count++] = (PixelData){
+				.r = (unsigned char)bucket_best_r[i],
+				.g = (unsigned char)bucket_best_g[i],
+				.b = (unsigned char)bucket_best_b[i],
+				.a = 255
+			};
+		}
+	}
+	palette->count = count;
 }
 
 #define BIN_SHIFT 5
