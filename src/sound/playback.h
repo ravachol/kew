@@ -24,6 +24,13 @@
 void stop_playback(void);
 
 /**
+ * @brief Requests a pauses audio playback.
+ *
+ * This function triggers draining of audio before pausing.
+ */
+void request_pause_playback(void);
+
+/**
  * @brief Pauses audio playback.
  *
  * This function pauses the audio playback without stopping it. It can be resumed
