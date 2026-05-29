@@ -42,9 +42,6 @@
 
 #define MAX_BARS 26 // Counting 1/3 octave per bar, 50hz-10000hz range
 
-#define PALETTE_SONG_HASH_UNSET ((size_t)-2)
-
-static size_t cached_palette_song_hash = PALETTE_SONG_HASH_UNSET;
 
 static void generate_legacy_palette(ColorPalette *palette, PixelData base, int height, int mode) {
         int count = height < 16 ? height : 16;
@@ -52,10 +49,8 @@ static void generate_legacy_palette(ColorPalette *palette, PixelData base, int h
         for (int j = 1; j <= count; j++) {
                 if (mode == 0)
                         palette->colors[j - 1] = increase_luminosity_for_height(base, height, j, false);
-                else if (mode == 2)
-                        palette->colors[j - 1] = increase_luminosity_for_height(base, height, j, true);
                 else
-                        palette->colors[j - 1] = get_gradient_color(base, j, height, 1, 0.6f);
+                        palette->colors[j - 1] = increase_luminosity_for_height(base, height, j, true);
         }
 }
 
@@ -339,10 +334,8 @@ void generate_all_visualizer_palettes(Model *model, int height) {
 
         generate_legacy_palette(&model->state.ui.visualizer_palettes[0], base_color, height, 0);
 
-        model->state.ui.visualizer_palettes[1].count = 0;
 
-        generate_legacy_palette(&model->state.ui.visualizer_palettes[2], base_color, height, 2);
-        generate_legacy_palette(&model->state.ui.visualizer_palettes[3], base_color, height, 3);
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[1], base_color, height, 1);
 
         const unsigned char *cover = NULL;
         int cover_w = 0, cover_h = 0, cover_ch = 0;
@@ -354,17 +347,17 @@ void generate_all_visualizer_palettes(Model *model, int height) {
         }
 
         if (cover && cover_w > 0 && cover_h > 0) {
-                generate_kmeans_palette(&model->state.ui.visualizer_palettes[4], cover, cover_w, cover_h, cover_ch);
-                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[4]);
-                generate_binning_palette(&model->state.ui.visualizer_palettes[5], cover, cover_w, cover_h, cover_ch);
-                if (model->state.ui.visualizer_palettes[5].count > 8)
-                        model->state.ui.visualizer_palettes[5].count = 8;
-                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[5]);
-                generate_topn_vibrant_palette(&model->state.ui.visualizer_palettes[6], cover, cover_w, cover_h, cover_ch);
+                generate_kmeans_palette(&model->state.ui.visualizer_palettes[2], cover, cover_w, cover_h, cover_ch);
+                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[2]);
+                generate_binning_palette(&model->state.ui.visualizer_palettes[3], cover, cover_w, cover_h, cover_ch);
+                if (model->state.ui.visualizer_palettes[3].count > 8)
+                        model->state.ui.visualizer_palettes[3].count = 8;
+                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[3]);
+                generate_topn_vibrant_palette(&model->state.ui.visualizer_palettes[4], cover, cover_w, cover_h, cover_ch);
         } else {
+                model->state.ui.visualizer_palettes[2].count = 0;
+                model->state.ui.visualizer_palettes[3].count = 0;
                 model->state.ui.visualizer_palettes[4].count = 0;
-                model->state.ui.visualizer_palettes[5].count = 0;
-                model->state.ui.visualizer_palettes[6].count = 0;
         }
 }
 
@@ -697,6 +690,10 @@ char *get_inbetween_char(float prev, float next)
                                           second_decimal_digit);
 }
 
+/* print_spectrum: dead code, never called from the component system.
+ * Kept as reference but commented out to avoid bit-rot.
+ */
+#if 0
 void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                     int visualizer_width, float *magnitudes)
 {
@@ -818,6 +815,7 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
         }
         fflush(stdout);
 }
+#endif
 
 void free_visuals(void)
 {
@@ -860,8 +858,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
 
         // Resolve pre-computed palette for modes 0,2,3,4,5,6
         const ColorPalette *palette = NULL;
-        if (visualizer_color_type >= 0 && visualizer_color_type <= 6 &&
-            visualizer_color_type != 1) {
+        if (visualizer_color_type >= 0 && visualizer_color_type <= 4) {
                 palette = &model->state.ui.visualizer_palettes[visualizer_color_type];
         }
 
@@ -884,7 +881,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 if (palette != NULL && palette->count > 0 &&
                     (color.r != 0 || color.g != 0 || color.b != 0)) {
                         int pidx;
-                        if (visualizer_color_type <= 3) {
+                        if (visualizer_color_type <= 1) {
                                 // Legacy: direct row-to-palette mapping
                                 pidx = j - 1;
                                 if (pidx >= palette->count)
@@ -919,7 +916,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                         // Per-bar color: album-art modes (4,5,6) use magnitude-indexed
                         // palette with smooth interpolation between entries
                         CellStyle bar_style = row_style;
-                        if (visualizer_color_type >= 4 && visualizer_color_type <= 6 &&
+                        if (visualizer_color_type >= 2 && visualizer_color_type <= 4 &&
                             palette != NULL && palette->count > 0 &&
                             (color.r != 0 || color.g != 0 || color.b != 0)) {
                                 PixelData bar_color;
@@ -955,10 +952,6 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                                         bar_style = cell_style_from_color(ui->colorMode,
                                                                           ui->theme.trackview_visualizer,
                                                                           bar_color);
-                        } else if (ui->colorMode != COLOR_MODE_DEFAULT && visualizer_color_type == 1) {
-                                PixelData tmp = {color.r / 2, color.g / 2, color.b / 2, 255};
-                                tmp = increase_luminosity(tmp, (int)round(magnitudes[i] * 10 * 4));
-                                bar_style = cell_style_fg(tmp);
                         }
 
                         // Braille left-side character
@@ -1002,7 +995,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
         }
 }
 
-void draw_spectrum_visualizer_to_buf(Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width)
+void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width)
 {
         AppState *state = get_app_state();
         sound_s = system;
@@ -1029,11 +1022,6 @@ void draw_spectrum_visualizer_to_buf(Model *model, DrawBuffer *buf, sound_system
 
         if (height <= 0 || num_bars <= 0) {
                 return;
-        }
-
-        if (model->current_hash != cached_palette_song_hash) {
-                cached_palette_song_hash = model->current_hash;
-                generate_all_visualizer_palettes(model, height);
         }
 
         sound_system_update_audio_buffer(sound_s);
