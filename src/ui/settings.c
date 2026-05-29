@@ -76,7 +76,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     // Controls
     {0, 'p', 0, MSG_PLAY_PAUSE, ""},
     {0, 'n', 0, MSG_TOGGLENOTIFICATIONS, ""},
-    {0, 'v', 0, MSG_TOGGLEVISUALIZER, ""},
+    {0, 'v', 0, MSG_CYCLE_VISUALIZER_MODE, ""},
     {0, 'b', 0, MSG_TOGGLEASCII, ""},
     {0, 'r', 0, MSG_TOGGLEREPEAT, ""},
     {0, 'i', 0, MSG_CYCLECOLORMODE, ""},
@@ -657,7 +657,7 @@ static const EventMap event_map[] = {
     {"prevSong", MSG_PREV},
     {"quit", MSG_QUIT},
     {"toggleRepeat", MSG_TOGGLEREPEAT},
-    {"toggleVisualizer", MSG_TOGGLEVISUALIZER},
+    {"cycleVisualizerMode", MSG_CYCLE_VISUALIZER_MODE},
     {"toggleAscii", MSG_TOGGLEASCII},
     {"addToFavorites_playlist", MSG_ADDTOFAVORITESPLAYLIST},
     {"deleteFromMainPlaylist", MSG_DELETEFROMMAINPLAYLIST},
@@ -844,8 +844,8 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->trackTitleAsWindowTitle));
         c_strcpy(settings->discordRPCEnabled, "1",
                  sizeof(settings->discordRPCEnabled));
-        c_strcpy(settings->visualizerEnabled, "1",
-                 sizeof(settings->visualizerEnabled));
+        c_strcpy(settings->visualizer_mode, "1",
+                 sizeof(settings->visualizer_mode));
 #ifdef __APPLE__
         c_strcpy(settings->colorMode, "0",
                  sizeof(settings->colorMode));
@@ -865,8 +865,6 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
-        c_strcpy(settings->visualizer_color_type, "2",
-                 sizeof(settings->visualizer_color_type));
         c_strcpy(settings->titleDelay, "9", sizeof(settings->titleDelay));
 
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
@@ -1136,9 +1134,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         if (!is_prefs)
                                 snprintf(settings->coverStyle, sizeof(settings->coverStyle),
                                          "%s", pair->value);
-                } else if (strcmp(lowercase_key, "visualizerenabled") == 0) {
-                        snprintf(settings->visualizerEnabled,
-                                 sizeof(settings->visualizerEnabled), "%s",
+                } else if (strcmp(lowercase_key, "visualizermode") == 0) {
+                        snprintf(settings->visualizer_mode,
+                                 sizeof(settings->visualizer_mode), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "hidetimestatus") == 0) {
                         snprintf(settings->hideTimeStatus,
@@ -1155,10 +1153,6 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "visualizerheight") == 0) {
                         snprintf(settings->visualizer_height,
                                  sizeof(settings->visualizer_height), "%s",
-                                 pair->value);
-                } else if (strcmp(lowercase_key, "visualizercolortype") == 0) {
-                        snprintf(settings->visualizer_color_type,
-                                 sizeof(settings->visualizer_color_type), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "titledelay") == 0) {
                         snprintf(settings->titleDelay,
@@ -1874,12 +1868,10 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                                          sizeof(settings->coverAnsi))
                               : c_strcpy(settings->coverAnsi, "0",
                                          sizeof(settings->coverAnsi));
-        if (settings->visualizerEnabled[0] == '\0')
-                ui->visualizerEnabled
-                    ? c_strcpy(settings->visualizerEnabled, "1",
-                               sizeof(settings->visualizerEnabled))
-                    : c_strcpy(settings->visualizerEnabled, "0",
-                               sizeof(settings->visualizerEnabled));
+        if (settings->visualizer_mode[0] == '\0')
+                snprintf(settings->visualizer_mode,
+                         sizeof(settings->visualizer_mode), "%d",
+                         ui->visualizer_mode);
 
         if (ui->saveRepeatShuffleSettings) {
                 snprintf(settings->repeatState, sizeof(settings->repeatState), "%d",
@@ -1897,11 +1889,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
             : c_strcpy(settings->showFoldersInPlaylist, "0",
                         sizeof(settings->showFoldersInPlaylist));
 
-        if (settings->visualizer_color_type[0] == '\0')
-                snprintf(settings->visualizer_color_type,
-                         sizeof(settings->visualizer_color_type), "%d",
-                         ui->visualizer_color_type);
-
+        
         int current_volume = get_volume();
         current_volume = (current_volume <= 0) ? 10 : current_volume;
         snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d",
@@ -1920,7 +1908,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "[track cover]\n\n");
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
         fprintf(file, "[visualizer]\n\n");
-        fprintf(file, "visualizerEnabled=%s\n\n", settings->visualizerEnabled);
+        fprintf(file, "visualizerMode=%s\n\n", settings->visualizer_mode);
         fprintf(file, "[chroma]\n\n");
         fprintf(file, "chromaPreset=%d\n\n", ui->chromaPreset);
         fprintf(file, "[colors]\n\n");
@@ -2017,12 +2005,10 @@ void set_config(AppSettings *settings, UISettings *ui)
                                          sizeof(settings->coverAnsi));
         if (settings->coverStyle[0] == '\0')
                 c_strcpy(settings->coverStyle, "auto", sizeof(settings->coverStyle));
-        if (settings->visualizerEnabled[0] == '\0')
-                ui->visualizerEnabled
-                    ? c_strcpy(settings->visualizerEnabled, "1",
-                               sizeof(settings->visualizerEnabled))
-                    : c_strcpy(settings->visualizerEnabled, "0",
-                               sizeof(settings->visualizerEnabled));
+        if (settings->visualizer_mode[0] == '\0')
+                snprintf(settings->visualizer_mode,
+                         sizeof(settings->visualizer_mode), "%d",
+                         ui->visualizer_mode);
         if (settings->hideTimeStatus[0] == '\0')
                 ui->hideTimeStatus
                     ? c_strcpy(settings->hideTimeStatus, "1",
@@ -2115,11 +2101,7 @@ void set_config(AppSettings *settings, UISettings *ui)
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
                          ui->visualizer_height);
-        if (settings->visualizer_color_type[0] == '\0')
-                snprintf(settings->visualizer_color_type,
-                         sizeof(settings->visualizer_color_type), "%d",
-                         ui->visualizer_color_type);
-        if (settings->titleDelay[0] == '\0')
+                if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay),
                          "%d", ui->titleDelay);
 
@@ -2206,16 +2188,11 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
 
         fprintf(file, "\n[visualizer]\n\n");
-        fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
+        fprintf(file, "# Visualizer mode: 0=off, 1=lighten, 2=reversed, 3=k-means, 4=binning, 5=vibrant.\n");
+        fprintf(file, "visualizerMode=%s\n", settings->visualizer_mode);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizer_height);
         fprintf(file, "visualizerBrailleMode=%s\n\n",
                 settings->visualizerBrailleMode);
-
-        fprintf(file, "# How colors are laid out in the spectrum visualizer. "
-                      "0=lighten, 1=reversed, 2=k-means album-art, "
-                      "3=color-binning album-art, 4=vibrant album-art.\n");
-        fprintf(file, "visualizerColorType=%s\n\n",
-                settings->visualizer_color_type);
 
         fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends "
                       "on window size).\n");

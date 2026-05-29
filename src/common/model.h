@@ -296,7 +296,7 @@ typedef struct
         bool coverAnsi;          /**< Use high-quality chafa cover rendering if supported,
                                       otherwise ASCII/ANSI cover. */
         char coverStyle[16];     /**< Chafa symbol style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad. */
-        bool visualizerEnabled;  /**< Show spectrum visualizer. */
+        int visualizer_mode;     /**< Visualizer mode: 0=off, 1=lighten, 2=reversed, 3=k-means, 4=binning, 5=vibrant. */
         bool discordRPCEnabled;  /**< Enable Discord Rich Presence integration. */
         bool hideLogo;           /**< Hide application logo at the top. */
         bool hideHelp;           /**< Hide help text at the top. */
@@ -306,8 +306,7 @@ typedef struct
         bool allowNotifications; /**< Enable desktop notifications. */
 
         int visualizer_height;      /**< Height (in terminal rows) of the spectrum visualizer. */
-        int visualizer_color_type;  /**< Color layout mode for the spectrum visualizer. */
-        bool visualizerBrailleMode; /**< Render visualizer using braille characters. */
+                bool visualizerBrailleMode; /**< Render visualizer using braille characters. */
 
         int titleDelay;           /**< Delay before drawing title in track view (ms). */
         int cacheLibrary;         /**< Whether to cache the music library. */
@@ -479,11 +478,10 @@ typedef struct
         char coverAnsi[2];
         char coverStyle[16];
         char useConfigColors[2];
-        char visualizerEnabled[2];
+        char visualizer_mode[2];
         char discordRPCEnabled[2];
         char visualizer_height[6];
-        char visualizer_color_type[2];
-        char titleDelay[6];
+                char titleDelay[6];
         char togglePlaylist[6];
         char toggleBindings[6];
         char volumeUp[6];

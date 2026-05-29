@@ -62,7 +62,8 @@ enum MsgType {
         MSG_PROGRESS_BARS_SET,
         MSG_START_TITLE_ANIM,
         MSG_TOGGLEFOLDERDISPLAY,
-        MSG_LYRICS_UPDATED
+        MSG_LYRICS_UPDATED,
+        MSG_CYCLE_VISUALIZER_MODE
 };
 
 struct Msg {

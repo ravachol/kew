@@ -17,6 +17,7 @@ typedef enum {
 
         CMD_TOGGLE_LYRICS_PAGE,
         CMD_CYCLE_COLOR_MODE,
+        CMD_CYCLE_VISUALIZER_MODE,
         CMD_CYCLE_THEMES,
         CMD_CYCLE_VISUALIZATION,
 
