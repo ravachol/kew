@@ -17,6 +17,7 @@
 #include "ui/anims.h"
 #include "ui/common_ui.h"
 #include "ui/components.h"
+#include "ui/visuals.h"
 #include "ui/control_ui.h"
 
 #include "utils/utils.h"
@@ -390,6 +391,12 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 model->state.settings.color.g = model->state.settings.defaultColorRGB.g;
                                 model->state.settings.color.b = model->state.settings.defaultColorRGB.b;
                         }
+                }
+
+                static size_t cached_palette_song_hash = (size_t)-1;
+                if (model->current_hash != cached_palette_song_hash) {
+                        cached_palette_song_hash = model->current_hash;
+                        generate_all_visualizer_palettes(model, model->state.settings.visualizer_height);
                 }
 
                 if (model->state.currentView != PLAYLIST_VIEW)
