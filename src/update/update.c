@@ -447,11 +447,15 @@ UpdateResult update(Model *model, struct Msg *msg)
                 result.cmd.type = CMD_TOGGLE_PAUSE;
                 break;
 
-        case MSG_TOGGLEVISUALIZER:
-                model->state.settings.visualizerEnabled = !model->state.settings.visualizerEnabled;
-                c_strcpy(settings->visualizerEnabled, model->state.settings.visualizerEnabled ? "1" : "0",
-                         sizeof(settings->visualizerEnabled));
+        case MSG_CYCLE_VISUALIZER_MODE:
+                model->state.settings.visualizer_mode++;
+                if (model->state.settings.visualizer_mode > 5)
+                        model->state.settings.visualizer_mode = 0;
+                snprintf(settings->visualizer_mode,
+                         sizeof(settings->visualizer_mode), "%d",
+                         model->state.settings.visualizer_mode);
                 set_dirty(DIRTY_ALL);
+                result.cmd.type = CMD_CYCLE_VISUALIZER_MODE;
                 break;
 
         case MSG_TOGGLEREPEAT:
