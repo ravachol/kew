@@ -101,7 +101,7 @@ void pb_set_EOF_handled(void)
 
 bool pb_is_paused(void)
 {
-        return (sound_s->state == SOUND_STATE_PAUSED);
+        return (sound_s->state == SOUND_STATE_PAUSED || atomic_load(&sound_s->request_pause));
 }
 
 bool pb_is_stopped(void)
@@ -140,6 +140,9 @@ sound_result_t sound_resume_playback(void)
                 }
         }
 
+        if (atomic_load(&sound_s->request_pause))
+                atomic_store(&sound_s->request_pause, false);
+
         if (result < 0) {
                 sound_s->state = SOUND_STATE_STOPPED;
                 return result;
@@ -148,6 +151,14 @@ sound_result_t sound_resume_playback(void)
         sound_s->state = SOUND_STATE_PLAYING;
 
         return result;
+}
+
+void request_pause_playback(void)
+{
+        if (sound_s->state != SOUND_STATE_PAUSED)
+                atomic_store(&sound_s->request_pause, true);
+
+        sound_s->state = SOUND_STATE_PAUSED;
 }
 
 void pause_playback(void)
@@ -163,9 +174,9 @@ sound_result_t toggle_pause_playback(void)
 {
         sound_result_t result = SOUND_OK;
 
-        if (ma_device_is_started(&device)) {
-                pause_playback();
-        } else if (pb_is_paused() || pb_is_stopped()) {
+        if (!(pb_is_paused() || pb_is_stopped())) {
+                request_pause_playback();
+        } else {
                 result = sound_resume_playback();
         }
 

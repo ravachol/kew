@@ -32,6 +32,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - AAUDIO wasn't being used by miniaudio on Android/Termux. This is now fixed, and gives higher quality sound on Android. By @ravachol. Reported by @TNT4ME.
 
+- Prevent slight glitch when pausing and switching tracks. When unpausing a bit of the old song played. By @ravachol. Reported by @LeahTheSlug. Thanks to @petoem for helping.
+
 #### Refactor
 
 - Centralize PATH_MAX into common/path_max.h. By @hartalex.
