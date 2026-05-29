@@ -1,7 +1,7 @@
 # Visualizer Palette Caching — Implementation Details
 
 **Date:** 2026-05-28
-**Last updated:** 2026-05-29 (revised)
+**Last updated:** 2026-05-29 (revised — mode 2 replaced K-Means with luminance-bucketed vibrance picker))
 **Scope:** Palette pre-baking for modes 0–4; per-bar magnitude coloring; mode cycling (off/lighten/reversed/k-means/binning/vibrant)
 
 ---
@@ -98,13 +98,27 @@ Pre-bakes the existing math functions, preserving pixel-perfect parity:
 
 Palette has `min(height, 16)` entries (typically 4–5 for a default visualizer height of 5).
 
-### 3.4 K-Means palette (mode 2)
+### 3.4 Luminance-bucketed vibrance palette (mode 2)
 
-**File:** `src/ui/visuals.c`, lines 66–142
+**File:** `src/ui/visuals.c`, lines 57–114
 
-- Downsamples cover to 400 pixels, runs K-Means with K=8 for 20 iterations
-- Initialization: evenly-spaced pixels (deterministic, no randomness)
-- Sorted by luminosity after generation via `sort_palette_by_luminosity()`
+Replaced the original K-Means approach (which suffered from centroid collapse and poor luminance spread) with a single-pass luminance-bucketed vibrance picker.
+
+**Algorithm:**
+
+1. Sample pixels uniformly through the image (~1600 samples max, step = total_pixels / 1600)
+2. Compute integer luminance: `(54*R + 183*G + 19*B) >> 8` — BT.709 coefficients, proper 0–255 range
+3. Map luminance to 8 equal buckets via `lum >> 5` (bucket 0 = lum 0–31, bucket 7 = lum 224–255)
+4. For each pixel, compute vibrance score: `saturation * 3 + brightness` where `saturation = max(R,G,B) - min(R,G,B)` and `brightness = max(R,G,B)`
+5. Track the highest-vibrance pixel per bucket
+6. Output all non-empty buckets in order (0→7 = dark→light)
+
+**Properties:**
+- O(n) single-pass, integer-only math — no iterative convergence
+- Guaranteed luminance spread by bucket construction (8 equal bands of 32 luminance levels)
+- Within each band, selects the pixel with best combined saturation+brightness
+- No sorting needed — output order is inherently dark→light by bucket index
+- Typically produces 5–8 entries depending on image luminance range
 
 ### 3.5 Color binning palette (mode 3)
 
@@ -293,7 +307,7 @@ color = lerp(colors[lo], colors[lo+1], frac);
 |---|---|
 | `src/common/model.h` | Added `ColorPalette` struct; added `visualizer_palettes[5]` to `UIState`; replaced `visualizerEnabled` bool with `visualizer_mode` int |
 | `src/ui/visuals.h` | `draw_spectrum_visualizer_to_buf` signature restored to `const Model *`; added `generate_all_visualizer_palettes` declaration |
-| `src/ui/visuals.c` | Added palette generation functions (legacy, k-means, binning, two-band vibrant); song-change trigger in update tick; per-bar interpolation rendering; luminosity sorting; removed modes 1 and 3 |
+| `src/ui/visuals.c` | Added palette generation functions (legacy, luminance-bucketed vibrance, binning, two-band vibrant); song-change trigger in update tick; per-bar interpolation rendering; luminosity sorting; removed K-Means palette (replaced with fast luminance-bucketed vibrance picker) |
 | `src/update/update.c` | Palette generation moved to MSG_TICK handler; removed const cast |
 | `src/ui/components.c` | Removed `(Model *)` cast — render path is now fully const |
 
