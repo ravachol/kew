@@ -197,6 +197,19 @@ void run_command(UpdateResult result)
                 cycle_color_mode();
                 break;
 
+        case CMD_CYCLE_VISUALIZER_MODE: {
+                static const char *names[] = {
+                        "off", "lighten", "reversed",
+                        "k-means", "binning", "vibrant"
+                };
+                int mode = model->state.settings.visualizer_mode;
+                if (mode < 0 || mode > 5) mode = 0;
+                char buf[64];
+                snprintf(buf, sizeof(buf), "visualizer: %s", names[mode]);
+                set_error_message(buf);
+                break;
+        }
+
         case CMD_CYCLE_THEMES:
                 cycle_themes();
                 break;
