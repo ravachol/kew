@@ -234,7 +234,7 @@ void transfer_settings_to_ui(void)
 
         tmp = get_number(settings->visualizer_color_type);
         if (tmp >= 0)
-                ui->visualizer_color_type = tmp;
+                ui->visualizer_color_type = tmp > 4 ? 4 : tmp;
 
         tmp = get_number(settings->titleDelay);
         if (tmp >= 0)
