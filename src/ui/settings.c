@@ -1551,8 +1551,8 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
         /* Fallback: if visualizerMode was not in config but the old
          * visualizerColorType was, map it (0-4 -> 1-5). Mode 0 (off)
          * was not representable by the old key. */
-        if (settings->visualizer_mode[0] == ' ' &&
-            settings->visualizer_color_type[0] != ' ') {
+        if (settings->visualizer_mode[0] == '\0' &&
+            settings->visualizer_color_type[0] != '\0') {
                 int ct = get_number(settings->visualizer_color_type);
                 if (ct >= 0 && ct <= 4)
                         snprintf(settings->visualizer_mode,
@@ -2118,7 +2118,7 @@ void set_config(AppSettings *settings, UISettings *ui)
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
                          ui->visualizer_height);
-                if (settings->titleDelay[0] == '\0')
+        if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay),
                          "%d", ui->titleDelay);
 
