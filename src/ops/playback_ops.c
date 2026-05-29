@@ -44,6 +44,7 @@ void pause_song(void)
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
+                sound_system_pause(sound_sys);
         }
 
         Model *model = get_model();
@@ -51,8 +52,6 @@ void pause_song(void)
         if (model->state.currentView != TRACK_VIEW) {
                 set_dirty(DIRTY_ALL);
         }
-
-        sound_system_pause(sound_sys);
 }
 
 void skip_to_begginning_of_song(void)

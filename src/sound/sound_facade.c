@@ -160,10 +160,9 @@ sound_result_t sound_system_pause(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        pause_playback();
+        request_pause_playback();
 
-        if (pb_is_paused())
-                system->state = SOUND_STATE_PAUSED;
+        system->state = SOUND_STATE_PAUSED;
 
         return SOUND_OK;
 }
@@ -227,12 +226,6 @@ sound_result_t sound_system_toggle_pause(sound_system_t *system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         sound_result_t result = toggle_pause_playback();
-        if (pb_is_stopped())
-                system->state = SOUND_STATE_STOPPED;
-        if (pb_is_paused())
-                system->state = SOUND_STATE_PAUSED;
-        if (pb_is_playing())
-                system->state = SOUND_STATE_PLAYING;
 
         return result;
 }

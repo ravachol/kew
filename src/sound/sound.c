@@ -16,8 +16,8 @@
 #include "common/appstate.h"
 #include "common/model.h"
 
-#include "sound_facade.h"
 #include "playback.h"
+#include "sound_facade.h"
 #ifdef USE_FAAD
 #include "m4a.h"
 #endif
@@ -297,6 +297,42 @@ void set_decode_thread_priority(pthread_t thread)
 #endif
 }
 
+void drain_audio_and_pause(sound_system_t *sound)
+{
+        float vol = sound->volume;
+
+        // Mute so drained audio is inaudible
+        set_current_volume(0.0f);
+
+        atomic_store(&sound->drain_callbacks_remaining, 10);
+
+        // Prevent decoding while draining
+        while (atomic_load(&sound->drain_callbacks_remaining) > 0 && atomic_load(&sound->decode_thread_running)) {
+                struct timespec ts = {0, 10000000}; // 10ms
+                nanosleep(&ts, NULL);
+
+                // Break out if someone unpaused
+                if (!atomic_load(&sound->request_pause)) {
+                        // Tell callback to stop draining
+                        atomic_store(&sound_s->drain_callbacks_remaining, 0);
+                        break;
+                }
+        }
+
+        // If we still are supposed to pause
+        if (atomic_load(&sound->request_pause)) {
+
+                // Pause
+                pause_playback();
+
+                // Clear the flag
+                atomic_store(&sound->request_pause, false);
+        }
+
+        // Restore volume
+        set_current_volume(vol);
+}
+
 // Main decoding loop, produces data to the miniaudio ringbuffer
 void *decode_loop(void *arg)
 {
@@ -343,7 +379,6 @@ void *decode_loop(void *arg)
                         writable = ma_pcm_rb_available_write(&pcm_rb);
 
                         if (writable > 0) {
-                                atomic_store(&sound->buffer_ready, 1);
                                 break;
                         }
 
@@ -351,9 +386,19 @@ void *decode_loop(void *arg)
                         nanosleep(&ts, NULL);
                 }
 
-                // Handle pause
-                while (pb_is_paused() && atomic_load(&sound->decode_thread_running)) {
-                        c_sleep(10);
+                // Handle switch during pause
+                if (atomic_load_explicit(&sound->switch_files, memory_order_acquire)) {
+                        reset_ring_buffer(sound);
+                        continue;
+                }
+
+                if (writable > 0) {
+                        atomic_store(&sound->buffer_ready, 1);
+                }
+
+                if (atomic_load(&sound->request_pause)) {
+                        drain_audio_and_pause(sound);
+                        continue;
                 }
 
                 ma_uint32 frames_to_decode = (writable > sound->chunk_frames) ? sound->chunk_frames : writable;
@@ -473,6 +518,14 @@ void on_audio_frames(ma_device *device,
                 return;
         }
 
+        // Handle audio drainage
+        int remaining = atomic_load(&sound_s->drain_callbacks_remaining);
+        if (remaining > 0) {
+                memset(pOutput, 0, frameCount * sound_s->channels * sizeof(float));
+                remaining--;
+                atomic_store(&sound_s->drain_callbacks_remaining, remaining);
+                return;
+        }
 
         if (!sound_s->audio_thread_priority_set) {
                 set_decode_thread_priority(pthread_self());
@@ -930,8 +983,7 @@ int load_decoder(SongData *song_data, bool *song_data_deleted)
                                 result = -1;
                         else
                                 result = prepare_next_decoder(song_data->file_path, song_data, ops);
-                }
-                else {
+                } else {
                         result = is_decoding_possible(song_data->file_path, ops);
                 }
         }
