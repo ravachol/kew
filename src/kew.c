@@ -28,7 +28,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef __USE_POSIX
 #define __USE_POSIX
-#include "ops/playback_clock.h"
 #endif
 
 #ifdef __FreeBSD__
