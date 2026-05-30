@@ -299,11 +299,6 @@ void set_decode_thread_priority(pthread_t thread)
 
 void drain_audio_and_pause(sound_system_t *sound)
 {
-        float vol = sound->volume;
-
-        // Mute so drained audio is inaudible
-        set_current_volume(0.0f);
-
         atomic_store(&sound->drain_callbacks_remaining, 10);
 
         // Prevent decoding while draining
@@ -328,9 +323,6 @@ void drain_audio_and_pause(sound_system_t *sound)
                 // Clear the flag
                 atomic_store(&sound->request_pause, false);
         }
-
-        // Restore volume
-        set_current_volume(vol);
 }
 
 // Main decoding loop, produces data to the miniaudio ringbuffer
