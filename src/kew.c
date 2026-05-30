@@ -50,27 +50,27 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "sound/sound_facade.h"
 
-#include "ui/components.h"
 #include "ui/chroma.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"
+#include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/input.h"
-#include "ui/render_ui.h"
 #include "ui/queue_ui.h"
+#include "ui/render_ui.h"
 #include "ui/settings.h"
 #include "ui/termbox2_input.h"
 #include "ui/visuals.h"
 
-#include "update/update.h"
 #include "update/messages.h"
+#include "update/update.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
-#include "ops/track_manager.h"
 #include "ops/search_ops.h"
+#include "ops/track_manager.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -114,8 +114,7 @@ void player_tick(Model *model, RenderContext *ctx)
 
         if (can_refresh_player()) {
 
-                if (!resize_if_needed())
-                {
+                if (!resize_if_needed()) {
                         // Render the UI
                         render_ui(model, ctx);
 
@@ -360,21 +359,17 @@ void run(bool start_playing)
         }
 
         double seconds = 0.0;
-        if (!start_playing)
-        {
-                if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume)
-                {
+        if (!start_playing) {
+                if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume) {
                         Node *song = NULL;
                         find_node_in_list(playlist, model->state.settings.currentSongId, &song);
 
-                        if (song)
-                        {
+                        if (song) {
                                 set_song_to_start_from(song);
                                 ps->waitingForNext = true;
                                 sound_system_set_end_of_list_reached(sound_sys, false);
 
-                                if (model->state.settings.currentSongSeconds > 0.8)
-                                {
+                                if (model->state.settings.currentSongSeconds > 0.8) {
                                         model->state.settings.currentSongSeconds -= 0.8;
                                         seconds = model->state.settings.currentSongSeconds;
                                 }
@@ -735,10 +730,6 @@ int main(int argc, char *argv[])
         init_state();
         init_locale();
 
-        #ifndef DEBUG // Only prevent multiple instances if not debugging. Yes, now you can finally listen to music in kew while you work on kew!
-                restart_if_already_running(argv);
-        #endif
-
         Model *model = get_model();
 
         if ((argc == 2 &&
@@ -753,6 +744,11 @@ int main(int argc, char *argv[])
                 print_about_for_version(model);
                 exit(0);
         }
+
+#ifndef DEBUG // Only prevent multiple instances if not debugging. Yes, now you can finally listen to music in kew while you work on kew!
+        restart_if_already_running(argv);
+#endif
+
         init_settings(&model->settings);
         transfer_settings_to_ui();
         init_key_mappings(&model->settings);
