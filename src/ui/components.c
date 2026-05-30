@@ -2187,7 +2187,7 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
         k_Rect meta_rect = {
             .row = meta_row,
             .col = region.col,
-            .width = visualizer_width - 1,
+            .width = region.width,
             .height = metadata_height,
         };
         if (dirty & (DIRTY_SONG | DIRTY_TITLE))
@@ -2197,7 +2197,7 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
         k_Rect time_rect = {
             .row = meta_row + metadata_height,
             .col = region.col,
-            .width = model->term_w - region.col,
+            .width = region.width,
             .height = 1,
         };
         if (dirty & DIRTY_VISUALIZER)
@@ -2207,13 +2207,14 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
         k_Rect lyrics_rect = {
             .row = meta_row + metadata_height + 1,
             .col = region.col,
-            .width = model->term_w - region.col - 1,
+            .width = region.width  - 1,
             .height = 1,
         };
         if (dirty & DIRTY_VISUALIZER && songdata->lyrics && songdata->lyrics->isTimed)
                 component_timestamped_lyrics(model, lyrics_rect, buf, dirty);
 
         ComponentMsg result = (ComponentMsg){0};
+
         // Visualizer
         k_Rect viz_rect = {
             .row = meta_row + metadata_height + 2,
