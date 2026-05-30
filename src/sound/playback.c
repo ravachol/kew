@@ -148,6 +148,8 @@ sound_result_t sound_resume_playback(void)
                 return result;
         }
 
+        sound_system_set_volume(sound_s, sound_s->volume);
+
         sound_s->state = SOUND_STATE_PLAYING;
 
         return result;
@@ -157,6 +159,12 @@ void request_pause_playback(void)
 {
         if (sound_s->state != SOUND_STATE_PAUSED)
                 atomic_store(&sound_s->request_pause, true);
+
+        float vol = sound_system_get_volume(sound_s);
+
+        sound_system_set_volume(sound_s, 0.0f); // mute during pause, because of delay and draining
+
+        sound_s->volume = vol; // this value is used when unpausing.
 
         sound_s->state = SOUND_STATE_PAUSED;
 }
