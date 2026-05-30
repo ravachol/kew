@@ -380,7 +380,6 @@ void run(bool start_playing)
                                 state->currentView = TRACK_VIEW;
                         }
                 }
-                set_dirty(DIRTY_ALL);
         }
 
         init_mpris();
