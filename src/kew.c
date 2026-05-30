@@ -372,6 +372,7 @@ void run(bool start_playing)
                                 set_song_to_start_from(song);
                                 ps->waitingForNext = true;
                                 sound_system_set_end_of_list_reached(sound_sys, false);
+                                
                                 if (model->state.settings.currentSongSeconds > 0.8)
                                 {
                                         model->state.settings.currentSongSeconds -= 0.8;
