@@ -372,7 +372,7 @@ void run(bool start_playing)
                                 set_song_to_start_from(song);
                                 ps->waitingForNext = true;
                                 sound_system_set_end_of_list_reached(sound_sys, false);
-                                
+
                                 if (model->state.settings.currentSongSeconds > 0.8)
                                 {
                                         model->state.settings.currentSongSeconds -= 0.8;
@@ -381,6 +381,8 @@ void run(bool start_playing)
 
                                 sound_system_set_volume(sound_sys, 0.0);
                                 model->restore_volume = true;
+
+                                state->currentView = TRACK_VIEW;
                         }
                 }
                 set_dirty(DIRTY_ALL);
