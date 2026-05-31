@@ -2516,6 +2516,17 @@ void component_search_helper_collapse_view(Model *model, int diff_rows)
         }
 }
 
+bool component_helper_in_search_results(SearchResult *results, int count, FileSystemEntry *entry)
+{
+        for (int i = 0; i < count; i++)
+        {
+                if (results[i].entry->id == entry->id)
+                        return true;
+        }
+
+        return false;
+}
+
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -2589,7 +2600,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
         for (int i = start_search_iter; i < total_rows; i++) {
 
-                if (printed_rows >= max_list_size)
+                 if (printed_rows >= max_list_size)
                         break;
 
                 // Clamp chosen row at end of results
@@ -2647,15 +2658,17 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                 printed_rows++;
 
                 // Skip children of collapsed directory
-                if (model->search_results[i].entry->is_directory && model->search_results[i].entry->parent != NULL && model->search_results[i].entry->parent->parent != NULL && (!uis->allowChooseSearchSongs || (chosen_dir && model->search_results[i].entry->id != chosen_dir->id))) {
+                if (model->search_results[i].entry->is_directory &&
+                        model->search_results[i].entry->parent != NULL &&
+                        model->search_results[i].entry->parent->parent != NULL &&
+                        (!uis->allowChooseSearchSongs || (chosen_dir && model->search_results[i].entry->id != chosen_dir->id))) {
 
                         FileSystemEntry *child = model->search_results[i].entry->children;
 
+                        int count = model->state.ui.search_results_count;
                         while (child != NULL) {
-                                if (!child->is_directory)
+                                if (!child->is_directory && i + 1 < count && model->search_results[i + 1].entry->id == child->id)
                                         i++;
-                                if (child->is_directory)
-                                        break;
                                 child = child->next;
                         }
                 }
