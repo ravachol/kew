@@ -381,7 +381,7 @@ void run(bool start_playing)
 
                                 state->currentView = TRACK_VIEW;
 
-                                set_dirty(DIRTY_NONE); //
+                                set_dirty(DIRTY_NONE); // When the song plays, the UI will be set to dirty. To prevent flickering.
                         }
                 }
         }
