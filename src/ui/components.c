@@ -12,7 +12,6 @@
 
 #include "common_ui.h"
 #include "settings.h"
-#include "ui/chroma.h"
 #include "ui/playlist_ui.h"
 #include "visuals.h"
 
