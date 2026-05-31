@@ -34,6 +34,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Prevent slight glitch when pausing and switching tracks. When unpausing a bit of the old song played. By @ravachol. Reported by @LeahTheSlug. Thanks to @petoem for helping.
 
+- Fix issue with wrong nesting in search in some situations. By @ravachol Reported by @Moksh-Parikh.
+
 #### Refactor
 
 - Centralize PATH_MAX into common/path_max.h. By @hartalex.
