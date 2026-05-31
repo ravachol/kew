@@ -358,6 +358,8 @@ void run(bool start_playing)
                 state->currentView = LIBRARY_VIEW;
         }
 
+        set_dirty(DIRTY_ALL);
+
         double seconds = 0.0;
         if (!start_playing) {
                 if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume) {
@@ -378,6 +380,8 @@ void run(bool start_playing)
                                 model->restore_volume = true;
 
                                 state->currentView = TRACK_VIEW;
+
+                                set_dirty(DIRTY_NONE); //
                         }
                 }
         }
