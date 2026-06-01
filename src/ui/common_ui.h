@@ -53,20 +53,8 @@ void increment_update_counter(void);
  */
 void inverse_text(void);
 
-/**
- * @brief Applies color settings based on the specified color mode.
- *
- * This function adjusts the color of the terminal output based on the current
- * color mode. It can apply album colors, theme colors, or default terminal colors
- * depending on the `ColorMode`. If `ColorMode` is `COLOR_MODE_ALBUM`, the album
- * color is applied. If it's `COLOR_MODE_THEME` or `COLOR_MODE_DEFAULT`, the
- * theme color is applied based on the provided `ColorValue`.
- *
- * @param mode The `ColorMode` that determines the color to apply.
- * @param theme_color The color value for the theme (if mode is `COLOR_MODE_THEME` or `COLOR_MODE_DEFAULT`).
- * @param album_color The color value for the album (if mode is `COLOR_MODE_ALBUM`).
- */
-void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color);
+
+void apply_color(PixelData color);
 
 /**
  * @brief Processes a name for scrolling within a specified width.

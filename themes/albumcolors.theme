@@ -1,0 +1,94 @@
+#   Album Colors kew Theme
+#
+#   4-Color album color palette
+#
+#   This theme will be used if you choose album cover colors (press i in kew to cycle color settings)
+#
+#   You can't know which the album colors are going to be but you can decide how much the colors vary throughout the app
+#
+#   The available colors are:
+#
+#   Album Colors:
+#   101: Album Color 1 # this is the old color that used to be the only album color
+#   102: Album Color 2
+#   103: Album Color 3
+#   104: Album Color 4
+#
+#   Standard Terminal ANSI Colors can also be used:
+#   0: Black
+#   1: Red
+#   2: Green
+#   3: Yellow
+#   4: Blue
+#   5: Magenta
+#   6: Cyan
+#   7: White
+#   8: Bright Black (Gray)
+#   9: Bright Red
+#   10: Bright Green
+#   11: Bright Yellow
+#   12: Bright Blue
+#   13: Bright Magenta
+#   14: Bright Cyan
+#   15: Bright White
+#   -1: Default terminal foreground
+#
+#   You can also use mix and match with hex colors in this format: #ffffff
+#
+
+
+name=Album Colors
+author=Ravachol
+
+# Core Colors
+accent=101
+text=-1         # Default terminal foreground
+textDim=102
+textMuted=103
+
+# General Colors
+logo=102
+header=101
+footer=#787878  # The old school gray, this works on most terminals
+help=-1         # Default foreground
+link=101
+nowplaying=104
+
+# Playlist View
+playlist.rownum=101
+playlist.title=-1    # Default foreground
+playlist.playing=104
+
+# Track View
+trackview.title=104
+trackview.artist=102
+trackview.album=102
+trackview.year=102
+trackview.time=102
+trackview.visualizer=104
+trackview.lyrics=101
+
+# Library View
+library.artist=102
+library.album=102
+library.track=-1    # Default foreground
+library.enqueued=101
+library.playing=104
+
+# Search
+search.label=101
+search.query=-1     # Default foreground
+search.result=-1    # Default foreground
+search.enqueued=102
+search.playing=101
+
+# Progress
+progress.filled=103
+progress.empty=102
+progress.elapsed=103
+
+# Status
+status.info=-1      # Default foreground
+status.warning=104
+status.error=104
+status.success=104

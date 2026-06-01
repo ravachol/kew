@@ -33,19 +33,16 @@ bool found_last_parent = false;
 
 CellStyle cell_style_from_tree_item(const UISettings *ui, int depth,
                                     PixelData track_color, PixelData enqueued_color,
-                                    bool is_enqueued, bool is_playing)
+                                    bool is_enqueued, bool is_playing, bool is_directory)
 {
         CellStyle style = cell_style_plain();
 
-        if (depth <= 1) {
+        if (depth <= 1 && is_directory) {
                 style = cell_style_from_color(ui->colorMode, ui->theme.library_artist, enqueued_color);
         } else {
-                if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME && ui->theme.library_track.type == COLOR_TYPE_RGB))
-                        style = cell_style_from_color(COLOR_MODE_ALBUM, ui->theme.library_track,
-                                                      track_color);
-                else
-                        style = cell_style_from_color(ui->colorMode, ui->theme.library_track,
-                                                      track_color);
+                style = cell_style_from_color(COLOR_MODE_ALBUM_ONE, ui->theme.library_track, track_color);
+                if (ui->theme.library_track.type == COLOR_TYPE_RGB)
+                        style.fg = track_color;
         }
 
         if (is_enqueued) {
@@ -53,12 +50,9 @@ CellStyle cell_style_from_tree_item(const UISettings *ui, int depth,
                         style = cell_style_from_color(ui->colorMode, ui->theme.library_playing,
                                                       ui->color);
                 } else {
-                        if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME && ui->theme.library_enqueued.type == COLOR_TYPE_RGB))
-                                style = cell_style_from_color(COLOR_MODE_ALBUM, ui->theme.library_enqueued,
-                                                              enqueued_color);
-                        else
-                                style = cell_style_from_color(ui->colorMode, ui->theme.library_enqueued,
-                                                              enqueued_color);
+                        style = cell_style_from_color(COLOR_MODE_ALBUM_ONE, ui->theme.library_enqueued, enqueued_color);
+                        if (ui->theme.library_track.type == COLOR_TYPE_RGB)
+                                style.fg = enqueued_color;
                 }
         }
 
@@ -393,7 +387,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         CellStyle item_style = cell_style_from_tree_item(ui, depth,
                                                                          row_color, row_color2,
                                                                          entry->is_enqueued,
-                                                                         is_playing);
+                                                                         is_playing, entry->is_directory);
 
                         char empty_space[8];
                         snprintf(empty_space, sizeof(empty_space), "%*s",
@@ -429,6 +423,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 if (strcmp(orig_name, "root") == 0) {
                                         snprintf(orig_name, sizeof(orig_name), "%s", _("─ MUSIC LIBRARY ─"));
+                                        item_style = cell_style_from_color(ui->colorMode, ui->theme.header, ui->color);
+                                        if (is_chosen)
+                                                item_style.attrs |= ATTR_REVERSE;
                                 }
 
                                 if (depth == 1) {
@@ -616,7 +613,7 @@ void now_playing(bool show_artist, const Model *model, k_Rect region, DrawBuffer
 
         build_song_title(model, ui, title, sizeof(title), true, show_artist);
 
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.logo, ui->color);
+        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.nowplaying, ui->color);
 
         draw_buffer_set_string_truncated(buf, region.row, region.col, "", region.width, cell_style_plain());
 
@@ -662,7 +659,7 @@ static void render_glimmer_frame(const Model *model, DrawBuffer *buf, const char
                 else
                         c = color;
 
-                CellStyle style = cell_style_from_color(COLOR_MODE_ALBUM, model->state.settings.theme.footer, c);
+                CellStyle style = cell_style_from_color(COLOR_MODE_ALBUM_ONE, model->state.settings.theme.footer, c);
                 char ch[2] = {text[i], '\0'};
                 draw_buffer_set_string(buf, row, draw_col, ch, style);
                 draw_col++;
@@ -1298,13 +1295,18 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int printed = 0;
 
         Node *node = model->state.ui.playlist_node;
-        CellStyle header = cell_style_from_color(ui->colorMode, ui->theme.playlist_title, ui->color);
+        CellStyle header = cell_style_from_color(ui->colorMode, ui->theme.header, ui->color);
+        CellStyle playing_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_playing, ui->color);
 
         draw_buffer_set_string(buf, row_offset, region.col, _("─ PLAYLIST ─"), header);
 
         row_offset++;
 
         for (int i = start_iter; i < start_iter + max_rows; i++) {
+
+                CellStyle rownum_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_rownum, ui->color);
+                CellStyle title_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_title, ui->color);
+
                 char buffer[NAME_MAX + 1];
                 char filename[NAME_MAX + 1];
                 buffer[0] = filename[0] = '\0';
@@ -1332,12 +1334,12 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 PixelData row_num_color = {def, def, def, 255};
                 PixelData title_color = {def, def, def, 255};
 
-                if (ui->colorMode == COLOR_MODE_THEME &&
-                    ui->theme.playlist_rownum.type == COLOR_TYPE_RGB) {
-                        row_num_color = ui->theme.playlist_rownum.rgb;
-                        title_color = ui->theme.playlist_title.rgb;
-                } else {
-                        row_num_color = ui->color;
+                if (rownum_style.isAnsi == false) {
+                        row_num_color = rownum_style.fg;
+                }
+
+                if (title_style.isAnsi == false) {
+                        title_color = title_style.fg;
                 }
 
                 bool rownum_is_default = row_num_color.r == def &&
@@ -1352,23 +1354,32 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (!title_is_default)
                         title_color = get_gradient_color(title_color, printed, max_rows, max_rows / 2, 0.7f);
 
-                ColorMode effective_mode = (ui->colorMode == COLOR_MODE_ALBUM ||
-                                            (ui->colorMode == COLOR_MODE_THEME &&
-                                             ui->theme.playlist_rownum.type == COLOR_TYPE_RGB))
-                                               ? COLOR_MODE_ALBUM
-                                               : ui->colorMode;
-
-                CellStyle rownum_style = cell_style_from_color(effective_mode, ui->theme.playlist_rownum, row_num_color);
+                rownum_style.fg = row_num_color;
+                //title_style.fg = title_color;
 
                 // Row number
                 char rownum[18];
-                if (i < 9)
-                        snprintf(rownum, sizeof(rownum), "%d.  ", i + 1);
-                else
-                        snprintf(rownum, sizeof(rownum), "%d. ", i + 1);
+                int num = i + 1;
+                int spaces = 0;
 
-                draw_buffer_set_string(buf, draw_row, col, rownum, rownum_style);
-                col += (int)strlen(rownum);
+                if (num < 10)
+                        spaces = 2;
+                else if (i < 100)
+                        spaces = 1;
+                else
+                        spaces = 0;
+
+                int rownum_len = utf8_display_width(rownum);
+
+                draw_buffer_set_string_truncated(buf, draw_row, col, rownum, rownum_len, rownum_style);
+
+                col += rownum_len;
+
+                for (int i = 0; i < spaces; i++) {
+                        draw_buffer_set_string_truncated(buf, draw_row, col, " ", 1, cell_style_plain());
+                }
+
+                col++;
 
                 // Title
                 bool is_chosen = (i == uis->chosen_row);
@@ -1378,7 +1389,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (current != NULL)
                         is_playing = (current->id == node->id);
 
-                int max_name_width = region.width - (col - region.col);
+                int max_name_width = region.width - col;
 
                 if (is_chosen) {
                         process_name_scroll(model, buffer, filename, max_name_width, true, true);
@@ -1386,17 +1397,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         process_name(buffer, filename, max_name_width, true, true);
                 }
 
-                CellStyle title_style;
-
                 if (is_playing) {
-                        title_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_playing, row_num_color);
-                } else {
-                        ColorMode title_mode = (ui->colorMode == COLOR_MODE_ALBUM ||
-                                                (ui->colorMode == COLOR_MODE_THEME &&
-                                                 ui->theme.playlist_rownum.type == COLOR_TYPE_RGB))
-                                                   ? COLOR_MODE_ALBUM
-                                                   : ui->colorMode;
-                        title_style = cell_style_from_color(title_mode, ui->theme.playlist_title, title_color);
+                        title_style = playing_style;
                 }
 
                 if (is_chosen)
@@ -1466,8 +1468,6 @@ ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuf
                 char line1[256];
                 char line2[256];
 
-                apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-
                 snprintf(line1, sizeof(line1), _(" Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."),
                          get_binding_string(MSG_ENQUEUE, true),
                          get_binding_string(MSG_ENQUEUEANDPLAY, true));
@@ -1500,8 +1500,6 @@ ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuff
         if (model->term_w > 52 && !ui->hideHelp) {
                 char line1[256];
 
-                apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-
                 snprintf(line1, sizeof(line1), _("Select:↑/↓. Enqueue:%s. Play:%s."),
                          get_binding_string(MSG_ENQUEUE, true),
                          get_binding_string(MSG_ENQUEUEANDPLAY, true));
@@ -1526,11 +1524,14 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         int max_width = region.width; // -1 for the leading space
 
         if (dirty & DIRTY_SONG) {
+
+                PixelData color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
+
                 // Artist
                 if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 && region.height >= 2) {
                         CellStyle style = cell_style_from_color(ui->colorMode,
                                                                 ui->theme.trackview_artist,
-                                                                ui->color);
+                                                                color);
                         char line[METADATA_MAX_LENGTH + 2];
                         snprintf(line, sizeof(line), "%s", metadata->artist);
                         draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
@@ -1541,7 +1542,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0 && region.height >= 3) {
                         CellStyle style = cell_style_from_color(ui->colorMode,
                                                                 ui->theme.trackview_album,
-                                                                ui->color);
+                                                                color);
                         char line[METADATA_MAX_LENGTH + 2];
                         snprintf(line, sizeof(line), "%s", metadata->album);
                         draw_buffer_set_string_truncated(buf, region.row + 2, region.col,
@@ -1552,7 +1553,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0 && region.height >= 4) {
                         CellStyle style = cell_style_from_color(ui->colorMode,
                                                                 ui->theme.trackview_year,
-                                                                ui->color);
+                                                                color);
                         char line[METADATA_MAX_LENGTH + 2];
                         int year = get_year(metadata->date);
                         if (year == -1)
@@ -1568,21 +1569,11 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         // Title
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0 && region.height >= 1) {
 
-                PixelData pixel = ui->color;
-
-                pixel = increase_luminosity(ui->color, 30);
-
-                // If increase_luminosity blew out to white, fall back to default
-                if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255) {
-                        pixel.r = ui->color.r;
-                        pixel.g = ui->color.g;
-                        pixel.b = ui->color.b;
-                        pixel.a = 255;
-                }
+                PixelData title = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[1] : ui->color;
 
                 CellStyle style = cell_style_from_color(ui->colorMode,
                                                         ui->theme.trackview_title,
-                                                        pixel);
+                                                        title);
 
                 char pretty_title[PATH_MAX + 1];
                 pretty_title[0] = '\0';
@@ -1611,12 +1602,8 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                         snprintf(display, sizeof(display), "%s█", current_text);
 
-                        draw_buffer_set_string_truncated(buf,
-                                                         region.row,
-                                                         region.col,
-                                                         display,
-                                                         max_width,
-                                                         style);
+                        draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                                         display, max_width, style);
                 } else {
                         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                                          pretty_title, max_width, style);
@@ -1644,27 +1631,41 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         // leading space
         CellStyle plain = cell_style_plain();
         draw_buffer_set_string(buf, region.row, region.col, " ", plain);
+        CellStyle empty = cell_style_from_color(ui->colorMode, ui->theme.progress_empty, ui->color);
 
         int draw_col = region.col;
 
         int elapsed_bars = calc_elapsed_bars(model->elapsed_seconds,
                                              model->songdata ? model->songdata->duration : 0, region.width);
 
-        PixelData empty_color = color;
-        if (ui->colorMode == COLOR_MODE_ALBUM) {
+        if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
 
-                empty_color = increase_luminosity(color, 50);
+                // If it's an album color
+                if (!empty.isAnsi && ui->theme.progress_empty.ansiIndex >= 100) {
+                        PixelData emptyC = {0};
+                        emptyC.r = empty.fg.r;
+                        emptyC.g = empty.fg.g;
+                        emptyC.b = empty.fg.b;
+                        emptyC.a = empty.fg.a;
 
-                if (empty_color.r >= model->state.settings.default_color &&
-                    empty_color.g >= model->state.settings.default_color &&
-                    empty_color.b >= model->state.settings.default_color) {
-                        empty_color = decrease_luminosity_pct(color, 0.7);
+                        empty.fg = increase_luminosity(emptyC, 50);
+
+                        if (empty.fg.r >= model->state.settings.default_color &&
+                            empty.fg.g >= model->state.settings.default_color &&
+                            empty.fg.b >= model->state.settings.default_color) {
+                                empty.fg = decrease_luminosity_pct(emptyC, 0.7);
+                        }
                 }
         }
 
-        CellStyle empty_style = cell_style_from_color(ui->colorMode,
-                                                      ui->theme.progress_empty,
-                                                      empty_color);
+        if (empty.isAnsi && (!model->songdata || !model->songdata->cover)) {
+
+                // If it's missing a cover
+                if (empty.fgAnsi == -1) {
+                        empty.fg = decrease_luminosity_pct(ui->color, 0.7);
+                        empty.isAnsi = false;
+                }
+        }
 
         CellStyle filled_style = cell_style_from_color(ui->colorMode,
                                                        ui->theme.progress_filled,
@@ -1674,14 +1675,14 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                                                         ui->theme.progress_elapsed,
                                                         color);
 
-        CellStyle style = empty_style;
+        CellStyle style = empty;
 
         for (int i = 0; i < region.width; i++) {
                 const char *ch;
 
                 if (i > elapsed_bars) {
                         // Empty / Approaching
-                        style = empty_style;
+                        style = empty;
 
                         ch = (i % 2 == 0) ? settings->progressBarApproachingEvenChar
                                           : settings->progressBarApproachingOddChar;
@@ -1775,7 +1776,8 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
                         pos += snprintf(line + pos, sizeof(line) - pos, " %dkb/s", avg_bit_rate);
         }
 
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.footer, ui->color);
+        PixelData color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[2] : ui->color;
+        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.trackview_time, color);
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          line, region.width, style);
 
@@ -2206,7 +2208,7 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
         k_Rect lyrics_rect = {
             .row = meta_row + metadata_height + 1,
             .col = region.col,
-            .width = region.width  - 1,
+            .width = region.width - 1,
             .height = 1,
         };
         if (dirty & DIRTY_VISUALIZER && songdata->lyrics && songdata->lyrics->isTimed)
@@ -2305,7 +2307,16 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         // Theme line, split into segments with different colors
         char theme_line[512];
 
-        if (ui->colorMode == COLOR_MODE_ALBUM) {
+        if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
+                CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
+                draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
+                int c = col + utf8_display_width(_(" Theme: "));
+                draw_buffer_set_string(buf, row, c, _("Using "), text_style);
+                c += utf8_display_width(_("Using "));
+                draw_buffer_set_string(buf, row, c, _("One Color "), color_style);
+                c += utf8_display_width(_("One Color "));
+                draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
+        } else if (ui->colorMode == COLOR_MODE_ALBUM) {
                 CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
@@ -2589,7 +2600,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
         for (int i = start_search_iter; i < total_rows; i++) {
 
-                 if (printed_rows >= max_list_size)
+                if (printed_rows >= max_list_size)
                         break;
 
                 // Clamp chosen row at end of results
@@ -2648,9 +2659,9 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
                 // Skip children of collapsed directory
                 if (model->search_results[i].entry->is_directory &&
-                        model->search_results[i].entry->parent != NULL &&
-                        model->search_results[i].entry->parent->parent != NULL &&
-                        (!uis->allowChooseSearchSongs || (chosen_dir && model->search_results[i].entry->id != chosen_dir->id))) {
+                    model->search_results[i].entry->parent != NULL &&
+                    model->search_results[i].entry->parent->parent != NULL &&
+                    (!uis->allowChooseSearchSongs || (chosen_dir && model->search_results[i].entry->id != chosen_dir->id))) {
 
                         FileSystemEntry *child = model->search_results[i].entry->children;
 

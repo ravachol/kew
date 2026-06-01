@@ -8,6 +8,7 @@
  *
  * Stores red, green, and blue components as 8-bit unsigned values.
  */
+
 typedef struct
 {
         unsigned char r; /**< Red component (0–255). */
@@ -93,5 +94,7 @@ int get_cover_color(unsigned char *pixels, int width, int height, int *r, int *g
  * @return An ASCII character representing the pixel's brightness.
  */
 unsigned char calc_ascii_char(PixelData *p);
+
+void load_kmeans_palette(unsigned char *pixels, int width, int height, PixelData kmeans_palette[3]);
 
 #endif

@@ -103,9 +103,23 @@ bool init_theme(int argc, char *argv[])
                 }
         }
 
-        if (!themeLoaded && ui->colorMode != COLOR_MODE_ALBUM) {
+        if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
+
+                if (load_theme("onealbumcolor", true)) {
+                        themeLoaded = true;
+                }
+        }
+
+        if (ui->colorMode == COLOR_MODE_ALBUM) {
+
+                if (load_theme("albumcolors", true)) {
+                        themeLoaded = true;
+                }
+        }
+
+        if (!themeLoaded) {
                 set_error_message("Couldn't load theme. Forgot to run 'sudo make install'?");
-                ui->colorMode = COLOR_MODE_ALBUM;
+                ui->colorMode = COLOR_MODE_ALBUM_ONE;
         }
 
         return themeLoaded;
@@ -157,7 +171,7 @@ int print_logo_art_for_version(const UISettings *ui, int indent, bool centered, 
                                                        logoHeight, 2, 0.8f);
                 }
 
-                apply_color(ui->colorMode, ui->theme.logo, row_color);
+                apply_color(row_color);
 
                 clear_line();
                 print_blank_spaces(col);
@@ -200,7 +214,7 @@ int print_logo_art(int row, int col, const UISettings *ui, bool centered, bool p
                                                        logoHeight, 2, 0.8f);
                 }
 
-                apply_color(ui->colorMode, ui->theme.logo, row_color);
+                apply_color(row_color);
 
                 printf("\033[%d;%dH", row, col);
                 printf("%s", LOGO[i]);
@@ -243,13 +257,17 @@ int print_about_for_version(Model *model)
 {
         UISettings *ui = &(model->state.settings);
 
+        ui->color.r = ui->kewColorRGB.r;
+        ui->color.g = ui->kewColorRGB.g;
+        ui->color.b = ui->kewColorRGB.b;
+
         clear_line();
         int num_rows = print_logo_for_version(model);
 
-        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        apply_color(ui->defaultColorRGB);
         print_blank_spaces(model->indent);
         printf(_("   kew version: "));
-        apply_color(ui->colorMode, ui->theme.help, ui->color);
+        apply_color(ui->color);
         printf("%s\n", ui->VERSION);
         clear_line();
         printf("\n");
