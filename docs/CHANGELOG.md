@@ -8,19 +8,21 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 #### Enhancements
 
-- Rewritten UI system, introduces user-defined layouts, and now uses Model-View-Update and stateless rendering. By @ravachol.
+- AutoResume. Persists playback state between sessions, on by default. By @ravachol. Suggested by @thbemme.
 
-- Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
+- User-defined layouts, and the UI now uses Model-View-Update and stateless rendering. By @ravachol.
 
-- Scrolling lyrics on lyrics page (press m on track view to access lyrics page) By @petoem. Suggested by @kewIT.
+- New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol and @emptyhead41.
 
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
+
+- Scrolling lyrics on the lyrics page (press m on track view to access lyrics page) By @petoem. Suggested by @kewIT.
+
+- Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
 
 - New setting coverstyle, which let's you decide how Chafa should render the covers. By @netodosrjoao.
 
 - New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.
-
-- New setting autoResume. Persists playback state between sessions, on by default. By @ravachol. Suggested by @thbemme.
 
 - Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
