@@ -362,128 +362,6 @@ char *get_inbetween_char(float prev, float next)
                                           second_decimal_digit);
 }
 
-void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
-                    int visualizer_width, float *magnitudes)
-{
-        PixelData color = {0, 0, 0, 255};
-
-        if (ui->colorMode == COLOR_MODE_ALBUM) {
-                color.r = ui->color.r;
-                color.g = ui->color.g;
-                color.b = ui->color.b;
-                color.a = ui->color.a;
-        } else if (ui->colorMode == COLOR_MODE_THEME && ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
-                color.r = ui->theme.trackview_visualizer.rgb.r;
-                color.g = ui->theme.trackview_visualizer.rgb.g;
-                color.b = ui->theme.trackview_visualizer.rgb.b;
-                color.a = ui->theme.trackview_visualizer.rgb.a;
-        }
-
-        int visualizer_color_type = ui->visualizer_color_type;
-        bool brailleMode = ui->visualizerBrailleMode;
-
-        PixelData tmp;
-
-        bool is_playing = (sound_system_get_state(sound_s) == SOUND_STATE_PLAYING);
-
-        for (int j = height; j > 0 && !is_playing; j--) {
-                printf("\033[%d;%dH", row, col);
-                clear_rest_of_line();
-        }
-
-        for (int j = height; j > 0 && is_playing; j--) {
-                printf("\033[%d;%dH", row + height - j, col);
-
-                if (color.r != 0 || color.g != 0 || color.b != 0) {
-                        if ((visualizer_color_type == 0 ||
-                             visualizer_color_type == 2 ||
-                             visualizer_color_type == 3)) {
-                                if (visualizer_color_type == 0) {
-                                        tmp = increase_luminosity_for_height(
-                                            color, height, j, false);
-                                } else if (visualizer_color_type == 2) {
-                                        tmp = increase_luminosity_for_height(
-                                            color, height, j, true);
-                                } else if (visualizer_color_type == 3) {
-                                        tmp = get_gradient_color(color, j, height,
-                                                                 1, 0.6f);
-                                }
-                        }
-                }
-
-                if (ui->colorMode == COLOR_MODE_ALBUM)
-                        printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
-                else if (ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
-                        printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
-                } else
-                        apply_color(ui->colorMode, ui->theme.trackview_visualizer, tmp);
-
-                for (int i = 0; i < num_bars; i++) {
-                        if (ui->colorMode != COLOR_MODE_DEFAULT && visualizer_color_type == 1) {
-                                tmp = (PixelData){
-                                    color.r / 2, color.g / 2,
-                                    color.b /
-                                        2,
-                                    255}; // Make colors half as bright before
-                                          // increasing brightness
-                                tmp = increase_luminosity(
-                                    tmp, round(magnitudes[i] * 10 * 4));
-
-                                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g,
-                                       tmp.b);
-                        }
-
-                        if (i == 0 && brailleMode) {
-                                printf(" ");
-                        } else if (i > 0 && brailleMode) {
-                                if (magnitudes[i - 1] >= j) {
-                                        printf("%s", get_upward_motion_char(
-                                                         10, brailleMode));
-                                } else if (magnitudes[i - 1] + 1 >= j) {
-                                        printf("%s", get_inbetween_char(
-                                                         magnitudes[i - 1],
-                                                         magnitudes[i]));
-                                } else {
-                                        printf(" ");
-                                }
-                        }
-
-                        if (!brailleMode) {
-                                printf(" ");
-                        }
-
-                        if (magnitudes[i] >= j) {
-                                printf("%s",
-                                       get_upward_motion_char(10, brailleMode));
-                                if (visualizer_bar_mode == 1 ||
-                                    (visualizer_bar_mode == 2 &&
-                                     visualizer_width > max_thin_bars_in_auto_mode))
-                                        printf("%s", get_upward_motion_char(
-                                                         10, brailleMode));
-                        } else if (magnitudes[i] + 1 >= j) {
-                                int first_decimal_digit =
-                                    (int)(fmod(magnitudes[i] * 10, 10));
-                                printf("%s",
-                                       get_upward_motion_char(first_decimal_digit,
-                                                              brailleMode));
-                                if (visualizer_bar_mode == 1 ||
-                                    (visualizer_bar_mode == 2 &&
-                                     visualizer_width > max_thin_bars_in_auto_mode))
-                                        printf("%s", get_upward_motion_char(
-                                                         first_decimal_digit,
-                                                         brailleMode));
-                        } else {
-                                printf(" ");
-                                if (visualizer_bar_mode == 1 ||
-                                    (visualizer_bar_mode == 2 &&
-                                     visualizer_width > max_thin_bars_in_auto_mode))
-                                        printf(" ");
-                        }
-                }
-        }
-        fflush(stdout);
-}
-
 void free_visuals(void)
 {
         if (fft_input != NULL) {
@@ -509,6 +387,8 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
         const UISettings *ui = &model->state.settings;
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
+                color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
+        } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 color = ui->color;
         } else if (ui->colorMode == COLOR_MODE_THEME &&
                    ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
@@ -556,7 +436,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 }
 
                 CellStyle row_style;
-                if (ui->colorMode == COLOR_MODE_ALBUM ||
+                if (ui->colorMode == COLOR_MODE_ALBUM_ONE ||
                     ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB)
                         row_style = cell_style_fg(row_color);
                 else

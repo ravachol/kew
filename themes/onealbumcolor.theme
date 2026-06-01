@@ -1,0 +1,93 @@
+#   One Album Color kew Theme
+#
+#   4-Color album color palette
+#
+#   This theme will be used if you choose album cover colors (press i in kew to cycle color settings)
+#
+#   You can't know which the album colors are going to be but you can decide how much the colors vary throughout the app
+#
+#   The available colors are:
+#
+#   Album Colors:
+#   101: Album Color 1 # this is the old color that used to be the only album color
+#   102: Album Color 2
+#   103: Album Color 3
+#   104: Album Color 4
+#
+#   Standard Terminal ANSI Colors can also be used:
+#   0: Black
+#   1: Red
+#   2: Green
+#   3: Yellow
+#   4: Blue
+#   5: Magenta
+#   6: Cyan
+#   7: White
+#   8: Bright Black (Gray)
+#   9: Bright Red
+#   10: Bright Green
+#   11: Bright Yellow
+#   12: Bright Blue
+#   13: Bright Magenta
+#   14: Bright Cyan
+#   15: Bright White
+#   -1: Default terminal foreground
+#
+#   You can also use mix and match with hex colors in this format: #ffffff
+#
+
+name=One Album Color
+author=Ravachol
+
+# Core Colors
+accent=-1
+text=-1         # Default terminal foreground
+textDim=-1
+textMuted=-1
+
+# General Colors
+logo=101
+header=-1
+footer=#787878  # The old school gray, this works on most terminals
+help=-1         # Default foreground
+link=101
+nowplaying=101   # Default foreground
+
+# Playlist View
+playlist.rownum=101
+playlist.title=-1    # Default foreground
+playlist.playing=101
+
+# Track View
+trackview.title=101
+trackview.artist=101
+trackview.album=101
+trackview.year=101
+trackview.time=101
+trackview.visualizer=101
+trackview.lyrics=101
+
+# Library View
+library.artist=101
+library.album=-1
+library.track=-1    # Default foreground
+library.enqueued=101
+library.playing=101
+
+# Search
+search.label=-1
+search.query=-1     # Default foreground
+search.result=-1    # Default foreground
+search.enqueued=101
+search.playing=101
+
+# Progress
+progress.filled=101
+progress.empty=101
+progress.elapsed=101
+
+# Status
+status.info=-1      # Default foreground
+status.warning=101
+status.error=101
+status.success=101
