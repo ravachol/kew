@@ -2516,17 +2516,6 @@ void component_search_helper_collapse_view(Model *model, int diff_rows)
         }
 }
 
-bool component_helper_in_search_results(SearchResult *results, int count, FileSystemEntry *entry)
-{
-        for (int i = 0; i < count; i++)
-        {
-                if (results[i].entry->id == entry->id)
-                        return true;
-        }
-
-        return false;
-}
-
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
