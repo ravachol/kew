@@ -130,7 +130,7 @@ int parse_color_value(const char *value, ColorValue *out)
                 return 0; // invalid number
         }
 
-        if (index < -1 || index > 15) {
+        if (index < -1 || index > 105) {
                 return 0; // out of range for 16-color ANSI
         }
 

@@ -605,7 +605,7 @@ void init_state(void)
         state->settings.visualizations_instead_of_cover = false;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
-        state->settings.colorMode = 1;
+        state->settings.colorMode = COLOR_MODE_ALBUM;
 
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
@@ -742,7 +742,7 @@ int main(int argc, char *argv[])
                 exit(0);
         } else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
                                  strcmp(argv[1], "-v") == 0)) {
-                state->settings.colorMode = COLOR_MODE_ALBUM;
+                state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
                 state->settings.color = state->settings.defaultColorRGB;
                 print_about_for_version(model);
                 exit(0);

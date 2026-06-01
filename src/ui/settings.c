@@ -885,10 +885,10 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->visualizerEnabled, "1",
                  sizeof(settings->visualizerEnabled));
 #ifdef __APPLE__
-        c_strcpy(settings->colorMode, "1",
+        c_strcpy(settings->colorMode, "3",
                  sizeof(settings->colorMode));
 #else
-        c_strcpy(settings->colorMode, "1",
+        c_strcpy(settings->colorMode, "3",
                  sizeof(settings->colorMode));
 #endif
 
@@ -1857,7 +1857,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         }
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp < 3) {
+        if (tmp >= 0 && tmp <= 3) {
                 ui->colorMode = tmp;
         }
 
@@ -2263,8 +2263,9 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "# Color Mode is:\n");
         fprintf(file, "# 0 = 16-bit color palette from default theme, \n");
-        fprintf(file, "# 1 = Colors derived from track cover, \n");
-        fprintf(file, "# 2 = Colors derived from TrueColor theme, \n\n");
+        fprintf(file, "# 1 = Colors derived from One Album Color Theme, \n");
+        fprintf(file, "# 2 = Colors derived from TrueColor theme, \n");
+        fprintf(file, "# 3 = Colors derived from Album Colors Theme, \n\n");
         fprintf(file, "# Color Mode:\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
 
