@@ -449,11 +449,10 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_CYCLE_VISUALIZER_MODE:
                 model->state.settings.visualizer_mode++;
-                if (model->state.settings.visualizer_mode > 5)
-                        model->state.settings.visualizer_mode = 0;
-                snprintf(settings->visualizer_mode,
-                         sizeof(settings->visualizer_mode), "%d",
-                         model->state.settings.visualizer_mode);
+                if (model->state.settings.visualizer_mode > VIZ_KMEANS_CLUSTERING)
+                        model->state.settings.visualizer_mode = VIZ_OFF;
+                settings->visualizer_mode[0] = (char)('0' + (model->state.settings.visualizer_mode % 10));
+                settings->visualizer_mode[1] = '\0';
                 set_dirty(DIRTY_ALL);
                 result.cmd.type = CMD_CYCLE_VISUALIZER_MODE;
                 break;

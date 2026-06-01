@@ -1720,7 +1720,7 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
 
-        if (ui->visualizer_mode == 0)
+        if (ui->visualizer_mode == VIZ_OFF)
                 return (ComponentMsg){0};
 
         int height = region.height;
