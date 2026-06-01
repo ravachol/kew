@@ -44,7 +44,6 @@ void reset_list_after_dequeuing_playing_song(void)
         if (get_current_song() == NULL && node == NULL) {
                 ps->loadedNextSong = false;
                 sound_system_set_end_of_list_reached(sound_sys, true);
-                start_playing(true);
 
                 emit_metadata_changed("", "", "", "",
                                       "/org/mpris/MediaPlayer2/TrackList/NoTrack",
@@ -57,9 +56,9 @@ void reset_list_after_dequeuing_playing_song(void)
 
                 switch_decoder();
 
-                state->ui.songWasRemoved = true;
-
                 start_playing(true);
+
+                state->ui.songWasRemoved = true;
                 ps->waitingForNext = true;
 
                 if (get_playlist()->count == 0)
