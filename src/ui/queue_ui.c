@@ -24,7 +24,6 @@
 #include "utils/utils.h"
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 atomic_bool enqueueing = false;
 
