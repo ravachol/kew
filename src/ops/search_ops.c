@@ -267,13 +267,6 @@ void sort_search_results(void)
         calculate_group_distances();
 
         qsort(model->search_results, model->state.ui.search_results_count, sizeof(SearchResult), compare_results);
-
-        for (int i = 0; i < model->state.ui.search_results_count; i++)
-        {
-                fprintf(stderr, "%s\n", model->search_results[i].entry->name);
-        }
-
-        fprintf(stderr, "\n");
 }
 
 void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
