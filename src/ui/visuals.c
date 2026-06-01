@@ -283,6 +283,132 @@ static void generate_topn_vibrant_palette(ColorPalette *palette, const unsigned 
         }
 }
 
+static void run_kmeans(PixelData *samples, int num_samples, PixelData centroids[3]) {
+        if (num_samples < 3) {
+                for (int k = 0; k < 3; k++) {
+                        centroids[k] = (num_samples > 0) ? samples[0] : (PixelData){128, 128, 128, 255};
+                }
+                return;
+        }
+
+        centroids[0] = samples[0];
+        centroids[1] = samples[num_samples / 2];
+        centroids[2] = samples[num_samples - 1];
+
+        int assignments[1024];
+        if (num_samples > 1024) num_samples = 1024;
+
+        long long sum_r[3], sum_g[3], sum_b[3];
+        int count[3];
+
+        for (int iter = 0; iter < 6; iter++) {
+                for (int i = 0; i < num_samples; i++) {
+                        double min_dist = 1e9;
+                        int best_k = 0;
+                        for (int k = 0; k < 3; k++) {
+                                double dr = (double)samples[i].r - centroids[k].r;
+                                double dg = (double)samples[i].g - centroids[k].g;
+                                double db = (double)samples[i].b - centroids[k].b;
+                                double dist = dr * dr + dg * dg + db * db;
+                                if (dist < min_dist) {
+                                        min_dist = dist;
+                                        best_k = k;
+                                }
+                        }
+                        assignments[i] = best_k;
+                }
+
+                memset(sum_r, 0, sizeof(sum_r));
+                memset(sum_g, 0, sizeof(sum_g));
+                memset(sum_b, 0, sizeof(sum_b));
+                memset(count, 0, sizeof(count));
+
+                for (int i = 0; i < num_samples; i++) {
+                        int k = assignments[i];
+                        sum_r[k] += samples[i].r;
+                        sum_g[k] += samples[i].g;
+                        sum_b[k] += samples[i].b;
+                        count[k]++;
+                }
+
+                for (int k = 0; k < 3; k++) {
+                        if (count[k] > 0) {
+                                centroids[k].r = (unsigned char)(sum_r[k] / count[k]);
+                                centroids[k].g = (unsigned char)(sum_g[k] / count[k]);
+                                centroids[k].b = (unsigned char)(sum_b[k] / count[k]);
+                        } else {
+                                centroids[k] = samples[rand() % num_samples];
+                        }
+                }
+        }
+
+        for (int i = 0; i < 2; i++) {
+                for (int j = i + 1; j < 3; j++) {
+                        if (count[j] > count[i]) {
+                                int tmp_c = count[i]; count[i] = count[j]; count[j] = tmp_c;
+                                PixelData tmp_p = centroids[i]; centroids[i] = centroids[j]; centroids[j] = tmp_p;
+                        }
+                }
+        }
+}
+
+static void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found) {
+        // Match main branch logic
+        unsigned char lum = (unsigned char)(0.2126f * r + 0.7152f * g + 0.0722f * b);
+        if (lum > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150)) {
+                *found = true;
+        }
+}
+
+static void generate_kmeans_clustering_palette(ColorPalette *palette, const unsigned char *pixels, int w, int h, int channels) {
+        if (w <= 0 || h <= 0 || pixels == NULL) {
+                palette->count = 0;
+                return;
+        }
+
+        int step_y = h / 16;
+        int step_x = w / 16;
+        if (step_y < 1) step_y = 1;
+        if (step_x < 1) step_x = 1;
+
+        PixelData samples[1024];
+        int num_samples = 0;
+
+        // Pass 1: Bright pixels
+        for (int y = 0; y < h && num_samples < 1024; y += step_y) {
+                for (int x = 0; x < w && num_samples < 1024; x += step_x) {
+                        int idx = (y * w + x) * channels;
+                        unsigned char r = pixels[idx];
+                        unsigned char g = pixels[idx + 1];
+                        unsigned char b = pixels[idx + 2];
+                        bool bright = false;
+                        check_if_bright_pixel(r, g, b, &bright);
+                        if (bright) {
+                                samples[num_samples++] = (PixelData){r, g, b, 255};
+                        }
+                }
+        }
+
+        // Pass 2: All pixels (if no bright pixels found)
+        if (num_samples == 0) {
+                for (int y = 0; y < h && num_samples < 1024; y += step_y) {
+                        for (int x = 0; x < w && num_samples < 1024; x += step_x) {
+                                int idx = (y * w + x) * channels;
+                                samples[num_samples++] = (PixelData){pixels[idx], pixels[idx + 1], pixels[idx + 2], 255};
+                        }
+                }
+        }
+
+        PixelData centroids[3];
+        run_kmeans(samples, num_samples, centroids);
+
+        palette->count = 3;
+        for (int i = 0; i < 3; i++) {
+                palette->colors[i] = centroids[i];
+                palette->colors[i].a = 255;
+        }
+}
+
 static float pixel_luminance(const PixelData *c) {
         return 0.2126f * c->r + 0.7152f * c->g + 0.0722f * c->b;
 }
@@ -311,10 +437,8 @@ void generate_all_visualizer_palettes(Model *model, int height) {
                 base_color = ui->theme.trackview_visualizer.rgb;
         }
 
-        generate_legacy_palette(&model->state.ui.visualizer_palettes[0], base_color, height, 0);
-
-
-        generate_legacy_palette(&model->state.ui.visualizer_palettes[1], base_color, height, 1);
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[VIZ_LIGHTEN - 1], base_color, height, 0);
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[VIZ_REVERSED - 1], base_color, height, 1);
 
         const unsigned char *cover = NULL;
         int cover_w = 0, cover_h = 0, cover_ch = 0;
@@ -326,17 +450,19 @@ void generate_all_visualizer_palettes(Model *model, int height) {
         }
 
         if (cover && cover_w > 0 && cover_h > 0) {
-                generate_kmeans_palette(&model->state.ui.visualizer_palettes[2], cover, cover_w, cover_h, cover_ch);
-                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[2]);
-                generate_binning_palette(&model->state.ui.visualizer_palettes[3], cover, cover_w, cover_h, cover_ch);
-                if (model->state.ui.visualizer_palettes[3].count > 8)
-                        model->state.ui.visualizer_palettes[3].count = 8;
-                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[3]);
-                generate_topn_vibrant_palette(&model->state.ui.visualizer_palettes[4], cover, cover_w, cover_h, cover_ch);
+                generate_kmeans_palette(&model->state.ui.visualizer_palettes[VIZ_LUM_VIBRANT - 1], cover, cover_w, cover_h, cover_ch);
+                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[VIZ_LUM_VIBRANT - 1]);
+                generate_binning_palette(&model->state.ui.visualizer_palettes[VIZ_BINNING - 1], cover, cover_w, cover_h, cover_ch);
+                if (model->state.ui.visualizer_palettes[VIZ_BINNING - 1].count > 8)
+                        model->state.ui.visualizer_palettes[VIZ_BINNING - 1].count = 8;
+                sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[VIZ_BINNING - 1]);
+                generate_topn_vibrant_palette(&model->state.ui.visualizer_palettes[VIZ_VIBRANT - 1], cover, cover_w, cover_h, cover_ch);
+                generate_kmeans_clustering_palette(&model->state.ui.visualizer_palettes[VIZ_KMEANS_CLUSTERING - 1], cover, cover_w, cover_h, cover_ch);
         } else {
-                model->state.ui.visualizer_palettes[2].count = 0;
-                model->state.ui.visualizer_palettes[3].count = 0;
-                model->state.ui.visualizer_palettes[4].count = 0;
+                model->state.ui.visualizer_palettes[VIZ_LUM_VIBRANT - 1].count = 0;
+                model->state.ui.visualizer_palettes[VIZ_BINNING - 1].count = 0;
+                model->state.ui.visualizer_palettes[VIZ_VIBRANT - 1].count = 0;
+                model->state.ui.visualizer_palettes[VIZ_KMEANS_CLUSTERING - 1].count = 0;
         }
 }
 
@@ -690,7 +816,6 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                 color.a = ui->theme.trackview_visualizer.rgb.a;
         }
 
-        int visualizer_color_type = ui->visualizer_mode > 0 ? ui->visualizer_mode - 1 : 0;
         bool brailleMode = ui->visualizerBrailleMode;
 
         PixelData tmp;
@@ -730,7 +855,7 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                         apply_color(ui->colorMode, ui->theme.trackview_visualizer, tmp);
 
                 for (int i = 0; i < num_bars; i++) {
-                        if (ui->colorMode != COLOR_MODE_DEFAULT && visualizer_color_type == 1) {
+                        if (ui->colorMode != COLOR_MODE_DEFAULT && ui->visualizer_mode == VIZ_REVERSED) {
                                 tmp = (PixelData){
                                     color.r / 2, color.g / 2,
                                     color.b /
@@ -827,19 +952,18 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 color = ui->theme.trackview_visualizer.rgb;
         }
 
-        int visualizer_color_type = ui->visualizer_mode > 0 ? ui->visualizer_mode - 1 : 0;
+        // Resolve pre-computed palette for modes 1-6
+        const ColorPalette *palette = NULL;
+        if (ui->visualizer_mode >= VIZ_LIGHTEN && ui->visualizer_mode <= VIZ_KMEANS_CLUSTERING) {
+                palette = &model->state.ui.visualizer_palettes[ui->visualizer_mode - 1];
+        }
+
         bool brailleMode = ui->visualizerBrailleMode;
         bool is_playing = (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING);
         bool wide_bar = (visualizer_bar_mode == 1 ||
                          (visualizer_bar_mode == 2 &&
                           visualizer_width > max_thin_bars_in_auto_mode));
         int bar_chars = wide_bar ? 3 : 2;
-
-        // Resolve pre-computed palette for modes 0,2,3,4,5,6
-        const ColorPalette *palette = NULL;
-        if (visualizer_color_type >= 0 && visualizer_color_type <= 4) {
-                palette = &model->state.ui.visualizer_palettes[visualizer_color_type];
-        }
 
         // Clear if not playing
         if (!is_playing || model->is_paused || model->is_stopped) {
@@ -860,8 +984,8 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 if (palette != NULL && palette->count > 0 &&
                     (color.r != 0 || color.g != 0 || color.b != 0)) {
                         int pidx;
-                        if (visualizer_color_type <= 1) {
-                                // Legacy: direct row-to-palette mapping
+                        if (ui->visualizer_mode == VIZ_LIGHTEN || ui->visualizer_mode == VIZ_REVERSED) {
+                                // Legacy and Reversed modes: direct row-to-palette mapping
                                 pidx = j - 1;
                                 if (pidx >= palette->count)
                                         pidx = palette->count - 1;
@@ -892,16 +1016,18 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
 
                 for (int i = 0; i < num_bars; i++) {
 
-                        // Per-bar color: album-art modes (4,5,6) use magnitude-indexed
-                        // palette with smooth interpolation between entries
+                        // Per-bar color: K-Means, Binning, Vibrant and K-Means Clustering modes (3-6)
+                        // use a palette that is indexed by bar magnitude for a dynamic gradient effect.
                         CellStyle bar_style = row_style;
-                        if (visualizer_color_type >= 2 && visualizer_color_type <= 4 &&
+                        if (ui->visualizer_mode >= VIZ_LUM_VIBRANT && ui->visualizer_mode <= VIZ_KMEANS_CLUSTERING &&
                             palette != NULL && palette->count > 0 &&
                             (color.r != 0 || color.g != 0 || color.b != 0)) {
                                 PixelData bar_color;
                                 if (palette->count == 1 || height <= 1) {
                                         bar_color = palette->colors[0];
                                 } else {
+                                        // Calculate the target position in the palette based on the bar's current magnitude.
+                                        // This maps the magnitude from [1, height] to the palette index range [0, count-1].
                                         float scaled;
                                         if (magnitudes[i] <= 1.0f)
                                                 scaled = 0.0f;
@@ -911,9 +1037,13 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                                                 scaled = (magnitudes[i] - 1.0f) *
                                                           (palette->count - 1) /
                                                           (height - 1);
+
+                                        // Perform linear interpolation between the two nearest palette entries.
                                         int lo = (int)scaled;
                                         int hi = lo + 1;
                                         if (hi >= palette->count) hi = palette->count - 1;
+
+                                        // 'frac' is the interpolation factor [0, 1] between color at 'lo' and color at 'hi'.
                                         float frac = scaled - (float)lo;
                                         PixelData c0 = palette->colors[lo];
                                         PixelData c1 = palette->colors[hi];
