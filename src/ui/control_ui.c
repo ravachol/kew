@@ -91,6 +91,9 @@ void cycle_color_mode(void)
 
         switch (ui->colorMode) {
         case COLOR_MODE_DEFAULT:
+                ui->colorMode = COLOR_MODE_ALBUM_ONE;
+                break;
+        case COLOR_MODE_ALBUM_ONE:
                 ui->colorMode = COLOR_MODE_ALBUM;
                 break;
         case COLOR_MODE_ALBUM:
@@ -109,8 +112,15 @@ void cycle_color_mode(void)
                         themeLoaded = true;
                 }
                 break;
+        case COLOR_MODE_ALBUM_ONE:
+                if (load_theme("onealbumcolor", true)) {
+                        themeLoaded = true;
+                }
+                break;
         case COLOR_MODE_ALBUM:
-                themeLoaded = true;
+                if (load_theme("albumcolors", true)) {
+                        themeLoaded = true;
+                }
                 break;
         case COLOR_MODE_THEME:
                 if (ui->theme_name[0] != '\0' &&

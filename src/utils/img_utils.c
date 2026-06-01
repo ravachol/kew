@@ -1,4 +1,6 @@
 // Disable some warnings for stb headers.
+#include "common/appstate.h"
+#include "common/model.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wstrict-overflow"
@@ -65,14 +67,15 @@ unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned ch
         return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
+bool check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b)
 {
         // Calc luminace and use to find Ascii char.
         unsigned char ch = luminance_from_r_g_b(r, g, b);
 
-        if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150)) {
-                *found = true;
-        }
+        if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150))
+                return true;
+
+        return false;
 }
 
 unsigned char calc_ascii_char(PixelData *p)
@@ -100,9 +103,7 @@ int get_cover_color(unsigned char *pixels, int width, int height, int *r, int *g
                 unsigned char green = pixels[index + 1];
                 unsigned char blue = pixels[index + 2];
 
-                check_if_bright_pixel(red, green, blue, &found);
-
-                if (found) {
+                if (check_if_bright_pixel(red, green, blue)) {
                         *r = (int)red;
                         *g = (int)green;
                         *b = (int)blue;
@@ -111,4 +112,127 @@ int get_cover_color(unsigned char *pixels, int width, int height, int *r, int *g
         }
 
         return found ? 0 : -1;
+}
+
+static void run_kmeans(PixelData *samples, int num_samples, PixelData centroids[3])
+{
+        if (num_samples < 3) {
+                for (int k = 0; k < 3; k++) {
+                        centroids[k] = (num_samples > 0) ? samples[0] : (PixelData){128, 128, 128, 255};
+                }
+                return;
+        }
+
+        centroids[0] = samples[0];
+        centroids[1] = samples[num_samples / 2];
+        centroids[2] = samples[num_samples - 1];
+
+        int assignments[1024];
+        if (num_samples > 1024)
+                num_samples = 1024;
+
+        long long sum_r[3], sum_g[3], sum_b[3];
+        int count[3];
+
+        for (int iter = 0; iter < 6; iter++) {
+                for (int i = 0; i < num_samples; i++) {
+                        double min_dist = 1e9;
+                        int best_k = 0;
+                        for (int k = 0; k < 3; k++) {
+                                double dr = samples[i].r - centroids[k].r;
+                                double dg = samples[i].g - centroids[k].g;
+                                double db = samples[i].b - centroids[k].b;
+                                double dist = dr * dr + dg * dg + db * db;
+                                if (dist < min_dist) {
+                                        min_dist = dist;
+                                        best_k = k;
+                                }
+                        }
+                        assignments[i] = best_k;
+                }
+
+                for (int k = 0; k < 3; k++) {
+                        sum_r[k] = sum_g[k] = sum_b[k] = 0;
+                        count[k] = 0;
+                }
+                for (int i = 0; i < num_samples; i++) {
+                        int k = assignments[i];
+                        sum_r[k] += samples[i].r;
+                        sum_g[k] += samples[i].g;
+                        sum_b[k] += samples[i].b;
+                        count[k]++;
+                }
+                for (int k = 0; k < 3; k++) {
+                        if (count[k] > 0) {
+                                centroids[k].r = sum_r[k] / count[k];
+                                centroids[k].g = sum_g[k] / count[k];
+                                centroids[k].b = sum_b[k] / count[k];
+                        } else {
+                                centroids[k] = samples[rand() % num_samples];
+                        }
+                }
+        }
+
+        for (int i = 0; i < 2; i++) {
+                for (int j = i + 1; j < 3; j++) {
+                        if (count[j] > count[i]) {
+                                int tmp_c = count[i];
+                                count[i] = count[j];
+                                count[j] = tmp_c;
+                                PixelData tmp_p = centroids[i];
+                                centroids[i] = centroids[j];
+                                centroids[j] = tmp_p;
+                        }
+                }
+        }
+}
+
+void load_kmeans_palette(unsigned char *pixels, int width, int height, PixelData kmeans_palette[3])
+{
+        if (pixels == NULL || width <= 0 || height <= 0) {
+                return;
+        }
+
+        int channels = 4;
+        int step_y = height / 16;
+        int step_x = width / 16;
+
+        if (step_y < 1)
+                step_y = 1;
+        if (step_x < 1)
+                step_x = 1;
+
+        // Collect samples for K-Means and Top-N Vibrant
+        PixelData samples[1024];
+        int num_samples = 0;
+        for (int y = 0; y < height && num_samples < 1024; y += step_y) {
+                for (int x = 0; x < width && num_samples < 1024; x += step_x) {
+                        int index = (y * width + x) * channels;
+                        unsigned char r = pixels[index];
+                        unsigned char g = pixels[index + 1];
+                        unsigned char b = pixels[index + 2];
+
+                        if (check_if_bright_pixel(r, g, b)) {
+                                samples[num_samples++] = (PixelData){r, g, b, 255};
+                        }
+                }
+        }
+
+        if (num_samples == 0) {
+                for (int y = 0; y < height && num_samples < 1024; y += step_y) {
+                        for (int x = 0; x < width && num_samples < 1024; x += step_x) {
+                                int index = (y * width + x) * channels;
+                                samples[num_samples++] = (PixelData){pixels[index], pixels[index + 1], pixels[index + 2], 255};
+                        }
+                }
+        }
+
+        run_kmeans(samples, num_samples, kmeans_palette);
+
+        Model *model = get_model();
+        for (int i = 0; i < 3; i++)
+        {
+        if (!check_if_bright_pixel(kmeans_palette[i].r, kmeans_palette[i].g, kmeans_palette[i].b))
+                kmeans_palette[i] = model->state.settings.defaultColorRGB;
+        }
 }

@@ -1,0 +1,16 @@
+kew themes pack 2.
+
+Included in this pack:
+
+alubmcolors.theme - This is a special theme that decides how the album cover colors are used in album color mode. 4 available colors.
+onealbumcolor.theme - This is a special theme that emulates the old album color mode that was based on one color.
+
+To apply, run:
+
+kew theme <theme>
+
+Or cycle by pressing 't'.
+
+These should be available under /themes here, in case you need to restore them to defaults:
+https://codeberg.org/ravachol/kew
+https://github.com/ravachol/kew

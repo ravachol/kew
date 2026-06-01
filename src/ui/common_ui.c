@@ -179,7 +179,7 @@ void transfer_settings_to_ui(void)
                 ui->repeatState = tmp;
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp < 3) {
+        if (tmp >= 0 && tmp < 4) {
                 ui->colorMode = tmp;
         }
 
@@ -241,7 +241,7 @@ void transfer_settings_to_ui(void)
 
         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
 
-        if (!(ui->colorMode >= 0 && ui->colorMode < 3)) {
+        if (!(ui->colorMode >= 0 && ui->colorMode <= 3)) {
                 bool useConfigColors = (settings->useConfigColors[0] == '1');
 
                 if (useConfigColors)
@@ -271,24 +271,10 @@ void inverse_text(void)
         printf("\x1b[7m");
 }
 
-void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color)
+void apply_color(PixelData color)
 {
         reset_color();
-
-        switch (mode) {
-        case COLOR_MODE_ALBUM:
-                set_album_color(album_color);
-                break;
-
-        case COLOR_MODE_THEME:
-        case COLOR_MODE_DEFAULT:
-                if (theme_color.type == COLOR_TYPE_RGB) {
-                        set_RGB(theme_color.rgb);
-                } else {
-                        set_terminal_color(theme_color.ansiIndex);
-                }
-                break;
-        }
+        set_album_color(color);
 }
 
 /*
@@ -774,31 +760,41 @@ CellStyle cell_style_fg(PixelData color)
 CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color)
 {
         CellStyle style = cell_style_plain();
-        AppState *state = get_app_state();
 
-        switch (mode) {
-        case COLOR_MODE_ALBUM:
-
-                if (color.r >= 230 &&
-                    color.g >= 230 &&
-                    color.b >= 230) {
-
-                        style.fg = state->settings.defaultColorRGB;
-                } else {
-                        style.fg = color;
-                }
-                break;
-
-        case COLOR_MODE_THEME:
-        case COLOR_MODE_DEFAULT:
-
-                if (theme.type == COLOR_TYPE_RGB) {
-                        style.fg = theme.rgb;
-                } else {
+        if (theme.type == COLOR_TYPE_RGB) {
+                style.fg = theme.rgb;
+        } else {
+                if (theme.ansiIndex < 100) {
                         style.fgAnsi = theme.ansiIndex;
                         style.isAnsi = true;
+                } else {
+                        Model *model = get_model();
+                        SongData *songdata = model->songdata;
+
+                        if (!songdata || !songdata->cover) {
+                                style.fgAnsi = -1;
+                                style.isAnsi = true;
+                        } else {
+                                switch (theme.ansiIndex) {
+
+                                case 101:
+                                        style.fg = model->state.settings.color;
+                                        break;
+                                case 102:
+                                        style.fg = songdata->kmeans_palette[0];
+                                        break;
+                                case 103:
+                                        style.fg = songdata->kmeans_palette[1];
+                                        break;
+                                case 104:
+                                        style.fg = songdata->kmeans_palette[2];
+                                        break;
+                                default:
+                                        style.fg = model->state.settings.color;
+                                        break;
+                                }
+                        }
                 }
-                break;
         }
 
         return style;
