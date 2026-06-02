@@ -31,6 +31,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+int get_num_progress_bars(void)
+{
+        Model *model = get_model();
+        if (model->state.ui.num_progress_bars <= 0)
+                return DEFAULT_NUM_PROGRESS_BARS;
+        return model->state.ui.num_progress_bars;
+}
+
 void seek_forward(Model *model)
 {
         AppState *state = &model->state;
@@ -48,7 +56,7 @@ void seek_forward(Model *model)
         if (duration <= 0.0)
                 return;
 
-        double step_percent = 100.0 / state->ui.num_progress_bars;
+        double step_percent = 100.0 / get_num_progress_bars();
 
         int seconds = (int)(duration * (step_percent / 100.0));
 
@@ -75,7 +83,7 @@ void seek_back(Model *model)
         if (duration <= 0.0)
                 return;
 
-        double step_percent = 100.0 / state->ui.num_progress_bars;
+        double step_percent = 100.0 / get_num_progress_bars();
 
         int seconds = (int)(duration * (step_percent / 100.0));
 
