@@ -345,7 +345,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 advance_name_scroll_anim(model);
                 advance_glimmer_anim(model);
 
-                if (!model->songdata_ok && model->state.currentView == TRACK_VIEW)
+                if (!model->songdata_ok && model->state.currentView == TRACK_VIEW &&
+                        model->state.settings.repeatState == SOUND_STATE_REPEAT_OFF)
                         switch_view(LIBRARY_VIEW);
 
                 if (model->state.currentView == PLAYLIST_VIEW)

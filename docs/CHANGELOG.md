@@ -32,6 +32,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
+- Better handling of repeat states and song switching if there's only one song. By @ravachol and @LeahTheSlug.
+
 #### Bug fixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
