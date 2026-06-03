@@ -238,7 +238,7 @@ void transfer_settings_to_ui(void)
 
         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
 
-        if (!(ui->colorMode >= 0 && ui->colorMode <= 3)) {
+        if (!(ui->colorMode >= 0 && ui->colorMode <= 4)) {
                 bool useConfigColors = (settings->useConfigColors[0] == '1');
 
                 if (useConfigColors)

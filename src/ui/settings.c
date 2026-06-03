@@ -1854,7 +1854,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         }
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp <= 3) {
+        if (tmp >= 0 && tmp <= 4) {
                 ui->colorMode = tmp;
         }
 

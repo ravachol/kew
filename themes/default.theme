@@ -70,8 +70,8 @@ search.enqueued=14  # Bright Cyan
 search.playing=6    # Cyan
 
 # Progress
-progress.filled=8   # Bright Black / Gray
-progress.empty=0    # Black
+progress.filled=-1   # Bright Black / Gray
+progress.empty=#787878    # Black
 progress.elapsed=8  # Bright Black / Gray
 
 # Status
