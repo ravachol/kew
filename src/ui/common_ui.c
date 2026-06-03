@@ -122,6 +122,7 @@ void transfer_settings_to_ui(void)
         ui->hideHelp = (settings->hideHelp[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
         ui->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
+        ui->simpleTimeStatus = (settings->simpleTimeStatus[0] == '1');
         ui->discordRPCEnabled = (settings->discordRPCEnabled[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->clearListClearsAll = (settings->clearListClearsAll[0] == '1');
@@ -757,7 +758,7 @@ CellStyle cell_style_fg(PixelData color)
         };
 }
 
-CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color)
+CellStyle cell_style_from_theme(ColorValue theme)
 {
         CellStyle style = cell_style_plain();
 
