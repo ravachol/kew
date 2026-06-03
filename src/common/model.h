@@ -288,7 +288,8 @@ typedef enum {
         COLOR_MODE_DEFAULT = 0,         /**< ANSI 16-color palette theme. */
         COLOR_MODE_ALBUM_ONE = 1,       /**< Colors derived from album art using only one color. */
         COLOR_MODE_THEME = 2,           /**< Truecolor theme file. */
-        COLOR_MODE_ALBUM = 3            /**< Colors derived from album art. */
+        COLOR_MODE_ALBUM = 3,           /**< Colors derived from album art. */
+        COLOR_MODE_NEUTRAL = 4            /**< No color. */
 } ColorMode;
 
 typedef enum {

@@ -2545,7 +2545,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string_truncated(buf, row++, col, view_line, max_width, help_style);
         }
 
-        HELP_LINE(_(" · Cycle Color Mode: %s (default theme, theme or cover colors)"),
+        HELP_LINE(_(" · Cycle Color Mode: %s"),
                   get_binding_string(MSG_CYCLECOLORMODE, false));
         HELP_LINE(_(" · Cycle Themes: %s"), get_binding_string(MSG_CYCLETHEMES, false));
         HELP_LINE(_(" · Cycle Chroma Visualization: %s (requires Chroma)"),
