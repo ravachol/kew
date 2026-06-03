@@ -17,6 +17,7 @@
 #include "ui/anims.h"
 #include "ui/common_ui.h"
 #include "ui/components.h"
+#include "ui/visuals.h"
 #include "ui/control_ui.h"
 
 #include "utils/utils.h"
@@ -394,6 +395,13 @@ UpdateResult update(Model *model, struct Msg *msg)
                         }
                 }
 
+                // FIXME remove this, do all pallette loading in the song loader
+                static size_t cached_palette_song_hash = (size_t)-1;
+                if (model->current_hash != cached_palette_song_hash) {
+                        cached_palette_song_hash = model->current_hash;
+                        generate_all_visualizer_palettes(model, model->state.settings.visualizer_height);
+                }
+
                 if (model->state.currentView != PLAYLIST_VIEW)
                         model->state.ui.resetPlaylistDisplay = true;
 
@@ -442,11 +450,15 @@ UpdateResult update(Model *model, struct Msg *msg)
                 result.cmd.type = CMD_TOGGLE_PAUSE;
                 break;
 
-        case MSG_TOGGLEVISUALIZER:
-                model->state.settings.visualizerEnabled = !model->state.settings.visualizerEnabled;
-                c_strcpy(settings->visualizerEnabled, model->state.settings.visualizerEnabled ? "1" : "0",
-                         sizeof(settings->visualizerEnabled));
-                set_dirty(DIRTY_ALL);
+        case MSG_CYCLEVISUALIZERMODE:
+                model->state.settings.visualizer_mode++;
+
+                if (model->state.settings.visualizer_mode >= VIZ_OFF)
+                        set_dirty(DIRTY_ALL);
+
+                if (model->state.settings.visualizer_mode > VIZ_OFF)
+                        model->state.settings.visualizer_mode = 0;
+
                 break;
 
         case MSG_TOGGLEREPEAT:

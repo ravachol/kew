@@ -35,3 +35,5 @@ void free_visuals(void);
  * @param width The width of the visualizer in columns.
  */
 void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width);
+
+void generate_all_visualizer_palettes(Model *model, int height);
