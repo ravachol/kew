@@ -351,6 +351,8 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                         col++;
                 }
+
+                cur_row++;
         }
 
         fflush(stdout);

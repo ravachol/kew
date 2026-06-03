@@ -88,7 +88,3 @@ void skip(void)
         }
 }
 
-void ensure_default_theme_pack()
-{
-        ensure_default_themes();
-}

@@ -653,11 +653,13 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_PROGRESS_BARS_SET:
-                model->state.ui.num_progress_bars = msg->num_progress_bars;
+                model->state.ui.num_progress_bars = msg->region.width / 2;
+                model->progressBar.col = msg->region.col + 1;
+                model->progressBar.row = msg->region.row + 1;
+                model->progressBar.length = msg->region.width;
                 break;
 
         case MSG_START_TITLE_ANIM:
-                model->state.ui.num_progress_bars = msg->num_progress_bars;
                 start_title_delay(model);
                 break;
 

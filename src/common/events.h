@@ -1,7 +1,6 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
-#include "data/directorytree.h"
 #include <stdint.h>
 
 #define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
@@ -63,23 +62,6 @@ enum MsgType {
         MSG_START_TITLE_ANIM,
         MSG_TOGGLEFOLDERDISPLAY,
         MSG_LYRICS_UPDATED
-};
-
-struct Msg {
-        enum MsgType type;
-        char key[MAX_SEQ_LEN]; // To store multi-byte characters
-        char args[32];
-
-        int chosen_lib_row;
-        FileSystemEntry *current_lib_entry;
-        int num_lib_rows;
-
-        int chosen_search_result_row;
-        FileSystemEntry *current_search_entry;
-
-        int num_progress_bars;
-
-        int lyrics_offset;
 };
 
 typedef struct

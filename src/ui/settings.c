@@ -42,8 +42,6 @@ const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
 const char LAYOUT_FILE[] = "/layouts/current.layout";
 
-#define KEW_LAYOUT_VERSION 8
-
 #define MAX_LINE 1024
 
 #define MAX_KEY_BINDINGS 200
@@ -902,6 +900,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
         c_strcpy(settings->collapseTopLevel, "0", sizeof(settings->collapseTopLevel));
         c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
+        c_strcpy(settings->simpleTimeStatus, "1", sizeof(settings->simpleTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
         c_strcpy(settings->visualizer_color_type, "2",
@@ -1182,6 +1181,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "hidetimestatus") == 0) {
                         snprintf(settings->hideTimeStatus,
                                  sizeof(settings->hideTimeStatus), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "simpletimestatus") == 0) {
+                        snprintf(settings->simpleTimeStatus,
+                                 sizeof(settings->simpleTimeStatus), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "discordrpcenabled") == 0) {
                         snprintf(settings->discordRPCEnabled,
@@ -2102,6 +2105,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->hideTimeStatus))
                     : c_strcpy(settings->hideTimeStatus, "0",
                                sizeof(settings->hideTimeStatus));
+        if (settings->simpleTimeStatus[0] == '\0')
+                ui->simpleTimeStatus
+                    ? c_strcpy(settings->simpleTimeStatus, "1",
+                               sizeof(settings->simpleTimeStatus))
+                    : c_strcpy(settings->simpleTimeStatus, "0",
+                               sizeof(settings->simpleTimeStatus));
         if (settings->discordRPCEnabled[0] == '\0')
                 ui->discordRPCEnabled
                     ? c_strcpy(settings->discordRPCEnabled, "1",
@@ -2217,6 +2226,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
         fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
+        fprintf(file, "simpleTimeStatus=%s\n", settings->simpleTimeStatus);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
         fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);
@@ -2501,6 +2511,7 @@ static const ComponentEntry component_registry[] = {
     {"version", component_version},
     {"help", component_help},
     {"footer", component_footer},
+    {"playback_status", component_playback_status},
     {"error_row", component_error_row},
     {"track", component_track},
     {"track_landscape_lyrics", component_track_landscape_lyrics},
@@ -2515,6 +2526,9 @@ static const ComponentEntry component_registry[] = {
     {"progress_bar", component_progress_bar},
     {"vis_and_progress_bar", component_vis_and_progress_bar},
     {"time", component_time},
+    {"time_simple", component_time_simple},
+    {"time_simple_and_vol", component_time_simple_and_vol},
+    {"volume", component_volume},
     {"cover", component_cover},
     {"cover_centered", component_cover_centered},
     {"side_cover", component_side_cover},

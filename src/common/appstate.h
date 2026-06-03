@@ -35,6 +35,8 @@
 #define ABSOLUTE_MIN_WIDTH 65
 #endif
 
+#define KEW_LAYOUT_VERSION 9
+
 #define DEFAULT_NUM_PROGRESS_BARS 35
 
 typedef struct {
