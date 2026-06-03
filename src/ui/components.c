@@ -1707,9 +1707,9 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                 }
         }
 
-        if (empty.fg.r >= filled_style.fg.r &&
-            empty.fg.g >= filled_style.fg.g &&
-            empty.fg.b >= filled_style.fg.b) {
+        if (empty.fg.r == filled_style.fg.r &&
+            empty.fg.g == filled_style.fg.g &&
+            empty.fg.b == filled_style.fg.b) {
                 empty.fg = decrease_luminosity_pct(empty.fg, 0.7);
         }
 
