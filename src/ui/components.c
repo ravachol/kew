@@ -1713,7 +1713,9 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                 empty.fg = decrease_luminosity_pct(empty.fg, 0.7);
         }
 
-        if (empty.isAnsi && (!model->songdata || !model->songdata->cover)) {
+        if ((empty.isAnsi &&
+                (!model->songdata || !model->songdata->cover)) ||
+                        (model->state.settings.colorMode == COLOR_MODE_DEFAULT)) {
 
                 // If it's missing a cover
                 if (empty.fgAnsi == -1) {
