@@ -72,6 +72,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
+#include "data/theme.h"
+
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -563,6 +565,7 @@ void init_state(void)
         state->settings.hideHelp = false;
         state->settings.hideFooter = false;
         state->settings.hideTimeStatus = true;
+        state->settings.simpleTimeStatus = true;
         state->settings.quitAfterStopping = false;
         state->settings.hideGlimmeringText = false;
         state->settings.coverAnsi = false;
@@ -783,7 +786,7 @@ int main(int argc, char *argv[])
         bool exact_search = false;
         handle_options(&argc, argv, &exact_search);
 
-        ensure_default_theme_pack();
+        ensure_default_themes();
         ensure_default_layouts();
 
         init_theme(argc, argv);

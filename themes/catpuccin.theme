@@ -18,6 +18,7 @@ footer=#1e1e2e  # Base
 help=#a6adc8    # Subtext1
 link=#89b4fa    # Blue
 nowplaying=#b4befe # Lavender
+playbackstatus=#1e1e2e
 
 # Playlist View
 playlist.rownum=#6c7086  # Subtext0

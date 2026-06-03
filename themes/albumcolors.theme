@@ -53,6 +53,7 @@ footer=#787878  # The old school gray, this works on most terminals
 help=-1         # Default foreground
 link=101
 nowplaying=104
+playbackstatus=102
 
 # Playlist View
 playlist.rownum=101

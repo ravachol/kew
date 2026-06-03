@@ -39,6 +39,7 @@ footer=#787878  # The old school gray, this works on most terminals
 help=-1         # Default foreground
 link=14         # Bright Cyan
 nowplaying=-1   # Default foreground
+playbackstatus=#787878
 
 # Playlist View
 playlist.rownum=8   # Bright Black / Gray

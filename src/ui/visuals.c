@@ -10,14 +10,11 @@
 
 #include "common_ui.h"
 
-#include "render_ui.h"
 #include "visuals.h"
 
 #include "common/appstate.h"
 
 #include "sound/sound_facade.h"
-
-#include "utils/term.h"
 
 #include <complex.h>
 #include <fftw3.h>
@@ -436,13 +433,11 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 }
 
                 CellStyle row_style;
-                if (ui->colorMode == COLOR_MODE_ALBUM_ONE ||
-                    ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB)
-                        row_style = cell_style_fg(row_color);
-                else
-                        row_style = cell_style_from_color(ui->colorMode,
-                                                          ui->theme.trackview_visualizer,
-                                                          row_color);
+                row_style = cell_style_fg(row_color);
+
+                CellStyle from_theme = cell_style_from_theme(ui->theme.trackview_visualizer);
+                if (from_theme.isAnsi)
+                        row_style = from_theme;
 
                 // Draw each bar in this row
                 int draw_col = col;

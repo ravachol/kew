@@ -38,19 +38,20 @@ CellStyle cell_style_from_tree_item(const UISettings *ui, int depth,
         CellStyle style = cell_style_plain();
 
         if (depth <= 1 && is_directory) {
-                style = cell_style_from_color(ui->colorMode, ui->theme.library_artist, enqueued_color);
+                style = cell_style_from_theme(ui->theme.library_artist);
+                if (ui->theme.library_track.type == COLOR_TYPE_RGB)
+                        style.fg = enqueued_color;
         } else {
-                style = cell_style_from_color(COLOR_MODE_ALBUM_ONE, ui->theme.library_track, track_color);
+                style = cell_style_from_theme(ui->theme.library_track);
                 if (ui->theme.library_track.type == COLOR_TYPE_RGB)
                         style.fg = track_color;
         }
 
         if (is_enqueued) {
                 if (is_playing) {
-                        style = cell_style_from_color(ui->colorMode, ui->theme.library_playing,
-                                                      ui->color);
+                        style = cell_style_from_theme(ui->theme.library_playing);
                 } else {
-                        style = cell_style_from_color(COLOR_MODE_ALBUM_ONE, ui->theme.library_enqueued, enqueued_color);
+                        style = cell_style_from_theme(ui->theme.library_enqueued);
                         if (ui->theme.library_track.type == COLOR_TYPE_RGB)
                                 style.fg = enqueued_color;
                 }
@@ -106,9 +107,7 @@ static void draw_search_row(DrawBuffer *buf, int row, int col, int width,
         else
                 tc = ui->theme.search_result;
 
-        CellStyle plain_style = cell_style_from_color(ui->colorMode, tc,
-                                                      entry->is_enqueued ? ui->color
-                                                                         : ui->defaultColorRGB);
+        CellStyle plain_style = cell_style_from_theme(tc);
         CellStyle rev_style = plain_style;
         rev_style.attrs |= ATTR_REVERSE;
 
@@ -423,7 +422,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 if (strcmp(orig_name, "root") == 0) {
                                         snprintf(orig_name, sizeof(orig_name), "%s", _("─ MUSIC LIBRARY ─"));
-                                        item_style = cell_style_from_color(ui->colorMode, ui->theme.header, ui->color);
+                                        item_style = cell_style_from_theme(ui->theme.header);
                                         if (is_chosen)
                                                 item_style.attrs |= ATTR_REVERSE;
                                 }
@@ -613,7 +612,7 @@ void now_playing(bool show_artist, const Model *model, k_Rect region, DrawBuffer
 
         build_song_title(model, ui, title, sizeof(title), true, show_artist);
 
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.nowplaying, ui->color);
+        CellStyle style = cell_style_from_theme(ui->theme.nowplaying);
 
         draw_buffer_set_string_truncated(buf, region.row, region.col, "", region.width, cell_style_plain());
 
@@ -659,14 +658,15 @@ static void render_glimmer_frame(const Model *model, DrawBuffer *buf, const char
                 else
                         c = color;
 
-                CellStyle style = cell_style_from_color(COLOR_MODE_ALBUM_ONE, model->state.settings.theme.footer, c);
+                CellStyle style = cell_style_from_theme(model->state.settings.theme.footer);
+                style.isAnsi = false;
+                style.fg = c;
                 char ch[2] = {text[i], '\0'};
                 draw_buffer_set_string(buf, row, draw_col, ch, style);
                 draw_col++;
         }
 
-        draw_buffer_set_string_truncated(buf, row, draw_col, icons,
-                                         max_width - draw_col + col, style);
+        draw_buffer_set_string_truncated(buf, row, draw_col, icons, max_width, style);
 }
 
 static int draw_cover_ascii(const TermSize *term_size, const char *path, int row, int col,
@@ -1063,7 +1063,7 @@ ComponentMsg component_logo_art(const Model *model, k_Rect region, DrawBuffer *b
                         color = get_gradient_color(ui->color, logo_lines - i, logo_lines, 2, 0.8f);
                 }
 
-                CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.logo, color);
+                CellStyle style = cell_style_from_theme(ui->theme.logo);
 
                 draw_buffer_set_string(buf, row, region.col, LOGO[i], style);
         }
@@ -1097,6 +1097,79 @@ ComponentMsg component_logo(const Model *model, k_Rect region, DrawBuffer *buf, 
         return (ComponentMsg){0};
 }
 
+ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+{
+        (void)dirty;
+
+        const UISettings *ui = &model->state.settings;
+        const UIState *uis = &model->state.ui;
+
+        if (model->preferred_width < 0 || model->preferred_height < 0)
+                return (ComponentMsg){0};
+
+        if (ui->hideFooter)
+                return (ComponentMsg){0};
+
+        CellStyle style = cell_style_from_theme(ui->theme.playbackstatus);
+
+        if (!style.isAnsi && style.fg.a == 0)
+                style = cell_style_from_theme(ui->theme.footer);
+
+        // Icons
+        char icons[100] = "";
+        size_t icons_len = 0;
+
+#ifndef __ANDROID__
+        if (region.width >= ABSOLUTE_MIN_WIDTH) {
+#endif
+                const char *state_icon;
+                if (model->is_paused) {
+#if defined(__ANDROID__) || defined(__APPLE__)
+                        state_icon = "။ ";
+#else
+                state_icon = "⏸ ";
+#endif
+                } else if (model->is_stopped) {
+                        state_icon = "■ ";
+                } else {
+                        state_icon = "";
+                }
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, "%s", state_icon);
+                icons_len = strnlen(icons, sizeof(icons));
+#ifndef __ANDROID__
+        }
+#endif
+
+        if (model->state.settings.repeatState == 1) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, "↻ ");
+                icons_len = strnlen(icons, sizeof(icons));
+        } else if (model->state.settings.repeatState == 2) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, "↻L ");
+                icons_len = strnlen(icons, sizeof(icons));
+        }
+
+        if (model->state.settings.shuffle_enabled) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, "⇄ ");
+                icons_len = strnlen(icons, sizeof(icons));
+        }
+
+        if (uis->isFastForwarding) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, "⇉ ");
+                icons_len = strnlen(icons, sizeof(icons));
+        }
+
+        if (uis->isRewinding) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, "⇇ ");
+                icons_len = strnlen(icons, sizeof(icons));
+        }
+
+        char line[256];
+        snprintf(line, sizeof(line), "%s", icons);
+        draw_buffer_set_string_truncated(buf, region.row, region.col, line, region.width, style);
+
+        return (ComponentMsg){0};
+}
+
 ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -1119,7 +1192,7 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
                 f_color.b = ui->theme.footer.rgb.b;
         }
 
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.footer, f_color);
+        CellStyle style = cell_style_from_theme(ui->theme.footer);
 
         // Main Text
         char text[100] = "";
@@ -1210,7 +1283,7 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
         CellStyle style = cell_style_plain();
 
         if (!has_printed_error_message() && has_error_message()) {
-                style = cell_style_from_color(ui->colorMode, ui->theme.footer, model->state.settings.footer_color);
+                style = cell_style_from_theme(ui->theme.status_error);
 
                 char msg[256];
                 snprintf(msg, sizeof(msg), " %s", get_error_message());
@@ -1295,8 +1368,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int printed = 0;
 
         Node *node = model->state.ui.playlist_node;
-        CellStyle header = cell_style_from_color(ui->colorMode, ui->theme.header, ui->color);
-        CellStyle playing_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_playing, ui->color);
+        CellStyle header = cell_style_from_theme(ui->theme.header);
+        CellStyle playing_style = cell_style_from_theme(ui->theme.playlist_playing);
 
         draw_buffer_set_string(buf, row_offset, region.col, _("─ PLAYLIST ─"), header);
 
@@ -1304,8 +1377,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
         for (int i = start_iter; i < start_iter + max_rows; i++) {
 
-                CellStyle rownum_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_rownum, ui->color);
-                CellStyle title_style = cell_style_from_color(ui->colorMode, ui->theme.playlist_title, ui->color);
+                CellStyle rownum_style = cell_style_from_theme(ui->theme.playlist_rownum);
+                CellStyle title_style = cell_style_from_theme(ui->theme.playlist_title);
 
                 char buffer[NAME_MAX + 1];
                 char filename[NAME_MAX + 1];
@@ -1355,7 +1428,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         title_color = get_gradient_color(title_color, printed, max_rows, max_rows / 2, 0.7f);
 
                 rownum_style.fg = row_num_color;
-                //title_style.fg = title_color;
+                title_style.fg = title_color;
 
                 // Row number
                 char rownum[18];
@@ -1368,6 +1441,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         spaces = 1;
                 else
                         spaces = 0;
+
+                snprintf(rownum, sizeof(rownum), "%d.", i + 1);
 
                 int rownum_len = utf8_display_width(rownum);
 
@@ -1389,7 +1464,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (current != NULL)
                         is_playing = (current->id == node->id);
 
-                int max_name_width = region.width - col;
+                int max_name_width = region.width - (col - region.col);
 
                 if (is_chosen) {
                         process_name_scroll(model, buffer, filename, max_name_width, true, true);
@@ -1408,7 +1483,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (is_playing && !is_chosen)
                         title_style.attrs |= ATTR_UNDERLINE;
 
-                draw_buffer_set_string_truncated(buf, draw_row, col, filename, max_name_width, title_style);
+                draw_buffer_set_string_truncated(buf, draw_row, col, filename, region.width, title_style);
 
                 node = node->next;
                 printed++;
@@ -1422,7 +1497,7 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
         (void)dirty;
 
         const UISettings *ui = &model->state.settings;
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        CellStyle style = cell_style_from_theme(ui->theme.help);
 
         int row = region.row;
         int col = region.col;
@@ -1437,12 +1512,15 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
 
 #ifndef __APPLE__
                 snprintf(line2, sizeof(line2), _(" Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s."),
-#else
-                snprintf(line2, sizeof(line2), _(" Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s."),
-#endif
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
                          get_binding_string(MSG_MOVESONGDOWN, true));
+#else
+                snprintf(line2, sizeof(line2), _(" Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s."),
+                         get_binding_string(MSG_REMOVE, true),
+                         get_binding_string(MSG_MOVESONGUP, true),
+                         get_binding_string(MSG_MOVESONGDOWN, true));
+#endif
 
                 draw_buffer_set_string(buf, row, col, line1, style);
                 draw_buffer_set_string(buf, row + 1, col, line2, style);
@@ -1459,7 +1537,7 @@ ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuf
         (void)dirty;
 
         const UISettings *ui = &model->state.settings;
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        CellStyle style = cell_style_from_theme(ui->theme.help);
 
         int row = region.row;
         int col = region.col;
@@ -1492,7 +1570,7 @@ ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuff
         (void)dirty;
 
         const UISettings *ui = &model->state.settings;
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        CellStyle style = cell_style_from_theme(ui->theme.help);
 
         int row = region.row;
         int col = region.col;
@@ -1525,13 +1603,9 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
         if (dirty & DIRTY_SONG) {
 
-                PixelData color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
-
                 // Artist
                 if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 && region.height >= 2) {
-                        CellStyle style = cell_style_from_color(ui->colorMode,
-                                                                ui->theme.trackview_artist,
-                                                                color);
+                        CellStyle style = cell_style_from_theme(ui->theme.trackview_artist);
                         char line[METADATA_MAX_LENGTH + 2];
                         snprintf(line, sizeof(line), "%s", metadata->artist);
                         draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
@@ -1540,9 +1614,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 // Album
                 if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0 && region.height >= 3) {
-                        CellStyle style = cell_style_from_color(ui->colorMode,
-                                                                ui->theme.trackview_album,
-                                                                color);
+                        CellStyle style = cell_style_from_theme(ui->theme.trackview_album);
                         char line[METADATA_MAX_LENGTH + 2];
                         snprintf(line, sizeof(line), "%s", metadata->album);
                         draw_buffer_set_string_truncated(buf, region.row + 2, region.col,
@@ -1551,9 +1623,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 // Year
                 if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0 && region.height >= 4) {
-                        CellStyle style = cell_style_from_color(ui->colorMode,
-                                                                ui->theme.trackview_year,
-                                                                color);
+                        CellStyle style = cell_style_from_theme(ui->theme.trackview_year);
                         char line[METADATA_MAX_LENGTH + 2];
                         int year = get_year(metadata->date);
                         if (year == -1)
@@ -1569,11 +1639,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         // Title
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0 && region.height >= 1) {
 
-                PixelData title = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[1] : ui->color;
-
-                CellStyle style = cell_style_from_color(ui->colorMode,
-                                                        ui->theme.trackview_title,
-                                                        title);
+                CellStyle style = cell_style_from_theme(ui->theme.trackview_title);
 
                 char pretty_title[PATH_MAX + 1];
                 pretty_title[0] = '\0';
@@ -1620,23 +1686,18 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         const UISettings *ui = &model->state.settings;
         const AppSettings *settings = &model->settings;
 
-        PixelData color = ui->color;
-
-        // update progress bar state for mouse click hit testing
-        ProgressBar *progress_bar = get_progress_bar();
-        progress_bar->row = region.row;
-        progress_bar->col = region.col;
-        progress_bar->length = region.width;
-
         // leading space
         CellStyle plain = cell_style_plain();
         draw_buffer_set_string(buf, region.row, region.col, " ", plain);
-        CellStyle empty = cell_style_from_color(ui->colorMode, ui->theme.progress_empty, ui->color);
+        CellStyle empty = cell_style_from_theme(ui->theme.progress_empty);
 
         int draw_col = region.col;
 
         int elapsed_bars = calc_elapsed_bars(model->elapsed_seconds,
                                              model->songdata ? model->songdata->duration : 0, region.width);
+
+        CellStyle filled_style = cell_style_from_theme(ui->theme.progress_filled);
+        CellStyle current_style = cell_style_from_theme(ui->theme.progress_elapsed);
 
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
 
@@ -1658,6 +1719,12 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                 }
         }
 
+        if (empty.fg.r >= filled_style.fg.r &&
+            empty.fg.g >= filled_style.fg.g &&
+            empty.fg.b >= filled_style.fg.b) {
+                empty.fg = decrease_luminosity_pct(empty.fg, 0.7);
+        }
+
         if (empty.isAnsi && (!model->songdata || !model->songdata->cover)) {
 
                 // If it's missing a cover
@@ -1666,14 +1733,6 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                         empty.isAnsi = false;
                 }
         }
-
-        CellStyle filled_style = cell_style_from_color(ui->colorMode,
-                                                       ui->theme.progress_filled,
-                                                       color);
-
-        CellStyle current_style = cell_style_from_color(ui->colorMode,
-                                                        ui->theme.progress_elapsed,
-                                                        color);
 
         CellStyle style = empty;
 
@@ -1709,9 +1768,119 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         result.has_msg = true;
         result.msg = (struct Msg){
             .type = MSG_PROGRESS_BARS_SET,
-            .num_progress_bars = region.width / 2};
+            .region = region};
 
         return result;
+}
+
+ComponentMsg component_time_simple(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+{
+        (void)dirty;
+
+        const UISettings *ui = &model->state.settings;
+
+        int progress_width = 39;
+        if (region.width < progress_width)
+                return (ComponentMsg){0};
+
+        double elapsed_seconds = model->elapsed_seconds;
+        double total_seconds = get_current_song_duration();
+
+        char line[256];
+        int pos = 0;
+
+        // Time
+        if (total_seconds >= 3600) {
+                int eh = (int)(elapsed_seconds / 3600);
+                int em = (int)(((int)elapsed_seconds / 60) % 60);
+                int es = (int)elapsed_seconds % 60;
+                int th = (int)(total_seconds / 3600);
+                int tm = (int)(((int)total_seconds / 60) % 60);
+                int ts = (int)total_seconds % 60;
+
+                pos += snprintf(line + pos, sizeof(line) - pos,
+                                "%02d:%02d:%02d / %02d:%02d:%02d",
+                                eh, em, es, th, tm, ts);
+        } else {
+                int em = (int)(elapsed_seconds / 60);
+                int es = (int)elapsed_seconds % 60;
+                int tm = (int)(total_seconds / 60);
+                int ts = (int)total_seconds % 60;
+
+                pos += snprintf(line + pos, sizeof(line) - pos, "%d:%02d / %d:%02d", em, es, tm, ts);
+        }
+
+        CellStyle style = cell_style_from_theme(ui->theme.trackview_time);
+        draw_buffer_set_string_truncated(buf, region.row, region.col, line, region.width, style);
+
+        return (ComponentMsg){0};
+}
+
+ComponentMsg component_volume(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+{
+        (void)dirty;
+
+        const UISettings *ui = &model->state.settings;
+
+        int progress_width = 39;
+        if (region.width < progress_width)
+                return (ComponentMsg){0};
+
+        char line[256];
+
+        int vol = model->volume;
+
+        snprintf(line, sizeof(line), "Vol:%d%%", vol);
+
+        CellStyle style = cell_style_from_theme(ui->theme.trackview_time);
+        draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                         line, region.width, style);
+
+        return (ComponentMsg){0};
+}
+
+ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+{
+        (void)dirty;
+
+        const UISettings *ui = &model->state.settings;
+
+        int progress_width = 39;
+        if (region.width < progress_width)
+                return (ComponentMsg){0};
+
+        double elapsed_seconds = model->elapsed_seconds;
+        double total_seconds = get_current_song_duration();
+        int vol = model->volume;
+
+        char line[256];
+        int pos = 0;
+
+        // Time
+        if (total_seconds >= 3600) {
+                int eh = (int)(elapsed_seconds / 3600);
+                int em = (int)(((int)elapsed_seconds / 60) % 60);
+                int es = (int)elapsed_seconds % 60;
+                int th = (int)(total_seconds / 3600);
+                int tm = (int)(((int)total_seconds / 60) % 60);
+                int ts = (int)total_seconds % 60;
+
+                pos += snprintf(line + pos, sizeof(line) - pos,
+                                "%02d:%02d:%02d / %02d:%02d:%02d Vol:%d%%",
+                                eh, em, es, th, tm, ts, vol);
+        } else {
+                int em = (int)(elapsed_seconds / 60);
+                int es = (int)elapsed_seconds % 60;
+                int tm = (int)(total_seconds / 60);
+                int ts = (int)total_seconds % 60;
+
+                pos += snprintf(line + pos, sizeof(line) - pos, "%d:%02d / %d:%02d Vol:%d%%", em, es, tm, ts, vol);
+        }
+
+        CellStyle style = cell_style_from_theme(ui->theme.trackview_time);
+        draw_buffer_set_string_truncated(buf, region.row, region.col, line, region.width, style);
+
+        return (ComponentMsg){0};
 }
 
 ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
@@ -1776,8 +1945,7 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
                         pos += snprintf(line + pos, sizeof(line) - pos, " %dkb/s", avg_bit_rate);
         }
 
-        PixelData color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[2] : ui->color;
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.trackview_time, color);
+        CellStyle style = cell_style_from_theme(ui->theme.trackview_time);
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          line, region.width, style);
 
@@ -1820,9 +1988,7 @@ ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, Dra
         if (!songdata || !songdata->lyrics || songdata->lyrics->isTimed != 1)
                 return (ComponentMsg){0};
 
-        CellStyle style = cell_style_from_color(ui->colorMode,
-                                                ui->theme.trackview_lyrics,
-                                                ui->color);
+        CellStyle style = cell_style_from_theme(ui->theme.trackview_lyrics);
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          model->state.ui.lyrics_line, region.width, style);
 
@@ -1884,8 +2050,12 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                     .width = visualizer_width,
                     .height = 1,
                 };
-                if (dirty & DIRTY_VISUALIZER)
-                        component_time(model, time_rect, buf, dirty);
+                if (dirty & DIRTY_VISUALIZER) {
+                        if (model->state.settings.simpleTimeStatus)
+                                component_time_simple_and_vol(model, time_rect, buf, dirty);
+                        else
+                                component_time(model, time_rect, buf, dirty);
+                }
         } else {
                 time_height = 0;
         }
@@ -2023,11 +2193,9 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
 
                 CellStyle style;
                 if (highlight == i && lyrics->isTimed)
-                        style = cell_style_from_color(ui->colorMode, ui->theme.nowplaying,
-                                                      ui->defaultColorRGB);
+                        style = cell_style_from_theme(ui->theme.nowplaying);
                 else
-                        style = cell_style_from_color(ui->colorMode, ui->theme.trackview_lyrics,
-                                                      ui->color);
+                        style = cell_style_from_theme(ui->theme.trackview_lyrics);
 
                 int draw_row = region.row + (i - offset);
                 draw_buffer_set_string_truncated(buf, draw_row, region.col,
@@ -2115,6 +2283,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
         const AppState *state = &model->state;
 
         ComponentMsg result = (ComponentMsg){0};
+
         if (state->ui.showLyricsPage)
                 result = component_track_landscape_lyrics(model, region, buf, dirty);
         else
@@ -2129,20 +2298,20 @@ ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, D
         const UISettings *ui = &state->settings;
 
         int visualizer_width = model->state.ui.visualizer_width;
-        int visualizer_height = region.height - 1;
+        int visualizer_height = region.height;
 
         if (!ui->visualizerEnabled)
-                visualizer_height = 1;
+                visualizer_height = 0;
 
-        if (ui->visualizer_height < visualizer_height + 1)
-                visualizer_height = ui->visualizer_height - 1;
+        if (ui->visualizer_height < visualizer_height)
+                visualizer_height = ui->visualizer_height;
 
         // Visualizer
         k_Rect viz_rect = {
             .row = region.row,
             .col = region.col,
             .width = visualizer_width + 1,
-            .height = (visualizer_height == 1) ? 0 : visualizer_height,
+            .height = (visualizer_height <= 1) ? 0 : visualizer_height - 1,
         };
         if (dirty & DIRTY_VISUALIZER)
                 component_visualizer(model, viz_rect, buf, dirty);
@@ -2150,7 +2319,7 @@ ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, D
         // Progress bar
         ComponentMsg result = (ComponentMsg){0};
         k_Rect progress_rect = {
-            .row = region.row + viz_rect.height,
+            .row = region.row + visualizer_height - 1,
             .col = region.col,
             .width = visualizer_width + 1,
             .height = 1,
@@ -2201,8 +2370,13 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
             .width = region.width,
             .height = 1,
         };
-        if (dirty & DIRTY_VISUALIZER)
-                component_time(model, time_rect, buf, dirty);
+        if (dirty & DIRTY_VISUALIZER) {
+
+                if (model->state.settings.simpleTimeStatus)
+                        component_time_simple_and_vol(model, time_rect, buf, dirty);
+                else
+                        component_time(model, time_rect, buf, dirty);
+        }
 
         // Lyrics (timestamped, inline)
         k_Rect lyrics_rect = {
@@ -2277,8 +2451,8 @@ ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *bu
 {
         (void)dirty;
         const UISettings *ui = &model->state.settings;
-        CellStyle text_style = cell_style_from_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        CellStyle version_style = cell_style_from_color(ui->colorMode, ui->theme.help, ui->color);
+        CellStyle text_style = cell_style_from_theme(ui->theme.text);
+        CellStyle version_style = cell_style_from_theme(ui->theme.help);
 
         const char *label = _("kew version: ");
         draw_buffer_set_string(buf, region.row, region.col, label, text_style);
@@ -2296,9 +2470,9 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         const UISettings *ui = &model->state.settings;
 
-        CellStyle text_style = cell_style_from_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        CellStyle help_style = cell_style_from_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-        CellStyle link_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
+        CellStyle text_style = cell_style_from_theme(ui->theme.text);
+        CellStyle help_style = cell_style_from_theme(ui->theme.help);
+        CellStyle link_style = cell_style_from_theme(ui->theme.link);
 
         int row = region.row;
         int col = region.col;
@@ -2308,7 +2482,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         char theme_line[512];
 
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
-                CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
+                CellStyle color_style = cell_style_from_theme(ui->theme.link);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
                 draw_buffer_set_string(buf, row, c, _("Using "), text_style);
@@ -2317,7 +2491,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 c += utf8_display_width(_("One Color "));
                 draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
         } else if (ui->colorMode == COLOR_MODE_ALBUM) {
-                CellStyle color_style = cell_style_from_color(ui->colorMode, ui->theme.link, ui->color);
+                CellStyle color_style = cell_style_from_theme(ui->theme.link);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
                 draw_buffer_set_string(buf, row, c, _("Using "), text_style);
@@ -2485,7 +2659,7 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
         (void)dirty;
 
         const UISettings *ui = &model->state.settings;
-        CellStyle style = cell_style_from_color(ui->colorMode, ui->theme.search_label, ui->defaultColorRGB);
+        CellStyle style = cell_style_from_theme(ui->theme.search_label);
 
         char line[256];
 

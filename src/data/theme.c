@@ -176,6 +176,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
             {"help", &current_theme->help},
             {"link", &current_theme->link},
             {"nowplaying", &current_theme->nowplaying},
+            {"playbackstatus", &current_theme->playbackstatus},
             {"playlist_rownum", &current_theme->playlist_rownum},
             {"playlist_title", &current_theme->playlist_title},
             {"playlist_playing", &current_theme->playlist_playing},
