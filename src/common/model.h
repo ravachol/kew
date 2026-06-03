@@ -272,6 +272,16 @@ typedef enum {
         COLOR_MODE_THEME = 2    /**< Truecolor theme file. */
 } ColorMode;
 
+typedef enum {
+        VIZ_OFF = 0,
+        VIZ_LIGHTEN = 1,
+        VIZ_REVERSED = 2,
+        VIZ_LUM_VIBRANT = 3,
+        VIZ_BINNING = 4,
+        VIZ_VIBRANT = 5,
+        VIZ_KMEANS_CLUSTERING = 6
+} VisualizerMode;
+
 /**
  * @brief Stores user-configurable UI settings.
  *
@@ -296,7 +306,7 @@ typedef struct
         bool coverAnsi;          /**< Use high-quality chafa cover rendering if supported,
                                       otherwise ASCII/ANSI cover. */
         char coverStyle[16];     /**< Chafa symbol style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad. */
-        bool visualizerEnabled;  /**< Show spectrum visualizer. */
+        VisualizerMode visualizer_mode;     /**< Visualizer mode selector. */
         bool discordRPCEnabled;  /**< Enable Discord Rich Presence integration. */
         bool hideLogo;           /**< Hide application logo at the top. */
         bool hideHelp;           /**< Hide help text at the top. */
@@ -307,8 +317,7 @@ typedef struct
         bool allowNotifications; /**< Enable desktop notifications. */
 
         int visualizer_height;      /**< Height (in terminal rows) of the spectrum visualizer. */
-        int visualizer_color_type;  /**< Color layout mode for the spectrum visualizer. */
-        bool visualizerBrailleMode; /**< Render visualizer using braille characters. */
+                bool visualizerBrailleMode; /**< Render visualizer using braille characters. */
 
         int titleDelay;           /**< Delay before drawing title in track view (ms). */
         int cacheLibrary;         /**< Whether to cache the music library. */
@@ -360,6 +369,11 @@ typedef struct {
         FileSystemEntry *chosen_dir;
         int previous_chosen_row;
 } TreeContext;
+
+typedef struct {
+        PixelData colors[16];
+        int count;
+} ColorPalette;
 
 /**
  * @brief Stores dynamic UI runtime state.
@@ -439,6 +453,8 @@ typedef struct
         bool chroma_next_preset_requested;
         bool chroma_start_requested;
         int chroma_height;
+
+        ColorPalette visualizer_palettes[6];
 } UIState;
 
 /**
@@ -478,11 +494,11 @@ typedef struct
         char coverAnsi[2];
         char coverStyle[16];
         char useConfigColors[2];
-        char visualizerEnabled[2];
+        char visualizer_mode[2];
+        char visualizer_color_type[2];
         char discordRPCEnabled[2];
         char visualizer_height[6];
-        char visualizer_color_type[2];
-        char titleDelay[6];
+                char titleDelay[6];
         char togglePlaylist[6];
         char toggleBindings[6];
         char volumeUp[6];

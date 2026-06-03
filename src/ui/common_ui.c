@@ -120,7 +120,7 @@ void transfer_settings_to_ui(void)
         snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
                  settings->coverStyle[0] ? settings->coverStyle : "auto");
         ui->hideHelp = (settings->hideHelp[0] == '1');
-        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
+        ui->visualizer_mode = get_number(settings->visualizer_mode);
         ui->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
         ui->discordRPCEnabled = (settings->discordRPCEnabled[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
@@ -230,10 +230,6 @@ void transfer_settings_to_ui(void)
         tmp = get_number(settings->visualizer_bar_width);
         if (tmp >= 0)
                 ui->visualizer_bar_mode = tmp;
-
-        tmp = get_number(settings->visualizer_color_type);
-        if (tmp >= 0)
-                ui->visualizer_color_type = tmp;
 
         tmp = get_number(settings->titleDelay);
         if (tmp >= 0)
