@@ -1050,7 +1050,6 @@ void init_mpris(void)
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to connect to D-Bus\n");
-                #undef USE_DBUS
                 return;
         }
 
@@ -1063,7 +1062,6 @@ void init_mpris(void)
 
         if (bus_name_id == 0) {
                 printf(_("Failed to own D-Bus name: %s\n"), app_name);
-                #undef USE_DBUS
                 return;
         }
 
@@ -1076,7 +1074,6 @@ void init_mpris(void)
                 g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to register mpris");
                 g_error_free(error);
-                #undef USE_DBUS
                 return;
         }
 
@@ -1089,7 +1086,6 @@ void init_mpris(void)
                 g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to register mpris");
                 g_error_free(error);
-                #undef USE_DBUS
                 return;
         }
 
