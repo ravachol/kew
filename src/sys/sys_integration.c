@@ -14,7 +14,7 @@
 
 #include "discord_rpc.h"
 #include "mpris.h"
-#include "ops/playback_clock.h"
+
 #ifdef USE_MACOS_MEDIA
 #include "macos_nowplaying.h"
 #endif
