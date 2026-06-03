@@ -1789,7 +1789,7 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
 
-        if (!ui->visualizerEnabled)
+        if (ui->visualizer_mode == VIZ_OFF)
                 return (ComponentMsg){0};
 
         int height = region.height;
@@ -2129,7 +2129,7 @@ ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, D
         int visualizer_width = model->state.ui.visualizer_width;
         int visualizer_height = region.height - 1;
 
-        if (!ui->visualizerEnabled)
+        if (ui->visualizer_mode == 0)
                 visualizer_height = 1;
 
         if (ui->visualizer_height < visualizer_height + 1)
@@ -2381,7 +2381,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
         HELP_LINE(_(" · Update Library: %s"), get_binding_string(MSG_UPDATELIBRARY, false));
         HELP_LINE(_(" · Sort Library: %s"), get_binding_string(MSG_SORTLIBRARY, true));
-        HELP_LINE(_(" · Toggle Visualizer: %s"), get_binding_string(MSG_TOGGLEVISUALIZER, false));
+        HELP_LINE(_(" · Cycle Visualizer Mode: %s"), get_binding_string(MSG_CYCLE_VISUALIZER_MODE, false));
         HELP_LINE(_(" · Toggle ASCII Cover: %s (disables Chroma)"),
                   get_binding_string(MSG_TOGGLEASCII, false));
         HELP_LINE(_(" · Toggle Lyrics Page on Track View: %s"),
