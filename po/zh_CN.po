@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-03 05:16+0200\n"
+"POT-Creation-Date: 2026-06-03 09:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -51,14 +51,14 @@ msgstr "扫描目录失败：%s\n"
 msgid "Music not found\n"
 msgstr "未找到音乐\n"
 
-#: src/ops/playlist_ops.c:911
+#: src/ops/playlist_ops.c:926
 #, c-format
 msgid ""
 "Couldn't find any songs in the special playlist. Add a song by pressing '.' "
 "while it's playing. \n"
 msgstr "在特殊播放列表中未找到任何歌曲。播放时按 '.' 添加歌曲。\n"
 
-#: src/sys/mpris.c:1065
+#: src/sys/mpris.c:1064
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "获取 D-Bus 名称失败：%s\n"
@@ -100,229 +100,229 @@ msgstr ""
 "输入路径：\n"
 "\n"
 
-#: src/ui/components.c:424
+#: src/ui/components.c:412
 msgid "─ MUSIC LIBRARY ─"
 msgstr "─ 音乐库 ─"
 
-#: src/ui/components.c:1374
+#: src/ui/components.c:1362
 msgid "─ PLAYLIST ─"
 msgstr "─ 播放列表 ─"
 
-#: src/ui/components.c:1509
+#: src/ui/components.c:1497
 #, c-format
 msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
 msgstr " 选择：↑/↓ 或 k/j。接受：%s。清除：%s。"
 
-#: src/ui/components.c:1514
+#: src/ui/components.c:1502
 #, c-format
 msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s."
-msgstr ""
+msgstr "滚动：PgUp/PgDn。移除：%s。移动歌曲：%s/%s。"
 
-#: src/ui/components.c:1519
+#: src/ui/components.c:1507
 #, c-format
 msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s."
-msgstr ""
+msgstr "滚动：Fn+↑/↓。移除：%s。移动歌曲：%s/%s。"
 
-#: src/ui/components.c:1549
+#: src/ui/components.c:1537
 #, c-format
 msgid " Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."
 msgstr " 选择：↑/↓ 或 k/j。入队/出队：%s。播放：%s"
 
-#: src/ui/components.c:1554
+#: src/ui/components.c:1542
 #, c-format
 msgid " Scroll:Fn+↑/↓. Update:%s. Sort:%s."
 msgstr " 滚动：Fn+↑/↓。更新：%s。排序：%s。"
 
-#: src/ui/components.c:1556
+#: src/ui/components.c:1544
 #, c-format
 msgid " Scroll:PgUp/PgDn. Update:%s. Sort:%s."
 msgstr " 滚动：PgUp/PgDn。更新：%s。排序：%s。"
 
-#: src/ui/components.c:1581
+#: src/ui/components.c:1569
 #, c-format
 msgid "Select:↑/↓. Enqueue:%s. Play:%s."
 msgstr "选择：↑/↓。加入队列：%s。播放：%s。"
 
-#: src/ui/components.c:2150
+#: src/ui/components.c:2138
 #, c-format
 msgid "No lyrics available. Press %s to go back."
 msgstr "暂无歌词。按 %s 返回。"
 
-#: src/ui/components.c:2457
+#: src/ui/components.c:2445
 msgid "kew version: "
 msgstr "kew 版本："
 
-#: src/ui/components.c:2486 src/ui/components.c:2487 src/ui/components.c:2495
-#: src/ui/components.c:2496 src/ui/components.c:2503
+#: src/ui/components.c:2474 src/ui/components.c:2475 src/ui/components.c:2483
+#: src/ui/components.c:2484 src/ui/components.c:2491
 #, c-format
 msgid " Theme: "
 msgstr " 主题："
 
-#: src/ui/components.c:2488 src/ui/components.c:2489 src/ui/components.c:2497
-#: src/ui/components.c:2498
+#: src/ui/components.c:2476 src/ui/components.c:2477 src/ui/components.c:2485
+#: src/ui/components.c:2486
 msgid "Using "
 msgstr "使用 "
 
-#: src/ui/components.c:2490 src/ui/components.c:2491
+#: src/ui/components.c:2478 src/ui/components.c:2479
 msgid "One Color "
 msgstr "单色 "
 
-#: src/ui/components.c:2492 src/ui/components.c:2501
+#: src/ui/components.c:2480 src/ui/components.c:2489
 msgid "From Track Covers"
 msgstr "（来自专辑封面）"
 
-#: src/ui/components.c:2499 src/ui/components.c:2500
+#: src/ui/components.c:2487 src/ui/components.c:2488
 msgid "Colors "
 msgstr "颜色 "
 
-#: src/ui/components.c:2509 src/ui/components.c:2510
+#: src/ui/components.c:2497 src/ui/components.c:2498
 msgid " Author: "
 msgstr " 作者："
 
-#: src/ui/components.c:2528
+#: src/ui/components.c:2516
 #, c-format
 msgid " · Play/Pause: %s"
 msgstr " · 播放/暂停：%s"
 
-#: src/ui/components.c:2529
+#: src/ui/components.c:2517
 #, c-format
 msgid " · Enqueue/Dequeue: %s"
 msgstr " · 加入/移出播放列表：%s"
 
-#: src/ui/components.c:2530
+#: src/ui/components.c:2518
 #, c-format
 msgid " · Enqueue and Play: %s"
 msgstr " · 加入播放列表并播放：%s"
 
-#: src/ui/components.c:2531
+#: src/ui/components.c:2519
 #, c-format
 msgid " · Quit: %s"
 msgstr " · 退出：%s"
 
-#: src/ui/components.c:2532
+#: src/ui/components.c:2520
 #, c-format
 msgid " · Switch tracks: %s and %s"
 msgstr " · 切换曲目：%s 和 %s"
 
-#: src/ui/components.c:2535
+#: src/ui/components.c:2523
 #, c-format
 msgid " · Volume: %s and %s"
 msgstr " · 体积：%s 和 %s"
 
-#: src/ui/components.c:2538
+#: src/ui/components.c:2526
 #, c-format
 msgid " · Scroll: %s, %s"
 msgstr " · 滚动：%s，%s"
 
-#: src/ui/components.c:2541
+#: src/ui/components.c:2529
 #, c-format
 msgid " · Clear List: %s"
 msgstr " · 清除列表：%s"
 
-#: src/ui/components.c:2542
+#: src/ui/components.c:2530
 #, c-format
 msgid " · Remove from playlist: %s"
 msgstr " · 从播放列表中移除：%s"
 
-#: src/ui/components.c:2543
+#: src/ui/components.c:2531
 #, c-format
 msgid " · Move songs: %s/%s"
 msgstr " · 移动歌曲：%s/%s"
 
-#: src/ui/components.c:2551
+#: src/ui/components.c:2539
 #, c-format
 msgid " · Change View: %s or %s, %s, %s, %s, %s or click the footer"
 msgstr " · 更改视图：%s 或 %s、%s、%s、%s、%s 或单击页脚"
 
-#: src/ui/components.c:2561
+#: src/ui/components.c:2549
 #, c-format
-msgid " · Cycle Color Mode: %s (default theme, theme or cover colors)"
-msgstr " · 切换颜色模式：%s（默认主题、主题或封面颜色）"
+msgid " · Cycle Color Mode: %s"
+msgstr " · 更改颜色模式：%s"
 
-#: src/ui/components.c:2563
+#: src/ui/components.c:2551
 #, c-format
 msgid " · Cycle Themes: %s"
 msgstr " · 切换主题：%s"
 
-#: src/ui/components.c:2564
+#: src/ui/components.c:2552
 #, c-format
 msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
 msgstr " · 循环色度可视化：%s（需要 chroma)"
 
-#: src/ui/components.c:2566
+#: src/ui/components.c:2554
 #, c-format
 msgid " · Stop: %s"
 msgstr " · 停止：%s"
 
-#: src/ui/components.c:2567
+#: src/ui/components.c:2555
 #, c-format
 msgid " · Update Library: %s"
 msgstr " · 更新音乐库：%s"
 
-#: src/ui/components.c:2568
+#: src/ui/components.c:2556
 #, c-format
 msgid " · Sort Library: %s"
 msgstr " · 排序：%s"
 
-#: src/ui/components.c:2569
+#: src/ui/components.c:2557
 #, c-format
 msgid " · Cycle Visualizer Mode: %s"
 msgstr " · 循环可视化模式：%s"
 
-#: src/ui/components.c:2570
+#: src/ui/components.c:2558
 #, c-format
 msgid " · Toggle ASCII Cover: %s (disables Chroma)"
 msgstr " · 切换 ASCII 封面：%s (禁用 Chroma)"
 
-#: src/ui/components.c:2572
+#: src/ui/components.c:2560
 #, c-format
 msgid " · Toggle Lyrics Page on Track View: %s"
 msgstr " · 切换歌词页面：%s"
 
-#: src/ui/components.c:2574
+#: src/ui/components.c:2562
 #, c-format
 msgid " · Toggle Notifications: %s"
 msgstr " · 开关通知：%s"
 
-#: src/ui/components.c:2576
+#: src/ui/components.c:2564
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr " · 循环模式：%s（循环/循环列表/关闭）"
 
-#: src/ui/components.c:2578
+#: src/ui/components.c:2566
 #, c-format
 msgid " · Shuffle: %s"
 msgstr " · 随机播放：%s"
 
-#: src/ui/components.c:2579
+#: src/ui/components.c:2567
 #, c-format
 msgid " · Seek: %s and %s"
 msgstr " · 快进/快退：%s 和 %s"
 
-#: src/ui/components.c:2582
+#: src/ui/components.c:2570
 #, c-format
 msgid " · Export Playlist: %s (named after the first song)"
 msgstr " · 导出播放列表：%s（以第一首歌命名）"
 
-#: src/ui/components.c:2584
+#: src/ui/components.c:2572
 #, c-format
 msgid " · Show Folders in Playlist: %s"
 msgstr " · 在播放列表中显示文件夹：%s"
 
-#: src/ui/components.c:2586
+#: src/ui/components.c:2574
 #, c-format
 msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
 msgstr " · 添加歌曲到 'kew favorites.m3u'：%s（使用 'kew .' 运行）"
 
-#: src/ui/components.c:2596 src/ui/components.c:2597
+#: src/ui/components.c:2584 src/ui/components.c:2585
 msgid " Project URL: "
 msgstr " 项目网址："
 
-#: src/ui/components.c:2603 src/ui/components.c:2604
+#: src/ui/components.c:2591 src/ui/components.c:2592
 msgid " Please Donate: "
 msgstr " 捐助支持："
 
-#: src/ui/components.c:2668
+#: src/ui/components.c:2656
 #, c-format
 msgid "Search: %s█"
 msgstr "搜索： %s█"
@@ -370,3 +370,7 @@ msgstr "%s\n"
 #: src/kew.c:479
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr " [F2 播放列表|F3 音乐库|F4 曲目|F5 搜索|F6 帮助]"
+
+#, c-format
+#~ msgid " · Cycle Color Mode: %s (default theme, theme or cover colors)"
+#~ msgstr " · 切换颜色模式：%s（默认主题、主题或封面颜色）"
