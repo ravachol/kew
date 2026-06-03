@@ -19,6 +19,7 @@ footer=#4a7c70
 help=#8fbc94
 link=#87b96b
 nowplaying=#e76f51
+playbackstatus=#4a7c70
 
 # Playlist View
 playlist.rownum=#4a7c70

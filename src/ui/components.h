@@ -26,6 +26,8 @@ ComponentMsg component_logo(const Model *model, k_Rect region, DrawBuffer *buf, 
 
 ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
+ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
 ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 void component_playlist_helper_update_view_state(Model *model);
@@ -53,6 +55,12 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+ComponentMsg component_time_simple(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+ComponentMsg component_volume(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 

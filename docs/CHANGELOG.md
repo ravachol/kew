@@ -24,6 +24,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.
 
+- New settings simpleTimeStatus. Hides kHz and bitrate from the time line in track view. By @ravachol.
+
 - Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
 #### Bug fixes

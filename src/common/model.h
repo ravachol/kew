@@ -144,6 +144,23 @@ typedef struct {
 
 typedef struct Model Model;
 
+struct Msg {
+        enum MsgType type;
+        char key[MAX_SEQ_LEN]; // To store multi-byte characters
+        char args[32];
+
+        int chosen_lib_row;
+        FileSystemEntry *current_lib_entry;
+        int num_lib_rows;
+
+        int chosen_search_result_row;
+        FileSystemEntry *current_search_entry;
+
+        k_Rect region;
+
+        int lyrics_offset;
+};
+
 typedef struct {
     bool has_msg;
     struct Msg msg;
@@ -221,6 +238,7 @@ typedef struct
         ColorValue footer;
         ColorValue help;
         ColorValue link;
+        ColorValue playbackstatus;
         ColorValue nowplaying;
         ColorValue playlist_rownum;
         ColorValue playlist_title;
@@ -303,6 +321,7 @@ typedef struct
         bool hideHelp;           /**< Hide help text at the top. */
         bool hideFooter;         /**< Hide footer section. */
         bool hideTimeStatus;     /**< Hide elapsed, song length, vol, bitrate. */
+        bool simpleTimeStatus;     /**< Shows only elapsed seconds and total seconds. */
         bool hideSideCover;      /**< Hide side cover panel. */
         bool collapseTopLevel;      /**< Hide contents of top level folders. */
         bool allowNotifications; /**< Enable desktop notifications. */
@@ -565,6 +584,7 @@ typedef struct
         char hideSideCover[2];
         char collapseTopLevel[2];
         char hideTimeStatus[2];
+        char simpleTimeStatus[2];
         char quitAfterStopping[2];
         char clearListClearsAll[2];
         char hideGlimmeringText[2];

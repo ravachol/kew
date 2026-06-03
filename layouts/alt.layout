@@ -1,4 +1,4 @@
-version=8
+version=9
 
 [playlist_pane]
 
@@ -41,7 +41,6 @@ row
 height=fixed:2
 col=indent_wide
 
-
 pane
 component=timestamped_lyrics
 dirty=visualizer
@@ -55,6 +54,15 @@ col=indent_wide
 pane
 component=vis_and_progress_bar
 dirty=visualizer
+width=auto
+
+row
+height=fixed:1
+col=indent_wide
+
+pane
+component=playback_status
+dirty=footer
 width=auto
 
 [library_pane]
@@ -113,17 +121,24 @@ component=vis_and_progress_bar
 dirty=visualizer
 width=auto
 
+row
+height=fixed:1
+col=indent_wide
+
+pane
+component=playback_status
+dirty=footer
+width=auto
+
 [track]
 
 row
-height=fixed:2
+height=fixed:1
 col=0
 
 pane
 component=empty
 width=auto
-offsetX=2
-offsetY=1
 
 row
 height=auto
@@ -132,6 +147,15 @@ col=indent
 pane
 component=track
 dirty=visualizer
+width=auto
+
+row
+height=fixed:1
+col=indent
+
+pane
+component=playback_status
+dirty=footer
 width=auto
 
 [track_landscape_pane]
@@ -143,6 +167,15 @@ col=0
 pane
 component=track_landscape
 dirty=visualizer
+width=auto
+
+row
+height=fixed:1
+col=0
+
+pane
+component=playback_status
+dirty=footer
 width=auto
 
 [track_landscape]
@@ -236,6 +269,15 @@ component=vis_and_progress_bar
 dirty=visualizer
 width=auto
 
+row
+height=fixed:1
+col=indent_wide
+
+pane
+component=playback_status
+dirty=footer
+width=auto
+
 [help_pane]
 
 row
@@ -299,4 +341,13 @@ col=indent_wide
 pane
 component=vis_and_progress_bar
 dirty=visualizer
+width=auto
+
+row
+height=fixed:1
+col=indent_wide
+
+pane
+component=playback_status
+dirty=footer
 width=auto

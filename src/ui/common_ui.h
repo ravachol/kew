@@ -288,12 +288,10 @@ CellStyle cell_style_fg(PixelData color);
 /**
  * @brief Returns a cell style.
  *
- * @param mode The color mode.
  * @param theme The theme color settings.
- * @param color
  * @return The cell style
  */
-CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color);
+CellStyle cell_style_from_theme(ColorValue theme);
 
 /**
  * @brief Returns the footer text.

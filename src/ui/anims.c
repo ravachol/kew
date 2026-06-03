@@ -98,6 +98,7 @@ void advance_glimmer_anim(Model *model)
         if (model->glimmer.active) {
 
                 model->glimmer.frame += 3;
+
                 if (model->glimmer.frame > model->glimmer.num_frames)
                         model->glimmer.active = false;
 

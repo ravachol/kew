@@ -957,7 +957,7 @@ Layout *build_layout_by_name(const char *name)
         }
 
         if (!layout) {
-                set_error_message("Layout not found. Please reinstall kew, or run 'sudo make install' if kew was installed by running make.");
+                set_error_message("Latest layout not found. Please reinstall kew, or run 'sudo make install' if kew was installed by running make.");
                 dispatch_msg((struct Msg){.type = MSG_QUIT});
         }
 
@@ -1068,7 +1068,6 @@ void layout_render_dirty(const Layout *layout,
 
                                 // Tells main loop to render these components more often
                                 if (pane->fn == component_visualizer ||
-                                    pane->fn == component_time ||
                                     pane->fn == component_timestamped_lyrics ||
                                     pane->fn == component_track ||
                                     pane->fn == component_track_portrait_normal ||
