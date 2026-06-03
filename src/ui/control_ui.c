@@ -108,6 +108,9 @@ void cycle_color_mode(void)
                 ui->colorMode = COLOR_MODE_THEME;
                 break;
         case COLOR_MODE_THEME:
+                ui->colorMode = COLOR_MODE_NEUTRAL;
+                break;
+        case COLOR_MODE_NEUTRAL:
                 ui->colorMode = COLOR_MODE_DEFAULT;
                 break;
         }
@@ -135,6 +138,12 @@ void cycle_color_mode(void)
                     load_theme(ui->theme_name, true)) {
                         themeLoaded = true;
                 }
+                break;
+        case COLOR_MODE_NEUTRAL:
+                if (load_theme("neutral", true)) {
+                        themeLoaded = true;
+                }
+                break;
         }
 
         if (!themeLoaded) {
