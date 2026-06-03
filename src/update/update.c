@@ -17,6 +17,7 @@
 #include "ui/anims.h"
 #include "ui/common_ui.h"
 #include "ui/components.h"
+#include "ui/visuals.h"
 #include "ui/control_ui.h"
 
 #include "utils/utils.h"
@@ -394,6 +395,12 @@ UpdateResult update(Model *model, struct Msg *msg)
                         }
                 }
 
+                static size_t cached_palette_song_hash = (size_t)-1;
+                if (model->current_hash != cached_palette_song_hash) {
+                        cached_palette_song_hash = model->current_hash;
+                        generate_all_visualizer_palettes(model, model->state.settings.visualizer_height);
+                }
+
                 if (model->state.currentView != PLAYLIST_VIEW)
                         model->state.ui.resetPlaylistDisplay = true;
 
@@ -442,11 +449,14 @@ UpdateResult update(Model *model, struct Msg *msg)
                 result.cmd.type = CMD_TOGGLE_PAUSE;
                 break;
 
-        case MSG_TOGGLEVISUALIZER:
-                model->state.settings.visualizerEnabled = !model->state.settings.visualizerEnabled;
-                c_strcpy(settings->visualizerEnabled, model->state.settings.visualizerEnabled ? "1" : "0",
-                         sizeof(settings->visualizerEnabled));
+        case MSG_CYCLE_VISUALIZER_MODE:
+                model->state.settings.visualizer_mode++;
+                if (model->state.settings.visualizer_mode > VIZ_KMEANS_CLUSTERING)
+                        model->state.settings.visualizer_mode = VIZ_OFF;
+                settings->visualizer_mode[0] = (char)('0' + (model->state.settings.visualizer_mode % 10));
+                settings->visualizer_mode[1] = '\0';
                 set_dirty(DIRTY_ALL);
+                result.cmd.type = CMD_CYCLE_VISUALIZER_MODE;
                 break;
 
         case MSG_TOGGLEREPEAT:
