@@ -26,13 +26,21 @@
 
 void resume_playback(double seconds)
 {
+        Model *model = get_model();
         PlaybackState *ps = get_playback_state();
 
         sound_result_t result = sound_system_play(sound_sys);
 
         if (seconds > 0.0)
         {
+                // seek and restore volume after seeking
                 add_to_accumulated_seconds(seconds);
+        }
+        else if (model->restore_volume)
+        {
+                // restore volume now
+                set_volume(model->volume);
+                model->restore_volume = false;
         }
 
         if (result == SOUND_NOTIFY_SWITCH)

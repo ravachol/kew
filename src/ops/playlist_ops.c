@@ -450,12 +450,19 @@ void silent_switch_to_prev(void)
 
 void skip_to_next_song(void)
 {
+        Model *model = get_model();
+
+        if (model->state.settings.repeatState == SOUND_STATE_REPEAT && model->playlist->count == 1)
+        {
+                skip_to_begginning_of_song();
+                return;
+        }
+
         AppState *state = get_app_state();
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
 
         // Stop if there is no song or no next song
-
         if (current == NULL || current->next == NULL) {
                 if (is_repeat_list_enabled()) {
                         clear_current_song();
@@ -503,6 +510,14 @@ void skip_to_prev_song(void)
 
         if (skip_in_progress)
                 return;
+
+        Model *model = get_model();
+
+        if (model->state.settings.repeatState == SOUND_STATE_REPEAT && model->playlist->count == 1)
+        {
+                skip_to_begginning_of_song();
+                return;
+        }
 
         skip_in_progress = true;
 
