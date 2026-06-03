@@ -58,7 +58,9 @@ visualizer, progress, song, playlist, library, search, footer, layout
 
 Every region that does anything is a component. The allowed components are:
 
-empty, logo, now_playing, now_playing_and_artist, footer, error_row,
+empty, logo, now_playing, now_playing_and_artist,
+
+footer, error_row, playback_status
 
 side_cover, cover, cover_centered, landscape_cover
 
@@ -70,7 +72,7 @@ track, track_portrait, track_header, track_portrait_normal, track_portrait_lyric
 
 track_landscape_normal, track_landscape_lyrics, track_landscape, lyrics_page
 
-metadata, time, timestamped_lyrics, vis_and_progress_bar, visualizer, progress_bar
+metadata, time, time_simple, time_simple_and_vol, volume, timestamped_lyrics, vis_and_progress_bar, visualizer, progress_bar
 
 search, search_results, search_header, search_box
 

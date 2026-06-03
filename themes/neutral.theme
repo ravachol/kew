@@ -19,6 +19,7 @@ footer=-1
 help=-1
 link=-1
 nowplaying=-1
+playbackstatus=-1
 
 # Playlist View
 playlist.rownum=-1

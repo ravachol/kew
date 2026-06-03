@@ -232,7 +232,7 @@ void load_kmeans_palette(unsigned char *pixels, int width, int height, PixelData
         Model *model = get_model();
         for (int i = 0; i < 3; i++)
         {
-        if (!check_if_bright_pixel(kmeans_palette[i].r, kmeans_palette[i].g, kmeans_palette[i].b))
-                kmeans_palette[i] = model->state.settings.defaultColorRGB;
+                if (!check_if_bright_pixel(kmeans_palette[i].r, kmeans_palette[i].g, kmeans_palette[i].b))
+                        kmeans_palette[i] = model->state.settings.defaultColorRGB;
         }
 }
