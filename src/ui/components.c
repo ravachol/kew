@@ -31,35 +31,6 @@ const char *LOGO[] =  {"  __",
 
 bool found_last_parent = false;
 
-CellStyle cell_style_from_tree_item(const UISettings *ui, int depth,
-                                    PixelData track_color, PixelData enqueued_color,
-                                    bool is_enqueued, bool is_playing, bool is_directory)
-{
-        CellStyle style = cell_style_plain();
-
-        if (depth <= 1 && is_directory) {
-                style = cell_style_from_theme(ui->theme.library_artist);
-                if (ui->theme.library_track.type == COLOR_TYPE_RGB)
-                        style.fg = enqueued_color;
-        } else {
-                style = cell_style_from_theme(ui->theme.library_track);
-                if (ui->theme.library_track.type == COLOR_TYPE_RGB)
-                        style.fg = track_color;
-        }
-
-        if (is_enqueued) {
-                if (is_playing) {
-                        style = cell_style_from_theme(ui->theme.library_playing);
-                } else {
-                        style = cell_style_from_theme(ui->theme.library_enqueued);
-                        if (ui->theme.library_track.type == COLOR_TYPE_RGB)
-                                style.fg = enqueued_color;
-                }
-        }
-
-        return style;
-}
-
 void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
 {
         if (node == NULL || buffer == NULL || node->song.file_path == NULL ||
@@ -331,32 +302,44 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                 return NULL;
 
         // Colors
-        PixelData row_color = {ui->default_color, ui->default_color, ui->default_color, 255};
-        PixelData row_color2 = {ui->default_color, ui->default_color, ui->default_color, 255};
+        PixelData track_color = {ui->default_color, ui->default_color, ui->default_color, 255};
+        PixelData enqueued_color = {ui->default_color, ui->default_color, ui->default_color, 255};
         PixelData rgb_track = {ui->default_color, ui->default_color, ui->default_color, 255};
         PixelData rgb_enqueued = {ui->default_color, ui->default_color, ui->default_color, 255};
 
-        if (ui->colorMode == COLOR_MODE_THEME &&
-            ui->theme.library_track.type == COLOR_TYPE_RGB) {
-                rgb_track = ui->theme.library_track.rgb;
-                rgb_enqueued = ui->theme.library_enqueued.rgb;
-        } else {
-                rgb_enqueued = ui->color;
-        }
+        CellStyle track_style = cell_style_from_theme(ui->theme.library_track);
+        CellStyle enqueued_style = cell_style_from_theme(ui->theme.library_enqueued);
+        CellStyle playing_style = cell_style_from_theme(ui->theme.library_playing);
+
+        if (!track_style.isAnsi)
+                rgb_track = track_style.fg;
+
+        if (!enqueued_style.isAnsi)
+                rgb_enqueued = enqueued_style.fg;
 
         if (!(rgb_track.r == ui->default_color &&
               rgb_track.g == ui->default_color &&
               rgb_track.b == ui->default_color))
-                row_color = get_gradient_color(rgb_track,
+        {
+                track_color = get_gradient_color(rgb_track,
                                                *iter - ctx.start_lib_iter,
                                                max_list_size, max_list_size / 2, 0.7f);
+
+                if (!track_style.isAnsi)
+                        track_style.fg = track_color;
+        }
 
         if (!(rgb_enqueued.r == ui->default_color &&
               rgb_enqueued.g == ui->default_color &&
               rgb_enqueued.b == ui->default_color))
-                row_color2 = get_gradient_color(rgb_enqueued,
+        {
+                enqueued_color = get_gradient_color(rgb_enqueued,
                                                 *iter - ctx.start_lib_iter,
                                                 max_list_size, max_list_size / 2, 0.7f);
+                if (!enqueued_style.isAnsi)
+                        enqueued_style.fg = enqueued_color;
+        }
+
 
         // Render this node
         if (depth >= 0) {
@@ -382,11 +365,15 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 found_chosen = entry;
                         }
 
-                        // Prefix (enqueued marker + selection)
-                        CellStyle item_style = cell_style_from_tree_item(ui, depth,
-                                                                         row_color, row_color2,
-                                                                         entry->is_enqueued,
-                                                                         is_playing, entry->is_directory);
+                        CellStyle item_style = cell_style_plain();
+
+                        if (entry->is_enqueued || (depth <= 1 && entry->is_directory))
+                                item_style = enqueued_style;
+                        else
+                                item_style = track_style;
+
+                        if (is_playing)
+                                item_style = playing_style;
 
                         char empty_space[8];
                         snprintf(empty_space, sizeof(empty_space), "%*s",
