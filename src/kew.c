@@ -569,10 +569,10 @@ void init_state(void)
         state->settings.quitAfterStopping = false;
         state->settings.hideGlimmeringText = false;
         state->settings.coverAnsi = false;
-        state->settings.visualizerEnabled = true;
+        state->settings.visualizer_mode = VIZ_KMEANS_CLUSTERING;
         state->settings.discordRPCEnabled = true;
         state->settings.visualizer_height = 5;
-        state->settings.visualizer_color_type = 0;
+
         state->settings.visualizerBrailleMode = false;
         state->settings.visualizer_bar_mode = 2;
         state->settings.titleDelay = 9;
