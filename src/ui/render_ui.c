@@ -103,6 +103,14 @@ bool init_theme(int argc, char *argv[])
                 }
         }
 
+        if (ui->colorMode == COLOR_MODE_NEUTRAL) {
+
+                if (load_theme("neutral", true)) {
+                        themeLoaded = true;
+                }
+        }
+
+
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
 
                 if (load_theme("onealbumcolor", true)) {
