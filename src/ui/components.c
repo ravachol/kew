@@ -12,6 +12,7 @@
 
 #include "common_ui.h"
 #include "settings.h"
+#include "sound/audiotypes.h"
 #include "ui/playlist_ui.h"
 #include "visuals.h"
 
@@ -1127,10 +1128,10 @@ ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBu
         }
 #endif
 
-        if (model->state.settings.repeatState == 1) {
+        if (model->state.settings.repeatState == SOUND_STATE_REPEAT) {
                 snprintf(icons + icons_len, sizeof(icons) - icons_len, "↻ ");
                 icons_len = strnlen(icons, sizeof(icons));
-        } else if (model->state.settings.repeatState == 2) {
+        } else if (model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST) {
                 snprintf(icons + icons_len, sizeof(icons) - icons_len, "↻L ");
                 icons_len = strnlen(icons, sizeof(icons));
         }
