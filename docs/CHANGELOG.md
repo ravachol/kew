@@ -12,7 +12,9 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - User-defined layouts, and the UI now uses Model-View-Update and stateless rendering. By @ravachol.
 
-- New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol and @emptyhead41.
+- New colorful spectrum visualizer modes. Cycle by pressing 'v'. By @emptyhead41.
+
+- New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol. Building on @emptyhead41's palettes.
 
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
 
