@@ -192,6 +192,7 @@ typedef struct {
     k_Size    height;
     int     col;
     int     resolved_height;   // set by layout_reflow()
+    bool    hidden;
 } Row;
 
 typedef struct Layout {
