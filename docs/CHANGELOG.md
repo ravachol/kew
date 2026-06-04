@@ -16,6 +16,10 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol. Building on @emptyhead41's palettes.
 
+- All existing themes have been improved and make a bit more sense now, and use colors more sparsely. By @ravachol.
+
+- New theme pack with Nord and Nanagawa themes plus both the aforementioned album colors themes. By @ravachol.
+
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
 
 - Scrolling lyrics on the lyrics page (press m on track view to access lyrics page) By @petoem. Suggested by @kewIT.
@@ -33,6 +37,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 - Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
 
 - Better handling of repeat states and song switching if there's only one song. By @ravachol and @LeahTheSlug.
+
+- New visualizer color mode, flat colors. By @ravachol.
 
 #### Bug fixes
 

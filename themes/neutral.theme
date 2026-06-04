@@ -1,10 +1,8 @@
-# Neutral kew Theme
-#
-# This theme uses only the default text color
-#
+# ============================================
+# Neutral (Default terminal color)
+# ============================================
 
 name=Neutral
-author=Ravachol
 
 # Core Colors
 accent=-1

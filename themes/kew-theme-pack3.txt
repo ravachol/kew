@@ -4,6 +4,10 @@ Included in this pack:
 
 albumcolors - This is a special theme that decides how the album cover colors are used in album color mode. 4 available colors.
 onealbumcolor - This is a special theme that emulates the old album color mode that was based on one color.
+nord
+kanagawa
+
+Also, all previous themes have been improved and uses colors more restrictively
 
 To apply, run:
 
