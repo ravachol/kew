@@ -348,7 +348,12 @@ void handle_layout_options(Model *model, Layout *layout, Pane *pane, int row_num
                         if (row_num > 0) {
                                 layout->rows[row_num - 1].resolved_height += model->state.settings.visualizer_height;
                         }
-                        row->height.value -= model->state.settings.visualizer_height;
+                        if (row->height.value >= model->state.settings.visualizer_height)
+                                row->height.value -= model->state.settings.visualizer_height;
+                }
+                else {
+                        if (row->height.value <= 1)
+                                row->height.value += model->state.settings.visualizer_height; // Restore height
                 }
         }
 
