@@ -262,6 +262,8 @@ void update_library(char *path, bool wait_until_complete)
                 pthread_join(thread_id, NULL);
 
         model->state.settings.last_time_app_ran = time(NULL);
+        model->state.settings.currentSongId = -1;
+        model->state.settings.currentSongSeconds = 0;
 }
 
 time_t get_modification_time(struct stat *path_stat)

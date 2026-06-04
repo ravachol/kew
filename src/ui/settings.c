@@ -15,6 +15,7 @@
 #include "common/common.h"
 #include "common/events.h"
 
+#include "data/directorytree.h"
 #include "termbox2_input.h"
 
 #include "common/appstate.h"
@@ -1989,8 +1990,10 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         Node *current = get_current_song();
         Model *model = get_model();
 
+        // Save current song id and seconds for auto-resume
         if (current) {
-                fprintf(file, "currentSongId=%d\n", current->id);
+                FileSystemEntry *entry = find_corresponding_entry(model->library, current->song.file_path);
+                fprintf(file, "currentSongId=%d\n", entry->id);
                 fprintf(file, "currentSongSeconds=%f\n", model->elapsed_seconds);
         }
 
