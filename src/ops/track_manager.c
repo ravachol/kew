@@ -270,9 +270,6 @@ void check_and_load_next_song(double seconds)
                         ps->waitingForNext = false;
                         state->ui.songWasRemoved = false;
 
-                        if (is_shuffle_enabled())
-                                reshuffle_playlist();
-
                         int res = prepare_and_play_song(next_song, seconds);
 
                         if (res < 0)

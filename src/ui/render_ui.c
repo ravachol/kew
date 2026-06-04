@@ -110,7 +110,6 @@ bool init_theme(int argc, char *argv[])
                 }
         }
 
-
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
 
                 if (load_theme("onealbumcolor", true)) {
@@ -300,8 +299,7 @@ void draw_buffer_clear(DrawBuffer *buf)
         for (int i = 0; i < total; i++) {
                 if (buf->cells[i].kind == CELL_IMAGE_ANCHOR && buf->cells[i].image) {
 
-                        if (buf->cells[i].image->data)
-                        {
+                        if (buf->cells[i].image->data) {
                                 free(buf->cells[i].image->data);
                                 buf->cells[i].image->data = NULL;
                         }
@@ -336,6 +334,21 @@ void layout_offset(Layout *layout, int dx, int dy)
         }
 }
 
+void hide_skipped_rows(Model *model, Row *row, Pane *pane)
+{
+        if (pane->fn == component_library_header ||
+            pane->fn == component_playlist_header ||
+            pane->fn == component_search_header) {
+                if ((model->term_h < MIN_WINDOW_HEIGHT || model->term_w < MIN_HEADER_WIDTH) && row->pane_count == 1)
+                        row->hidden = true;
+        }
+
+        if (pane->fn == component_logo || pane->fn == component_footer || pane->fn == component_error_row) {
+                if (model->term_h < MIN_WINDOW_HEIGHT && row->pane_count == 1)
+                        row->hidden = true;
+        }
+}
+
 void handle_layout_options(Model *model, Layout *layout, Pane *pane, int row_num)
 {
         Row *row = &layout->rows[row_num];
@@ -350,8 +363,7 @@ void handle_layout_options(Model *model, Layout *layout, Pane *pane, int row_num
                         }
                         if (row->height.value >= model->state.settings.visualizer_height)
                                 row->height.value -= model->state.settings.visualizer_height;
-                }
-                else {
+                } else {
                         if (row->height.value <= 1)
                                 row->height.value += model->state.settings.visualizer_height; // Restore height
                 }
@@ -411,13 +423,20 @@ void layout_reflow(Model *model,
 
                 Row *row = &layout->rows[r];
 
+                row->hidden = false;
+
                 // Disable certain components due to settings
                 for (int c = 0; c < row->pane_count; c++) {
 
                         Pane *pane = &row->panes[c];
 
                         handle_layout_options(model, layout, pane, r);
+
+                        hide_skipped_rows(model, row, pane);
                 }
+
+                if (row->hidden)
+                       continue;
 
                 switch (row->height.kind) {
 
@@ -472,6 +491,9 @@ void layout_reflow(Model *model,
         for (int r = 0; r < layout->row_count; r++) {
 
                 Row *row = &layout->rows[r];
+
+                if (row->hidden)
+                        continue;
 
                 if (row->height.kind == SIZE_AUTO)
                         row->resolved_height = auto_height;
@@ -1045,6 +1067,9 @@ void layout_render_dirty(const Layout *layout,
         for (int r = 0; r < layout->row_count; r++) {
 
                 const Row *row = &layout->rows[r];
+
+                if (row->resolved_height == 0 || row->hidden)
+                        continue;
 
                 for (int c = 0; c < row->pane_count; c++) {
 
