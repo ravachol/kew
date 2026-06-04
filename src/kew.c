@@ -210,9 +210,7 @@ void kew_shutdown()
         show_cursor();
         exit_alternate_screen_buffer();
         restore_terminal_mode();
-
-        if (model->state.settings.trackTitleAsWindowTitle)
-                restore_terminal_window_title();
+        restore_terminal_window_title();
 
         if (noMusicFound) {
                 printf(_("No Music found.\n"));
@@ -576,7 +574,7 @@ void init_state(void)
 
         state->settings.visualizerBrailleMode = false;
         state->settings.visualizer_bar_mode = 2;
-        state->settings.titleDelay = 9;
+        state->settings.titleDelay = 1;
         state->settings.auto_resume = true;
         state->settings.cacheLibrary = -1;
         state->settings.mouseEnabled = true;
@@ -759,7 +757,7 @@ int main(int argc, char *argv[])
         init_settings(&model->settings);
         transfer_settings_to_ui();
         init_key_mappings(&model->settings);
-        set_track_title_as_window_title();
+        save_terminal_window_title();
 
         bool run_for_play_command_with_playlist = false;
 

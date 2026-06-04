@@ -16,7 +16,7 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol. Building on @emptyhead41's palettes.
 
-- All existing themes have been improved and make a bit more sense now, and use colors more sparsely. By @ravachol.
+- Improved Themes. All existing themes have been worked on and make a bit more sense now, and use colors more sparsely. By @ravachol.
 
 - New theme pack with Nord and Nanagawa themes plus both the aforementioned album colors themes. By @ravachol.
 
