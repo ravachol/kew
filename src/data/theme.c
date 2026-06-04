@@ -326,13 +326,16 @@ bool ensure_default_themes(void)
         while ((entry = readdir(dir)) != NULL) {
                 // Only copy real files that look like themes
                 if (entry->d_type == DT_REG &&
-                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt"))) {
+                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md"))) {
 
-                        char src[PATH_MAX], dst[PATH_MAX];
+                        char src[PATH_MAX], dst[PATH_MAX], bak[PATH_MAX];
 
                         if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))
                                 continue;
                         if (snprintf(dst, sizeof(dst), "%s/%s", themes_path, entry->d_name) >= (int)sizeof(dst))
+                                continue;
+
+                        if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(dst))
                                 continue;
 
                         bool need_copy = true;
@@ -347,6 +350,11 @@ bool ensure_default_themes(void)
                         }
 
                         if (need_copy) {
+                                // Backup old file if it exists
+                                if (stat(dst, &st) == 0) {
+                                        rename(dst, bak);
+                                }
+
                                 if (copy_file(src, dst))
                                         copied = true;
                         }
