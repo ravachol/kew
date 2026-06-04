@@ -886,10 +886,10 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->visualizer_mode, "3",
                  sizeof(settings->visualizer_mode));
 #ifdef __APPLE__
-        c_strcpy(settings->colorMode, "1",
+        c_strcpy(settings->colorMode, "3",
                  sizeof(settings->colorMode));
 #else
-        c_strcpy(settings->colorMode, "1",
+        c_strcpy(settings->colorMode, "3",
                  sizeof(settings->colorMode));
 #endif
 
