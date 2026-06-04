@@ -167,7 +167,7 @@ We very much welcome contributions, and will help if guidance is needed. Please 
 
 ## Layouts
 
-It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](layouts/LAYOUTS-HOWTO.md)  
+It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](layouts/LAYOUTS-HOWTO.md)
 
 The layout used by kew is called current.layout.
 
@@ -189,7 +189,7 @@ kew theme <themename> (ie 'kew theme midnight')
 
 Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
-Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.
+It's possible to define your own themes. How to make one is described in [THEMES-HOWTO.md](layouts/THEMES-HOWTO.md). If you change a theme and we update it, your theme will renamed and get the extension .bak. But ideally you should add your own themes as separate themes.
 
 Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https://bholroyd.github.io/Kew-tip/).
 
