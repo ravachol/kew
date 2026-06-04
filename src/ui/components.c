@@ -1323,12 +1323,11 @@ void component_playlist_helper_update_view_state(Model *model)
                 if (!node)
                         break;
 
-                bool is_chosen = (i == model->state.ui.chosen_row);
-
-                if (is_chosen) {
+                if (i == model->state.ui.chosen_row) {
 
                         model->state.ui.previous_chosen_song = model->state.ui.chosen_row;
                         model->state.ui.chosen_node_id = node->id;
+                        break;
                 }
 
                 node = node->next;
@@ -1490,7 +1489,7 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
         int row = region.row;
         int col = region.col;
 
-        if (model->term_w > 52 && !ui->hideHelp) {
+        if (model->term_w > MIN_HEADER_WIDTH && !ui->hideHelp) {
                 char line1[256];
                 char line2[256];
 
@@ -1530,7 +1529,7 @@ ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuf
         int row = region.row;
         int col = region.col;
 
-        if (model->term_w > 52 && !ui->hideHelp) {
+        if (model->term_w > MIN_HEADER_WIDTH && !ui->hideHelp) {
                 char line1[256];
                 char line2[256];
 
@@ -1563,7 +1562,7 @@ ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuff
         int row = region.row;
         int col = region.col;
 
-        if (model->term_w > 52 && !ui->hideHelp) {
+        if (model->term_w > MIN_HEADER_WIDTH && !ui->hideHelp) {
                 char line1[256];
 
                 snprintf(line1, sizeof(line1), _("Select:↑/↓. Enqueue:%s. Play:%s."),
@@ -2865,7 +2864,7 @@ ComponentMsg component_search(const Model *model, k_Rect region, DrawBuffer *buf
 {
         const UISettings *ui = &model->state.settings;
 
-        int header_height = (model->term_w > 52 && !model->state.settings.hideHelp) ? 3 : 1;
+        int header_height = (model->term_w > MIN_HEADER_WIDTH && !model->state.settings.hideHelp) ? 3 : 1;
         int logo_height = (ui->hideLogo) ? 3 : LOGO_HEIGHT;
 
         k_Rect logo_rect = {

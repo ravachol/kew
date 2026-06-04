@@ -5,7 +5,8 @@
 #include "data/directorytree.h"
 
 extern const char *LOGO[];
-
+static const int MIN_HEADER_WIDTH = 52;
+static const int MIN_WINDOW_HEIGHT = 26;
 static const int LOGO_WIDTH = 24;
 static const int LOGO_HEIGHT = 4;
 static const int MIN_COVER_SIZE = 5;
