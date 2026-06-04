@@ -331,7 +331,9 @@ void dequeue_all(void)
         PlaybackState *ps = get_playback_state();
         ps->nextSongNeedsRebuilding = true;
         set_next_song(NULL);
-        start_playing(true);
+
+        if (state->settings.clearListClearsAll)
+                start_playing(true);
 
         // Only refresh the screen if it makes sense to do so
         if (state->currentView == PLAYLIST_VIEW ||

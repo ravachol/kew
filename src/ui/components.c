@@ -805,7 +805,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         const UISettings *ui = &state->settings;
         const TermSize *term_size = &model->term_size;
 
-        if (ui->hideSideCover || !songdata || !songdata->cover)
+        if (!ui->coverEnabled || ui->hideSideCover || !songdata || !songdata->cover)
                 return (ComponentMsg){0};
 
         int indent = region.width * 4 / 5;
@@ -945,7 +945,7 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
         const UISettings *ui = &state->settings;
         const TermSize *term_size = &model->term_size;
 
-        if (ui->hideSideCover || !songdata)
+        if (!ui->coverEnabled || !songdata)
                 return (ComponentMsg){0};
 
         int cover_indent = 1;

@@ -108,13 +108,6 @@ int print_about_for_version(Model *model);
 void print_help(void);
 
 /**
- * @brief Sets the track title as the window title.
- *
- * This function updates the window title with the title of the currently playing track.
- */
-void set_track_title_as_window_title(void);
-
-/**
  * @brief Retrieves the file path for the library.
  *
  * This function returns the path to the media library file used by the application.
