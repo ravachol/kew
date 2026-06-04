@@ -1,4 +1,8 @@
-## One Album Color kew Theme
+## How to make your own theme or edit an existing one
+
+## Themes are overwritten as newer versions of them are available
+
+The old one is renamed with the file extension .bak.
 
 ## Colors that can be used
 
