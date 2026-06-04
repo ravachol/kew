@@ -2649,16 +2649,20 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
         (void)dirty;
 
         const UISettings *ui = &model->state.settings;
-        CellStyle style = cell_style_from_theme(ui->theme.search_label);
+        CellStyle label_style = cell_style_from_theme(ui->theme.search_label);
+        CellStyle query_style = cell_style_from_theme(ui->theme.search_query);
 
         char line[256];
+        char query[256];
 
         int max_width = region.width;
 
-        snprintf(line, sizeof(line), _("Search: %s█"), model->state.ui.search_text);
-
-        draw_buffer_set_string_truncated(buf, region.row, region.col, line, max_width, style);
-        draw_buffer_set_string(buf, region.row + 2, region.col, "", style); // blank line below
+        snprintf(line, sizeof(line), _("Search:"));
+        snprintf(query, sizeof(query), "%s█", model->state.ui.search_text);;
+        int line_width = utf8_display_width(line);
+        draw_buffer_set_string_truncated(buf, region.row, region.col, line, line_width, label_style);
+        draw_buffer_set_string_truncated(buf, region.row, region.col + line_width + 1, query, max_width, query_style);
+        draw_buffer_set_string(buf, region.row + 2, region.col, "", label_style); // blank line below
 
         return (ComponentMsg){0};
 }
