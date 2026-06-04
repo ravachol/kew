@@ -916,8 +916,6 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
                 color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
-        } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
-                color = ui->color;
        } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 color = ui->color;
         } else if (ui->colorMode == COLOR_MODE_THEME &&

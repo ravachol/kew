@@ -112,7 +112,8 @@ unsigned char *get_bitmap(const char *image_path,
  */
 gboolean retirePassthroughWorkarounds_tmux(void);
 
-void free_image_payload(ImagePayload *img);
 #endif
+
+void free_image_payload(ImagePayload *img);
 
 #endif

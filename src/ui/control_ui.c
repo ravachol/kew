@@ -137,6 +137,8 @@ void cycle_color_mode(void)
                 if (ui->theme_name[0] != '\0' &&
                     load_theme(ui->theme_name, true)) {
                         themeLoaded = true;
+                        if (ui->visualizer_mode > 2)
+                                ui->visualizer_mode = 2;
                 }
                 break;
         case COLOR_MODE_NEUTRAL:
@@ -249,6 +251,17 @@ void cycle_themes(void)
                 char *dot = strstr(ui->theme_name, ".theme");
                 if (dot)
                         *dot = '\0';
+
+                if (strcmp(ui->theme_name, "onealbumcolor") == 0)
+                        ui->colorMode = COLOR_MODE_ALBUM_ONE;
+                if (strcmp(ui->theme_name, "albumcolors") == 0)
+                        ui->colorMode = COLOR_MODE_ALBUM;
+                if (strcmp(ui->theme_name, "neutral") == 0)
+                        ui->colorMode = COLOR_MODE_NEUTRAL;
+
+                if (ui->colorMode == COLOR_MODE_THEME)
+                        if (ui->visualizer_mode > 2)
+                                ui->visualizer_mode = 2;
         }
 
         set_dirty(DIRTY_ALL);

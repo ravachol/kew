@@ -75,8 +75,10 @@ bool init_theme(int argc, char *argv[])
                 set_error_message("Couldn't load theme. Theme file names shouldn't contain space.");
         } else if (argc == 3 && strcmp(argv[1], "theme") == 0) {
                 // Try to load the user-specified theme
+                ui->colorMode = COLOR_MODE_THEME;
+
                 if (load_theme(argv[2], false) > 0) {
-                        ui->colorMode = COLOR_MODE_THEME;
+
                         themeLoaded = true;
                         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", argv[2]);
                 } else {
@@ -86,16 +88,25 @@ bool init_theme(int argc, char *argv[])
                                 ui->colorMode = COLOR_MODE_DEFAULT;
                         }
                 }
-        } else if (ui->colorMode == COLOR_MODE_THEME) {
+        } else if (ui->theme_name[0] != '\0') {
                 // If UI has a theme_name stored, try to load it
+                ui->colorMode = COLOR_MODE_THEME;
+
                 if (load_theme(ui->theme_name, false) > 0) {
-                        ui->colorMode = COLOR_MODE_THEME;
+
                         themeLoaded = true;
+
+                        if (strcmp(ui->theme_name, "onealbumcolor") == 0)
+                                ui->colorMode = COLOR_MODE_ALBUM_ONE;
+                        if (strcmp(ui->theme_name, "albumcolors") == 0)
+                                ui->colorMode = COLOR_MODE_ALBUM;
+                        if (strcmp(ui->theme_name, "neutral") == 0)
+                                ui->colorMode = COLOR_MODE_NEUTRAL;
                 }
         }
 
         // If still in default mode, load default ANSI theme
-        if (ui->colorMode == COLOR_MODE_DEFAULT) {
+        if (ui->colorMode == COLOR_MODE_DEFAULT && !themeLoaded) {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
                 if (load_theme("default", true)) {
@@ -103,21 +114,21 @@ bool init_theme(int argc, char *argv[])
                 }
         }
 
-        if (ui->colorMode == COLOR_MODE_NEUTRAL) {
+        if (ui->colorMode == COLOR_MODE_NEUTRAL && !themeLoaded) {
 
                 if (load_theme("neutral", true)) {
                         themeLoaded = true;
                 }
         }
 
-        if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
+        if (ui->colorMode == COLOR_MODE_ALBUM_ONE && !themeLoaded) {
 
                 if (load_theme("onealbumcolor", true)) {
                         themeLoaded = true;
                 }
         }
 
-        if (ui->colorMode == COLOR_MODE_ALBUM) {
+        if (ui->colorMode == COLOR_MODE_ALBUM && !themeLoaded) {
 
                 if (load_theme("albumcolors", true)) {
                         themeLoaded = true;
@@ -125,22 +136,11 @@ bool init_theme(int argc, char *argv[])
         }
 
         if (!themeLoaded) {
-                set_error_message("Couldn't load theme. Forgot to run 'sudo make install'?");
+                set_error_message("Couldn't load theme. Please re-install kew or run 'sudo make install' if it was installed manually");
                 ui->colorMode = COLOR_MODE_ALBUM_ONE;
         }
 
         return themeLoaded;
-}
-
-void set_track_title_as_window_title(void)
-{
-        AppState *state = get_app_state();
-        UISettings *ui = &(state->settings);
-
-        if (ui->trackTitleAsWindowTitle) {
-                save_terminal_window_title();
-                set_terminal_window_title("kew");
-        }
 }
 
 void print_help(void)
@@ -436,7 +436,7 @@ void layout_reflow(Model *model,
                 }
 
                 if (row->hidden)
-                       continue;
+                        continue;
 
                 switch (row->height.kind) {
 
@@ -520,6 +520,10 @@ void layout_reflow(Model *model,
                 for (int c = 0; c < row->pane_count; c++) {
 
                         Pane *pane = &row->panes[c];
+
+                        if ((!model->state.settings.coverEnabled || model->state.settings.hideSideCover) &&
+                            pane->fn == component_landscape_cover)
+                                continue;
 
                         switch (pane->width.kind) {
 
