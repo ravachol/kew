@@ -882,7 +882,7 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->trackTitleAsWindowTitle));
         c_strcpy(settings->discordRPCEnabled, "1",
                  sizeof(settings->discordRPCEnabled));
-        c_strcpy(settings->visualizer_mode, "2",
+        c_strcpy(settings->visualizer_mode, "3",
                  sizeof(settings->visualizer_mode));
 #ifdef __APPLE__
         c_strcpy(settings->colorMode, "1",
