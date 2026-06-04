@@ -322,6 +322,11 @@ install: all
 				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
 			fi; \
 		done; \
+		for theme in $(THEMESRCDIR)/*.md; do \
+			if [ -f "$$theme" ]; then \
+				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+			fi; \
+		done; \
 	fi
 
 	@if [ -d $(LAYOUTSRCDIR) ]; then \
