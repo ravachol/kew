@@ -78,6 +78,10 @@ search, search_results, search_header, search_box
 
 help, version
 
+## Limitations
+
+We still ideally would like to allow people to have things like the playlist and library on the same view, decide which views to include and name them in the footer. That sort of stuff is currently not possible. The playlist component has to be in the playlist view and so on or it wont work.
+
 
 ## Example
 
