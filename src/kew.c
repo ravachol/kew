@@ -609,7 +609,7 @@ void init_state(void)
         state->settings.visualizations_instead_of_cover = false;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
-        state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
+        state->settings.colorMode = COLOR_MODE_ALBUM;
 
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
