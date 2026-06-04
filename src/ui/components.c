@@ -2494,7 +2494,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string(buf, row, col, theme_line, text_style);
                 int c = col + utf8_display_width(theme_line);
                 draw_buffer_set_string(buf, row, c, ui->theme.theme_name, help_style);
-                if (strcmp(ui->theme.theme_author, "Ravachol") != 0) {
+                if (strcmp(ui->theme.theme_author, "") != 0) {
                         c += utf8_display_width(ui->theme.theme_name);
                         draw_buffer_set_string(buf, row, c, _(" Author: "), text_style);
                         c += utf8_display_width(_(" Author: "));

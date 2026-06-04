@@ -882,13 +882,13 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->trackTitleAsWindowTitle));
         c_strcpy(settings->discordRPCEnabled, "1",
                  sizeof(settings->discordRPCEnabled));
-        c_strcpy(settings->visualizer_mode, "3",
+        c_strcpy(settings->visualizer_mode, "2",
                  sizeof(settings->visualizer_mode));
 #ifdef __APPLE__
-        c_strcpy(settings->colorMode, "3",
+        c_strcpy(settings->colorMode, "1",
                  sizeof(settings->colorMode));
 #else
-        c_strcpy(settings->colorMode, "3",
+        c_strcpy(settings->colorMode, "1",
                  sizeof(settings->colorMode));
 #endif
 
@@ -1962,7 +1962,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                        sizeof(settings->showFoldersInPlaylist));
 
         int current_volume = get_volume();
-        current_volume = (current_volume <= 0) ? 10 : current_volume;
+        current_volume = (current_volume < 0) ? 0 : current_volume;
         snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d",
                  current_volume);
 
@@ -2285,7 +2285,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
 
         fprintf(file, "\n[visualizer]\n\n");
-        fprintf(file, "# Visualizer mode: 0=lighten, 1=binning, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant.\n");
+        fprintf(file, "# Visualizer mode: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning.\n");
         fprintf(file, "visualizerColorType=%s\n", settings->visualizer_mode);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizer_height);
         fprintf(file, "visualizerBrailleMode=%s\n\n",
