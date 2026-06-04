@@ -60,13 +60,13 @@ playlist.title=-1    # Default foreground
 playlist.playing=103
 
 # Track View
-trackview.title=102
-trackview.artist=-1
-trackview.album=-1
-trackview.year=-1
-trackview.time=-1
+trackview.title=101
+trackview.artist=102
+trackview.album=102
+trackview.year=102
+trackview.time=102
 trackview.visualizer=104
-trackview.lyrics=-1
+trackview.lyrics=102
 
 # Library View
 library.artist=102
