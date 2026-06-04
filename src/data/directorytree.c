@@ -1046,20 +1046,20 @@ void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
         fuzzy_search_recursive(node->next, search_term, threshold, callback);
 }
 
-FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp,
+FileSystemEntry *find_corresponding_entry(FileSystemEntry *root,
                                           const char *full_path)
 {
-        if (tmp == NULL)
+        if (root == NULL)
                 return NULL;
-        if (strcmp(tmp->full_path, full_path) == 0)
-                return tmp;
+        if (strcmp(root->full_path, full_path) == 0)
+                return root;
 
         FileSystemEntry *found =
-            find_corresponding_entry(tmp->children, full_path);
+            find_corresponding_entry(root->children, full_path);
         if (found != NULL)
                 return found;
 
-        return find_corresponding_entry(tmp->next, full_path);
+        return find_corresponding_entry(root->next, full_path);
 }
 
 bool is_m3u(const char *filename)
