@@ -24,7 +24,6 @@
 #   -1: Default terminal foreground
 
 name=Default 16-color
-author=Ravachol
 
 # Core Colors
 accent=13       # Bright Magenta

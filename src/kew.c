@@ -358,6 +358,7 @@ void run(bool start_playing)
 
         if (playlist->head == NULL) {
                 state->currentView = LIBRARY_VIEW;
+
         }
 
         set_dirty(DIRTY_ALL);
@@ -569,7 +570,7 @@ void init_state(void)
         state->settings.quitAfterStopping = false;
         state->settings.hideGlimmeringText = false;
         state->settings.coverAnsi = false;
-        state->settings.visualizer_mode = VIZ_KMEANS_CLUSTERING;
+        state->settings.visualizer_mode = VIZ_REVERSED;
         state->settings.discordRPCEnabled = true;
         state->settings.visualizer_height = 5;
 
@@ -608,7 +609,7 @@ void init_state(void)
         state->settings.visualizations_instead_of_cover = false;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
-        state->settings.colorMode = COLOR_MODE_ALBUM;
+        state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
 
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;

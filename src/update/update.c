@@ -115,6 +115,8 @@ void view_changed(Model *model)
                 model->state.currentView = LIBRARY_VIEW;
         }
         model->state.ui.resetPlaylistDisplay = true;
+        model->name_scroll.active = false;
+        model->title_delay.active = false;
 
         set_dirty(DIRTY_ALL);
 }
