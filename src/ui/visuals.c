@@ -459,13 +459,13 @@ void generate_all_visualizer_palettes(Model *model, int height)
         PixelData base_color = {0, 0, 0, 255};
         if (ui->colorMode == COLOR_MODE_ALBUM) {
                 base_color = ui->color;
-        } else if (ui->colorMode == COLOR_MODE_THEME &&
-                   ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
+        } else if (ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
                 base_color = ui->theme.trackview_visualizer.rgb;
         }
 
         generate_legacy_palette(&model->state.ui.visualizer_palettes[VIZ_LIGHTEN], base_color, height, 0);
         generate_legacy_palette(&model->state.ui.visualizer_palettes[VIZ_REVERSED], base_color, height, 1);
+        generate_legacy_palette(&model->state.ui.visualizer_palettes[VIZ_FLAT], base_color, height, 1);
 
         const unsigned char *cover = NULL;
         int cover_w = 0, cover_h = 0, cover_ch = 0;
@@ -918,6 +918,8 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
         } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 color = ui->color;
+       } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
+                color = ui->color;
         } else if (ui->colorMode == COLOR_MODE_THEME &&
                    ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
                 color = ui->theme.trackview_visualizer.rgb;
@@ -965,6 +967,10 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
 
                                 row_color = increase_luminosity_for_height(color, height, j, true);
 
+                        } else if (ui->visualizer_mode == VIZ_FLAT) {
+
+                                row_color = color;
+
                         } else {
                                 // Album-art: spread palette colors across height
                                 // Use the full palette by stepping through it evenly
@@ -992,7 +998,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 for (int i = 0; i < num_bars; i++) {
 
                         CellStyle bar_style = row_style;
-                        if (ui->visualizer_mode != VIZ_LIGHTEN && ui->visualizer_mode != VIZ_REVERSED &&
+                        if (ui->visualizer_mode != VIZ_LIGHTEN && ui->visualizer_mode != VIZ_REVERSED &&  ui->visualizer_mode != VIZ_FLAT &&
                             palette != NULL && palette->count > 0 &&
                             (color.r != 0 || color.g != 0 || color.b != 0)) {
                                 PixelData bar_color;
@@ -1032,7 +1038,6 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                                 else
                                         bar_style = cell_style_from_theme(ui->theme.trackview_visualizer);
                         }
-
                         // Braille left-side character
                         if (brailleMode) {
                                 const char *left_ch = " ";

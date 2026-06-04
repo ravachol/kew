@@ -294,12 +294,13 @@ typedef enum {
 
 typedef enum {
         VIZ_LIGHTEN = 0,
-        VIZ_BINNING = 1,
+        VIZ_FLAT = 1,
         VIZ_REVERSED = 2,
         VIZ_KMEANS_CLUSTERING = 3,
         VIZ_VIBRANT = 4,
         VIZ_LUM_VIBRANT = 5,
-        VIZ_OFF = 6,
+        VIZ_BINNING = 6,
+        VIZ_OFF = 7,
 } VisualizerMode;
 
 /**
@@ -475,7 +476,7 @@ typedef struct
         bool chroma_start_requested;
         int chroma_height;
 
-        ColorPalette visualizer_palettes[6];
+        ColorPalette visualizer_palettes[7];
 } UIState;
 
 /**
