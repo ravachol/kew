@@ -906,7 +906,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->simpleTimeStatus, "1", sizeof(settings->simpleTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
-        c_strcpy(settings->titleDelay, "9", sizeof(settings->titleDelay));
+        c_strcpy(settings->titleDelay, "1", sizeof(settings->titleDelay));
         c_strcpy(settings->auto_resume, "1", sizeof(settings->auto_resume));
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
         c_strcpy(settings->color, "6", sizeof(settings->color));
@@ -1868,7 +1868,14 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 set_volume(tmp);
 
-        snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
+        if (ui->colorMode != COLOR_MODE_ALBUM &&
+                ui->colorMode != COLOR_MODE_ALBUM_ONE &&
+                ui->colorMode != COLOR_MODE_DEFAULT &&
+                ui->colorMode != COLOR_MODE_NEUTRAL)
+                snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
+        else
+                ui->theme_name[0] = '\0';
+
         free(configdir);
 }
 
