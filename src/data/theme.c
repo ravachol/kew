@@ -160,7 +160,9 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
         FILE *file = fopen(path, "r");
         if (!file) {
                 fprintf(stderr, "Failed to open theme file.\n");
-                set_error_message("Failed to open theme file.");
+                char line[PATH_MAX + 100];
+                snprintf(line, sizeof(line), "Failed to open theme file: %s", filename);
+                set_error_message(line);
                 return 0;
         }
 
