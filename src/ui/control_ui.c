@@ -209,7 +209,7 @@ void cycle_themes(void)
 
         // Collect all *.theme files
         while ((entry = readdir(dir)) != NULL) {
-                if (strstr(entry->d_name, ".theme")) {
+                if (strstr(entry->d_name, ".theme") && !strstr(entry->d_name, ".theme.bak")) {
                         themes[theme_count++] = strdup(entry->d_name);
                 }
         }
