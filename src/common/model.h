@@ -61,7 +61,8 @@ typedef enum {
         CELL_NORMAL,        // regular character cell
         CELL_WIDE_CONT,     // right half of a double-width character, backend skips it
         CELL_IMAGE_ANCHOR,  // top-left cell of an image region, backend emits the image here
-        CELL_IMAGE_OCCUPIED // remaining cells of an image region, backend skips them
+        CELL_OCCUPIED,      // remaining cells of an occupied region, backend skips them
+        CELL_LINK
 } CellKind;
 
 
@@ -127,6 +128,11 @@ typedef struct {
 } ImagePayload;
 
 typedef struct {
+    char         *url;
+    char         *title;
+} LinkPayload;
+
+typedef struct {
         k_Size width;  // AUTO = fill remaining cols in row
 
         uint32_t codepoint;
@@ -134,6 +140,7 @@ typedef struct {
         CellKind kind;
         CellStyle style;
         ImagePayload *image; // non-null only on CELL_IMAGE_ANCHOR
+        LinkPayload *link;
 } Cell;
 
 typedef struct {

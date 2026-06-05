@@ -303,15 +303,28 @@ void terminal_backend_commit(const DrawBuffer *buf,
                                 }
                         }
 
+                        if (cell->kind == CELL_LINK)
+                        {
+                                cursor_move(row, col);
+
+                                printf("\033]8;;%s\a%s\033]8;;\a\n", cell->link->url, cell->link->title);
+                                fflush(stdout);
+
+                                cur_row = row;
+                                cur_col = col;
+                                col = buf->cols;
+                                continue;
+                        }
+
                         // Image occupied, skip cells
-                        if (cell->kind == CELL_IMAGE_OCCUPIED) {
+                        if (cell->kind == CELL_OCCUPIED) {
 
                                 while (col < buf->cols) {
 
                                         Cell *next = &buf->cells[row * buf->cols + col];
 
                                         if (next->kind !=
-                                            CELL_IMAGE_OCCUPIED) {
+                                            CELL_OCCUPIED) {
                                                 break;
                                         }
 

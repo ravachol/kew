@@ -196,22 +196,6 @@ void goto_first_line_first_row(void);
 void disable_terminal_line_input(void);
 
 /**
- * @brief Sets the terminal to raw input mode.
- *
- * This function puts the terminal into raw input mode, where input is immediately processed
- * without line buffering, echoing, or other terminal settings.
- */
-void set_raw_input_mode(void);
-
-/**
- * @brief Enables input buffering in the terminal.
- *
- * This function restores the terminal's default line input mode, where input is buffered until
- * the user presses Enter.
- */
-void enable_input_buffering(void);
-
-/**
  * @brief Enables terminal scrolling.
  *
  * This function sends an ANSI escape sequence to the terminal to enable
