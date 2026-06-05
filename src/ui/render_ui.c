@@ -743,6 +743,11 @@ void draw_buffer_destroy(DrawBuffer *buf)
                         free_image_payload(cell->image);
                         cell->image = NULL;
                 }
+
+                if (cell->kind == CELL_LINK && cell->link) {
+                        free_link_payload(cell->link);
+                        cell->link = NULL;
+                }
         }
 
         free(buf->cells);
