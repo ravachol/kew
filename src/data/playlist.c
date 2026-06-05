@@ -366,6 +366,7 @@ void build_playlist_recursive(const char *directory_path,
 
         if (num_entries < 0) {
                 printf(_("Failed to scan directory: %s\n"), expanded_path);
+                closedir(dir);
                 return;
         }
 
@@ -387,7 +388,7 @@ void build_playlist_recursive(const char *directory_path,
 
                 if (pathLen + 1 + nameLen >= PATH_MAX) {
                         fprintf(stderr, "Path too long: %s/%s\n", expanded_path, entry->d_name);
-                        return; // or skip this entry
+                        continue;
                 }
 
                 snprintf(file_path, sizeof(file_path), "%s/%s", expanded_path, entry->d_name);
