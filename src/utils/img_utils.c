@@ -187,6 +187,17 @@ static void run_kmeans(PixelData *samples, int num_samples, PixelData centroids[
         }
 }
 
+bool check_if_nice_pixel(unsigned char r, unsigned char g, unsigned char b)
+{
+        // Calc luminace and use to find Ascii char.
+        unsigned char ch = luminance_from_r_g_b(r, g, b);
+
+        if (ch > 60 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150))
+                return true;
+
+        return false;
+}
+
 void load_kmeans_palette(unsigned char *pixels, int width, int height, PixelData kmeans_palette[3])
 {
         if (pixels == NULL || width <= 0 || height <= 0) {
@@ -212,7 +223,7 @@ void load_kmeans_palette(unsigned char *pixels, int width, int height, PixelData
                         unsigned char g = pixels[index + 1];
                         unsigned char b = pixels[index + 2];
 
-                        if (check_if_bright_pixel(r, g, b)) {
+                        if (check_if_nice_pixel(r, g, b)) {
                                 samples[num_samples++] = (PixelData){r, g, b, 255};
                         }
                 }
@@ -232,7 +243,7 @@ void load_kmeans_palette(unsigned char *pixels, int width, int height, PixelData
         Model *model = get_model();
         for (int i = 0; i < 3; i++)
         {
-                if (!check_if_bright_pixel(kmeans_palette[i].r, kmeans_palette[i].g, kmeans_palette[i].b))
+                if (!check_if_nice_pixel(kmeans_palette[i].r, kmeans_palette[i].g, kmeans_palette[i].b))
                         kmeans_palette[i] = model->state.settings.defaultColorRGB;
         }
 }
