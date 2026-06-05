@@ -17,6 +17,7 @@
 #include "ops/playlist_ops.h"
 #include "ops/track_manager.h"
 
+#include "sound/audiotypes.h"
 #include "sound/sound_facade.h"
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
@@ -329,7 +330,8 @@ void view_enqueue(bool play_immediately)
                 return; // already true → bail
         }
 
-        AppState *state = get_app_state();
+        Model *model = get_model();
+        AppState *state = &model->state;
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
@@ -340,8 +342,12 @@ void view_enqueue(bool play_immediately)
         bool canGoNext = (current_song != NULL && current_song->next != NULL);
 
         if (state->currentView == TRACK_VIEW) {
-                if (current_song != NULL) {
-                        clear_and_play(current_song);
+                Node *song = current_song;
+                if (current_song == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)
+                        song = playlist->head;
+
+                if (song != NULL) {
+                        clear_and_play(song);
                 }
         }
 

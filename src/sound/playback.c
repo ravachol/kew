@@ -226,7 +226,8 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
                 return -1;
         }
 
-        sound_s->state = SOUND_STATE_PLAYING;
+        if (sound_s->state != SOUND_STATE_PAUSED)
+                sound_s->state = SOUND_STATE_PLAYING;
 
         return 0;
 }

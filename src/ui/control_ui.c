@@ -124,25 +124,25 @@ void cycle_color_mode(void)
                 }
                 break;
         case COLOR_MODE_ALBUM_ONE:
-                if (load_theme("onealbumcolor", true)) {
+                if (load_theme("onealbumcolor", false)) {
                         themeLoaded = true;
                 }
                 break;
         case COLOR_MODE_ALBUM:
-                if (load_theme("albumcolors", true)) {
+                if (load_theme("albumcolors", false)) {
                         themeLoaded = true;
                 }
                 break;
         case COLOR_MODE_THEME:
                 if (ui->theme_name[0] != '\0' &&
-                    load_theme(ui->theme_name, true)) {
+                    load_theme(ui->theme_name, false)) {
                         themeLoaded = true;
                         if (ui->visualizer_mode > 2)
                                 ui->visualizer_mode = 2;
                 }
                 break;
         case COLOR_MODE_NEUTRAL:
-                if (load_theme("neutral", true)) {
+                if (load_theme("neutral", false)) {
                         themeLoaded = true;
                 }
                 break;
@@ -258,6 +258,9 @@ void cycle_themes(void)
                         ui->colorMode = COLOR_MODE_ALBUM;
                 if (strcmp(ui->theme_name, "neutral") == 0)
                         ui->colorMode = COLOR_MODE_NEUTRAL;
+                if (strcmp(ui->theme_name, "default") == 0)
+                        ui->colorMode = COLOR_MODE_DEFAULT;
+
 
                 if (ui->colorMode == COLOR_MODE_THEME)
                         if (ui->visualizer_mode > 2)
@@ -473,6 +476,8 @@ int load_theme(const char *theme_name,
         if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme
                 snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
+                         theme_name);
+                snprintf(settings->theme, sizeof(settings->theme), "%s",
                          theme_name);
         } else {
                 // Truecolor theme: store in settings->theme
