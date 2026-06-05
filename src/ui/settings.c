@@ -2721,6 +2721,7 @@ static bool copy_layout_file(const char *src_name,
         DIR *dir = opendir(system_layouts);
         if (!dir) {
                 free(config_path);
+                closedir(dir);
                 return false;
         }
 
@@ -2729,10 +2730,12 @@ static bool copy_layout_file(const char *src_name,
                      system_layouts,
                      src_name) >= (int)sizeof(src_path)) {
                 free(config_path);
+                closedir(dir);
                 return false;
         }
 
         free(config_path);
+        closedir(dir);
 
         return copy_file(src_path, dst_path);
 }

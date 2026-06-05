@@ -612,6 +612,7 @@ int is_decoding_possible(const char *filepath, const CodecOps *ops)
                 return -1;
         }
 
+        ops->uninit(decoder);
         free(decoder);
         return 0;
 }
