@@ -1992,7 +1992,11 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "chromaPreset=%d\n\n", ui->chromaPreset);
         fprintf(file, "[colors]\n\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
-        fprintf(file, "theme=%s\n\n", ui->theme_name);
+
+        if (ui->colorMode != COLOR_MODE_THEME)
+                settings->theme[0] = '\0';
+
+        fprintf(file, "theme=%s\n\n", settings->theme);
 
         Node *current = get_current_song();
         Model *model = get_model();

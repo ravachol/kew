@@ -113,3 +113,4 @@ void check_and_load_next_song(double seconds);
  */
 void determine_song_and_notify(void);
 
+void set_end_of_list_reached(void);
