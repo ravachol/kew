@@ -16,6 +16,7 @@
 #include "playback_state.h"
 #include "playback_system.h"
 #include "playlist_ops.h"
+#include "sound/audiotypes.h"
 #include "track_manager.h"
 
 #include "sound/sound_facade.h"
@@ -252,7 +253,7 @@ void ops_toggle_pause(void)
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
-                set_dirty(DIRTY_VISUALIZER);
+                set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         } else {
                 if (ps->hasSilentlySwitched && !ps->skipping) {
                         set_total_pause_seconds(0);
@@ -262,7 +263,7 @@ void ops_toggle_pause(void)
                 }
                 emit_string_property_changed("PlaybackStatus", "Playing");
 
-                set_dirty(DIRTY_VISUALIZER);
+                set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         }
 }
 
