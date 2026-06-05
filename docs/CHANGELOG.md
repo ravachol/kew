@@ -40,6 +40,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New visualizer color mode, flat colors. By @ravachol.
 
+- New time line on track view that uses less info is now default. To enable the one with bitrate and kHz numbers, set simpleTimeStatus=0. By @ravachol.
+
 #### Bug fixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
