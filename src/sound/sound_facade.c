@@ -125,12 +125,6 @@ sound_result_t sound_system_set_volume(
     sound_system_t *system,
     float volume)
 {
-        if (volume > 1.0f) {
-                volume = 1.0f;
-        } else if (volume < 0.0f) {
-                volume = 0.0f;
-        }
-
         set_current_volume(volume);
 
         if (system) {

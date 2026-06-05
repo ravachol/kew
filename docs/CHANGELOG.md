@@ -2,7 +2,7 @@
 
 ## 4.1.0 GREAT ARTISTS SHOULD BE RICH EDITION
 
-kew 4.1 comes with the ability for users to make their own layouts. It's as minimal as possible though, the syntax for layouts is very simple and the files are small. There aren't a ton of options, but it allows you to rearrange things to your liking.
+kew 4.1 comes with the ability for users to make their own layouts and auto-resume. Layouting is as minimal as possible though, the syntax for layouts is very simple and the files are small. Explained in the readme and related doc.
 
 The whole UI system has been rewritten and is now much more clean and nice and great.
 
@@ -14,7 +14,7 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - New colorful spectrum visualizer modes. Cycle by pressing 'v'. By @emptyhead41.
 
-- New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol. Building on @emptyhead41's palettes.
+- New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol, building on @emptyhead41's palettes.
 
 - Improved Themes. All existing themes have been worked on and make a bit more sense now, and use colors more sparsely. By @ravachol.
 
@@ -50,7 +50,11 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Prevent slight glitch when pausing and switching tracks. When unpausing a bit of the old song played. By @ravachol. Reported by @LeahTheSlug. Thanks to @petoem for helping.
 
-- Fix issue with wrong nesting in search in some situations. By @ravachol Reported by @Moksh-Parikh.
+- Fix issue with wrong nesting in search in some situations. By @ravachol. Reported by @Moksh-Parikh.
+
+- Fix issues with repeat list and track management. By @ravachol. Found by @LeahTheSlug.
+
+- There were some issues with Chroma that emerged with as the launch of kew 4.0 which means you have to install a specific commit of Chroma recommended in the readme for it to work. And on top of that, the first commit that was recommended there wasn't reacting to audio. Now fixed and the commit in the readme should work.
 
 #### Refactor
 

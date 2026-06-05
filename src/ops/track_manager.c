@@ -158,7 +158,9 @@ void set_end_of_list_reached(void)
         ps->skipOutOfOrder = false;
 
         sound_system_set_end_of_list_reached(sound_sys, true);
-        start_playing(true);
+
+        if (!is_paused())
+                start_playing(true);
 
         clear_current_song();
 
@@ -303,7 +305,7 @@ void prepare_next_song(void)
 
         Node *current = get_current_song();
 
-        if (!is_repeat_enabled() || current == NULL) {
+        if ((!is_repeat_enabled() || (is_repeat_enabled() && is_paused())) || current == NULL) {
 
                 if (!sound_system_is_end_of_list_reached(sound_sys)) {
                         PlaybackState *ps = get_playback_state();
