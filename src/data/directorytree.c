@@ -119,7 +119,7 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
                 return -1;
         }
 
-        FileSystemEntryDisk *disk_entries = malloc(sizeof(FileSystemEntryDisk) * arr.size);
+        FileSystemEntryDisk *disk_entries = calloc(arr.size, sizeof(FileSystemEntryDisk));
         if (!disk_entries) {
                 free(arr.data);
                 free(string_table);
