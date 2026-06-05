@@ -595,7 +595,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                         for (int c = col; c < cols; c++) {
                                 if (r == row && c == col)
                                         continue;
-                                buf->cells[r * buf->cols + c].kind = CELL_IMAGE_OCCUPIED;
+                                buf->cells[r * buf->cols + c].kind = CELL_OCCUPIED;
                         }
                 }
         }

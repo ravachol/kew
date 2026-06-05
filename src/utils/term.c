@@ -172,22 +172,6 @@ void disable_terminal_line_input(void)
         setvbuf(stdout, NULL, _IOFBF, BUFSIZ);
 }
 
-void set_raw_input_mode(void)
-{
-        struct termios term;
-        tcgetattr(STDIN_FILENO, &term);
-        term.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
-}
-
-void enable_input_buffering()
-{
-        struct termios term;
-        tcgetattr(STDIN_FILENO, &term);
-        term.c_lflag |= ICANON | ECHO;
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
-}
-
 void cursor_jump(int num_rows)
 {
         if (num_rows < 0 || num_rows > MAX_TERMINAL_ROWS)

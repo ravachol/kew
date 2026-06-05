@@ -8,6 +8,7 @@
 * and rendering shared UI components across multiple screens.
 */
 
+#include "common/model.h"
 #include "common_ui.h"
 
 #include "common/appstate.h"
@@ -738,6 +739,82 @@ void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
 {
         int max_width = buf->cols - col;
         draw_buffer_set_string_truncated(buf, row, col, str, max_width, style);
+}
+
+void free_link_payload(LinkPayload *link)
+{
+        if (!link)
+                return;
+
+        free(link->title);
+        free(link->url);
+        free(link);
+}
+
+void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
+                        char *url, char *title, CellStyle style)
+{
+        (void)style;
+
+        if ((unsigned)row >= (unsigned)buf->rows ||
+            (unsigned)col >= (unsigned)buf->cols)
+                return;
+
+        Cell *anchor = &buf->cells[row * buf->cols + col];
+
+        size_t ulen = strlen(url);
+        size_t tlen = strlen(title);
+        bool draw_title = true;
+        bool draw_url = true;
+
+        if (anchor->kind == CELL_LINK)
+        {
+                if (strcmp(anchor->link->title, title) == 0)
+                {
+                        draw_title = false;
+                }
+                else if (anchor->link->title != NULL)
+                {
+                        free(anchor->link->title);
+                        anchor->link->title = NULL;
+                }
+
+                if (strcmp(anchor->link->url, url) == 0)
+                {
+                        draw_url = false;
+                }
+                else if (anchor->link->url != NULL)
+                {
+                        free(anchor->link->url);
+                        anchor->link->url = NULL;
+                }
+        }
+        else {
+                LinkPayload *link = calloc(1, sizeof(LinkPayload));
+                anchor->link = link;
+        }
+
+        anchor->kind = CELL_LINK;
+        if (draw_title)
+        {
+                anchor->link->title = calloc(1, tlen + 1);
+                snprintf(anchor->link->title, tlen + 1, title);
+        }
+        if (draw_url)
+        {
+                anchor->link->url = calloc(1, ulen + 1);
+                snprintf(anchor->link->url, ulen + 1, url);
+        }
+
+        // Mark occupied region
+        int col_occupied = col + 1;
+        int col_end = col_occupied + width + 100;
+        col_end = (col_end > buf->cols) ? buf->cols : col_end;
+        for (int c = col_occupied; c < col_end; c++) {
+                if (c == col)
+                        continue;
+                buf->cells[row * buf->cols + c].kind = CELL_OCCUPIED;
+        }
 }
 
 CellStyle cell_style_plain(void)

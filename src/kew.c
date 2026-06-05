@@ -356,10 +356,7 @@ void run(bool start_playing)
 
         if (playlist->head == NULL) {
                 state->currentView = LIBRARY_VIEW;
-
         }
-
-
 
         double seconds = 0.0;
         if (!start_playing) {
@@ -732,13 +729,13 @@ void force_terminal_restore(int sig)
  */
 int main(int argc, char *argv[])
 {
-        AppState *state = get_app_state();
         tty_init();
 
         init_state();
         init_locale();
 
         Model *model = get_model();
+        AppState *state = &model->state;
 
         if ((argc == 2 &&
              ((strcmp(argv[1], "--help") == 0) ||
