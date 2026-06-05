@@ -1,41 +1,10 @@
-#   Album Colors kew Theme
+# ============================================
+# Album Colors kew Theme
+# ============================================
 #
-#   4-Color album color palette
+#   4-Color album color palette (Colors 101-104)
 #
 #   This theme will be used if you choose album cover colors (press i in kew to cycle color settings)
-#
-#   You can't know which the album colors are going to be but you can decide how much the colors vary throughout the app
-#
-#   The available colors are:
-#
-#   Album Colors:
-#   101: Album Color 1 # this is the old color that used to be the only album color
-#   102: Album Color 2
-#   103: Album Color 3
-#   104: Album Color 4
-#
-#   Standard Terminal ANSI Colors can also be used:
-#   0: Black
-#   1: Red
-#   2: Green
-#   3: Yellow
-#   4: Blue
-#   5: Magenta
-#   6: Cyan
-#   7: White
-#   8: Bright Black (Gray)
-#   9: Bright Red
-#   10: Bright Green
-#   11: Bright Yellow
-#   12: Bright Blue
-#   13: Bright Magenta
-#   14: Bright Cyan
-#   15: Bright White
-#   -1: Default terminal foreground
-#
-#   You can also use mix and match with hex colors in this format: #ffffff
-#
-
 
 name=Album Colors
 
@@ -60,13 +29,13 @@ playlist.title=-1    # Default foreground
 playlist.playing=103
 
 # Track View
-trackview.title=101
+trackview.title=103
 trackview.artist=102
 trackview.album=102
 trackview.year=102
 trackview.time=102
 trackview.visualizer=104
-trackview.lyrics=103
+trackview.lyrics=101
 
 # Library View
 library.artist=102
