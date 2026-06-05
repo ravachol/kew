@@ -332,6 +332,7 @@ void *decode_loop(void *arg)
 
         size_t tempSize = sound->chunk_frames * sound->channels * sizeof(float);
         float *temp = NULL;
+        bool unpaused = false;
 
         if (posix_memalign((void **)&temp, 64, tempSize) != 0) {
                 sound->decode_thread_running = false;
@@ -379,9 +380,19 @@ void *decode_loop(void *arg)
                 }
 
                 // Handle pause
-                while (pb_is_paused() && atomic_load(&sound->decode_thread_running)) {
-                        c_sleep(10);
+                unpaused = false;
+                while (atomic_load(&sound->decode_thread_running)) {
+                        if (pb_is_paused()) {
+                                c_sleep(10);
+                                unpaused = true;
+                        }
+                        else {
+                                break;
+                        }
                 }
+
+                if (unpaused)
+                        continue;
 
                 // Handle switch during pause
                 if (atomic_load_explicit(&sound->switch_files, memory_order_acquire) || !atomic_load(&sound->decode_thread_running)) {
