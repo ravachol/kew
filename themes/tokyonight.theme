@@ -12,8 +12,8 @@ textDim=#9aa5ce
 textMuted=#565f89
 
 # General Colors
-logo=#565f89
-header=#7aa2f7
+logo=#7dcfff
+header=#7dcfff
 footer=#565f89
 help=#c0caf5
 link=#9ece6a
@@ -35,10 +35,10 @@ trackview.visualizer=#7aa2f7
 trackview.lyrics=#c0caf5
 
 # Library View
-library.artist=#7aa2f7
+library.artist=#7dcfff
 library.album=#bb9af7
 library.track=#a9b1d6
-library.enqueued=#7aa2f7
+library.enqueued=#7dcfff
 library.playing=#bb9af7
 
 # Search
