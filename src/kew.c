@@ -359,10 +359,13 @@ void run(bool start_playing)
 
         }
 
-        set_dirty(DIRTY_ALL);
+
 
         double seconds = 0.0;
         if (!start_playing) {
+
+                set_dirty(DIRTY_ALL);
+
                 if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume) {
                         Node *song = NULL;
                         find_node_in_list(playlist, model->state.settings.currentSongId, &song);
