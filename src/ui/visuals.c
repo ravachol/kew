@@ -376,7 +376,7 @@ static void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned cha
 {
         // Match main branch logic
         unsigned char lum = (unsigned char)(0.2126f * r + 0.7152f * g + 0.0722f * b);
-        if (lum > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150)) {
+        if (lum > 60 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150)) {
                 *found = true;
         }
 }
