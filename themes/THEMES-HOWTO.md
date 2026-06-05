@@ -47,6 +47,3 @@ The "albumcolors" and "onealbumcolor" themes correspond to the color mode settin
 
 Gradients can't be applied to ANSI colors.
 
-## Themes don't follow guidelines perfectly
-
-The color modes for well-known themes are perhaps not used the way they are supposed to according to guidelines. We would be grateful for any help correcting this.
