@@ -18,6 +18,7 @@
 #include "playback_system.h"
 
 #include "library_ops.h"
+#include "sound/audiotypes.h"
 #include "track_manager.h"
 
 #include "common/appstate.h"
@@ -390,10 +391,15 @@ void silent_switch_to_next(bool load_song)
 {
         PlaybackState *ps = get_playback_state();
 
-        ps->skipping = true;
-
         set_next_song(NULL);
-        set_current_song_to_next();
+
+        if (choose_next_song() != NULL)
+        {
+                ps->skipping = true;
+                set_current_song_to_next();
+        }
+        else
+                return;
 
         ps->skipOutOfOrder = true;
 
@@ -484,8 +490,14 @@ void skip_to_next_song(void)
                 return;
 
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PLAYING) {
-                silent_switch_to_next(true);
-                return;
+                if (!(current->next == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)) {
+                        silent_switch_to_next(true);
+                        return;
+                }
+                else {
+                        set_end_of_list_reached();
+                        return;
+                }
         }
 
         if (is_shuffle_enabled())
@@ -551,7 +563,7 @@ retry:
 
         set_current_song_to_prev();
 
-        if (song == current) {
+        if (song == get_current_song()) {
                 reset_clock();
                 update_playback_position(
                     0); // We need to signal to mpris that the song was
@@ -570,9 +582,9 @@ retry:
         ps->forceSkip = false;
         ps->loadedNextSong = false;
 
-        play();
-
         load_song(get_current_song(), false, true);
+
+        play();
 
         int max_num_tries = 50;
         int numtries = 0;

@@ -228,7 +228,7 @@ void activate_switch(void)
 {
         set_skip_to_next(false);
 
-        if (!pb_is_repeat_enabled()) {
+        if (!pb_is_repeat_enabled() || (pb_is_repeat_enabled() && pb_is_paused())) {
 
                 bool using_slot_A = atomic_load(&sound_s->using_song_slot_A); // fetch
 
@@ -378,8 +378,13 @@ void *decode_loop(void *arg)
                         nanosleep(&ts, NULL);
                 }
 
+                // Handle pause
+                while (pb_is_paused() && atomic_load(&sound->decode_thread_running)) {
+                        c_sleep(10);
+                }
+
                 // Handle switch during pause
-                if (atomic_load_explicit(&sound->switch_files, memory_order_acquire)) {
+                if (atomic_load_explicit(&sound->switch_files, memory_order_acquire) || !atomic_load(&sound->decode_thread_running)) {
                         reset_ring_buffer(sound);
                         continue;
                 }

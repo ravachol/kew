@@ -791,7 +791,7 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
 
                 Node *found = find_path_in_playlist(normalized, playlist);
 
-                if (dont_dequeue) {
+                if (dont_dequeue && found) {
                         if (*first_enqueued_node == NULL)
                                 *first_enqueued_node = found;
                 } else {
