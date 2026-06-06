@@ -50,6 +50,8 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         sound_s->volume = get_current_volume();
         sound_s->state = SOUND_STATE_STOPPED;
+        sound_s->clock_reset = 0;
+        sound_s->fade_boundary = -1;
 
         sound_result_t sound_result = sound_create_audio_device();
 
@@ -306,6 +308,20 @@ sound_playback_state_t sound_system_get_state(const sound_system_t *system)
                 return SOUND_STATE_STOPPED;
 
         return system->state;
+}
+
+int sound_system_get_clock_reset(sound_system_t *system, int *reset_ms)
+{
+        if (!system)
+                return SOUND_STATE_STOPPED;
+
+        int reset = system->clock_reset;
+
+        system->clock_reset = 0;
+
+        *reset_ms = system->clock_reset_ms;
+
+        return reset;
 }
 
 int sound_system_get_bit_depth(const sound_system_t *system)

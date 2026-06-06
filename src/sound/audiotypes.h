@@ -54,7 +54,9 @@ struct sound_system {
 
 #ifndef __cplusplus
         atomic_llong track_frames_sent;
+        atomic_llong track_frames_written;
         atomic_llong track_end_frame;
+        atomic_llong fade_boundary;
         atomic_bool end_of_list_reached;
         atomic_bool decode_thread_running;
         atomic_bool decode_finished;
@@ -62,10 +64,15 @@ struct sound_system {
         atomic_bool switch_files;
         atomic_bool buffer_ready;
         atomic_bool using_song_slot_A;
+        atomic_bool clock_reset_done;
 #endif
 
         float volume;
         sound_playback_state_t state;
+
+        int clock_reset;
+        int clock_reset_ms;
+
 
         bool always_fade;
         int always_fade_ms;
