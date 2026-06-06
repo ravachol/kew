@@ -608,6 +608,10 @@ void init_state(void)
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
         state->settings.colorMode = COLOR_MODE_ALBUM;
+        state->settings.fade_enter_song_ms = 0;
+        state->settings.fade_quick_ms = 2000;
+        state->settings.fade_medium_ms = 3000;
+        state->settings.fade_slow_ms = 5000;
 
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;

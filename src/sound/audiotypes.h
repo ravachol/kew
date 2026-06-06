@@ -66,6 +66,15 @@ struct sound_system {
 
         float volume;
         sound_playback_state_t state;
+
+        bool fade_allowed;
+        bool fade_requested;
+        bool fade_seek_performed;
+        int fade_ms;
+        int fade_enter_song_ms;
+        ma_uint64 fade_enter_frame;
+        ma_uint64 fade_current_frame;
+        ma_uint64 fade_total_frames;
 };
 
 enum decoder_type_t {

@@ -204,6 +204,17 @@ sound_result_t sound_system_switch_song_immediate(sound_system_t *system)
         return SOUND_OK;
 }
 
+sound_result_t sound_system_start_crossfade(const sound_system_t *system, int fade_ms, int enter_song_ms)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        if (!request_crossfade(fade_ms, enter_song_ms))
+                return SOUND_CROSSFADE_DISABLED;
+
+        return SOUND_OK;
+}
+
 sound_result_t sound_system_clear_current_track(sound_system_t *system)
 {
         if (!system)
@@ -251,6 +262,14 @@ int sound_system_is_end_of_list_reached(const sound_system_t *system)
                 return 1;
 
         return atomic_load(&system->end_of_list_reached);
+}
+
+int sound_system_is_fade_allowed(const sound_system_t *system)
+{
+        if (!system)
+                return 0;
+
+        return system->fade_allowed;
 }
 
 sound_result_t sound_system_set_end_of_list_reached(sound_system_t *system, int value)

@@ -259,4 +259,14 @@ void clear_current_track(void);
  */
 void sound_shutdown(void);
 
+/**
+ * @brief Requests a cross-fade
+ *
+ * @param fade_ms How long the fade should take in milliseconds.
+ * @param enter_song_ms At what point to enter the next song in milliseconds.
+ *
+ * @return True if crossfade was successfully initiated.
+ */
+bool request_crossfade(int fade_ms, int enter_song_ms);
+
 #endif

@@ -24,6 +24,10 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
+#define MAX_CHANNELS 2
+#define MAX_SAMPLES 8192 // Maximum expected frame size
+#define MAX_SAMPLE_SIZE 4
+
 typedef struct m4a_decoder {
         ma_data_source_base ds; // The m4a decoder can be used independently as a data source.
         ma_read_proc onRead;
@@ -54,6 +58,13 @@ typedef struct m4a_decoder {
         int32_t audio_track_index;
         uint32_t current_sample;
         uint32_t total_samples;
+
+        uint8_t leftoverBuffer[
+        MAX_SAMPLES *
+        MAX_CHANNELS *
+        MAX_SAMPLE_SIZE];
+
+        ma_uint64 leftoverSampleCount;
 
         // For m4a_decoder_init_file
         FILE *file;
@@ -249,14 +260,6 @@ ma_result m4a_decoder_ds_get_length(ma_data_source *p_data_source,
                                     ma_uint64 *p_length);
 
 #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
-
-#define MAX_CHANNELS 2
-#define MAX_SAMPLES 4800 // Maximum expected frame size
-#define MAX_SAMPLE_SIZE 4
-
-static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
-
-static ma_uint64 leftoverSampleCount = 0;
 
 ma_result m4a_decoder_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read)
 {
@@ -474,7 +477,7 @@ MA_API ma_result m4a_decoder_init(
         NeAACDecSetConfiguration(pM4a->hDecoder, config);
 
         // Initialize other fields
-        leftoverSampleCount = 0;
+        pM4a->leftoverSampleCount = 0;
         pM4a->cursor = 0;
 
         return MA_SUCCESS;
@@ -766,7 +769,7 @@ MA_API ma_result m4a_decoder_init_file(
                 NeAACDecSetConfiguration(pM4a->hDecoder, config_ptr);
 
                 // Initialize other fields
-                leftoverSampleCount = 0;
+                pM4a->leftoverSampleCount = 0;
                 pM4a->cursor = 0;
 
                 fseek(pM4a->file, 0, SEEK_SET);
@@ -860,7 +863,7 @@ MA_API ma_result m4a_decoder_init_file(
                         NeAACDecSetConfiguration(pM4a->hDecoder, config_ptr);
 
                         // Initialize other fields
-                        leftoverSampleCount = 0;
+                        pM4a->leftoverSampleCount = 0;
                         pM4a->cursor = 0;
                         fseek(pM4a->file, 0, SEEK_SET);
 
@@ -908,19 +911,19 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
         ma_uint64 totalFramesProcessed = 0;
 
         // Handle any leftover samples from previous call using the global/static leftover buffer
-        if (leftoverSampleCount > 0) {
-                ma_uint64 leftoverToProcess = (leftoverSampleCount < frame_count) ? leftoverSampleCount : frame_count;
+        if (pM4a->leftoverSampleCount > 0) {
+                ma_uint64 leftoverToProcess = (pM4a->leftoverSampleCount < frame_count) ? pM4a->leftoverSampleCount : frame_count;
                 ma_uint64 leftoverBytes = leftoverToProcess * channels * sampleSize;
 
-                memcpy(p_frames_out, leftoverBuffer, leftoverBytes);
+                memcpy(p_frames_out, pM4a->leftoverBuffer, leftoverBytes);
                 totalFramesProcessed += leftoverToProcess;
 
                 // Shift the leftover buffer
-                ma_uint64 samplesLeft = leftoverSampleCount - leftoverToProcess;
+                ma_uint64 samplesLeft = pM4a->leftoverSampleCount - leftoverToProcess;
                 if (samplesLeft > 0) {
-                        memmove(leftoverBuffer, leftoverBuffer + leftoverBytes, samplesLeft * channels * sampleSize);
+                        memmove(pM4a->leftoverBuffer, pM4a->leftoverBuffer + leftoverBytes, samplesLeft * channels * sampleSize);
                 }
-                leftoverSampleCount = samplesLeft;
+                pM4a->leftoverSampleCount = samplesLeft;
         }
 
         while (totalFramesProcessed < frame_count) {
@@ -991,18 +994,18 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                         // Handle leftover frames using the global/static leftover buffer
                         if (frames_to_copy < framesDecoded) {
                                 // There are leftover frames
-                                leftoverSampleCount = framesDecoded - frames_to_copy;
-                                ma_uint64 leftoverBytes = leftoverSampleCount * channels * sampleSize;
+                                pM4a->leftoverSampleCount = framesDecoded - frames_to_copy;
+                                ma_uint64 leftoverBytes = pM4a->leftoverSampleCount * channels * sampleSize;
 
-                                if (leftoverBytes > sizeof(leftoverBuffer)) {
+                                if (leftoverBytes > sizeof(pM4a->leftoverBuffer)) {
                                         // Safety check to avoid overflow in the buffer.
-                                        leftoverSampleCount = sizeof(leftoverBuffer) / (channels * sampleSize);
-                                        leftoverBytes = leftoverSampleCount * channels * sampleSize;
+                                        pM4a->leftoverSampleCount = sizeof(pM4a->leftoverBuffer) / (channels * sampleSize);
+                                        leftoverBytes = pM4a->leftoverSampleCount * channels * sampleSize;
                                 }
 
-                                memcpy(leftoverBuffer, (uint8_t *)decodedData + bytesToCopy, leftoverBytes);
+                                memcpy(pM4a->leftoverBuffer, (uint8_t *)decodedData + bytesToCopy, leftoverBytes);
                         } else {
-                                leftoverSampleCount = 0;
+                                pM4a->leftoverSampleCount = 0;
                         }
                 } else {
                         if (pM4a->current_sample >= pM4a->total_samples) {
@@ -1092,18 +1095,18 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                         // Handle leftover frames using the global/static leftover buffer
                         if (frames_to_copy < framesDecoded) {
                                 // There are leftover frames
-                                leftoverSampleCount = framesDecoded - frames_to_copy;
-                                ma_uint64 leftoverBytes = leftoverSampleCount * channels * sampleSize;
+                                pM4a->leftoverSampleCount = framesDecoded - frames_to_copy;
+                                ma_uint64 leftoverBytes = pM4a->leftoverSampleCount * channels * sampleSize;
 
-                                if (leftoverBytes > sizeof(leftoverBuffer)) {
+                                if (leftoverBytes > sizeof(pM4a->leftoverBuffer)) {
                                         // Safety check to avoid overflow in the buffer.
-                                        leftoverSampleCount = sizeof(leftoverBuffer) / (channels * sampleSize);
-                                        leftoverBytes = leftoverSampleCount * channels * sampleSize;
+                                        pM4a->leftoverSampleCount = sizeof(pM4a->leftoverBuffer) / (channels * sampleSize);
+                                        leftoverBytes = pM4a->leftoverSampleCount * channels * sampleSize;
                                 }
 
-                                memcpy(leftoverBuffer, (uint8_t *)decodedData + bytesToCopy, leftoverBytes);
+                                memcpy(pM4a->leftoverBuffer, (uint8_t *)decodedData + bytesToCopy, leftoverBytes);
                         } else {
-                                leftoverSampleCount = 0;
+                                pM4a->leftoverSampleCount = 0;
                         }
                 }
         }
@@ -1153,7 +1156,7 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
                         return MA_ERROR;
                 }
 
-                leftoverSampleCount = 0;
+                pM4a->leftoverSampleCount = 0;
                 pM4a->cursor = pM4a->current_sample * 1024;
 
                 return MA_SUCCESS;
@@ -1180,7 +1183,7 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
 
                 NeAACDecPostSeekReset(pM4a->hDecoder, (long)pM4a->current_sample);
 
-                leftoverSampleCount = 0;
+                pM4a->leftoverSampleCount = 0;
                 pM4a->cursor = pM4a->current_sample * 1024;
 
                 return MA_SUCCESS;

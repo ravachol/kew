@@ -112,4 +112,6 @@ void skip_to_song(int id, bool start_playing);
 
 void skip_to_begginning_of_song(void);
 
+void crossfade(int fade_ms, int enter_song_ms);
+
 #endif

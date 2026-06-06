@@ -11,6 +11,7 @@
 
 #include "playback_ops.h"
 
+#include "common/common.h"
 #include "common/model.h"
 #include "playback_clock.h"
 #include "playback_state.h"
@@ -278,3 +279,12 @@ void seek(int seconds)
 
         add_to_accumulated_seconds(seconds);
 }
+
+void crossfade(int fade_ms, int enter_song_ms)
+{
+        sound_result_t res = sound_system_start_crossfade(sound_sys, fade_ms, enter_song_ms);
+
+        if (res == SOUND_CROSSFADE_DISABLED)
+                set_error_message("Crossfade disabled. The next song is of a different type.");
+}
+

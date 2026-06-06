@@ -23,6 +23,12 @@ extern "C" {
 
 #endif
 
+#define MAX_OPUS_CHANNELS 8
+#define MAX_OPUS_SAMPLES 5760 // Maximum expected frame size
+
+#define MAX_VORBIS_PACKET_FRAMES 4096
+#define MAX_VORBIS_CHANNELS 8
+
 typedef struct
 {
         ma_data_source_base ds; /* The webm decoder can be used independently as a data source. */
@@ -61,6 +67,8 @@ typedef struct
         ma_uint64 bufferLeftoverFrameCount;
         ma_uint64 bufferLeftoverFrameOffset;
 
+        float opusLeftoverBuffer[MAX_OPUS_SAMPLES * MAX_OPUS_CHANNELS];
+        float vorbisLeftoverBuffer[MAX_VORBIS_PACKET_FRAMES * MAX_VORBIS_CHANNELS];
 #endif
 } ma_webm;
 
@@ -220,16 +228,6 @@ ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_curs
 #endif
 
 #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
-
-#define MAX_OPUS_CHANNELS 8
-#define MAX_OPUS_SAMPLES 5760 // Maximum expected frame size
-
-static float opusLeftoverBuffer[MAX_OPUS_SAMPLES * MAX_OPUS_CHANNELS];
-
-#define MAX_VORBIS_PACKET_FRAMES 4096
-#define MAX_VORBIS_CHANNELS 8
-
-float vorbisLeftoverBuffer[MAX_VORBIS_PACKET_FRAMES * MAX_VORBIS_CHANNELS];
 
 static ma_result ma_webm_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read)
 {
@@ -749,7 +747,7 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma
                                         ma_uint64 frames_to_copy = p_webm->bufferLeftoverFrameCount < framesNeeded ? p_webm->bufferLeftoverFrameCount : framesNeeded;
 
                                         memcpy(f32Out + totalFramesRead * channels,
-                                               opusLeftoverBuffer + p_webm->bufferLeftoverFrameOffset * channels,
+                                               p_webm->opusLeftoverBuffer + p_webm->bufferLeftoverFrameOffset * channels,
                                                frames_to_copy * channels * sizeof(float));
 
                                         p_webm->bufferLeftoverFrameOffset += frames_to_copy;
@@ -809,7 +807,7 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma
                                 ma_uint64 framesUsed = skipFrames + usableFrames;
                                 ma_uint64 frames_left = nframes - framesUsed;
                                 if (frames_left > 0) {
-                                        memcpy(opusLeftoverBuffer,
+                                        memcpy(p_webm->opusLeftoverBuffer,
                                                decodeBuf + framesUsed * channels,
                                                frames_left * channels * sizeof(float));
                                         p_webm->bufferLeftoverFrameCount = frames_left;
@@ -841,7 +839,7 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma
                                         ma_uint32 toCopy = (frame_count - totalFramesRead) < avail ? (frame_count - totalFramesRead) : avail;
                                         memcpy(
                                             f32Out + totalFramesRead * channels,
-                                            vorbisLeftoverBuffer + p_webm->bufferLeftoverFrameOffset * channels,
+                                            p_webm->vorbisLeftoverBuffer + p_webm->bufferLeftoverFrameOffset * channels,
                                             toCopy * channels * sizeof(float));
                                         p_webm->bufferLeftoverFrameOffset += toCopy;
                                         totalFramesRead += toCopy;
@@ -884,7 +882,7 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma
                                                         if (framesAvail > 0) {
                                                                 for (ma_uint32 f = 0; f < (ma_uint64)framesAvail; ++f)
                                                                         for (ma_uint32 c = 0; c < channels; ++c)
-                                                                                vorbisLeftoverBuffer[f * channels + c] = pcm[c][frames_to_copy + f];
+                                                                                p_webm->vorbisLeftoverBuffer[f * channels + c] = pcm[c][frames_to_copy + f];
                                                                 p_webm->bufferLeftoverFrameCount = (ma_uint64)framesAvail;
                                                                 p_webm->bufferLeftoverFrameOffset = 0;
                                                                 framesAvail = 0;

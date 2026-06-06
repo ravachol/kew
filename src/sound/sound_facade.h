@@ -42,7 +42,8 @@ typedef enum {
         SOUND_ERROR_INTERNAL = -7,
         SOUND_ERROR_INVALID_ARGUMENT = -8,
         SOUND_ERROR_SONG = -9,
-        SOUND_NOTIFY_SWITCH = 1
+        SOUND_CROSSFADE_DISABLED = -10,
+        SOUND_NOTIFY_SWITCH = 1,
 } sound_result_t;
 
 /*
@@ -341,6 +342,15 @@ sound_result_t sound_system_set_buffer_ready(const sound_system_t *system, int v
  * @return sound_result_t Status code indicating success or failure.
  */
 sound_result_t sound_system_update_audio_buffer(const sound_system_t *system);
+
+/**
+ * @brief Starts a cross-fade
+ *
+ * @param sound The sound system.
+ * @param fade_ms How long the fade should take in milliseconds.
+ * @param enter_song_ms At what point to enter the next song in milliseconds.
+ */
+sound_result_t sound_system_start_crossfade(const sound_system_t *system, int fade_ms, int enter_song_ms);
 
 /*=========================================================
   State Queries

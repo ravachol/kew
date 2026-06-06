@@ -1274,7 +1274,7 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
                 style = cell_style_from_theme(ui->theme.status_error);
 
                 char msg[256];
-                snprintf(msg, sizeof(msg), " %s", get_error_message());
+                snprintf(msg, sizeof(msg), "%s", get_error_message());
                 draw_buffer_set_string_truncated(buf, region.row, region.col,
                                                  msg, region.width, style);
                 return (ComponentMsg){0};
