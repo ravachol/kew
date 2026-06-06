@@ -398,7 +398,7 @@ typedef struct
         int currentSongId;
         int auto_resume;
 
-
+        int always_crossfade;
         int fade_enter_song_ms;
         int fade_quick_ms;
         int fade_medium_ms;
@@ -556,6 +556,7 @@ typedef struct
         char switchNumberedSongAlt2[6];
         char toggle_pause[6];
         char toggle_notifications[6];
+        char toggle_crossfade[6];
         char cycleColorsDerivedFrom[6];
         char cycle_themes[6];
         char toggle_visualizer[6];
@@ -563,6 +564,7 @@ typedef struct
         char toggle_repeat[6];
         char toggle_shuffle[6];
         char auto_resume[6];
+        char always_crossfade[6];
         char seekBackward[6];
         char seek_forward[6];
         char save_playlist[6];

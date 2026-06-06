@@ -213,11 +213,11 @@ void run_command(UpdateResult result)
                 break;
 
         case CMD_NEXT:
-                skip_to_next_song();
+                switch_to_next_song();
                 break;
 
         case CMD_PREV:
-                skip_to_prev_song();
+                switch_to_prev_song();
                 break;
 
         case CMD_SEEK_BACK:
@@ -274,7 +274,8 @@ void run_command(UpdateResult result)
                                 fade_ms = model->state.settings.fade_medium_ms;
                                 break;
                 }
-                crossfade(fade_ms, model->state.settings.fade_enter_song_ms);
+                if (!crossfade(fade_ms, model->state.settings.fade_enter_song_ms))
+                        set_error_message("Crossfade disabled. The next song is of a different type.");
 
                 break;
         }

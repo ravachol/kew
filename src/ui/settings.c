@@ -77,6 +77,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     // Controls
     {0, 'p', 0, MSG_PLAY_PAUSE, ""},
     {0, 'n', 0, MSG_TOGGLENOTIFICATIONS, ""},
+    {0, 'z', 0, MSG_TOGGLECROSSFADE, ""},
     {0, 'v', 0, MSG_CYCLEVISUALIZERMODE, ""},
     {0, 'b', 0, MSG_TOGGLEASCII, ""},
     {0, 'r', 0, MSG_TOGGLEREPEAT, ""},
@@ -737,6 +738,7 @@ static const EventMap event_map[] = {
     {"sortLibrary", MSG_SORTLIBRARY},
     {"cycleThemes", MSG_CYCLETHEMES},
     {"toggleNotifications", MSG_TOGGLENOTIFICATIONS},
+    {"toggleCrossfade", MSG_TOGGLECROSSFADE},
     {"showLyricsPage", MSG_SHOWLYRICSPAGE},
     {"toggleFolderDisplay", MSG_TOGGLEFOLDERDISPLAY},
     {"crossfadequick", MSG_CROSSFADE_QUICK},
@@ -916,6 +918,7 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->visualizer_height));
         c_strcpy(settings->titleDelay, "1", sizeof(settings->titleDelay));
         c_strcpy(settings->auto_resume, "1", sizeof(settings->auto_resume));
+        c_strcpy(settings->always_crossfade, "0", sizeof(settings->always_crossfade));
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
         c_strcpy(settings->color, "6", sizeof(settings->color));
         c_strcpy(settings->artistColor, "6", sizeof(settings->artistColor));
@@ -1215,6 +1218,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->auto_resume,
                                  sizeof(settings->auto_resume), "%s",
                                  pair->value);
+                } else if (strcmp(lowercase_key, "alwayscrossfade") == 0) {
+                        snprintf(settings->always_crossfade,
+                                 sizeof(settings->always_crossfade), "%s",
+                                 pair->value);
                 } else if (strcmp(lowercase_key, "currentsongid") == 0) {
                         snprintf(settings->currentSongId,
                                  sizeof(settings->currentSongId), "%s",
@@ -1292,6 +1299,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  sizeof(settings->toggle_notifications), "%s",
                                  pair->value);
                         add_legacy_key_binding(MSG_TOGGLENOTIFICATIONS, pair->value);
+                } else if (strcmp(lowercase_key, "togglecrossfade") == 0) {
+                        snprintf(settings->toggle_crossfade,
+                                 sizeof(settings->toggle_crossfade), "%s",
+                                 pair->value);
                 } else if (strcmp(lowercase_key, "togglevisualizer") == 0) {
                         snprintf(settings->toggle_visualizer,
                                  sizeof(settings->toggle_visualizer), "%s",
@@ -1761,10 +1772,11 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[60] = (EventMapping){settings->sort_library, MSG_SORTLIBRARY};
         mappings[61] = (EventMapping){settings->cycle_themes, MSG_CYCLETHEMES};
         mappings[62] = (EventMapping){settings->toggle_notifications, MSG_TOGGLENOTIFICATIONS};
-        mappings[63] = (EventMapping){settings->showLyricsPage, MSG_SHOWLYRICSPAGE};
-        mappings[64] = (EventMapping){settings->crossfade_quick, MSG_CROSSFADE_QUICK};
-        mappings[65] = (EventMapping){settings->crossfade_medium, MSG_CROSSFADE_MEDIUM};
-        mappings[66] = (EventMapping){settings->crossfade_slow, MSG_CROSSFADE_SLOW};
+        mappings[63] = (EventMapping){settings->toggle_crossfade, MSG_TOGGLECROSSFADE};
+        mappings[64] = (EventMapping){settings->showLyricsPage, MSG_SHOWLYRICSPAGE};
+        mappings[65] = (EventMapping){settings->crossfade_quick, MSG_CROSSFADE_QUICK};
+        mappings[66] = (EventMapping){settings->crossfade_medium, MSG_CROSSFADE_MEDIUM};
+        mappings[67] = (EventMapping){settings->crossfade_slow, MSG_CROSSFADE_SLOW};
 }
 
 int mkdir_p(const char *path, mode_t mode)
@@ -1996,6 +2008,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
+        fprintf(file, "alwaysCrossfade=%d\n\n", ui->always_crossfade);
 
         if (ui->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
@@ -2221,16 +2234,23 @@ void set_config(AppSettings *settings, UISettings *ui)
                                                 sizeof(settings->collapseTopLevel))
                                      : c_strcpy(settings->collapseTopLevel, "0",
                                                 sizeof(settings->collapseTopLevel));
+
         if (settings->visualizer_height[0] == '\0')
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
                          ui->visualizer_height);
+
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay),
                          "%d", ui->titleDelay);
+
         if (settings->auto_resume[0] == '\0')
                 snprintf(settings->auto_resume, sizeof(settings->auto_resume),
                          "%d", ui->auto_resume);
+
+        if (settings->always_crossfade[0] == '\0')
+                snprintf(settings->always_crossfade, sizeof(settings->always_crossfade),
+                         "%d", ui->always_crossfade);
 
         if (settings->replayGainCheckFirst[0] == '\0')
                 snprintf(settings->replayGainCheckFirst,
@@ -2253,6 +2273,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
         fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);
         fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
+        fprintf(file, "alwaysCrossfade=%d\n\n", ui->always_crossfade);
 
         fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);
