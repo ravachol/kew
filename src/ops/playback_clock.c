@@ -49,6 +49,11 @@ void calc_elapsed_time(double duration)
         if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED)
                 return;
 
+        int reset_ms = 0;
+        if (sound_system_get_clock_reset(sound_sys, &reset_ms)) {
+                reset_clock();
+        }
+
         clock_gettime(CLOCK_MONOTONIC, &current_time);
 
         double time_since_last_update =
@@ -58,7 +63,8 @@ void calc_elapsed_time(double duration)
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
                 model->elapsed_seconds =
                     (double)(current_time.tv_sec - start_time.tv_sec) +
-                    (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                    (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 +
+                    (double)reset_ms / 1000.0;
                 double seek_elapsed = sound_system_get_seek_elapsed();
                 double diff =
                     model->elapsed_seconds +
@@ -154,8 +160,7 @@ bool flush_seek(void)
 
                 emit_seeked_signal(model->elapsed_seconds);
 
-                if (model->restore_volume)
-                {
+                if (model->restore_volume) {
                         c_sleep(200);
                         set_volume(model->volume);
                         model->restore_volume = false;
