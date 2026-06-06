@@ -213,7 +213,7 @@ static void handle_next(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        skip_to_next_song();
+        switch_to_next_song();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -232,7 +232,7 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        skip_to_prev_song();
+        switch_to_prev_song();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 

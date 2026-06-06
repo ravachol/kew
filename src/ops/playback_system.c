@@ -36,6 +36,7 @@ int create_sound_system(void)
 
         if (result >= 0) {
                 sound_system_set_replay_gain_check_first(sound_sys, model->state.settings.replayGainCheckFirst);
+                sound_system_set_always_crossfade(sound_sys, model->state.settings.always_crossfade, model->state.settings.fade_medium_ms);
                 start_playing(true);
         }
 

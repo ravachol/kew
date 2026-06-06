@@ -145,7 +145,7 @@ void skip_to_last_song(void);
  * Handles paused/stopped states, rebuilds decoders if required,
  * and restarts playback from the previous entry.
  */
-void skip_to_prev_song(void);
+void switch_to_prev_song(void);
 
 /**
  * @brief Skip to the next song in the playlist.
@@ -153,7 +153,7 @@ void skip_to_prev_song(void);
  * Advances playback to the next entry, respecting shuffle,
  * repeat-list, and paused/stopped states.
  */
-void skip_to_next_song(void);
+void switch_to_next_song(void);
 
 /**
  * @brief Set the current song pointer to the next entry.

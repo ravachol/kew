@@ -65,6 +65,7 @@ enum MsgType {
         MSG_CROSSFADE_QUICK,
         MSG_CROSSFADE_MEDIUM,
         MSG_CROSSFADE_SLOW,
+        MSG_TOGGLECROSSFADE
 };
 
 typedef struct

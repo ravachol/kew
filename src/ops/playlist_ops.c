@@ -456,7 +456,7 @@ void silent_switch_to_prev(void)
         ps->hasSilentlySwitched = true;
 }
 
-void skip_to_next_song(void)
+void switch_to_next_song(void)
 {
         Model *model = get_model();
 
@@ -464,6 +464,12 @@ void skip_to_next_song(void)
         {
                 skip_to_begginning_of_song();
                 return;
+        }
+
+        if (model->state.settings.always_crossfade)
+        {
+                if (crossfade(model->state.settings.fade_medium_ms, model->state.settings.fade_enter_song_ms))
+                        return;
         }
 
         AppState *state = get_app_state();
@@ -519,7 +525,7 @@ void skip_to_next_song(void)
         skip();
 }
 
-void skip_to_prev_song(void)
+void switch_to_prev_song(void)
 {
 
         if (skip_in_progress)

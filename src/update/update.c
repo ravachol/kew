@@ -9,7 +9,6 @@
 
 #include "ops/library_ops.h"
 
-#include "ops/playback_clock.h"
 #include "ops/playback_state.h"
 #include "ops/search_ops.h"
 
@@ -548,6 +547,10 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_SEARCH:
                 set_dirty(DIRTY_SEARCH);
                 result.cmd.type = CMD_SEARCH;
+                break;
+
+        case MSG_TOGGLECROSSFADE:
+                model->state.settings.always_crossfade = !model->state.settings.always_crossfade;
                 break;
 
         case MSG_ADDTOFAVORITESPLAYLIST:

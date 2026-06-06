@@ -278,6 +278,15 @@ sound_result_t sound_system_seek_percentage(sound_system_t *system, float percen
 sound_result_t sound_system_set_seek_elapsed(double seek_elapsed);
 
 /**
+ * @brief Sets crossfade to always on or off.
+ *
+ * @param value Either 1=on or 0.
+ * @param fade_ms Milliseconds length of fade.
+ * @return sound_result_t Result code indicating success or failure.
+ */
+sound_result_t sound_system_set_always_crossfade(sound_system_t *system, int value, int fade_ms);
+
+/**
  * @brief Sets the repeat state.
  *
  * Updates the repeat mode of the sound system.

@@ -367,6 +367,8 @@ void *decode_loop(void *arg)
         lastCursor = 0;
         set_decode_thread_priority(pthread_self());
 
+        sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
+
         while (atomic_load(&sound->decode_thread_running)) {
 
                 // Handle pending switch
@@ -449,6 +451,19 @@ void *decode_loop(void *arg)
                 ma_uint64 frames_to_read = 0;
                 LoaderData *loader = get_loader_data();
                 void *next_decoder = get_other_decoder();
+
+                long long cursor = 0;
+                ops->get_cursor(decoder, &cursor);
+
+                ma_uint64 total_frames = 0;
+                ma_data_source_get_length_in_pcm_frames(decoder, &total_frames);
+
+                int frames_remaining = total_frames - cursor;
+
+                if (!sound->fade_requested &&
+                    frames_remaining <= sound->fade_frames) {
+                        request_crossfade(sound->always_fade_ms, 0);
+                }
 
                 // Handle crossfade
                 if (sound->fade_requested && !loader->loadingFirstDecoder && next_decoder) {
@@ -538,12 +553,12 @@ void *decode_loop(void *arg)
                                                                 frames_to_decode, &frames_to_read);
                 }
 
-                long long cursor = 0;
                 ops->get_cursor(decoder, &cursor);
 
                 // Handle end-of-track switching
                 if (!atomic_load(&sound->pending_switch) &&
                     !atomic_load(&sound->decode_finished) &&
+
                     should_switch(frames_to_read, result, (ma_uint64)cursor)) {
 
                         if (cursor != lastCursor) { // mid-song switch, clear buffer
@@ -557,19 +572,23 @@ void *decode_loop(void *arg)
                                         ma_uint32 framesRemaining = (ma_uint32)frames_to_read;
                                         ma_uint32 framesWritten = 0;
                                         while (framesRemaining > 0) {
+
                                                 ma_uint32 framesToWrite = framesRemaining;
                                                 void *pWriteBuffer = NULL;
                                                 ma_result wr = ma_pcm_rb_acquire_write(&pcm_rb, &framesToWrite, &pWriteBuffer);
+
                                                 if (wr != MA_SUCCESS || framesToWrite == 0) {
                                                         struct timespec ts = {0, 500000};
                                                         nanosleep(&ts, NULL);
                                                         continue;
                                                 }
+
                                                 memcpy(pWriteBuffer,
                                                        temp + framesWritten * sound->channels,
                                                        framesToWrite * sound->channels * sizeof(float));
 
                                                 ma_pcm_rb_commit_write(&pcm_rb, framesToWrite);
+
                                                 framesWritten += framesToWrite;
                                                 framesRemaining -= framesToWrite;
                                         }
@@ -583,6 +602,7 @@ void *decode_loop(void *arg)
                                 continue;
                         }
                 }
+
                 lastCursor = cursor;
 
                 // Write decoded frames to ring buffer

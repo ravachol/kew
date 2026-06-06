@@ -67,6 +67,9 @@ struct sound_system {
         float volume;
         sound_playback_state_t state;
 
+        bool always_fade;
+        int always_fade_ms;
+        int fade_frames;
         bool fade_allowed;
         bool fade_requested;
         bool fade_seek_performed;
