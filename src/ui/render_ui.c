@@ -343,7 +343,7 @@ void hide_skipped_rows(Model *model, Row *row, Pane *pane)
                         row->hidden = true;
         }
 
-        if (pane->fn == component_logo || pane->fn == component_footer || pane->fn == component_error_row) {
+        if (pane->fn == component_logo) {
                 if (model->term_h < MIN_WINDOW_HEIGHT && row->pane_count == 1)
                         row->hidden = true;
         }
@@ -966,6 +966,15 @@ void rebuild_layout(Model *model)
         if (footer) {
                 model->state.ui.footer_row = footer->region.row + 1;
                 model->state.ui.footer_col = footer->region.col + 1;
+        }
+        else {
+                Pane *landscape = find_pane(s_layout, component_track_landscape);
+
+                if (landscape)
+                {
+                        model->state.ui.footer_row = landscape->region.row + landscape->region.height;
+                        model->state.ui.footer_col = landscape->region.col + 1;
+                }
         }
 
         rebuilding = false;
