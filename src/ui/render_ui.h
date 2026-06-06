@@ -149,4 +149,6 @@ void request_stop_visualization(void);
  */
 int get_footer_text(char *restrict text, size_t size);
 
+char *url_at_pos(int row, int col);
+
 #endif
