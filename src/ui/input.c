@@ -13,10 +13,10 @@
 
 #include "input.h"
 
+#include "common/appstate.h"
 #include "common/common.h"
 #include "common/events.h"
 #include "common/model.h"
-#include "common/appstate.h"
 
 #include "update/messages.h"
 
@@ -24,8 +24,8 @@
 #include "termbox2_input.h"
 
 #include "control_ui.h"
-#include "render_ui.h"
 #include "queue_ui.h"
+#include "render_ui.h"
 #include "settings.h"
 
 #include "ops/playback_clock.h"
@@ -313,6 +313,26 @@ int get_footer_col(void)
         return model->state.ui.footer_col;
 }
 
+#include <stdlib.h>
+
+void open_url(const char *url)
+{
+#ifdef _WIN32
+        char cmd[4096];
+        snprintf(cmd, sizeof(cmd), "start \"\" \"%s\"", url);
+        system(cmd);
+#elif __APPLE__
+        char cmd[4096];
+        snprintf(cmd, sizeof(cmd), "open \"%s\"", url);
+        system(cmd);
+#else
+        char cmd[4096];
+        snprintf(cmd, sizeof(cmd), "xdg-open \"%s\"", url);
+        int result = system(cmd);
+        (void)result; // remove warning in editor
+#endif
+}
+
 bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
 {
         if (ev->type != TB_EVENT_MOUSE)
@@ -350,10 +370,22 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                 return true;
         }
 
-        if (mouse_key == TB_KEY_MOUSE_RELEASE) {
-                // Mouse moved outside progress bar area → stop dragging
-                dragging_progress_bar = false;
-                return true;
+        Model *model = get_model();
+        if (!model->state.ui.link_clicked) {
+                char *link = url_at_pos(mouse_y - 1, mouse_x - 1);
+
+                if (link) {
+                        open_url(link);
+
+                        Model *model = get_model();
+                        model->state.ui.link_clicked = true;
+                }
+
+                if (mouse_key == TB_KEY_MOUSE_RELEASE) {
+                        // Mouse moved outside progress bar area → stop dragging
+                        dragging_progress_bar = false;
+                        return true;
+                }
         }
 
         // Progress bar click or hold-drag movement
@@ -414,6 +446,9 @@ void handle_cooldown(void)
                                 }
                         }
                 }
+
+                Model *model = get_model();
+                model->state.ui.link_clicked = false;
         }
 }
 

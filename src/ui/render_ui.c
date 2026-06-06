@@ -1146,6 +1146,42 @@ void layout_render_dirty(const Layout *layout,
         }
 }
 
+char *url_at_pos(int row, int col)
+{
+        bool link_active = false;
+        char *link = NULL;
+
+        for (int r = 0; r < s_buf->rows; r++) {
+
+                for (int c = 0; c < s_buf->cols; c++) {
+
+                        if (r == row) {
+
+
+
+                                Cell *cell = &s_buf->cells[r * s_buf->cols + c];
+
+                                if (cell->kind == CELL_LINK) {
+
+                                        link_active = true;
+                                        link = cell->link->url;
+
+                                }
+
+                                if (cell->kind != CELL_OCCUPIED && cell->kind != CELL_LINK && link_active)
+                                {
+                                        link_active = false;
+                                }
+
+                                if (link_active && c >= col)
+                                        return link;
+                        }
+                }
+        }
+
+        return NULL;
+}
+
 void render_ui(Model *model, RenderContext *ctx)
 {
         if (model->dirty == DIRTY_NONE || !model->state.settings.uiEnabled)
