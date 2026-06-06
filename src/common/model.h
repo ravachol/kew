@@ -658,9 +658,13 @@ typedef struct
         char chromaPath[PATH_MAX];
         char chromaDevice[PATH_MAX];
         char showFoldersInPlaylist[2];
-        char crossfade_quick[6];
-        char crossfade_medium[6];
-        char crossfade_slow[6];
+        char fade_enter_song_ms[12];
+        char fade_quick[6];
+        char fade_medium[6];
+        char fade_slow[6];
+        char fade_quick_ms[12];
+        char fade_medium_ms[12];
+        char fade_slow_ms[12];
 } AppSettings;
 
 /**
