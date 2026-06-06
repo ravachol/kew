@@ -41,7 +41,7 @@
 #include <wchar.h> // Needed for netbsd
 
 #define MAX_TMP_SEQ_LEN 256
-#define NUM_KEY_MAPPINGS 64
+#define NUM_KEY_MAPPINGS 67
 
 const int COOLDOWN_MS = 500;
 const int COOLDOWN2_MS = 100;

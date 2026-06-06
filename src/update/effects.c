@@ -260,6 +260,25 @@ void run_command(UpdateResult result)
                 break;
         }
 
+        case CMD_CROSSFADE: {
+                int fade_ms = model->state.settings.fade_medium_ms;
+                switch(result.cmd.value)
+                {
+                        case FADE_QUICK:
+                                fade_ms = model->state.settings.fade_quick_ms;
+                                break;
+                        case FADE_SLOW:
+                                fade_ms = model->state.settings.fade_slow_ms;
+                                break;
+                        default:
+                                fade_ms = model->state.settings.fade_medium_ms;
+                                break;
+                }
+                crossfade(fade_ms, model->state.settings.fade_enter_song_ms);
+
+                break;
+        }
+
         case CMD_MOVE_SONG_UP:
                 move_song_up(&model->state.ui.chosen_row);
                 break;
