@@ -924,6 +924,10 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->artistColor, "6", sizeof(settings->artistColor));
         c_strcpy(settings->titleColor, "6", sizeof(settings->titleColor));
         c_strcpy(settings->enqueued_color, "6", sizeof(settings->enqueued_color));
+        c_strcpy(settings->fade_enter_song_ms, "0", sizeof(settings->fade_enter_song_ms));
+        c_strcpy(settings->fade_quick_ms, "1000", sizeof(settings->fade_quick_ms));
+        c_strcpy(settings->fade_medium_ms, "3000", sizeof(settings->fade_medium_ms));
+        c_strcpy(settings->fade_slow_ms, "8000", sizeof(settings->fade_slow_ms));
 
         memcpy(settings->ansiTheme, "default", 8);
 }
@@ -1230,14 +1234,26 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->currentSongSeconds,
                                  sizeof(settings->currentSongSeconds), "%s",
                                  pair->value);
-                } else if (strcmp(lowercase_key, "crossfadequick") == 0) {
-                        snprintf(settings->crossfade_quick, sizeof(settings->crossfade_quick),
+                } else if (strcmp(lowercase_key, "fadequick") == 0) {
+                        snprintf(settings->fade_quick, sizeof(settings->fade_quick),
                                  "%s", pair->value);
-                } else if (strcmp(lowercase_key, "crossfademedium") == 0) {
-                        snprintf(settings->crossfade_medium, sizeof(settings->crossfade_medium),
+                } else if (strcmp(lowercase_key, "fademedium") == 0) {
+                        snprintf(settings->fade_medium, sizeof(settings->fade_medium),
                                  "%s", pair->value);
-                } else if (strcmp(lowercase_key, "crossfadeslow") == 0) {
-                        snprintf(settings->crossfade_slow, sizeof(settings->crossfade_slow),
+                } else if (strcmp(lowercase_key, "fadeslow") == 0) {
+                        snprintf(settings->fade_slow, sizeof(settings->fade_slow),
+                                 "%s", pair->value);
+              } else if (strcmp(lowercase_key, "fadeentersongms") == 0) {
+                        snprintf(settings->fade_enter_song_ms, sizeof(settings->fade_enter_song_ms),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "fadequickms") == 0) {
+                        snprintf(settings->fade_quick_ms, sizeof(settings->fade_quick_ms),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "fademediumms") == 0) {
+                        snprintf(settings->fade_medium_ms, sizeof(settings->fade_medium_ms),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "fadeslowms") == 0) {
+                        snprintf(settings->fade_slow_ms, sizeof(settings->fade_slow_ms),
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "volumeup") == 0) {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
@@ -1774,9 +1790,9 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[62] = (EventMapping){settings->toggle_notifications, MSG_TOGGLENOTIFICATIONS};
         mappings[63] = (EventMapping){settings->toggle_crossfade, MSG_TOGGLECROSSFADE};
         mappings[64] = (EventMapping){settings->showLyricsPage, MSG_SHOWLYRICSPAGE};
-        mappings[65] = (EventMapping){settings->crossfade_quick, MSG_CROSSFADE_QUICK};
-        mappings[66] = (EventMapping){settings->crossfade_medium, MSG_CROSSFADE_MEDIUM};
-        mappings[67] = (EventMapping){settings->crossfade_slow, MSG_CROSSFADE_SLOW};
+        mappings[65] = (EventMapping){settings->fade_quick, MSG_CROSSFADE_QUICK};
+        mappings[66] = (EventMapping){settings->fade_medium, MSG_CROSSFADE_MEDIUM};
+        mappings[67] = (EventMapping){settings->fade_slow, MSG_CROSSFADE_SLOW};
 }
 
 int mkdir_p(const char *path, mode_t mode)
@@ -1840,33 +1856,8 @@ void migrate_prefs_file(char *new_filepath)
         return;
 }
 
-void get_prefs(AppSettings *settings, UISettings *ui)
+void load_settings_into_ui(AppSettings *settings, UISettings *ui)
 {
-        int pair_count;
-        char *configdir = get_config_path();
-
-        setlocale(LC_ALL, "");
-
-        struct stat st = {0};
-        if (stat(configdir, &st) == -1) {
-                if (mkdir_p(configdir, 0700) != 0) {
-                        perror("mkdir");
-                        free(configdir);
-                        quit();
-                }
-        }
-
-        char *filepath = get_settings_file_path(configdir, STATE_FILE);
-
-        // Move legacy state file to new location
-        migrate_prefs_file(filepath);
-
-        KeyValuePair *pairs =
-            read_key_value_pairs(filepath, &pair_count, &(ui->last_time_app_ran));
-
-        free(filepath);
-        construct_app_settings(settings, pairs, pair_count, true);
-
         double sec = get_float(settings->currentSongSeconds);
         if (sec > 0)
                 ui->currentSongSeconds = sec;
@@ -1900,6 +1891,26 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 set_volume(tmp);
 
+        tmp = get_number(settings->fade_enter_song_ms);
+        if (tmp >= 0) {
+                ui->fade_enter_song_ms = tmp;
+        }
+
+        tmp = get_number(settings->fade_quick_ms);
+        if (tmp >= 0) {
+                ui->fade_quick_ms = tmp;
+        }
+
+        tmp = get_number(settings->fade_medium_ms);
+        if (tmp >= 0) {
+                ui->fade_medium_ms = tmp;
+        }
+
+        tmp = get_number(settings->fade_slow_ms);
+        if (tmp >= 0) {
+                ui->fade_slow_ms = tmp;
+        }
+
         if (ui->colorMode != COLOR_MODE_ALBUM &&
                 ui->colorMode != COLOR_MODE_ALBUM_ONE &&
                 ui->colorMode != COLOR_MODE_DEFAULT &&
@@ -1907,6 +1918,36 @@ void get_prefs(AppSettings *settings, UISettings *ui)
                 snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
         else
                 ui->theme_name[0] = '\0';
+}
+
+void get_prefs(AppSettings *settings, UISettings *ui)
+{
+        int pair_count;
+        char *configdir = get_config_path();
+
+        setlocale(LC_ALL, "");
+
+        struct stat st = {0};
+        if (stat(configdir, &st) == -1) {
+                if (mkdir_p(configdir, 0700) != 0) {
+                        perror("mkdir");
+                        free(configdir);
+                        quit();
+                }
+        }
+
+        char *filepath = get_settings_file_path(configdir, STATE_FILE);
+
+        // Move legacy state file to new location
+        migrate_prefs_file(filepath);
+
+        KeyValuePair *pairs =
+            read_key_value_pairs(filepath, &pair_count, &(ui->last_time_app_ran));
+
+        free(filepath);
+        construct_app_settings(settings, pairs, pair_count, true);
+
+        load_settings_into_ui(settings, ui);
 
         free(configdir);
 }
@@ -1943,6 +1984,8 @@ void get_config(AppSettings *settings, UISettings *ui)
         free(filepath);
 
         construct_app_settings(settings, pairs, pair_count, false);
+
+        load_settings_into_ui(settings, ui);
 
         free(configdir);
 }
@@ -2273,7 +2316,13 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
         fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);
         fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
+
+        fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "alwaysCrossfade=%d\n\n", ui->always_crossfade);
+        fprintf(file, "fadeEnterSongMs=%s\n\n", settings->fade_enter_song_ms);
+        fprintf(file, "fadeQuickMs=%s\n\n", settings->fade_quick_ms);
+        fprintf(file, "fadeMediumMs=%s\n\n", settings->fade_medium_ms);
+        fprintf(file, "fadeSlowMs=%s\n\n", settings->fade_slow_ms);
 
         fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);
