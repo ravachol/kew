@@ -385,12 +385,11 @@ void update_library_if_changed_detected(bool wait_until_complete)
 void save_library(void)
 {
         FileSystemEntry *library = get_library();
-        PlayList *playlist = get_playlist();
         char *filepath = get_library_file_path();
 
         reset_sort_library();
 
-        write_tree_to_binary(library, filepath, playlist);
+        write_tree_to_binary(library, filepath);
 
         free(filepath);
 }
@@ -482,7 +481,18 @@ void enqueue_song(FileSystemEntry *child)
         if (add_to_list(playlist, node2) == -1)
                 destroy_node(node2);
 
-        child->is_enqueued = 1;
+        child->is_enqueued = playlist->count;
+
+        if (node->prev)
+        {
+                // Get the last entries enqueued number. This is the row number.
+                // It can be larger than the playlist count because we don't adjust it when songs are dequeued
+                // Our number has to be one larger than that number.
+                FileSystemEntry *library = get_library();
+                FileSystemEntry *prev_entry = find_corresponding_entry(library, node->prev->song.file_path);
+                child->is_enqueued = prev_entry->is_enqueued + 1;
+        }
+
         child->parent->is_enqueued = 1;
 }
 

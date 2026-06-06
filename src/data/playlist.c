@@ -112,6 +112,16 @@ void move_up_list(PlayList *list, Node *node)
                 next_node->prev = prev_node;
         else
                 list->tail = prev_node;
+
+        // Is_enqueued in library stores the position of the song in the playlist and needs to be updated
+        FileSystemEntry *library = get_library();
+        FileSystemEntry *prev_entry = find_corresponding_entry(library, prev_node->song.file_path);
+        if (prev_entry)
+                prev_entry->is_enqueued += 1;
+
+        FileSystemEntry *node_entry = find_corresponding_entry(library, node->song.file_path);
+        if (node_entry)
+                node_entry->is_enqueued -= 1;
 }
 
 void move_down_list(PlayList *list, Node *node)
@@ -138,6 +148,16 @@ void move_down_list(PlayList *list, Node *node)
                 next_next_node->prev = node;
         else
                 list->tail = node;
+
+        // Is_enqueued in library stores the position of the song in the playlist and needs to be updated
+        FileSystemEntry *library = get_library();
+        FileSystemEntry *next_entry = find_corresponding_entry(library, next_node->song.file_path);
+        if (next_entry)
+                next_entry->is_enqueued -= 1;
+
+        FileSystemEntry *node_entry = find_corresponding_entry(library, node->song.file_path);
+        if (node_entry)
+                node_entry->is_enqueued += 1;
 }
 
 Node *delete_from_list(PlayList *list, Node *node)
@@ -787,6 +807,7 @@ void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist)
         if (!root)
                 return;
 
+        // Position in the playlist is determined by the enqueued variable
         if (root->is_enqueued > 0 && root->is_directory == 0 && !is_m3u_file(root)) {
                 Node *node = malloc(sizeof(Node));
                 node->song.file_path = strdup(root->full_path);

@@ -84,7 +84,7 @@ static void collect_entries(FileSystemEntry *node, EntryArray *arr)
                 collect_entries(child, arr);
 }
 
-int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *playlist)
+int write_tree_to_binary(FileSystemEntry *root, const char *filename)
 {
         if (!root || !filename)
                 return -1;
@@ -142,25 +142,6 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
                         d->name_offset = (uint32_t)offset;
                         strcpy(&string_table[offset], n->name);
                         offset += strlen(n->name) + 1;
-
-                        if (playlist->head && n->is_enqueued)
-                        {
-                                Node *node = playlist->head;
-
-                                int count = 0;
-
-                                while (node != NULL)
-                                {
-                                        count++;
-
-                                        if (strcmp(node->song.file_path, n->full_path) == 0)
-                                        {
-                                                d->is_enqueued = count;
-                                        }
-
-                                        node = node->next;
-                                }
-                        }
                 } else {
                         d->name_offset = UINT32_MAX; // fallback if name is NULL
                 }

@@ -105,11 +105,10 @@ FileSystemEntry *read_tree_from_binary(
  *
  * @param root      The root of the tree to serialize
  * @param filename  Path to the output binary file
- * @param playlist Contains the current play list which is saved to is_enqueued
  *
  * @return 0 on success, -1 on failure
  */
-int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *playlist);
+int write_tree_to_binary(FileSystemEntry *root, const char *filename);
 
 /**
  * Recursively performs a fuzzy search on a FileSystemEntry tree.
