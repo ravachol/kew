@@ -407,6 +407,17 @@ int sound_system_get_repeat_state(void);
 double sound_system_get_seek_elapsed(void);
 
 /**
+ * @brief Gets if the clock should be reset
+ *
+ * Returns if the clock has should be reset, likely by auto-fade, and sets clock_reset to false.
+ *
+ * @param system
+ * @param reset_ms What to reset the clock to in milliseconds.
+ * @return 1 If the clock has been reset.
+ */
+int sound_system_get_clock_reset(sound_system_t *system, int *reset_ms);
+
+/**
  * @brief Returns whether the system is currently switching tracks.
  *
  * Indicates if a track transition is in progress, such as during
