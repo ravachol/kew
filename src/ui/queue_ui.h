@@ -5,6 +5,7 @@
  */
 
 #include "data/directorytree.h"
+#include "data/playlist_type.h"
 
 /**
  * @brief Resets the playlist and playback state after dequeuing the currently playing song.

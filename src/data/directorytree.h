@@ -10,8 +10,6 @@
 #ifndef DIRECTORYTREE_H
 #define DIRECTORYTREE_H
 
-#include "playlist_type.h"
-
 #include "common/path_max.h"
 
 #include <dirent.h>
