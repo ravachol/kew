@@ -155,4 +155,12 @@ bool sound_is_using_slot_A(void);
  */
 int sound_get_bit_depth(ma_format format);
 
+/**
+ * @brief Starts a cross-fade
+ *
+ * @param fade_ms How long the fade should take in milliseconds.
+ * @param enter_song_ms At what point to enter the next song in milliseconds.
+ */
+void start_crossfade(int fade_ms, int enter_song_ms);
+
 #endif
