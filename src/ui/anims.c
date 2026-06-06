@@ -7,7 +7,7 @@
 
 void start_glimmer(Model *model)
 {
-        if (model->state.settings.hideGlimmeringText >= 1)
+        if (model->state.settings.hideGlimmeringText >= 1 || model->is_paused || model->is_stopped)
                 return;
 
         model->glimmer.active = true;
