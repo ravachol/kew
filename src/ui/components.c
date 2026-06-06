@@ -2560,6 +2560,10 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string_truncated(buf, row++, col, view_line, max_width, help_style);
         }
 
+        HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
+        HELP_LINE(_(" · Update Library: %s"), get_binding_string(MSG_UPDATELIBRARY, false));
+        HELP_LINE(_(" · Sort Library: %s"), get_binding_string(MSG_SORTLIBRARY, true));
+
         HELP_LINE(_(" · Cycle Color Mode: %s"),
                   get_binding_string(MSG_CYCLECOLORMODE, false));
         HELP_LINE(_(" · Cycle Themes: %s"), get_binding_string(MSG_CYCLETHEMES, false));
@@ -2569,15 +2573,14 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_TOGGLEREPEAT, false));
         HELP_LINE(_(" · Cycle Visualizer Mode: %s"), get_binding_string(MSG_CYCLEVISUALIZERMODE, false));
 
-        HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
-        HELP_LINE(_(" · Update Library: %s"), get_binding_string(MSG_UPDATELIBRARY, false));
-        HELP_LINE(_(" · Sort Library: %s"), get_binding_string(MSG_SORTLIBRARY, true));
         HELP_LINE(_(" · Toggle ASCII Cover: %s (disables Chroma)"),
                   get_binding_string(MSG_TOGGLEASCII, false));
         HELP_LINE(_(" · Toggle Lyrics Page on Track View: %s"),
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Toggle Notifications: %s"),
                   get_binding_string(MSG_TOGGLENOTIFICATIONS, false));
+        HELP_LINE(_(" · Toggle Crossfade Always On: %s"),
+                  get_binding_string(MSG_TOGGLECROSSFADE, false));
 
         HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
         HELP_LINE(_(" · Seek: %s and %s"),

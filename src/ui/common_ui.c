@@ -138,6 +138,7 @@ void transfer_settings_to_ui(void)
         ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
         ui->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
         ui->auto_resume = (settings->auto_resume[0] == '1');
+        ui->always_crossfade = (settings->always_crossfade[0] == '1');
         ui->showFoldersInPlaylist = (settings->showFoldersInPlaylist[0] == '1');
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');

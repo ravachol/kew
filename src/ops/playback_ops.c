@@ -280,11 +280,9 @@ void seek(int seconds)
         add_to_accumulated_seconds(seconds);
 }
 
-void crossfade(int fade_ms, int enter_song_ms)
+bool crossfade(int fade_ms, int enter_song_ms)
 {
         sound_result_t res = sound_system_start_crossfade(sound_sys, fade_ms, enter_song_ms);
 
-        if (res == SOUND_CROSSFADE_DISABLED)
-                set_error_message("Crossfade disabled. The next song is of a different type.");
+        return (res != SOUND_CROSSFADE_DISABLED);
 }
-
