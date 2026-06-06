@@ -771,7 +771,6 @@ int main(int argc, char *argv[])
                 run_for_play_command_with_playlist = handle_play_command_playlist(&argc, argv);
         }
 
-        enable_mouse(&(state->settings));
         enter_alternate_screen_buffer();
 
         signal(SIGINT, force_terminal_restore);

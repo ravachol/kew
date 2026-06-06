@@ -612,6 +612,8 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_CLEARPLAYLIST:
                 model->playbackState.waitingForPlaylist = true;
+                if (model->state.currentView == TRACK_VIEW)
+                        switch_view(LIBRARY_VIEW);
                 result.cmd.type = CMD_CLEAR_PLAYLIST;
                 break;
 

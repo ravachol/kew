@@ -484,6 +484,8 @@ typedef struct
         bool chroma_start_requested;
         int chroma_height;
 
+        bool link_clicked;
+
         ColorPalette visualizer_palettes[7];
 } UIState;
 
