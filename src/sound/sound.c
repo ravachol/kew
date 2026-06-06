@@ -369,6 +369,8 @@ void *decode_loop(void *arg)
 
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
 
+        atomic_store(&sound->clock_reset_done, false);
+
         while (atomic_load(&sound->decode_thread_running)) {
 
                 // Handle pending switch
@@ -470,6 +472,9 @@ void *decode_loop(void *arg)
 
                         if (!sound->fade_seek_performed) {
 
+                                atomic_store(&sound->clock_reset_done, false);
+                                atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
+
                                 sound->fade_enter_frame =
                                     ((ma_uint64)sound->fade_enter_song_ms *
                                      sound->sample_rate) /
@@ -537,8 +542,17 @@ void *decode_loop(void *arg)
                                 sound->fade_current_frame += frames_read;
                         }
 
+                        // Save the boundary of when the fade starts
+                        atomic_thread_fence(memory_order_seq_cst);
+                        long long sent = atomic_load(&sound->track_frames_sent);
+
                         if (sound->fade_current_frame >=
                             sound->fade_total_frames) {
+
+                                if (sound->fade_requested && sound->fade_seek_performed && sound_s->fade_boundary == -1) {
+                                        long long fade_boundary = (long long)(sent + sound->fade_enter_frame);
+                                        atomic_store_explicit(&sound->fade_boundary, fade_boundary, memory_order_release);
+                                }
 
                                 sound->fade_requested = false;
                                 sound->fade_seek_performed = false;
@@ -567,10 +581,10 @@ void *decode_loop(void *arg)
                                 continue;
                         } else { // end song, but play the remaining buffer
 
+                                ma_uint32 framesWritten = 0;
                                 // Write the last frames before marking finished
                                 if (frames_to_read > 0) {
                                         ma_uint32 framesRemaining = (ma_uint32)frames_to_read;
-                                        ma_uint32 framesWritten = 0;
                                         while (framesRemaining > 0) {
 
                                                 ma_uint32 framesToWrite = framesRemaining;
@@ -595,8 +609,9 @@ void *decode_loop(void *arg)
                                 }
 
                                 atomic_thread_fence(memory_order_seq_cst);
-                                long long sent = atomic_load(&sound->track_frames_sent) +
-                                                 (long long)ma_pcm_rb_available_read(&pcm_rb);
+
+                                long long sent = atomic_load(&sound->track_frames_sent);
+                                sent = sent + framesWritten;
                                 atomic_store_explicit(&sound->track_end_frame, sent, memory_order_release);
                                 atomic_store_explicit(&sound->decode_finished, true, memory_order_release);
                                 continue;
@@ -631,7 +646,11 @@ void *decode_loop(void *arg)
 
                                 if (!atomic_load(&sound->buffer_ready))
                                         atomic_store(&sound->buffer_ready, 1);
+
+                                atomic_fetch_add_explicit(&sound_s->track_frames_written, framesWritten, memory_order_relaxed);
                         }
+
+                        atomic_load_explicit(&sound_s->fade_boundary, memory_order_acquire);
                 }
         }
 
@@ -677,6 +696,7 @@ void on_audio_frames(ma_device *device,
         bool boundary_handled = false;
 
         while (framesRemaining > 0) {
+
                 ma_uint32 framesToRead = framesRemaining;
                 void *pReadBuffer = NULL;
 
@@ -698,6 +718,17 @@ void on_audio_frames(ma_device *device,
                 // Load current played and boundary
                 uint64_t played = atomic_load_explicit(&sound_s->track_frames_sent, memory_order_relaxed);
                 uint64_t boundary = atomic_load_explicit(&sound_s->track_end_frame, memory_order_relaxed);
+
+                atomic_load_explicit(&sound_s->fade_boundary, memory_order_acquire);
+                atomic_load_explicit(&sound_s->clock_reset_done, memory_order_acquire);
+                if (sound_s->fade_boundary >= 0 &&
+                    sound_s->fade_boundary <= (long long)played &&
+                    !sound_s->clock_reset_done) {
+
+                        sound_s->clock_reset = true;
+                        sound_s->clock_reset_ms = sound_s->fade_enter_song_ms;
+                        sound_s->clock_reset_done = true;
+                }
 
                 // Determine how many frames to copy this iteration
                 ma_uint32 framesToCopy = framesToRead;

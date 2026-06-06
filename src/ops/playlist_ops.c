@@ -689,7 +689,7 @@ void repeat_list(void)
 void move_song_up(int *chosen_row)
 {
         AppState *state = get_app_state();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
         if (state->currentView != PLAYLIST_VIEW) {
@@ -698,7 +698,7 @@ void move_song_up(int *chosen_row)
 
         bool rebuild = false;
 
-        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
+        Node *node = find_selected_entry(playlist, *chosen_row);
 
         if (node == NULL) {
                 return;
@@ -706,7 +706,7 @@ void move_song_up(int *chosen_row)
 
         int id = node->id;
 
-        pthread_mutex_lock(&(unshuffled_playlist->mutex));
+        pthread_mutex_lock(&(playlist->mutex));
 
         Node *current = get_current_song();
 
@@ -728,7 +728,7 @@ void move_song_up(int *chosen_row)
                 }
         }
 
-        move_up_list(unshuffled_playlist, node);
+        move_up_list(playlist, node);
 
         *chosen_row = *chosen_row - 1;
         *chosen_row = (*chosen_row > 0) ? *chosen_row : 0;
@@ -744,7 +744,7 @@ void move_song_up(int *chosen_row)
                 ps->loadedNextSong = true;
         }
 
-        pthread_mutex_unlock(&(unshuffled_playlist->mutex));
+        pthread_mutex_unlock(&(playlist->mutex));
 
         set_dirty(DIRTY_PLAYLIST);
 }
@@ -752,7 +752,7 @@ void move_song_up(int *chosen_row)
 void move_song_down(int *chosen_row)
 {
         AppState *state = get_app_state();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
         if (state->currentView != PLAYLIST_VIEW) {
@@ -761,7 +761,7 @@ void move_song_down(int *chosen_row)
 
         bool rebuild = false;
 
-        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
+        Node *node = find_selected_entry(playlist, *chosen_row);
 
         Node *current = get_current_song();
 
@@ -771,7 +771,7 @@ void move_song_down(int *chosen_row)
 
         int id = node->id;
 
-        pthread_mutex_lock(&(unshuffled_playlist->mutex));
+        pthread_mutex_lock(&(playlist->mutex));
 
         if (node != NULL && current != NULL) {
                 // Rebuild if current song, the next song or the previous song
@@ -794,11 +794,11 @@ void move_song_down(int *chosen_row)
                 }
         }
 
-        move_down_list(unshuffled_playlist, node);
+        move_down_list(playlist, node);
 
         *chosen_row = *chosen_row + 1;
-        *chosen_row = (*chosen_row >= unshuffled_playlist->count)
-                          ? unshuffled_playlist->count - 1
+        *chosen_row = (*chosen_row >= playlist->count)
+                          ? playlist->count - 1
                           : *chosen_row;
 
         if (rebuild && current != NULL) {
@@ -811,7 +811,7 @@ void move_song_down(int *chosen_row)
                 ps->loadedNextSong = true;
         }
 
-        pthread_mutex_unlock(&(unshuffled_playlist->mutex));
+        pthread_mutex_unlock(&(playlist->mutex));
 
         set_dirty(DIRTY_PLAYLIST);
 }

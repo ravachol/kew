@@ -295,7 +295,6 @@ void prepare_next_song(void)
         Model *model = get_model();
         AppState *state = &model->state;
 
-        reset_clock();
         handle_skip_out_of_order();
         finish_loading();
 
