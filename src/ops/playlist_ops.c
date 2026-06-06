@@ -270,7 +270,7 @@ void add_to_favorites_playlist(void)
 }
 
 // Go through the display playlist and the shuffle playlist to remove all songs
-void dequeue_all(void)
+void clear_playlist(void)
 {
         bool clearAll = false;
         int current_id = -1;

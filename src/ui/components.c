@@ -1595,8 +1595,21 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_artist);
                         char line[METADATA_MAX_LENGTH + 2];
                         snprintf(line, sizeof(line), "%s", metadata->artist);
-                        draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
+
+                        if (strcmp(metadata->artist, "Ice Cube") == 0)
+                        {
+                                draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
+                                        "https://icecube.com", metadata->artist, style);
+                        }
+                        else if (strcmp(metadata->artist, "milkypossum") == 0)
+                        {
+                                draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
+                                        "https://milkypossumofficial.com", metadata->artist, style);
+                        }
+                        else {
+                                draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
                                                          line, max_width, style);
+                        }
                 }
 
                 // Album

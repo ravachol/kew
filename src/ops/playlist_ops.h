@@ -168,7 +168,7 @@ void set_current_song_to_next(void);
  * Updates both shuffled and unshuffled playlists and clears enqueued
  * flags in the library for removed entries.
  */
-void dequeue_all(void);
+void clear_playlist(void);
 
 /**
  * @brief Add the currently playing song to the favorites playlist.
