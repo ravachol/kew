@@ -1,8 +1,8 @@
 # CHANGELOG
 
-## 4.1.0 GREAT ARTISTS SHOULD BE RICH EDITION
+## 4.1.0
 
-kew 4.1 comes with the ability for users to make their own layouts and auto-resume. Layouting is as minimal as possible though, the syntax for layouts is very simple and the files are small. Explained in the readme and related doc.
+kew 4.1 comes with auto-resume and the ability for users to make their own layouts. Layouting is as minimal as possible, the syntax for layouts is very simple and the files are small. Explained in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
 
 The whole UI system has been rewritten and is now much more clean and nice and great.
 
@@ -61,6 +61,15 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 #### Refactor
 
 - Centralize PATH_MAX into common/path_max.h. By @hartalex.
+
+#### Sponsors
+
+Thank you to new sponsors @LTEder, @Lee, @rick and @enzawin for their generous contributions!
+
+You can sponsor kew here:
+
+Github Sponsors: https://github.com/sponsors/ravachol
+Ko-Fi: https://ko-fi.com/ravachol
 
 ## 4.0.0 LOVE IS GONNA SAVE US EDITION
 
