@@ -2586,6 +2586,12 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Seek: %s and %s"),
                   get_binding_string(MSG_SEEKBACK, false),
                   get_binding_string(MSG_SEEKFORWARD, false));
+
+        HELP_LINE(_(" · Crossfade: quick %s medium %s slow %s"),
+                  get_binding_string(MSG_CROSSFADE_QUICK, false),
+                  get_binding_string(MSG_CROSSFADE_MEDIUM, false),
+                  get_binding_string(MSG_CROSSFADE_SLOW, false));
+
         HELP_LINE(_(" · Export Playlist: %s (named after the first song)"),
                   get_binding_string(MSG_EXPORTPLAYLIST, false));
         HELP_LINE(_(" · Show Folders in Playlist: %s"),
