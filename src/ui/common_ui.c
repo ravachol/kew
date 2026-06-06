@@ -798,12 +798,12 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
         if (draw_title)
         {
                 anchor->link->title = calloc(1, tlen + 1);
-                snprintf(anchor->link->title, tlen + 1, title);
+                 snprintf(anchor->link->title, tlen + 1, "%s", title);
         }
         if (draw_url)
         {
                 anchor->link->url = calloc(1, ulen + 1);
-                snprintf(anchor->link->url, ulen + 1, url);
+                snprintf(anchor->link->url, ulen + 1, "%s", url);
         }
 
         // Mark occupied region
