@@ -2721,7 +2721,6 @@ static bool copy_layout_file(const char *src_name,
         DIR *dir = opendir(system_layouts);
         if (!dir) {
                 free(config_path);
-                closedir(dir);
                 return false;
         }
 
