@@ -127,6 +127,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
                                         ps->nextSongNeedsRebuilding = true;
                                 } else if (!dont_dequeue) {
+
                                         dequeue_children(entry);
 
                                         ps->nextSongNeedsRebuilding = true;
