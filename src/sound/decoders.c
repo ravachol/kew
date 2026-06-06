@@ -442,6 +442,14 @@ void *get_current_decoder(void)
         return atomic_load_explicit(&current_decoder, memory_order_acquire);
 }
 
+void *get_other_decoder(void)
+{
+        if (decoder_index == -1)
+                return  decoders[0];
+
+        return decoders[1 - decoder_index];
+}
+
 enum decoder_type_t get_current_decoder_decoder_type(void)
 {
         return atomic_load(&decoder_decoder_type);
@@ -672,7 +680,7 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         if (!sameFormat) {
                 ops->uninit(decoder);
                 free(decoder);
-                return 0;
+                return -2;
         }
 
         if (ops->setup_decoder)

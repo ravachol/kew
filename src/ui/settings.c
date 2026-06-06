@@ -126,6 +126,11 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {TB_KEY_F6, 0, 0, MSG_SHOWHELP, ""},
 #endif
 
+    // Crossfade keys
+    {0, 'd', TB_MOD_SHIFT, MSG_CROSSFADE_QUICK, ""},
+    {0, 'f', TB_MOD_SHIFT, MSG_CROSSFADE_MEDIUM, ""},
+    {0, 'g', TB_MOD_SHIFT, MSG_CROSSFADE_SLOW, ""},
+
     // Page navigation
     {TB_KEY_PGDN, 0, 0, MSG_NEXT_PAGE, ""},
     {TB_KEY_PGUP, 0, 0, MSG_PREV_PAGE, ""},
@@ -734,6 +739,9 @@ static const EventMap event_map[] = {
     {"toggleNotifications", MSG_TOGGLENOTIFICATIONS},
     {"showLyricsPage", MSG_SHOWLYRICSPAGE},
     {"toggleFolderDisplay", MSG_TOGGLEFOLDERDISPLAY},
+    {"crossfadequick", MSG_CROSSFADE_QUICK},
+    {"crossfademedium", MSG_CROSSFADE_MEDIUM},
+    {"crossfadeslow", MSG_CROSSFADE_SLOW},
     {NULL, MSG_NONE} // Sentinel
 };
 
@@ -1215,6 +1223,15 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->currentSongSeconds,
                                  sizeof(settings->currentSongSeconds), "%s",
                                  pair->value);
+                } else if (strcmp(lowercase_key, "crossfadequick") == 0) {
+                        snprintf(settings->crossfade_quick, sizeof(settings->crossfade_quick),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "crossfademedium") == 0) {
+                        snprintf(settings->crossfade_medium, sizeof(settings->crossfade_medium),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "crossfadeslow") == 0) {
+                        snprintf(settings->crossfade_slow, sizeof(settings->crossfade_slow),
+                                 "%s", pair->value);
                 } else if (strcmp(lowercase_key, "volumeup") == 0) {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
                                  "%s", pair->value);
@@ -1745,6 +1762,9 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[61] = (EventMapping){settings->cycle_themes, MSG_CYCLETHEMES};
         mappings[62] = (EventMapping){settings->toggle_notifications, MSG_TOGGLENOTIFICATIONS};
         mappings[63] = (EventMapping){settings->showLyricsPage, MSG_SHOWLYRICSPAGE};
+        mappings[64] = (EventMapping){settings->crossfade_quick, MSG_CROSSFADE_QUICK};
+        mappings[65] = (EventMapping){settings->crossfade_medium, MSG_CROSSFADE_MEDIUM};
+        mappings[66] = (EventMapping){settings->crossfade_slow, MSG_CROSSFADE_SLOW};
 }
 
 int mkdir_p(const char *path, mode_t mode)

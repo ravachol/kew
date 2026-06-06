@@ -9,6 +9,7 @@
 
 #include "ops/library_ops.h"
 
+#include "ops/playback_clock.h"
 #include "ops/playback_state.h"
 #include "ops/search_ops.h"
 
@@ -615,6 +616,21 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView == TRACK_VIEW)
                         switch_view(LIBRARY_VIEW);
                 result.cmd.type = CMD_CLEAR_PLAYLIST;
+                break;
+
+        case MSG_CROSSFADE_QUICK:
+                result.cmd.type = CMD_CROSSFADE;
+                result.cmd.value = FADE_QUICK;
+                break;
+
+        case MSG_CROSSFADE_MEDIUM:
+                result.cmd.type = CMD_CROSSFADE;
+                result.cmd.value = FADE_MEDIUM;
+                break;
+
+        case MSG_CROSSFADE_SLOW:
+                result.cmd.type = CMD_CROSSFADE;
+                result.cmd.value = FADE_SLOW;
                 break;
 
         case MSG_MOVESONGUP:

@@ -65,6 +65,11 @@ typedef enum {
         CELL_LINK
 } CellKind;
 
+typedef enum {
+        FADE_QUICK,
+        FADE_MEDIUM,
+        FADE_SLOW
+} FadeKind;
 
 typedef struct {
         int row;
@@ -392,6 +397,12 @@ typedef struct
         double currentSongSeconds;
         int currentSongId;
         int auto_resume;
+
+
+        int fade_enter_song_ms;
+        int fade_quick_ms;
+        int fade_medium_ms;
+        int fade_slow_ms;
 } UISettings;
 
 typedef struct {
@@ -645,6 +656,9 @@ typedef struct
         char chromaPath[PATH_MAX];
         char chromaDevice[PATH_MAX];
         char showFoldersInPlaylist[2];
+        char crossfade_quick[6];
+        char crossfade_medium[6];
+        char crossfade_slow[6];
 } AppSettings;
 
 /**
