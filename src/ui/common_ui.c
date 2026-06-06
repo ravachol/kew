@@ -794,7 +794,12 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
                 anchor->link = link;
         }
 
+        style.attrs |= ATTR_UNDERLINE;
+
         anchor->kind = CELL_LINK;
+        anchor->style = style;
+        anchor->attrs = style.attrs;
+
         if (draw_title)
         {
                 anchor->link->title = calloc(1, tlen + 1);

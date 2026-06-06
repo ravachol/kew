@@ -2224,8 +2224,11 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
-        fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
-        fprintf(file, "simpleTimeStatus=%s\n", settings->simpleTimeStatus);
+        fprintf(file, "hideTimeStatus=%s\n\n", settings->hideTimeStatus);
+
+         fprintf(file, "# Toggles showing kHz and bitrate.\n");
+        fprintf(file, "simpleTimeStatus=%s\n\n", settings->simpleTimeStatus);
+
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
         fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);

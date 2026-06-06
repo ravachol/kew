@@ -255,7 +255,7 @@ void run_command(UpdateResult result)
 
         case CMD_CLEAR_PLAYLIST: {
                 AppState *state = get_app_state();
-                dequeue_all();
+                clear_playlist();
                 state->ui.resetPlaylistDisplay = true;
                 break;
         }

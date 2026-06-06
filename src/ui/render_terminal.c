@@ -307,8 +307,9 @@ void terminal_backend_commit(const DrawBuffer *buf,
                         {
                                 cursor_move(row, col);
 
-                                printf("\033]8;;%s\a%s\033]8;;\a\n", cell->link->url, cell->link->title);
-                                fflush(stdout);
+                                emit_style_diff(cell, &style);
+
+                                printf("%s", cell->link->title);
 
                                 cur_row = row;
                                 cur_col = col;
