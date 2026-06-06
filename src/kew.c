@@ -576,6 +576,7 @@ void init_state(void)
         state->settings.visualizer_bar_mode = 2;
         state->settings.titleDelay = 1;
         state->settings.auto_resume = true;
+        state->settings.always_crossfade = false;
         state->settings.cacheLibrary = -1;
         state->settings.mouseEnabled = true;
         state->settings.mouseLeftClickAction = 0;

@@ -438,6 +438,17 @@ sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, 
         return SOUND_OK;
 }
 
+sound_result_t sound_system_set_always_crossfade(sound_system_t *system, int value, int fade_ms)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        system->always_fade = value;
+        system->always_fade_ms = fade_ms;
+
+        return SOUND_OK;
+}
+
 int sound_system_get_replay_gain_check_first(const sound_system_t *system)
 {
         return system->replay_gain_check_first;
