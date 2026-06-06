@@ -113,10 +113,10 @@ COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 
 ifeq ($(DEBUG), 1)
     SYMBOL_FLAGS := -g
-    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -Wformat -ffunction-sections -fdata-sections -Werror=format-security
 else ifeq ($(DEBUG), 2)
     SYMBOL_FLAGS := -g -O0
-    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -fsanitize=address,undefined \
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -Wformat -ffunction-sections -fdata-sections -Werror=format-security -fsanitize=address,undefined \
           -fno-omit-frame-pointer \
           -fno-optimize-sibling-calls
     LDFLAGS += -fsanitize=address,undefined
