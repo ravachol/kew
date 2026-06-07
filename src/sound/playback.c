@@ -80,7 +80,6 @@ bool request_crossfade(int fade_ms, int enter_song_ms)
         if (!sound_s->fade_allowed)
                 return false;
 
-        sound_s->fade_requested = true;
         sound_s->fade_ms = fade_ms;
         sound_s->fade_enter_song_ms = enter_song_ms;
 
@@ -92,6 +91,8 @@ bool request_crossfade(int fade_ms, int enter_song_ms)
         sound_s->fade_current_frame = 0;
 
         sound_s->fade_seek_performed = false;
+
+        sound_s->fade_requested = true;
 
         return true;
 }

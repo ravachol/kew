@@ -19,7 +19,7 @@ The whole UI system has been rewritten and is now much more clean and nice and g
   New settings:
 
   alwaysCrossfade=0
-  fadeEnterSongMs=0
+  fadeEnterSongMs=0 // Tells kew to start fading x milliseconds into the next song.
   fadeQuickMs=1000
   fadeMediumMs=3000
   fadeSlowMs=8000
@@ -41,7 +41,7 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 - New colorful spectrum visualizer modes. "Party Mode" is the default option. Cycle by pressing 'v'. By @emptyhead41.
 
   Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning.
-  
+
   visualizerColorType=3
 
 - New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol, building on @emptyhead41's palettes.
