@@ -416,6 +416,11 @@ void *decode_loop(void *arg)
                         nanosleep(&ts, NULL);
                 }
 
+                if (atomic_load(&sound->request_pause)) {
+                        drain_audio_and_pause(sound);
+                        continue;
+                }
+
                 // Handle pause
                 unpaused = false;
                 while (atomic_load(&sound->decode_thread_running)) {
@@ -432,17 +437,11 @@ void *decode_loop(void *arg)
 
                 // Handle switch during pause
                 if (atomic_load_explicit(&sound->switch_files, memory_order_acquire) || !atomic_load(&sound->decode_thread_running)) {
-                        reset_ring_buffer(sound);
                         continue;
                 }
 
                 if (writable > 0) {
                         atomic_store(&sound->buffer_ready, 1);
-                }
-
-                if (atomic_load(&sound->request_pause)) {
-                        drain_audio_and_pause(sound);
-                        continue;
                 }
 
                 ma_uint32 frames_to_decode = (writable > sound->chunk_frames) ? sound->chunk_frames : writable;
@@ -467,8 +466,9 @@ void *decode_loop(void *arg)
 
                 int frames_remaining = sound->total_song_frames - sound->current_frame;
 
-                if (!sound->fade_requested && frames_remaining > 0 &&
+                if (sound->always_fade && !sound->fade_requested && frames_remaining > 0 &&
                     frames_remaining <= sound->fade_frames) {
+                         sound->fade_frames -= (long long)(sound->fade_frames - frames_remaining);
                         request_crossfade(sound->always_fade_ms, 0);
                 }
 

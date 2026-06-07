@@ -1234,6 +1234,11 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
                 icons_len = strnlen(icons, sizeof(icons));
         }
 
+        if (ui->always_crossfade) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ⋈");
+                icons_len = strnlen(icons, sizeof(icons));
+        }
+
         // Narrow terminal
         if (region.width < ABSOLUTE_MIN_WIDTH) {
 #ifndef __ANDROID__

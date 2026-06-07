@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.1.0
+## 4.1.0 Crossfade, Auto-resume and user-defined layouts!
 
 kew 4.1 comes with crossfade, auto-resume and the ability for users to make their own layouts. Layouting is as minimal as possible, the syntax for layouts is very simple and the files are small. Explained in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
 
