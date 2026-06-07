@@ -370,7 +370,7 @@ void switch_to_next_song(void)
                 return;
         }
 
-        if (model->state.settings.always_crossfade)
+        if (model->state.settings.always_crossfade && !is_paused())
         {
                 if (crossfade(model->state.settings.fade_medium_ms, model->state.settings.fade_enter_song_ms))
                         return;
