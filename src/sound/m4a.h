@@ -59,10 +59,9 @@ typedef struct m4a_decoder {
         uint32_t current_sample;
         uint32_t total_samples;
 
-        uint8_t leftoverBuffer[
-        MAX_SAMPLES *
-        MAX_CHANNELS *
-        MAX_SAMPLE_SIZE];
+        uint8_t leftoverBuffer[MAX_SAMPLES *
+                               MAX_CHANNELS *
+                               MAX_SAMPLE_SIZE];
 
         ma_uint64 leftoverSampleCount;
 
@@ -1272,7 +1271,9 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint
         }
 
         // Calculate the length in PCM frames using the total number of samples and the sample rate.
-        if (pM4a->total_samples > 0 && pM4a->sample_rate > 0) {
+        if (pM4a->total_samples > 0 &&
+            pM4a->sample_rate > 0 &&
+            pM4a->track->timescale > 0) {
                 ma_uint64 totalFrames = 0;
 
                 for (ma_uint32 i = 0; i < pM4a->track->sample_count; i++) {
@@ -1285,11 +1286,13 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint
                                           &timestamp,
                                           &duration);
 
-                        totalFrames += duration;
+                        totalFrames +=
+                            ((ma_uint64)duration *
+                             pM4a->sample_rate) /
+                            pM4a->track->timescale;
                 }
 
                 *p_length = totalFrames;
-
                 return MA_SUCCESS;
         }
 

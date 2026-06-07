@@ -300,6 +300,8 @@ void prepare_next_song(void)
 
         set_next_song(NULL);
 
+        reset_clock();
+
         set_dirty(DIRTY_ALL);
 
         Node *current = get_current_song();
