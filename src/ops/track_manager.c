@@ -15,9 +15,9 @@
 #include "common/model.h"
 #include "playback_clock.h"
 #include "playback_ops.h"
-#include "playlist_ops.h"
 #include "playback_state.h"
 #include "playback_system.h"
+#include "playlist_ops.h"
 
 #include "sound/sound_facade.h"
 
@@ -133,8 +133,7 @@ void determine_song_and_notify(void)
         }
 
         if (state->ui.lastNotifiedId != current->id) {
-                if (!isDeleted)
-                {
+                if (!isDeleted) {
                         notify_song_switch(current_song_data);
 
                         set_dirty(DIRTY_ALL);
@@ -188,13 +187,10 @@ void try_load_next(bool is_first_decoder, bool replace_next_song)
         ps->songHasErrors = false;
         ps->clearingErrors = true;
 
-        if (try_next_song == NULL && current != NULL)
-        {
+        if (try_next_song == NULL && current != NULL) {
                 try_next_song = current->next;
                 set_try_next_song(try_next_song);
-        }
-        else if (try_next_song != NULL)
-        {
+        } else if (try_next_song != NULL) {
                 try_next_song = try_next_song->next;
                 set_try_next_song(try_next_song);
         }
@@ -231,10 +227,9 @@ int prepare_and_play_song(Node *song, double seconds)
         finish_loading();
 
         PlaybackState *ps = get_playback_state();
-        while (ps->songHasErrors)
-        {
-               try_load_next(true, false);
-               finish_loading();
+        while (ps->songHasErrors) {
+                try_load_next(true, false);
+                finish_loading();
         }
 
         if (res >= 0 && !ps->songHasErrors) {

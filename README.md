@@ -37,6 +37,8 @@ kew (/kjuː/) is a terminal music player.
  * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
  * Supports replay gain.
  * Use themes or colors derived from covers.
+ * Make your own color themes and layouts.
+ * Crossfade (experimental), both automatic and on demand.
 
  *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
 
@@ -228,7 +230,7 @@ cd chroma
 
 git checkout fb00b6e
 
-cargo install --path . 
+cargo install --path .
 ```
 
 Enable and cycle through the visualizations by pressing <kbd>c</kbd> in track view.
