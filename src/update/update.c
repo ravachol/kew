@@ -10,6 +10,8 @@
 #include "ops/library_ops.h"
 
 #include "ops/playback_state.h"
+#include "ops/playback_system.h"
+#include "ops/playlist_ops.h"
 #include "ops/search_ops.h"
 
 #include "sys/sys_integration.h"
@@ -348,8 +350,16 @@ UpdateResult update(Model *model, struct Msg *msg)
                 advance_glimmer_anim(model);
 
                 if (!model->songdata_ok && model->state.currentView == TRACK_VIEW &&
-                        model->state.settings.repeatState == SOUND_STATE_REPEAT_OFF)
-                        switch_view(LIBRARY_VIEW);
+                        model->state.settings.repeatState == SOUND_STATE_REPEAT_OFF) {
+
+                        if (!(should_start_playing() &&
+                                (model->playbackState.waitingForPlaylist || model->playbackState.waitingForNext) &&
+                                determine_next_song(model->playlist)))
+                        {
+                                // Conditions aren't met for a new song being played soon, switch to library
+                                switch_view(LIBRARY_VIEW);
+                        }
+                }
 
                 if (model->state.currentView == PLAYLIST_VIEW)
                         component_playlist_helper_update_view_state(model);
