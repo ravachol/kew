@@ -45,12 +45,13 @@ void reset_clock(void)
         if (has_fade)
         {
                 start_time.tv_sec = fade_time.tv_sec;
-                start_time.tv_sec += sound_system_get_fade_offset_seconds(sound_sys);
+                start_time.tv_sec += sound_system_get_fade_offset_seconds(sound_sys) - (long)(reset_ms / 1000);
                 start_time.tv_nsec = fade_time.tv_nsec;
         }
         else
                 clock_gettime(CLOCK_MONOTONIC, &start_time);
 
+        reset_ms = 0;
         has_fade = false;
 }
 
