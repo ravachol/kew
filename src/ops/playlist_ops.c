@@ -378,7 +378,7 @@ void switch_to_next_song(void)
 
         AppState *state = get_app_state();
         Node *current = get_current_song();
-        Node *next = determine_next_song(model->playlist);
+        Node *next = current ? current->next : determine_next_song(model->playlist);
         PlaybackState *ps = get_playback_state();
 
         // Stop if there is no song or no next song
@@ -518,10 +518,27 @@ retry:
         skip_in_progress = false;
 }
 
-void remove_song(Node *node)
+void delete_from_lists(Node *node)
 {
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
+
+if (node != NULL)
+                mark_as_dequeued(get_library(), node->song.file_path);
+
+        Node *node2 = find_selected_entry_by_id(playlist, node->id);
+
+        if (node != NULL)
+                delete_from_list(unshuffled_playlist, node);
+
+        if (node2 != NULL)
+                delete_from_list(playlist, node2);
+
+}
+
+void remove_song(Node *node)
+{
+        PlayList *playlist = get_playlist();
         Node *current = get_current_song();
         bool rebuild = false;
 
@@ -553,16 +570,7 @@ void remove_song(Node *node)
                         rebuild = true;
         }
 
-        if (node != NULL)
-                mark_as_dequeued(get_library(), node->song.file_path);
-
-        Node *node2 = find_selected_entry_by_id(playlist, id);
-
-        if (node != NULL)
-                delete_from_list(unshuffled_playlist, node);
-
-        if (node2 != NULL)
-                delete_from_list(playlist, node2);
+        delete_from_lists(node);
 
         if (is_shuffle_enabled())
                 rebuild = true;
@@ -604,6 +612,10 @@ void handle_remove(int chosen_row)
                 if (current)
                         node = find_selected_entry_by_id(unshuffled_playlist, current->id);
 
+                if (is_paused() && current->id == node->id)
+                {
+                        switch_to_next_song();
+                }
                 remove_song(node);
 
                 Node *next = get_next_song();
