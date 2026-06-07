@@ -2318,11 +2318,6 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
 
         fprintf(file, "\n[miscellaneous]\n\n");
-        fprintf(file, "alwaysCrossfade=%d\n\n", ui->always_crossfade);
-        fprintf(file, "fadeEnterSongMs=%s\n\n", settings->fade_enter_song_ms);
-        fprintf(file, "fadeQuickMs=%s\n\n", settings->fade_quick_ms);
-        fprintf(file, "fadeMediumMs=%s\n\n", settings->fade_medium_ms);
-        fprintf(file, "fadeSlowMs=%s\n\n", settings->fade_slow_ms);
 
         fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);
@@ -2375,6 +2370,13 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# ~/.config/kew/themes (on Linux/FreeBSD/Android), \n");
         fprintf(file, "# and ~/Library/Preferences/kew/themes (on macOS).\n\n");
 
+        fprintf(file, "\n[crossfade]\n\n");
+        fprintf(file, "alwaysCrossfade=%d\n", ui->always_crossfade);
+        fprintf(file, "fadeEnterSongMs=%s\n", settings->fade_enter_song_ms);
+        fprintf(file, "fadeQuickMs=%s\n", settings->fade_quick_ms);
+        fprintf(file, "fadeMediumMs=%s\n", settings->fade_medium_ms);
+        fprintf(file, "fadeSlowMs=%s\n\n", settings->fade_slow_ms);
+
         fprintf(file, "\n[track cover]\n\n");
         fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
@@ -2385,7 +2387,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
 
         fprintf(file, "\n[discord]\n\n");
-        fprintf(file, "discordRPCEnabled=%s\n\n”", settings->discordRPCEnabled);
+        fprintf(file, "discordRPCEnabled=%s\n\n", settings->discordRPCEnabled);
 
         fprintf(file, "\n[chroma]\n\n");
         fprintf(file, "chromaPath=%s\n", settings->chromaPath);
