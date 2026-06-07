@@ -2579,7 +2579,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Toggle Notifications: %s"),
                   get_binding_string(MSG_TOGGLENOTIFICATIONS, false));
-        HELP_LINE(_(" · Toggle Crossfade Always On: %s"),
+        HELP_LINE(_(" · Toggle Crossfade (experimental) Always on: %s"),
                   get_binding_string(MSG_TOGGLECROSSFADE, false));
 
         HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
@@ -2587,7 +2587,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_SEEKBACK, false),
                   get_binding_string(MSG_SEEKFORWARD, false));
 
-        HELP_LINE(_(" · Crossfade: quick %s medium %s slow %s"),
+        HELP_LINE(_(" · Crossfade (experimental): quick %s medium %s slow %s"),
                   get_binding_string(MSG_CROSSFADE_QUICK, false),
                   get_binding_string(MSG_CROSSFADE_MEDIUM, false),
                   get_binding_string(MSG_CROSSFADE_SLOW, false));

@@ -50,8 +50,9 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         sound_s->volume = get_current_volume();
         sound_s->state = SOUND_STATE_STOPPED;
-        sound_s->clock_reset = 0;
-        sound_s->fade_boundary = -1;
+
+        atomic_store_explicit(&sound_s->fade_boundary_reached, false, memory_order_release);
+        atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
 
         sound_result_t sound_result = sound_create_audio_device();
 
@@ -310,14 +311,17 @@ sound_playback_state_t sound_system_get_state(const sound_system_t *system)
         return system->state;
 }
 
-int sound_system_get_clock_reset(sound_system_t *system, int *reset_ms)
+int sound_system_get_fade_started(sound_system_t *system, int *reset_ms)
 {
         if (!system)
                 return SOUND_STATE_STOPPED;
 
-        int reset = system->clock_reset;
+        atomic_load_explicit(&system->fade_boundary_reached, memory_order_acquire);
+        atomic_load_explicit(&system->clock_reset_ms, memory_order_acquire);
 
-        system->clock_reset = 0;
+        bool reset = system->fade_boundary_reached;
+
+        atomic_store(&system->fade_boundary_reached, false);
 
         *reset_ms = system->clock_reset_ms;
 
@@ -473,4 +477,9 @@ int sound_system_get_replay_gain_check_first(const sound_system_t *system)
 int sound_system_get_sample_rate(const sound_system_t *system)
 {
         return system->sample_rate;
+}
+
+int sound_system_get_fade_offset_seconds(const sound_system_t *system)
+{
+        return system->ring_buffer_secs;
 }

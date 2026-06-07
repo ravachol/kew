@@ -42,7 +42,9 @@ struct sound_system {
         atomic_bool request_pause;
         atomic_int drain_callbacks_remaining;
 
-        ma_uint64 currentPCMFrame;
+        ma_uint64 current_frame;
+        ma_uint64 total_frames;
+        ma_uint64 total_song_frames;
 
         ma_uint32 avg_bit_rate;
 
@@ -54,7 +56,6 @@ struct sound_system {
 
 #ifndef __cplusplus
         atomic_llong track_frames_sent;
-        atomic_llong track_frames_written;
         atomic_llong track_end_frame;
         atomic_llong fade_boundary;
         atomic_bool end_of_list_reached;
@@ -65,14 +66,14 @@ struct sound_system {
         atomic_bool buffer_ready;
         atomic_bool using_song_slot_A;
         atomic_bool clock_reset_done;
+        atomic_bool fade_boundary_reached;
+        atomic_int clock_reset_ms;
 #endif
 
         float volume;
         sound_playback_state_t state;
 
-        int clock_reset;
-        int clock_reset_ms;
-
+        int ring_buffer_secs;
 
         bool always_fade;
         int always_fade_ms;

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-06 19:56+0200\n"
+"POT-Creation-Date: 2026-06-07 06:15+0200\n"
 "PO-Revision-Date: 2025-11-05 15:05+0100\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -290,12 +290,12 @@ msgstr " · 歌詞ページ切替：%s"
 #: src/ui/components.c:2580
 #, c-format
 msgid " · Toggle Notifications: %s"
-msgstr " · 通知切替：%s"
+msgstr " · 通知の切り替え：%s"
 
 #: src/ui/components.c:2582
-#, fuzzy, c-format
-msgid " · Toggle Crossfade Always On: %s"
-msgstr " · 通知切替：%s"
+#, c-format
+msgid " · Toggle Crossfade (experimental) Always on: %s"
+msgstr " · クロスフェードの切り替え（実験的）常時オン：%s"
 
 #: src/ui/components.c:2585
 #, c-format
@@ -309,8 +309,8 @@ msgstr " · シーク：%s と %s"
 
 #: src/ui/components.c:2590
 #, c-format
-msgid " · Crossfade: quick %s medium %s slow %s"
-msgstr " · クロスフェード：速い%s 中程度%s 遅い %s"
+msgid " · Crossfade (experimental): quick %s medium %s slow %s"
+msgstr " · クロスフェード（実験的）：%s"
 
 #: src/ui/components.c:2595
 #, c-format
@@ -383,6 +383,10 @@ msgstr "%s\n"
 #: src/kew.c:478
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr " [F2 プレイリスト|F3 ライブラリ|F4 トラック|F5 検索|F6 ヘルプ]"
+
+#, c-format
+#~ msgid " · 実験的なクロスフェード: quick %s medium %s slow %s"
+#~ msgstr " · クロスフェード：速い%s 中程度%s 遅い %s"
 
 #, c-format
 #~ msgid " · クロスフェードの切り替え: %s"
