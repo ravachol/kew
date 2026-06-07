@@ -555,6 +555,7 @@ void *decode_loop(void *arg)
                                 sound->fade_seek_performed = false;
 
                                 atomic_store(&sound->pending_switch, true);
+                                atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
 
                                 continue;
                         }
@@ -577,6 +578,7 @@ void *decode_loop(void *arg)
 
                         if (cursor != lastCursor) { // mid-song switch, clear buffer
                                 atomic_store(&sound->pending_switch, true);
+                                atomic_store_explicit(&sound_s->clock_reset_ms, 0, memory_order_relaxed);
                                 reset_ring_buffer(sound);
                                 continue;
                         } else { // end song, but play the remaining buffer
@@ -615,6 +617,7 @@ void *decode_loop(void *arg)
                                 atomic_store_explicit(&sound->track_end_frame, sent, memory_order_release);
                                 atomic_store_explicit(&sound->decode_finished, true, memory_order_release);
                                 atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
+                                atomic_store_explicit(&sound_s->clock_reset_ms, 0, memory_order_relaxed);
 
                                 continue;
                         }
