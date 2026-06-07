@@ -2372,7 +2372,7 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[crossfade]\n\n");
         fprintf(file, "alwaysCrossfade=%d\n", ui->always_crossfade);
-        fprintf(file, "fadeEnterSongMs=%s\n", settings->fade_enter_song_ms);
+        fprintf(file, "fadeEnterSongMs=%d\n", ui->fade_enter_song_ms);
         fprintf(file, "fadeQuickMs=%s\n", settings->fade_quick_ms);
         fprintf(file, "fadeMediumMs=%s\n", settings->fade_medium_ms);
         fprintf(file, "fadeSlowMs=%s\n\n", settings->fade_slow_ms);
