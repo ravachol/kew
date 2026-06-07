@@ -415,7 +415,7 @@ double sound_system_get_seek_elapsed(void);
  * @param reset_ms What to reset the clock to in milliseconds.
  * @return 1 If the clock has been reset.
  */
-int sound_system_get_clock_reset(sound_system_t *system, int *reset_ms);
+int sound_system_get_fade_started(sound_system_t *system, int *reset_ms);
 
 /**
  * @brief Returns whether the system is currently switching tracks.
@@ -583,6 +583,16 @@ sound_result_t sound_system_set_volume(sound_system_t *system, float volume);
  * @return float Current master volume in the range 0.0f to 1.0f.
  */
 float sound_system_get_volume(const sound_system_t *system);
+
+/**
+ * @brief Retrieves the number of seconds to adjust the clock after fading
+ *
+*
+ * @param system Pointer to the sound system instance.
+ * @return Number of seconds.
+ */
+int sound_system_get_fade_offset_seconds(const sound_system_t *system);
+
 
 #ifdef __cplusplus
 }
