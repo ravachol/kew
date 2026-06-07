@@ -2,23 +2,53 @@
 
 ## 4.1.0
 
-kew 4.1 comes with auto-resume and the ability for users to make their own layouts. Layouting is as minimal as possible, the syntax for layouts is very simple and the files are small. Explained in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
+kew 4.1 comes with crossfade, auto-resume and the ability for users to make their own layouts. Layouting is as minimal as possible, the syntax for layouts is very simple and the files are small. Explained in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
 
 The whole UI system has been rewritten and is now much more clean and nice and great.
 
 #### Enhancements
 
-- AutoResume. Persists playback state between sessions, on by default. By @ravachol. Suggested by @thbemme.
+- Crossfade (experimental, not safe for dance floors or anything). Works both as always on and on demand.
+
+  Three new commands:
+
+  shift+d = quick crossfade
+  shift+f = medium crossfade
+  shift+d = medium crossfade
+
+  New settings:
+
+  alwaysCrossfade=0
+  fadeEnterSongMs=0
+  fadeQuickMs=1000
+  fadeMediumMs=3000
+  fadeSlowMs=8000
+
+  If alwaysCrossfade is on, you will always crossfade when pressing next (right arrow).
+
+  We hope to get feedback on this to iron out the issues.
+
+  By @ravachol.
+
+- AutoResume. Persists playback state between sessions, on by default.
+
+  autoResume=1
+
+  By @ravachol. Suggested by @thbemme.
 
 - User-defined layouts, and the UI now uses Model-View-Update and stateless rendering. By @ravachol.
 
-- New colorful spectrum visualizer modes. Cycle by pressing 'v'. By @emptyhead41.
+- New colorful spectrum visualizer modes. "Party Mode" is the default option. Cycle by pressing 'v'. By @emptyhead41.
+
+  Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning.
+  
+  visualizerColorType=3
 
 - New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol, building on @emptyhead41's palettes.
 
 - Improved Themes. All existing themes have been worked on and make a bit more sense now, and use colors more sparsely. By @ravachol.
 
-- New theme pack with Nord and Nanagawa themes plus both the aforementioned album colors themes. By @ravachol.
+- New theme pack with Nord and Nanagawa themes plus both the album colors themes. By @ravachol.
 
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
 
