@@ -2120,7 +2120,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                     .width = visualizer_width,
                     .height = 1,
                 };
-                if (dirty & DIRTY_VISUALIZER)
+                if (dirty & DIRTY_FOOTER)
                         result = component_footer(model, progress_rect, buf, dirty);
         }
 
