@@ -30,9 +30,9 @@
 #endif
 
 #ifdef __APPLE__
-#define ABSOLUTE_MIN_WIDTH 82
+#define ABSOLUTE_MIN_WIDTH 80
 #else
-#define ABSOLUTE_MIN_WIDTH 67
+#define ABSOLUTE_MIN_WIDTH 65
 #endif
 
 #define KEW_LAYOUT_VERSION 10
