@@ -80,6 +80,9 @@ bool request_crossfade(int fade_ms, int enter_song_ms)
         if (!sound_s->fade_allowed)
                 return false;
 
+        if (sound_s->fade_requested || atomic_load(&sound_s->pending_switch) || atomic_load(&sound_s->switch_files))
+                return true; // Don't say it's disallowed, just don't perform the crossfade
+
         sound_s->fade_ms = fade_ms;
         sound_s->fade_enter_song_ms = enter_song_ms;
 
