@@ -370,15 +370,16 @@ void switch_to_next_song(void)
                 return;
         }
 
-        if (model->state.settings.always_crossfade && !is_paused())
+        Node *current = get_current_song();
+        Node *next = current ? current->next : NULL;
+
+        if (model->state.settings.always_crossfade && !is_paused() && next)
         {
                 if (crossfade(model->state.settings.fade_medium_ms, model->state.settings.fade_enter_song_ms))
                         return;
         }
 
         AppState *state = get_app_state();
-        Node *current = get_current_song();
-        Node *next = current ? current->next : determine_next_song(model->playlist);
         PlaybackState *ps = get_playback_state();
 
         // Stop if there is no song or no next song
@@ -401,6 +402,7 @@ void switch_to_next_song(void)
                 return;
 
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PLAYING) {
+
                 if (!(next == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)) {
                         silent_switch_to_next(true);
                         return;
