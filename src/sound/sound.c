@@ -240,6 +240,13 @@ void activate_switch(void)
 {
         set_skip_to_next(false);
 
+        if (atomic_load(&sound_s->request_pause) && !pb_is_paused())
+        {
+                pause_playback();
+                atomic_store(&sound_s->request_pause, false);
+                atomic_store(&sound_s->drain_callbacks_remaining, 0);
+        }
+
         if (!pb_is_repeat_enabled() || (pb_is_repeat_enabled() && pb_is_paused())) {
 
                 bool using_slot_A = atomic_load(&sound_s->using_song_slot_A); // fetch
@@ -276,6 +283,8 @@ void execute_switch(sound_system_t *sound)
         PlaybackState *ps = get_playback_state();
 
         pthread_mutex_lock(&ps->switch_mutex);
+
+        atomic_store(&sound->drain_callbacks_remaining, 0);
 
         set_switch_files(false);
         switch_decoder_index();
@@ -532,8 +541,10 @@ void *decode_loop(void *arg)
                 if (atomic_load_explicit(&sound->switch_files, memory_order_acquire)) {
                         atomic_store_explicit(&sound->decode_finished, false, memory_order_release);
 
-                        execute_switch(sound);
-                        continue;
+                        if (!pb_is_paused())
+                        {        execute_switch(sound);
+                                continue;
+                        }
                 }
 
                 // Decoder type switch reached
@@ -559,8 +570,14 @@ void *decode_loop(void *arg)
 
                 if (atomic_load(&sound->request_pause)) {
 
-                        drain_audio_and_pause(sound);
-                        continue;
+                        if (!atomic_load_explicit(&sound->switch_files, memory_order_acquire))
+                        {
+                                drain_audio_and_pause(sound);
+                                continue;
+                        }
+                        else {
+                                pause_playback();
+                        }
                 }
 
                 // Handle pause
