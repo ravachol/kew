@@ -240,8 +240,7 @@ void activate_switch(void)
 {
         set_skip_to_next(false);
 
-        if (atomic_load(&sound_s->request_pause) && !pb_is_paused())
-        {
+        if (atomic_load(&sound_s->request_pause) && !pb_is_paused()) {
                 pause_playback();
                 atomic_store(&sound_s->request_pause, false);
                 atomic_store(&sound_s->drain_callbacks_remaining, 0);
@@ -299,7 +298,7 @@ void execute_switch(sound_system_t *sound)
         if (decoder && sound->current_frame > 0) {
                 ma_data_source_seek_to_pcm_frame(
                     decoder,
-                    sound->current_frame + 1);
+                    sound->current_frame);
         }
 
         set_replay_gain(sound);
@@ -370,14 +369,17 @@ bool perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
                 atomic_store(&sound->clock_reset_done, false);
                 atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
 
-                sound->fade_enter_frame =
-                    ((ma_uint64)sound->fade_enter_song_ms *
-                     sound->sample_rate) /
-                    1000;
+                if (sound->fade_enter_song_ms > 0) {
 
-                ma_data_source_seek_to_pcm_frame(
-                    next_decoder,
-                    sound->fade_enter_frame);
+                        sound->fade_enter_frame =
+                            ((ma_uint64)sound->fade_enter_song_ms *
+                             sound->sample_rate) /
+                            1000;
+
+                        ma_data_source_seek_to_pcm_frame(
+                            next_decoder,
+                            sound->fade_enter_frame);
+                }
 
                 sound->fade_seek_performed = true;
         }
@@ -541,8 +543,8 @@ void *decode_loop(void *arg)
                 if (atomic_load_explicit(&sound->switch_files, memory_order_acquire)) {
                         atomic_store_explicit(&sound->decode_finished, false, memory_order_release);
 
-                        if (!pb_is_paused())
-                        {        execute_switch(sound);
+                        if (!pb_is_paused()) {
+                                execute_switch(sound);
                                 continue;
                         }
                 }
@@ -570,12 +572,10 @@ void *decode_loop(void *arg)
 
                 if (atomic_load(&sound->request_pause)) {
 
-                        if (!atomic_load_explicit(&sound->switch_files, memory_order_acquire))
-                        {
+                        if (!atomic_load_explicit(&sound->switch_files, memory_order_acquire)) {
                                 drain_audio_and_pause(sound);
                                 continue;
-                        }
-                        else {
+                        } else {
                                 pause_playback();
                         }
                 }
