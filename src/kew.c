@@ -280,6 +280,7 @@ gboolean mainloop_callback(gpointer data)
 
         if (mutex_result2 != 0) {
                 fprintf(stderr, "Failed to lock switch mutex.\n");
+                pthread_mutex_unlock(&(model->state.library_mutex));
                 return TRUE;
         }
 
