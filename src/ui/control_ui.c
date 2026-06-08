@@ -60,6 +60,9 @@ void seek_forward(Model *model)
 
         int seconds = (int)(duration * (step_percent / 100.0));
 
+        if (seconds == 0)
+                seconds = 1;
+
         seek(seconds);
 
         state->ui.isFastForwarding = true;

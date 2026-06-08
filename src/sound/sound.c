@@ -137,13 +137,13 @@ static bool execute_seek(sound_system_t *sound, ma_decoder *decoder, ma_uint64 t
 
         sound_system_play(sound);
 
-        return result;
+        return (result == MA_SUCCESS);
 }
 
 static bool perform_seek_if_requested(sound_system_t *sound, ma_decoder *decoder)
 {
         if (!is_seek_requested())
-                return true;
+                return false;
 
         set_seek_requested(false);
 
@@ -289,16 +289,19 @@ void execute_switch(sound_system_t *sound)
         switch_decoder_index();
 
         lastCursor = 0;
-        sound->current_frame = sound->fade_current_frame; // What we read from the next song in auto fade, becomes the current song frame
+        sound->current_frame = sound->fade_enter_frame + sound->fade_current_frame; // What we read from the next song in auto fade, becomes the current song frame
         sound->fade_current_frame = 0;
         sound->total_song_frames = 0;
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
 
         void *decoder = get_current_decoder();
-        if (decoder && sound->current_frame > 0) {
-                ma_data_source_seek_to_pcm_frame(
-                    decoder,
-                    sound->current_frame);
+        if (decoder && sound->current_frame > 0) { // If a crossfade was performed
+                ma_uint64 currentFrameIndex;
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &currentFrameIndex);
+
+                if (currentFrameIndex == 0) {
+                        ma_data_source_seek_to_pcm_frame(decoder, sound->current_frame);
+                }
         }
 
         set_replay_gain(sound);
@@ -362,7 +365,7 @@ void drain_audio_and_pause(sound_system_t *sound)
         }
 }
 
-bool perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder, float *current_buf, float *next_buf, float *out_buf, ma_uint32 frames_to_decode, ma_uint64 *frames_to_read)
+void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder, float *current_buf, float *next_buf, float *out_buf, ma_uint32 frames_to_decode, ma_uint64 *frames_to_read)
 {
         if (!sound->fade_seek_performed) {
 
@@ -440,20 +443,6 @@ bool perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
                 sound->fade_current_frame += frames_read;
                 sound->total_frames += frames_read;
         }
-
-        if (sound->fade_current_frame >=
-            sound->fade_total_frames) {
-
-                sound->fade_requested = false;
-                sound->fade_seek_performed = false;
-
-                atomic_store(&sound->pending_switch, true);
-                atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
-
-                return true;
-        }
-
-        return false;
 }
 
 void write_to_ring_buffer(sound_system_t *sound, ma_uint64 frames_to_read, float *out_buf)
@@ -528,6 +517,7 @@ void *decode_loop(void *arg)
 
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
         sound->fade_current_frame = 0;
+        atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
 
         while (atomic_load(&sound->decode_thread_running)) {
 
@@ -565,6 +555,8 @@ void *decode_loop(void *arg)
                         if (writable > 0) {
                                 break;
                         }
+
+                        atomic_store(&sound->buffer_ready, 1);
 
                         struct timespec ts = {0, 1000000}; // 1ms
                         nanosleep(&ts, NULL);
@@ -604,12 +596,14 @@ void *decode_loop(void *arg)
                 const CodecOps *ops = get_codec_ops(get_current_decoder_decoder_type());
 
                 void *decoder = get_current_decoder();
-                if (!decoder || !atomic_load(&sound->decode_thread_running) || pb_is_EOF_reached()) {
+                if (!decoder || !atomic_load(&sound->decode_thread_running)) {
+                        c_sleep(10);
                         continue;
                 }
 
-                if (!perform_seek_if_requested(sound, decoder))
+                if (perform_seek_if_requested(sound, decoder)) {
                         continue;
+                }
 
                 ma_result result = MA_SUCCESS;
                 ma_uint64 frames_to_read = 0;
@@ -634,8 +628,7 @@ void *decode_loop(void *arg)
                 // Handle crossfade
                 if (sound->fade_requested && !loader->loadingFirstDecoder && next_decoder) {
 
-                        if (perform_crossfade(sound, decoder, next_decoder, current_buf, next_buf, mixed_buf, frames_to_decode, &frames_to_read))
-                                continue; // crossfade done
+                        perform_crossfade(sound, decoder, next_decoder, current_buf, next_buf, mixed_buf, frames_to_decode, &frames_to_read);
 
                 } else {
                         // Decode
@@ -688,6 +681,7 @@ void *decode_loop(void *arg)
 
                                                 framesWritten += framesToWrite;
                                                 framesRemaining -= framesToWrite;
+                                                sound->total_frames += framesToWrite;
                                         }
                                 }
 
@@ -718,6 +712,16 @@ void *decode_loop(void *arg)
                 if (frames_to_read > 0) {
 
                         write_to_ring_buffer(sound, frames_to_read, mixed_buf);
+
+                        if (sound->fade_requested && sound->fade_current_frame >=
+                            sound->fade_total_frames) {
+
+                                sound->fade_requested = false;
+                                sound->fade_seek_performed = false;
+
+                                atomic_store(&sound->pending_switch, true);
+                                atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
+                        }
                 }
         }
 
@@ -811,6 +815,7 @@ void on_audio_frames(ma_device *device,
                         atomic_store_explicit(&sound_s->pending_switch, true, memory_order_relaxed);
                         boundary_handled = true;
                 }
+
                 // Copy frames
                 size_t bytesToCopy = framesToCopy * frameSize;
                 MA_COPY_MEMORY(writePtr, pReadBuffer, bytesToCopy);
