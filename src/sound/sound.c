@@ -132,6 +132,7 @@ static bool execute_seek(sound_system_t *sound, ma_decoder *decoder, ma_uint64 t
                 atomic_store(&sound->buffer_ready, 0);
                 ma_pcm_rb_reset(&pcm_rb);
                 atomic_store(&sound->decode_finished, false);
+                sound->current_frame = targetFrame;
         }
 
         sound_system_play(sound);
@@ -283,6 +284,14 @@ void execute_switch(sound_system_t *sound)
         sound->current_frame = sound->fade_current_frame; // What we read from the next song in auto fade, becomes the current song frame
         sound->fade_current_frame = 0;
         sound->total_song_frames = 0;
+        sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
+
+        void *decoder = get_current_decoder();
+        if (decoder && sound->current_frame > 0) {
+                ma_data_source_seek_to_pcm_frame(
+                    decoder,
+                    sound->current_frame);
+        }
 
         set_replay_gain(sound);
 
@@ -290,8 +299,7 @@ void execute_switch(sound_system_t *sound)
 
         set_EOF_reached();
 
-        if (atomic_load_explicit(&sound->fade_boundary, memory_order_acquire) < 0)
-        {
+        if (atomic_load_explicit(&sound->fade_boundary, memory_order_acquire) < 0) {
                 atomic_store_explicit(&sound->clock_reset_ms, 0, memory_order_release);
         }
 
@@ -346,29 +354,159 @@ void drain_audio_and_pause(sound_system_t *sound)
         }
 }
 
+bool perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder, float *current_buf, float *next_buf, float *out_buf, ma_uint32 frames_to_decode, ma_uint64 *frames_to_read)
+{
+        if (!sound->fade_seek_performed) {
+
+                atomic_store(&sound->clock_reset_done, false);
+                atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
+
+                sound->fade_enter_frame =
+                    ((ma_uint64)sound->fade_enter_song_ms *
+                     sound->sample_rate) /
+                    1000;
+
+                ma_data_source_seek_to_pcm_frame(
+                    next_decoder,
+                    sound->fade_enter_frame);
+
+                sound->fade_seek_performed = true;
+        }
+
+        ma_uint64 current_read = 0;
+        ma_uint64 next_read = 0;
+
+        ma_data_source_read_pcm_frames(
+            decoder,
+            current_buf,
+            (ma_uint64)frames_to_decode,
+            &current_read);
+
+        ma_data_source_read_pcm_frames(
+            next_decoder,
+            next_buf,
+            (ma_uint64)frames_to_decode,
+            &next_read);
+
+        ma_uint64 frames_read =
+            current_read < next_read
+                ? current_read
+                : next_read;
+
+        if (frames_read > 0) {
+
+                float *mixed = out_buf;
+
+                for (ma_uint64 i = 0; i < frames_read; i++) {
+
+                        float t =
+                            (float)(sound->fade_current_frame + i) /
+                            (float)sound->fade_total_frames;
+
+                        if (t > 1.0f)
+                                t = 1.0f;
+
+                        // Equal-power fade
+                        float fadeOut = cosf(t * MA_PI * 0.5f);
+                        float fadeIn = sinf(t * MA_PI * 0.5f);
+
+                        for (ma_uint32 ch = 0;
+                             ch < sound->channels;
+                             ch++) {
+
+                                ma_uint64 idx =
+                                    i * sound->channels + ch;
+
+                                mixed[idx] =
+                                    current_buf[idx] * fadeOut +
+                                    next_buf[idx] * fadeIn;
+                        }
+                }
+
+                *frames_to_read = frames_read;
+
+                sound->current_frame += frames_read;
+                sound->fade_current_frame += frames_read;
+                sound->total_frames += frames_read;
+        }
+
+        if (sound->fade_current_frame >=
+            sound->fade_total_frames) {
+
+                sound->fade_requested = false;
+                sound->fade_seek_performed = false;
+
+                atomic_store(&sound->pending_switch, true);
+                atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
+
+                return true;
+        }
+
+        return false;
+}
+
+void write_to_ring_buffer(sound_system_t *sound, ma_uint64 frames_to_read, float *out_buf)
+{
+        ma_uint32 framesRemaining = (ma_uint32)frames_to_read;
+        ma_uint32 framesWritten = 0;
+
+        while (framesRemaining > 0 && atomic_load(&sound->decode_thread_running)) {
+
+                ma_uint32 framesToWrite = framesRemaining;
+                void *pWriteBuffer = NULL;
+                ma_result wr = ma_pcm_rb_acquire_write(&pcm_rb, &framesToWrite, &pWriteBuffer);
+
+                if (wr != MA_SUCCESS || framesToWrite == 0 || pWriteBuffer == NULL)
+                        break;
+
+                MA_COPY_MEMORY(
+                    pWriteBuffer,
+                    (float *)out_buf + framesWritten * sound->channels,
+                    framesToWrite * sound->channels * sizeof(float));
+
+                ma_pcm_rb_commit_write(&pcm_rb, framesToWrite);
+
+                framesWritten += framesToWrite;
+                framesRemaining -= framesToWrite;
+
+                if (!atomic_load(&sound->buffer_ready))
+                        atomic_store(&sound->buffer_ready, 1);
+        }
+}
+
+bool memalign_buffers(float **current_buf, float **next_buf, float **mixed_buf, int buf_size)
+{
+        if (posix_memalign((void **)current_buf, 64, buf_size) != 0) {
+                return false;
+        }
+
+        if (posix_memalign((void **)next_buf, 64, buf_size) != 0) {
+                free(current_buf);
+                return false;
+        }
+
+        if (posix_memalign((void **)mixed_buf, 64, buf_size) != 0) {
+                free(next_buf);
+                free(current_buf);
+                return false;
+        }
+
+        return true;
+}
+
 // Main decoding loop, produces data to the miniaudio ringbuffer
 void *decode_loop(void *arg)
 {
         sound_system_t *sound = (sound_system_t *)arg;
 
-        size_t tempSize = sound->chunk_frames * sound->channels * sizeof(float);
-        float *temp = NULL;
+        size_t buf_size = sound->chunk_frames * sound->channels * sizeof(float);
+        float *mixed_buf = NULL;
 
         // cross-fade buffers
         float *current_buf = NULL;
         float *next_buf = NULL;
 
-        if (posix_memalign((void **)&temp, 64, tempSize) != 0) {
-                sound->decode_thread_running = false;
-                return NULL;
-        }
-
-        if (posix_memalign((void **)&current_buf, 64, tempSize) != 0) {
-                sound->decode_thread_running = false;
-                return NULL;
-        }
-
-        if (posix_memalign((void **)&next_buf, 64, tempSize) != 0) {
+        if (!memalign_buffers(&current_buf, &next_buf, &mixed_buf, buf_size)) {
                 sound->decode_thread_running = false;
                 return NULL;
         }
@@ -378,6 +516,7 @@ void *decode_loop(void *arg)
         set_decode_thread_priority(pthread_self());
 
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
+        sound->fade_current_frame = 0;
 
         while (atomic_load(&sound->decode_thread_running)) {
 
@@ -385,12 +524,14 @@ void *decode_loop(void *arg)
                 if (atomic_load_explicit(&sound->pending_switch, memory_order_acquire)) {
                         atomic_store_explicit(&sound->pending_switch, false, memory_order_release);
                         atomic_store_explicit(&sound->decode_finished, false, memory_order_release);
+
                         activate_switch();
                 }
 
                 // Handle file switch
                 if (atomic_load_explicit(&sound->switch_files, memory_order_acquire)) {
                         atomic_store_explicit(&sound->decode_finished, false, memory_order_release);
+
                         execute_switch(sound);
                         continue;
                 }
@@ -417,6 +558,7 @@ void *decode_loop(void *arg)
                 }
 
                 if (atomic_load(&sound->request_pause)) {
+
                         drain_audio_and_pause(sound);
                         continue;
                 }
@@ -424,6 +566,7 @@ void *decode_loop(void *arg)
                 // Handle pause
                 unpaused = false;
                 while (atomic_load(&sound->decode_thread_running)) {
+
                         if (pb_is_paused()) {
                                 c_sleep(10);
                                 unpaused = true;
@@ -434,11 +577,6 @@ void *decode_loop(void *arg)
 
                 if (unpaused)
                         continue;
-
-                // Handle switch during pause
-                if (atomic_load_explicit(&sound->switch_files, memory_order_acquire) || !atomic_load(&sound->decode_thread_running)) {
-                        continue;
-                }
 
                 if (writable > 0) {
                         atomic_store(&sound->buffer_ready, 1);
@@ -468,100 +606,23 @@ void *decode_loop(void *arg)
 
                 if (sound->always_fade && !sound->fade_requested && frames_remaining > 0 &&
                     frames_remaining <= sound->fade_frames) {
-                         sound->fade_frames -= (long long)(sound->fade_frames - frames_remaining);
-                        request_crossfade(sound->always_fade_ms, 0);
+                        sound->fade_frames -= (long long)(sound->fade_frames - frames_remaining);
+
+                        if (sound->fade_frames > 100) {
+                                request_crossfade(sound->always_fade_ms, 0);
+                                sound->fade_frames = frames_remaining;
+                        }
                 }
 
                 // Handle crossfade
                 if (sound->fade_requested && !loader->loadingFirstDecoder && next_decoder) {
 
-                        if (!sound->fade_seek_performed) {
+                        if (perform_crossfade(sound, decoder, next_decoder, current_buf, next_buf, mixed_buf, frames_to_decode, &frames_to_read))
+                                continue; // crossfade done
 
-                                atomic_store(&sound->clock_reset_done, false);
-                                atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
-
-                                sound->fade_enter_frame =
-                                    ((ma_uint64)sound->fade_enter_song_ms *
-                                     sound->sample_rate) /
-                                    1000;
-
-                                ma_data_source_seek_to_pcm_frame(
-                                    next_decoder,
-                                    sound->fade_enter_frame);
-
-                                sound->fade_seek_performed = true;
-                        }
-
-                        ma_uint64 current_read = 0;
-                        ma_uint64 next_read = 0;
-
-                        result = ma_data_source_read_pcm_frames(
-                            decoder,
-                            current_buf,
-                            frames_to_decode,
-                            &current_read);
-
-                        ma_data_source_read_pcm_frames(
-                            next_decoder,
-                            next_buf,
-                            frames_to_decode,
-                            &next_read);
-
-                        ma_uint64 frames_read =
-                            current_read < next_read
-                                ? current_read
-                                : next_read;
-
-                        if (frames_read > 0) {
-
-                                float *mixed = temp;
-
-                                for (ma_uint64 i = 0; i < frames_read; i++) {
-
-                                        float t =
-                                            (float)(sound->fade_current_frame + i) /
-                                            (float)sound->fade_total_frames;
-
-                                        if (t > 1.0f)
-                                                t = 1.0f;
-
-                                        // Equal-power fade
-                                        float fadeOut = cosf(t * MA_PI * 0.5f);
-                                        float fadeIn = sinf(t * MA_PI * 0.5f);
-
-                                        for (ma_uint32 ch = 0;
-                                             ch < sound->channels;
-                                             ch++) {
-
-                                                ma_uint64 idx =
-                                                    i * sound->channels + ch;
-
-                                                mixed[idx] =
-                                                    current_buf[idx] * fadeOut +
-                                                    next_buf[idx] * fadeIn;
-                                        }
-                                }
-
-                                frames_to_read = frames_read;
-
-                                sound->current_frame += frames_read;
-                                sound->fade_current_frame += frames_read;
-                                sound->total_frames += frames_read;
-                        }
-
-                        if (sound->fade_current_frame >=
-                            sound->fade_total_frames) {
-                                sound->fade_requested = false;
-                                sound->fade_seek_performed = false;
-
-                                atomic_store(&sound->pending_switch, true);
-                                atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
-
-                                continue;
-                        }
                 } else {
                         // Decode
-                        result = ma_data_source_read_pcm_frames(decoder, temp,
+                        result = ma_data_source_read_pcm_frames(decoder, mixed_buf,
                                                                 frames_to_decode, &frames_to_read);
                         sound->current_frame += frames_to_read;
                         sound->total_frames += frames_to_read;
@@ -579,11 +640,13 @@ void *decode_loop(void *arg)
                         if (cursor != lastCursor) { // mid-song switch, clear buffer
                                 atomic_store(&sound->pending_switch, true);
                                 atomic_store_explicit(&sound_s->clock_reset_ms, 0, memory_order_relaxed);
+
                                 reset_ring_buffer(sound);
                                 continue;
                         } else { // end song, but play the remaining buffer
 
                                 ma_uint32 framesWritten = 0;
+
                                 // Write the last frames before marking finished
                                 if (frames_to_read > 0) {
                                         ma_uint32 framesRemaining = (ma_uint32)frames_to_read;
@@ -594,13 +657,14 @@ void *decode_loop(void *arg)
                                                 ma_result wr = ma_pcm_rb_acquire_write(&pcm_rb, &framesToWrite, &pWriteBuffer);
 
                                                 if (wr != MA_SUCCESS || framesToWrite == 0) {
+
                                                         struct timespec ts = {0, 500000};
                                                         nanosleep(&ts, NULL);
                                                         continue;
                                                 }
 
                                                 memcpy(pWriteBuffer,
-                                                       temp + framesWritten * sound->channels,
+                                                       mixed_buf + framesWritten * sound->channels,
                                                        framesToWrite * sound->channels * sizeof(float));
 
                                                 ma_pcm_rb_commit_write(&pcm_rb, framesToWrite);
@@ -613,7 +677,7 @@ void *decode_loop(void *arg)
                                 atomic_thread_fence(memory_order_seq_cst);
 
                                 long long sent = atomic_load(&sound->track_frames_sent);
-                                sent = sent + framesWritten;
+                                sent = sent + (long long)ma_pcm_rb_available_read(&pcm_rb);
                                 atomic_store_explicit(&sound->track_end_frame, sent, memory_order_release);
                                 atomic_store_explicit(&sound->decode_finished, true, memory_order_release);
                                 atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
@@ -627,6 +691,7 @@ void *decode_loop(void *arg)
 
                 if (sound->fade_current_frame > 0 &&
                     atomic_load_explicit(&sound_s->fade_boundary, memory_order_relaxed) < 0) {
+
                         long long fade_boundary =
                             (long long)(sound->total_frames - sound->fade_frames);
                         atomic_store_explicit(&sound->fade_boundary, fade_boundary, memory_order_release);
@@ -634,35 +699,14 @@ void *decode_loop(void *arg)
 
                 // Write decoded frames to ring buffer
                 if (frames_to_read > 0) {
-                        ma_uint32 framesRemaining = (ma_uint32)frames_to_read;
-                        ma_uint32 framesWritten = 0;
-
-                        while (framesRemaining > 0 && atomic_load(&sound->decode_thread_running)) {
-
-                                ma_uint32 framesToWrite = framesRemaining;
-                                void *pWriteBuffer = NULL;
-                                ma_result wr = ma_pcm_rb_acquire_write(&pcm_rb, &framesToWrite, &pWriteBuffer);
-
-                                if (wr != MA_SUCCESS || framesToWrite == 0 || pWriteBuffer == NULL)
-                                        break;
-
-                                MA_COPY_MEMORY(
-                                    pWriteBuffer,
-                                    (float *)temp + framesWritten * sound->channels,
-                                    framesToWrite * sound->channels * sizeof(float));
-
-                                ma_pcm_rb_commit_write(&pcm_rb, framesToWrite);
-
-                                framesWritten += framesToWrite;
-                                framesRemaining -= framesToWrite;
-
-                                if (!atomic_load(&sound->buffer_ready))
-                                        atomic_store(&sound->buffer_ready, 1);
-                        }
+                        
+                        write_to_ring_buffer(sound, frames_to_read, mixed_buf);
                 }
         }
 
-        free(temp);
+        free(mixed_buf);
+        free(current_buf);
+        free(next_buf);
         atomic_store(&sound->decode_thread_running, false);
         atomic_store(&sound_s->drain_callbacks_remaining, 0);
         atomic_store(&sound_s->request_pause, false);
