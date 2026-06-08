@@ -290,7 +290,7 @@ void execute_switch(sound_system_t *sound)
         if (decoder && sound->current_frame > 0) {
                 ma_data_source_seek_to_pcm_frame(
                     decoder,
-                    sound->current_frame);
+                    sound->current_frame + 1);
         }
 
         set_replay_gain(sound);
