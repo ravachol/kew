@@ -337,6 +337,8 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         AppSettings *settings = get_app_settings();
 
+        Node *current = get_current_song();
+
         switch (msg->type) {
 
         case MSG_TICK:
@@ -633,16 +635,24 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_CROSSFADE_QUICK:
+                if (!current || !current->next)
+                        break;
                 result.cmd.type = CMD_CROSSFADE;
                 result.cmd.value = FADE_QUICK;
                 break;
 
         case MSG_CROSSFADE_MEDIUM:
+                if (!current || !current->next)
+                        break;
+
                 result.cmd.type = CMD_CROSSFADE;
                 result.cmd.value = FADE_MEDIUM;
                 break;
 
         case MSG_CROSSFADE_SLOW:
+                if (!current || !current->next)
+                        break;
+
                 result.cmd.type = CMD_CROSSFADE;
                 result.cmd.value = FADE_SLOW;
                 break;
