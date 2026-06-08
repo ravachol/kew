@@ -608,7 +608,7 @@ void *decode_loop(void *arg)
                     frames_remaining <= sound->fade_frames) {
                         sound->fade_frames -= (long long)(sound->fade_frames - frames_remaining);
 
-                        if (sound->fade_frames > 100) {
+                        if (frames_remaining > 100) {
                                 request_crossfade(sound->always_fade_ms, 0);
                                 sound->fade_frames = frames_remaining;
                         }
@@ -699,7 +699,7 @@ void *decode_loop(void *arg)
 
                 // Write decoded frames to ring buffer
                 if (frames_to_read > 0) {
-                        
+
                         write_to_ring_buffer(sound, frames_to_read, mixed_buf);
                 }
         }
