@@ -26,6 +26,8 @@ typedef struct
         bool songdataADeleted;
         bool songdataBDeleted;
 
+        bool dirty;
+
         pthread_mutex_t mutex;
 } LoaderData;
 
