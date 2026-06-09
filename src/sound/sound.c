@@ -768,9 +768,6 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                 ma_uint32 framesToRead = framesRemaining;
                 void *pReadBuffer = NULL;
 
-                if (!atomic_load_explicit(&sound_s->buffer_ready, memory_order_acquire))
-                        break;
-
                 ma_result result = ma_pcm_rb_acquire_read(&pcm_rb, &framesToRead, &pReadBuffer);
 
                 if (result != MA_SUCCESS || framesToRead == 0 || pReadBuffer == NULL) {
