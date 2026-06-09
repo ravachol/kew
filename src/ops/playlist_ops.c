@@ -34,7 +34,6 @@ static bool skip_in_progress = false;
 
 Node *choose_next_song(void)
 {
-        Model *model = get_model();
         Node *current = get_current_song();
         Node *next_song = get_next_song();
 
@@ -43,7 +42,7 @@ Node *choose_next_song(void)
         else if (current != NULL && current->next != NULL) {
                 return current->next;
         } else {
-                return determine_next_song(model->playlist);
+                return NULL;
         }
 }
 
