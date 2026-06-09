@@ -67,17 +67,6 @@ sound_result_t create_audio_device(
     decoder_getter_func get_decoder,
     ma_data_callback_proc callback);
 
-typedef struct {
-        bool active;
-
-        ma_uint64 total_frames;  // entire fade length
-        ma_uint64 current_frame; // progress through fade
-
-        ma_uint64 enter_frame; // target song entry point
-
-        bool seek_performed;
-} CrossfadeState;
-
 bool valid_file_path(char *file_path)
 {
         if (file_path == NULL || file_path[0] == '\0' || file_path[0] == '\r')
@@ -285,29 +274,25 @@ void execute_switch(sound_system_t *sound)
 
         atomic_store(&sound->drain_callbacks_remaining, 0);
 
-        set_switch_files(false);
-        switch_decoder_index();
-
         lastCursor = 0;
-        sound->current_frame = sound->fade_enter_frame + sound->fade_current_frame; // What we read from the next song in auto fade, becomes the current song frame
+
+        // What we have already read from the next song in cross fade, becomes the current song frame
+        sound->current_frame = sound->fade_current_frame;
+
+        sound->fade_enter_frame = 0;
         sound->fade_current_frame = 0;
         sound->total_song_frames = 0;
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
 
-        void *decoder = get_current_decoder();
-        if (decoder && sound->current_frame > 0) { // If a crossfade was performed
-                ma_uint64 currentFrameIndex;
-                ma_data_source_get_cursor_in_pcm_frames(decoder, &currentFrameIndex);
+        set_switch_files(false);
 
-                if (currentFrameIndex == 0) {
-                        ma_data_source_seek_to_pcm_frame(decoder, sound->current_frame);
-                }
-        }
+        LoaderData *loader = get_loader_data();
+        loader->dirty = true;
+
+        switch_decoder_index();
 
         set_replay_gain(sound);
-
         set_seek_elapsed(0.0);
-
         set_EOF_reached();
 
         if (atomic_load_explicit(&sound->fade_boundary, memory_order_acquire) < 0) {
@@ -384,6 +369,11 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
                             sound->fade_enter_frame);
                 }
 
+                sound->fade_current_frame = 0;
+                sound->fade_next_frame = 0;
+                sound->fade_next_frame += sound->fade_enter_frame;
+                sound->total_frames += sound->fade_enter_frame;
+
                 sound->fade_seek_performed = true;
         }
 
@@ -399,7 +389,7 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
         ma_data_source_read_pcm_frames(
             next_decoder,
             next_buf,
-            (ma_uint64)frames_to_decode,
+            current_read,
             &next_read);
 
         ma_uint64 frames_read =
@@ -441,6 +431,7 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
 
                 sound->current_frame += frames_read;
                 sound->fade_current_frame += frames_read;
+                sound->fade_next_frame += next_read;
                 sound->total_frames += frames_read;
         }
 }
@@ -515,6 +506,8 @@ void *decode_loop(void *arg)
         lastCursor = 0;
         set_decode_thread_priority(pthread_self());
 
+        void *decoder = NULL;
+
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
         sound->fade_current_frame = 0;
         atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
@@ -534,6 +527,7 @@ void *decode_loop(void *arg)
                         atomic_store_explicit(&sound->decode_finished, false, memory_order_release);
 
                         if (!pb_is_paused()) {
+
                                 execute_switch(sound);
                                 continue;
                         }
@@ -595,7 +589,7 @@ void *decode_loop(void *arg)
 
                 const CodecOps *ops = get_codec_ops(get_current_decoder_decoder_type());
 
-                void *decoder = get_current_decoder();
+                decoder = get_current_decoder();
                 if (!decoder || !atomic_load(&sound->decode_thread_running)) {
                         c_sleep(10);
                         continue;
@@ -613,7 +607,7 @@ void *decode_loop(void *arg)
                 if (sound->total_song_frames == 0)
                         ma_data_source_get_length_in_pcm_frames(decoder, &sound->total_song_frames);
 
-                int frames_remaining = sound->total_song_frames - sound->current_frame;
+                ma_uint64 frames_remaining = sound->total_song_frames - sound->current_frame;
 
                 if (sound->always_fade && !sound->fade_requested && frames_remaining > 0 &&
                     frames_remaining <= sound->fade_frames) {
@@ -625,8 +619,11 @@ void *decode_loop(void *arg)
                         }
                 }
 
+                if (frames_to_decode > frames_remaining)
+                        frames_to_decode = frames_remaining;
+
                 // Handle crossfade
-                if (sound->fade_requested && !loader->loadingFirstDecoder && next_decoder) {
+                if (sound->fade_requested && !loader->loadingFirstDecoder && next_decoder && !loader->dirty) {
 
                         perform_crossfade(sound, decoder, next_decoder, current_buf, next_buf, mixed_buf, frames_to_decode, &frames_to_read);
 
@@ -653,6 +650,7 @@ void *decode_loop(void *arg)
 
                                 reset_ring_buffer(sound);
                                 continue;
+
                         } else { // end song, but play the remaining buffer
 
                                 ma_uint32 framesWritten = 0;
@@ -714,7 +712,7 @@ void *decode_loop(void *arg)
                         write_to_ring_buffer(sound, frames_to_read, mixed_buf);
 
                         if (sound->fade_requested && sound->fade_current_frame >=
-                            sound->fade_total_frames) {
+                                                         sound->fade_frames) {
 
                                 sound->fade_requested = false;
                                 sound->fade_seek_performed = false;
@@ -735,10 +733,7 @@ void *decode_loop(void *arg)
 }
 
 // Audio callback, consumes data from the miniaudio ringbuffer, and feeds the output device
-void on_audio_frames(ma_device *device,
-                     void *pOutput,
-                     const void *input,
-                     ma_uint32 frameCount)
+void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uint32 frameCount)
 {
         (void)device;
         (void)input;
@@ -772,6 +767,9 @@ void on_audio_frames(ma_device *device,
 
                 ma_uint32 framesToRead = framesRemaining;
                 void *pReadBuffer = NULL;
+
+                if (!atomic_load_explicit(&sound_s->buffer_ready, memory_order_acquire))
+                        break;
 
                 ma_result result = ma_pcm_rb_acquire_read(&pcm_rb, &framesToRead, &pReadBuffer);
 
@@ -1350,6 +1348,8 @@ void *song_data_reader_thread(void *arg)
 
                 song_loader_assign_slot_B(songdata);
         }
+
+        loader_data->dirty = false; // The loader no longer contains unused data in the slot
 
         int result = assign_loaded_data();
 
