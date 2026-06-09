@@ -564,6 +564,7 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_TOGGLECROSSFADE:
                 model->state.settings.always_crossfade = !model->state.settings.always_crossfade;
                 set_dirty(DIRTY_FOOTER);
+                result.cmd.type = CMD_TOGGLECROSSFADE;
                 break;
 
         case MSG_ADDTOFAVORITESPLAYLIST:
