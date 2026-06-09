@@ -163,18 +163,110 @@ FileSystemEntry *get_first_parent(FileSystemEntry *entry)
         return first_parent;
 }
 
-void component_library_helper_collapse_top_level(Model *model, int direction)
+bool library_entry_has_visible_children(Model *model, FileSystemEntry *entry)
 {
-        TreeContext *ctx = &model->state.ui.treeCtx;
+        if (!entry)
+                return false;
 
-        FileSystemEntry *first_parent = get_first_parent(ctx->chosen_dir);
+        FileSystemEntry *child = entry->children;
+        FileSystemEntry *chosen = model->state.ui.treeCtx.chosen_dir;
+
+        // Return true if this is the chosen directory and it is open
         if (model->state.ui.allowChooseSongs &&
-            model->state.settings.collapseTopLevel &&
-            ctx->chosen_dir) {
+            model->state.ui.treeCtx.chosen_dir &&
+            entry->id == model->state.ui.treeCtx.chosen_dir->id)
+                return true;
+
+        // Return true if this has children which are directories
+        // And it is the top level
+        if (!model->state.settings.collapseTopLevel && entry->parent && !entry->parent->parent) {
+                while (child != NULL) {
+                        if (child->is_directory)
+                                return true;
+
+                        child = child->next;
+                }
+        }
+
+        // Or we are running the option to collapse the top levels and it is open
+        if (model->state.settings.collapseTopLevel && model->state.ui.allowChooseSongs) {
+                while (child != NULL) {
+
+                        if (child->is_directory)
+                                return true;
+
+                        child = child->next;
+                }
+        }
+
+        // Or it's the chosen directory and it is open
+        if (chosen && entry->id == chosen->id && model->state.ui.allowChooseSongs) {
+                if (child != NULL)
+                        return true;
+        }
+
+        return false;
+}
+
+bool library_nothing_more_to_scroll_to(Model *model, FileSystemEntry *current)
+{
+        FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
+
+        if (!is_contained_within(current, chosen_dir))
+                return true;
+
+        while (current != chosen_dir) {
+                if (current->children)
+                        if (library_entry_has_visible_children(model, current))
+                                return false;
+
+                if (!current->next)
+                        current = current->parent;
+                else
+                        return false;
+        }
+
+        bool currentIsTopLevel = current->parent && !current->parent->parent;
+
+        if (!current->next || currentIsTopLevel)
+                return true;
+
+        return false;
+}
+
+void library_collapse_directory(Model *model, int direction)
+{
+        FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
+
+        if (!chosen_dir)
+                return;
+
+        FileSystemEntry *first_parent = get_first_parent(chosen_dir);
+        FileSystemEntry *current = model->state.ui.current_lib_entry;
+        int num_first_children = 0;
+        bool collapse_top = false;
+
+        if (library_nothing_more_to_scroll_to(model, current) && model->state.settings.collapseTopLevel) {
+
+                FileSystemEntry *child = first_parent->children;
+
+                while (child != NULL) {
+                        if (!child->is_directory)
+                                num_first_children++;
+                        child = child->next;
+                }
+
+                model->state.ui.chosen_lib_row -= num_first_children;
+
+                collapse_top = true;
+        }
+
+        if ((model->state.ui.allowChooseSongs || model->state.settings.collapseTopLevel) &&
+            chosen_dir) {
                 int num_dirs = count_directories_in_directory(first_parent);
                 int num_children = 0;
-                if (ctx->chosen_dir != NULL) {
-                        FileSystemEntry *child = ctx->chosen_dir->children;
+                if (chosen_dir && chosen_dir->id != first_parent->id) {
+                        FileSystemEntry *child = chosen_dir->children;
 
                         while (child != NULL) {
                                 if (!child->is_directory)
@@ -184,27 +276,64 @@ void component_library_helper_collapse_top_level(Model *model, int direction)
                 }
 
                 model->state.ui.allowChooseSongs = false;
-                if (direction > 0)
-                        model->state.ui.chosen_lib_row -= num_dirs + num_children;
-                model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
+                if (direction > 0) {
+                        model->state.ui.chosen_lib_row -= num_children;
+                        if (model->state.settings.collapseTopLevel && collapse_top)
+                                model->state.ui.chosen_lib_row -= num_dirs;
+                }
+
+                if (chosen_dir->id == first_parent->id && !chosen_dir->next)
+                        model->state.ui.chosen_lib_row -= 1; // Last row in the library should go up not down
+
+                model->state.ui.chosen_dir = chosen_dir = NULL;
         }
+}
+
+bool library_chosen_dir_should_collapse(Model *model, int diff_rows)
+{
+        FileSystemEntry *current = model->state.ui.current_lib_entry;
+        FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
+
+        if (!chosen_dir)
+                return false;
+
+        bool movingUp = diff_rows < 0;
+        bool chosenIsTopLevel = chosen_dir->parent && !chosen_dir->parent->parent;
+        bool currentIsChosenDir = chosen_dir && current->id == chosen_dir->id;
+        bool collapseTopLevelSet = model->state.settings.collapseTopLevel;
+
+        // Collapse if we are moving up from the chosen directory
+        if (currentIsChosenDir && movingUp)
+                return true;
+
+        if (currentIsChosenDir && !movingUp && chosenIsTopLevel && collapseTopLevelSet && current->next)
+                return true;
+
+        // Collapse if there's nothing more to scroll to
+        if (((collapseTopLevelSet && chosenIsTopLevel) || !chosenIsTopLevel) && !movingUp)
+                if (library_nothing_more_to_scroll_to(model, current))
+                        return true;
+
+        return false;
 }
 
 void component_library_helper_collapse_view(Model *model, int diff_rows)
 {
         UIState *uis = &model->state.ui;
-        TreeContext *ctx = &model->state.ui.treeCtx;
+        FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
+        FileSystemEntry *current = model->state.ui.current_lib_entry;
+        FileSystemEntry *parent = current->parent;
 
         if ((uis->allowChooseSongs || model->state.settings.collapseTopLevel) &&
-            (ctx->chosen_dir == NULL ||
-             (uis->current_lib_entry != NULL && uis->current_lib_entry->parent != NULL &&
-              ctx->chosen_dir != NULL))) {
+            (chosen_dir == NULL ||
+             (current != NULL && parent != NULL &&
+              chosen_dir != NULL))) {
 
                 set_dirty(DIRTY_LIBRARY);
 
                 int num_children = 0;
-                if (ctx->chosen_dir != NULL && diff_rows > 0) {
-                        FileSystemEntry *child = ctx->chosen_dir->children;
+                if (chosen_dir != NULL && diff_rows > 0) {
+                        FileSystemEntry *child = chosen_dir->children;
 
                         while (child != NULL) {
                                 child = child->next;
@@ -214,23 +343,35 @@ void component_library_helper_collapse_view(Model *model, int diff_rows)
 
                 // Handle case for when library is collapsed and only artists are visible
                 if (model->state.settings.collapseTopLevel) {
-                        // If we are exiting the artist, collapse all the albums in it
-                        if (ctx->chosen_dir && ctx->chosen_dir->parent && !ctx->chosen_dir->parent->parent &&
-                            (strcmp(model->state.ui.current_lib_entry->parent->full_path, ctx->chosen_dir->full_path) == 0 ||
-                             (strcmp(model->state.ui.current_lib_entry->full_path, ctx->chosen_dir->full_path) == 0 && diff_rows < 0))) {
-                                component_library_helper_collapse_top_level(model, diff_rows);
-                        } else if (ctx->chosen_dir && ctx->chosen_dir->parent && ctx->chosen_dir->parent->parent) {
 
-                                // Else if we are exiting a folder within the artist, collapse only that album
-                                if (diff_rows > 0 && !ctx->chosen_dir->next)
-                                        component_library_helper_collapse_top_level(model, diff_rows);
-                                else
-                                        model->state.ui.chosen_lib_row -= num_children;
-                                model->state.ui.chosen_dir = ctx->chosen_dir = get_first_parent(ctx->chosen_dir);
+                        bool chosenIsTopLevel = chosen_dir && chosen_dir->parent && !chosen_dir->parent->parent;
+
+                        // If we are exiting the artist, collapse all the albums in it
+                        if (chosenIsTopLevel && library_chosen_dir_should_collapse(model, diff_rows)) {
+
+                                library_collapse_directory(model, diff_rows);
+                                model->state.ui.chosen_dir = chosen_dir = NULL;
                         }
+                        // If we are exiting a folder within the artist, collapse only that album
+                        else if (!chosenIsTopLevel) {
+
+                                if (diff_rows > 0 && !chosen_dir->next) {
+                                        library_collapse_directory(model, diff_rows);
+
+                                } else {
+                                        model->state.ui.chosen_lib_row -= num_children;
+                                        model->state.ui.chosen_dir = chosen_dir = get_first_parent(chosen_dir);
+                                }
+
+                                uis->allowChooseSongs = false;
+
+
+                        }
+
                 } else {
+
                         uis->allowChooseSongs = false;
-                        model->state.ui.chosen_dir = ctx->chosen_dir = NULL;
+                        model->state.ui.chosen_dir = chosen_dir = NULL;
                         model->state.ui.chosen_lib_row -= num_children;
                 }
         }
@@ -320,11 +461,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
         if (!(rgb_track.r == ui->default_color &&
               rgb_track.g == ui->default_color &&
-              rgb_track.b == ui->default_color))
-        {
+              rgb_track.b == ui->default_color)) {
                 track_color = get_gradient_color(rgb_track,
-                                               *iter - ctx.start_lib_iter,
-                                               max_list_size, max_list_size / 2, 0.7f);
+                                                 *iter - ctx.start_lib_iter,
+                                                 max_list_size, max_list_size / 2, 0.7f);
 
                 if (!track_style.isAnsi)
                         track_style.fg = track_color;
@@ -332,15 +472,13 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
         if (!(rgb_enqueued.r == ui->default_color &&
               rgb_enqueued.g == ui->default_color &&
-              rgb_enqueued.b == ui->default_color))
-        {
+              rgb_enqueued.b == ui->default_color)) {
                 enqueued_color = get_gradient_color(rgb_enqueued,
-                                                *iter - ctx.start_lib_iter,
-                                                max_list_size, max_list_size / 2, 0.7f);
+                                                    *iter - ctx.start_lib_iter,
+                                                    max_list_size, max_list_size / 2, 0.7f);
                 if (!enqueued_style.isAnsi)
                         enqueued_style.fg = enqueued_color;
         }
-
 
         // Render this node
         if (depth >= 0) {
@@ -1719,8 +1857,8 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         }
 
         if ((empty.isAnsi &&
-                (!model->songdata || !model->songdata->cover)) ||
-                        (model->state.settings.colorMode == COLOR_MODE_DEFAULT)) {
+             (!model->songdata || !model->songdata->cover)) ||
+            (model->state.settings.colorMode == COLOR_MODE_DEFAULT)) {
 
                 // If it's missing a cover
                 if (empty.fgAnsi == -1) {
@@ -2674,7 +2812,8 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
         int max_width = region.width;
 
         snprintf(line, sizeof(line), _("Search:"));
-        snprintf(query, sizeof(query), "%s█", model->state.ui.search_text);;
+        snprintf(query, sizeof(query), "%s█", model->state.ui.search_text);
+        ;
         int line_width = utf8_display_width(line);
         draw_buffer_set_string_truncated(buf, region.row, region.col, line, line_width, label_style);
         draw_buffer_set_string_truncated(buf, region.row, region.col + line_width + 1, query, max_width, query_style);

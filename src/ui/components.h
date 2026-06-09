@@ -39,7 +39,7 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
 
 FileSystemEntry *get_first_parent(FileSystemEntry *entry);
 
-void component_library_helper_collapse_top_level(Model *model, int direction);
+void library_collapse_directory(Model *model, int direction);
 
 void component_library_helper_collapse_view(Model *model, int diff_rows);
 

@@ -19,8 +19,8 @@
 #include "ui/anims.h"
 #include "ui/common_ui.h"
 #include "ui/components.h"
-#include "ui/visuals.h"
 #include "ui/control_ui.h"
+#include "ui/visuals.h"
 
 #include "utils/utils.h"
 
@@ -190,6 +190,7 @@ void switch_to_next_view(Model *model)
 
 void scroll_next(Model *model)
 {
+        // FIXME Rewrite all of this garbage
         PlayList *unshuffled_playlist = model->unshuffled_playlist;
 
         if (model->state.currentView == PLAYLIST_VIEW) {
@@ -205,8 +206,19 @@ void scroll_next(Model *model)
                         model->state.ui.lib_row_count = model->state.ui.lib_row_count - 1;
 
                 if ((model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
-                     ((model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id != model->state.ui.treeCtx.chosen_dir->id))))
-                        component_library_helper_collapse_view(model, 1);
+                     ((model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id != model->state.ui.treeCtx.chosen_dir->id)))) {
+
+                        if (model->state.settings.collapseTopLevel) {
+
+                                if (!(model->state.ui.current_lib_entry && model->state.ui.current_lib_entry->children &&
+                                      model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
+                                        (model->state.ui.current_lib_entry->parent->parent && model->state.ui.current_lib_entry->parent->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
+                                (model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id && !model->state.ui.current_lib_entry->next))
+                                        component_library_helper_collapse_view(model, 1);
+                        } else {
+                                component_library_helper_collapse_view(model, 1);
+                        }
+                }
 
                 set_dirty(DIRTY_LIBRARY);
         } else if (model->state.currentView == SEARCH_VIEW) {
@@ -225,6 +237,7 @@ void scroll_next(Model *model)
 
 void scroll_prev(Model *model)
 {
+        // FIXME Rewrite all of this garbage
         if (model->state.currentView == PLAYLIST_VIEW) {
 
                 model->state.ui.chosen_row--;
@@ -352,12 +365,11 @@ UpdateResult update(Model *model, struct Msg *msg)
                 advance_glimmer_anim(model);
 
                 if (!model->songdata_ok && model->state.currentView == TRACK_VIEW &&
-                        model->state.settings.repeatState == SOUND_STATE_REPEAT_OFF) {
+                    model->state.settings.repeatState == SOUND_STATE_REPEAT_OFF) {
 
                         if (!(should_start_playing() &&
-                                (model->playbackState.waitingForPlaylist || model->playbackState.waitingForNext) &&
-                                determine_next_song(model->playlist)))
-                        {
+                              (model->playbackState.waitingForPlaylist || model->playbackState.waitingForNext) &&
+                              determine_next_song(model->playlist))) {
                                 // Conditions aren't met for a new song being played soon, switch to library
                                 switch_view(LIBRARY_VIEW);
                         }
@@ -687,12 +699,11 @@ UpdateResult update(Model *model, struct Msg *msg)
                         FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
 
                         bool same_parent = first_parent && entry_first_parent &&
-                                        strcmp(first_parent->full_path, entry_first_parent->full_path) == 0;
+                                           strcmp(first_parent->full_path, entry_first_parent->full_path) == 0;
 
-                        if (!same_parent)
-                        {
+                        if (!same_parent) {
                                 if (model->state.settings.collapseTopLevel)
-                                        component_library_helper_collapse_top_level(model, 1);
+                                        library_collapse_directory(model, 1);
                                 else
                                         component_library_helper_collapse_view(model, 1);
                         }
