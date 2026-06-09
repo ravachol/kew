@@ -59,6 +59,8 @@ int song_loader_init(void)
         loader_data.songdataADeleted = true;
         loader_data.songdataBDeleted = true;
 
+        loader_data.dirty = false;
+
         tmpCache = create_cache();
 
         pthread_mutex_init(&(loader_data.mutex), NULL);
