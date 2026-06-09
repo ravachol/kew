@@ -84,7 +84,6 @@ struct sound_system {
         int fade_enter_song_ms;
         ma_uint64 fade_enter_frame;
         ma_uint64 fade_current_frame;
-        ma_uint64 fade_next_frame;
         ma_uint64 fade_total_frames;
         ma_uint64 fade_frames;
 };
