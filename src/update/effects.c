@@ -280,6 +280,10 @@ void run_command(UpdateResult result)
                 break;
         }
 
+        case CMD_TOGGLECROSSFADE:
+                sound_system_set_always_crossfade(sound_sys, model->state.settings.always_crossfade, model->state.settings.fade_medium_ms);
+                break;
+
         case CMD_MOVE_SONG_UP:
                 move_song_up(&model->state.ui.chosen_row);
                 break;
