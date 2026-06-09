@@ -354,6 +354,9 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
 {
         if (!sound->fade_seek_performed) {
 
+                clear_decoder_chain(); // Prevents a read at the end of decoder from spilling
+                                       // over into the next decoder and resetting the position
+
                 atomic_store(&sound->clock_reset_done, false);
                 atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
 
@@ -370,8 +373,6 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
                 }
 
                 sound->fade_current_frame = 0;
-                sound->fade_next_frame = 0;
-                sound->fade_next_frame += sound->fade_enter_frame;
                 sound->total_frames += sound->fade_enter_frame;
 
                 sound->fade_seek_performed = true;
@@ -431,7 +432,6 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
 
                 sound->current_frame += frames_read;
                 sound->fade_current_frame += frames_read;
-                sound->fade_next_frame += next_read;
                 sound->total_frames += frames_read;
         }
 }
@@ -619,9 +619,6 @@ void *decode_loop(void *arg)
                         }
                 }
 
-                if (frames_to_decode > frames_remaining)
-                        frames_to_decode = frames_remaining;
-
                 // Handle crossfade
                 if (sound->fade_requested && !loader->loadingFirstDecoder && next_decoder && !loader->dirty) {
 
@@ -710,16 +707,16 @@ void *decode_loop(void *arg)
                 if (frames_to_read > 0) {
 
                         write_to_ring_buffer(sound, frames_to_read, mixed_buf);
+                }
 
-                        if (sound->fade_requested && sound->fade_current_frame >=
-                                                         sound->fade_frames) {
+                if (sound->fade_requested && (sound->fade_current_frame >=
+                                                 sound->fade_frames || frames_to_read == 0)) {
 
-                                sound->fade_requested = false;
-                                sound->fade_seek_performed = false;
+                        sound->fade_requested = false;
+                        sound->fade_seek_performed = false;
 
-                                atomic_store(&sound->pending_switch, true);
-                                atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
-                        }
+                        atomic_store(&sound->pending_switch, true);
+                        atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
                 }
         }
 
