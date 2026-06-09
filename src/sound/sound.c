@@ -295,12 +295,18 @@ void execute_switch(sound_system_t *sound)
         set_seek_elapsed(0.0);
         set_EOF_reached();
 
-        if (atomic_load_explicit(&sound->fade_boundary, memory_order_acquire) < 0) {
+        long long fade_boundary = atomic_load_explicit(&sound->fade_boundary, memory_order_acquire);
+        bool fade_boundary_reached = atomic_load_explicit(&sound->fade_boundary, memory_order_acquire);
+
+        if (fade_boundary < 0) {
                 atomic_store_explicit(&sound->clock_reset_ms, 0, memory_order_release);
         }
 
-        atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
-        atomic_store_explicit(&sound_s->clock_reset_done, false, memory_order_relaxed);
+        if (fade_boundary < 0 || fade_boundary_reached)
+        {
+                atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
+                atomic_store_explicit(&sound_s->clock_reset_done, false, memory_order_relaxed);
+        }
 
         pthread_mutex_unlock(&ps->switch_mutex);
 }
@@ -610,7 +616,7 @@ void *decode_loop(void *arg)
                 ma_uint64 frames_remaining = sound->total_song_frames - sound->current_frame;
 
                 if (sound->always_fade && !sound->fade_requested && frames_remaining > 0 &&
-                    frames_remaining <= sound->fade_frames) {
+                    frames_remaining <= sound->fade_frames && next_decoder && !loader->dirty) {
                         sound->fade_frames -= (long long)(sound->fade_frames - frames_remaining);
 
                         if (frames_remaining > 100) {
