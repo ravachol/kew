@@ -364,8 +364,6 @@ void component_library_helper_collapse_view(Model *model, int diff_rows)
                                 }
 
                                 uis->allowChooseSongs = false;
-
-
                         }
 
                 } else {
@@ -898,7 +896,7 @@ static int draw_cover_ascii(const TermSize *term_size, const char *path, int row
 
         // Buffer coordinates are usually 0-based.
         if (centered && term_size->width_cells > 0)
-                col = (term_size->width_cells - (int)corr_w) / 2;
+                col = ((term_size->width_cells - (int)corr_w) / 2) + 1;
 
         for (unsigned int d = 0; d < corr_w * height; d++) {
 
