@@ -342,7 +342,6 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         int mouse_y = ev->y + 1;
         uint16_t mouse_key = ev->key;
         ProgressBar *progress_bar = get_progress_bar();
-        AppState *state = get_app_state();
 
         // Calculate where the user clicked on the progress bar
         if (progress_bar->length > 0) {
@@ -374,7 +373,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         if (!model->state.ui.link_clicked) {
                 char *link = url_at_pos(mouse_y - 1, mouse_x - 1);
 
-                if (link) {
+                 if (link) {
                         open_url(link);
 
                         Model *model = get_model();
@@ -394,7 +393,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
             (mouse_x >= progress_bar->col) &&
             (mouse_x < progress_bar->col + progress_bar->length);
 
-        if (inProgressBar && state->currentView == TRACK_VIEW) {
+        if (inProgressBar) {
                 // Any left press or movement within bar = update
                 if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_progress_bar) {
                         dragging_progress_bar = true;
