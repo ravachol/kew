@@ -468,7 +468,6 @@ void kew_init(bool set_library_enqueued_status)
         signal(SIGPIPE, SIG_IGN);
 
         // The (sometimes shuffled) sequence of songs that will be played
-
         start_playing(true);
 
         unsigned int seed = (unsigned int)time(NULL);
