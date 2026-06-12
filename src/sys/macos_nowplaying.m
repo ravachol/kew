@@ -71,14 +71,14 @@ void init_macos_nowplaying(void)
         [commandCenter.nextTrackCommand addTargetWithHandler:
                                             ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                               (void)event;
-                                              skip_to_next_song();
+                                              switch_to_next_song();
                                               return MPRemoteCommandHandlerStatusSuccess;
                                             }];
 
         [commandCenter.previousTrackCommand addTargetWithHandler:
                                                 ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                                   (void)event;
-                                                  skip_to_prev_song();
+                                                  switch_to_prev_song();
                                                   return MPRemoteCommandHandlerStatusSuccess;
                                                 }];
 
