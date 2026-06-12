@@ -71,6 +71,11 @@ bool is_EOF_reached(void)
         return sound_system_is_EOF_reached();
 }
 
+bool is_metadata_switch_reached(void)
+{
+        return sound_system_is_metadata_switch_reached();
+}
+
 bool is_switching_track(void)
 {
         return sound_system_is_switching_track(sound_sys);
@@ -85,11 +90,6 @@ bool is_valid_song(SongData *song_data)
 {
         return song_data != NULL && song_data->hasErrors == false &&
                song_data->metadata != NULL;
-}
-
-void set_EOF_handled(void)
-{
-        sound_system_set_EOF_handled(sound_sys);
 }
 
 double get_current_song_duration(void)

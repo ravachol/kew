@@ -5,7 +5,7 @@
   * Founder and Main Author
 
 ## Advisors
-* @LeahtheSlug (Advisor)
+* @LeahtheSlug (Advisor) leahtheslug@slugmail.quest & https://slugmail.quest
 * Michael Petö @petoem (Technical advisor)
 
 ## Contributors (in alphabetical order)
@@ -54,7 +54,7 @@
 * Vafone @vafone
 * Nicolas F
 * Ravachol @ravachol <kew-player@proton.me>
-* LeahTheSlug
+* LeahTheSlug leahtheslug@slugmail.quest & https://slugmail.quest
 
 ## Translations
 

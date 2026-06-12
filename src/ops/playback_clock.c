@@ -21,18 +21,31 @@
 #include <math.h>
 
 static struct timespec start_time;
-static struct timespec fade_time;
 static struct timespec pause_time;
 static struct timespec current_time;
 static double seek_accumulated_seconds = 0.0;
-static int reset_ms = 0;
-static int has_fade = false;
 static struct timespec last_update_time = {0, 0};
 
 double get_elapsed_seconds(void)
 {
         Model *model = get_model();
         return model->elapsed_seconds;
+}
+
+void timespec_add_ms(struct timespec *ts, long offset_ms)
+{
+    ts->tv_sec  += offset_ms / 1000;
+    ts->tv_nsec += (offset_ms % 1000) * 1000000L;
+
+    if (ts->tv_nsec >= 1000000000L) {
+        ts->tv_sec += ts->tv_nsec / 1000000000L;
+        ts->tv_nsec %= 1000000000L;
+    }
+}
+
+void clock_add_offset(long offset_ms)
+{
+        timespec_add_ms(&start_time, offset_ms);
 }
 
 void reset_clock(void)
@@ -42,17 +55,7 @@ void reset_clock(void)
         set_pause_seconds(0.0);
         set_total_pause_seconds(0.0);
         sound_system_set_seek_elapsed(0.0);
-        if (has_fade)
-        {
-                start_time.tv_sec = fade_time.tv_sec;
-                start_time.tv_sec += sound_system_get_fade_offset_seconds(sound_sys) - (long)(reset_ms / 1000);
-                start_time.tv_nsec = fade_time.tv_nsec;
-        }
-        else
-                clock_gettime(CLOCK_MONOTONIC, &start_time);
-
-        reset_ms = 0;
-        has_fade = false;
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
 void calc_elapsed_time(double duration)
@@ -61,11 +64,6 @@ void calc_elapsed_time(double duration)
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED)
                 return;
-
-        if (sound_system_get_fade_started(sound_sys, &reset_ms)) {
-                clock_gettime(CLOCK_MONOTONIC, &fade_time);
-                has_fade = true;
-        }
 
         clock_gettime(CLOCK_MONOTONIC, &current_time);
 
@@ -76,8 +74,7 @@ void calc_elapsed_time(double duration)
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
                 model->elapsed_seconds =
                     (double)(current_time.tv_sec - start_time.tv_sec) +
-                    (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 +
-                    ((double)reset_ms / 1000.0);
+                    (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
                 double seek_elapsed = sound_system_get_seek_elapsed();
                 double diff =
                     model->elapsed_seconds +
@@ -97,7 +94,6 @@ void calc_elapsed_time(double duration)
                 if (model->elapsed_seconds < 0.0) {
                         model->elapsed_seconds = 0.0;
                 }
-                reset_ms = 0;
 
                 if (get_current_song() != NULL && time_since_last_update >= 1.0) {
                         last_update_time = current_time;
