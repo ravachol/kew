@@ -63,7 +63,7 @@ void sort_library(void)
         set_dirty(DIRTY_LIBRARY);
 }
 
-int mark_as_enqueued(FileSystemEntry *root, char *path)
+int mark_as_enqueued(FileSystemEntry *root, char *path, int list_row_num)
 {
         if (root == NULL)
                 return 0;
@@ -71,16 +71,19 @@ int mark_as_enqueued(FileSystemEntry *root, char *path)
         if (path == NULL)
                 return 0;
 
+        if (list_row_num == 0)
+                list_row_num = 1;
+
         if (!root->is_directory) {
                 if (strcmp(root->full_path, path) == 0) {
-                        root->is_enqueued = true;
+                        root->is_enqueued = list_row_num;
                         return root->id;
                 }
         } else {
                 FileSystemEntry *child = root->children;
                 int found = 0;
                 while (child != NULL) {
-                        found = mark_as_enqueued(child, path);
+                        found = mark_as_enqueued(child, path, list_row_num);
                         child = child->next;
 
                         if (found)
@@ -88,7 +91,7 @@ int mark_as_enqueued(FileSystemEntry *root, char *path)
                 }
 
                 if (found) {
-                        root->is_enqueued = true;
+                        root->is_enqueued = list_row_num;
 
                         return found;
                 }
@@ -100,6 +103,7 @@ int mark_as_enqueued(FileSystemEntry *root, char *path)
 void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist)
 {
         Node *node = playlist->head;
+        int list_row_num = 1;
 
         for (int i = 0; i < playlist->count; i++) {
                 if (node == NULL)
@@ -108,7 +112,9 @@ void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist)
                 if (node->song.file_path == NULL)
                         break;
 
-                int id = mark_as_enqueued(root, node->song.file_path);
+                int id = mark_as_enqueued(root, node->song.file_path, list_row_num);
+
+                list_row_num++;
 
                 if (id > 0)
                         node->id = id;
@@ -768,6 +774,8 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
         gchar *directory = g_path_get_dirname(filename);
         gchar **lines = g_strsplit(contents, "\n", -1);
 
+        int list_row_num = 1;
+
         for (gint i = 0; lines[i] != NULL; i++) {
                 gchar *line = lines[i];
 
@@ -812,7 +820,8 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                                 continue;
                         }
 
-                        int id = mark_as_enqueued(library, normalized);
+                        int id = mark_as_enqueued(library, normalized, list_row_num);
+                        list_row_num++;
 
                         if (id <= 0)
                                 id = increment_node_id();
