@@ -1307,6 +1307,14 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
         if (ui->hideFooter)
                 return (ComponentMsg){0};
 
+        ComponentMsg result = (ComponentMsg){0};
+
+        result.has_msg = true;
+        result.msg = (struct Msg){
+            .type = MSG_FOOTER_ROW_SET,
+            .region = region,
+            .footer_row = region.row};
+
         // Footer Color
         PixelData f_color = model->state.settings.footer_color;
 
@@ -1386,14 +1394,14 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
                 draw_buffer_set_string_truncated(buf, region.row, region.col,
                                                  android_line, region.width, style);
 #endif
-                return (ComponentMsg){0};
+                return result;
         }
 
         if (model->glimmer.active) {
                 int text_length = strnlen(text, sizeof(text));
                 render_glimmer_frame(model, buf, text, text_length, icons, f_color, region.row,
                                      region.col, &model->glimmer, region.width, style);
-                return (ComponentMsg){0};
+                return result;
         }
 
         char full_line[256];
@@ -1401,7 +1409,7 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          full_line, region.width, style);
 
-        return (ComponentMsg){0};
+        return result;
 }
 
 ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
@@ -1898,8 +1906,9 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
 
         result.has_msg = true;
         result.msg = (struct Msg){
-            .type = MSG_PROGRESS_BARS_SET,
-            .region = region};
+            .type = MSG_PROGRESS_ROW_SET,
+            .region = region,
+            .progress_bar_row = region.row};
 
         return result;
 }
@@ -2237,27 +2246,36 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         // Error row
         if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height + 1) {
                 // Progress bar on last row of visualizer
-                k_Rect progress_rect = {
+                k_Rect error_rect = {
                     .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height,
                     .col = region.col + col,
                     .width = visualizer_width,
                     .height = 1,
                 };
                 if (dirty & DIRTY_VISUALIZER)
-                        component_error_row(model, progress_rect, buf, dirty);
+                        component_error_row(model, error_rect, buf, dirty);
         }
 
         // Footer
         if (height >= meta_row + metadata_height + time_height + lyrics_height + visualizer_height + 2) {
                 // Progress bar on last row of visualizer
-                k_Rect progress_rect = {
+                k_Rect footer_rect = {
                     .row = region.row + meta_row + metadata_height + lyrics_height + time_height + visualizer_height + 1,
                     .col = region.col + col,
                     .width = visualizer_width,
                     .height = 1,
                 };
-                if (dirty & DIRTY_FOOTER)
-                        component_footer(model, progress_rect, buf, dirty);
+                if (dirty & DIRTY_FOOTER) {
+                        component_footer(model, footer_rect, buf, dirty);
+                        if (result.msg.type != MSG_PROGRESS_ROW_SET) {
+                                result.has_msg = true;
+                                result.msg = (struct Msg){
+                                    .type = MSG_FOOTER_ROW_SET,
+                                    .region = region,
+                                    .progress_bar_row = region.row};
+                        }
+                        result.msg.footer_row = footer_rect.row;
+                }
         }
 
         return result;
@@ -2327,14 +2345,14 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
                         style = cell_style_from_theme(ui->theme.nowplaying);
 
                         if ((ui->theme.nowplaying.type == COLOR_TYPE_RGB && ui->theme.trackview_lyrics.type == COLOR_TYPE_RGB) ||
-                                ((ui->theme.nowplaying.type == COLOR_TYPE_ANSI && ui->theme.trackview_lyrics.type == COLOR_TYPE_ANSI) &&
-                                ui->theme.nowplaying.ansiIndex == ui->theme.trackview_lyrics.ansiIndex &&
-                                ui->theme.nowplaying.ansiIndex > 100)) {
+                            ((ui->theme.nowplaying.type == COLOR_TYPE_ANSI && ui->theme.trackview_lyrics.type == COLOR_TYPE_ANSI) &&
+                             ui->theme.nowplaying.ansiIndex == ui->theme.trackview_lyrics.ansiIndex &&
+                             ui->theme.nowplaying.ansiIndex > 100)) {
 
                                 if ((ui->theme.nowplaying.rgb.r == ui->theme.trackview_lyrics.rgb.r &&
-                                    ui->theme.nowplaying.rgb.g == ui->theme.trackview_lyrics.rgb.g &&
-                                    ui->theme.nowplaying.rgb.b == ui->theme.trackview_lyrics.rgb.b) ||
-                                        ui->theme.nowplaying.ansiIndex > 100) {
+                                     ui->theme.nowplaying.rgb.g == ui->theme.trackview_lyrics.rgb.g &&
+                                     ui->theme.nowplaying.rgb.b == ui->theme.trackview_lyrics.rgb.b) ||
+                                    ui->theme.nowplaying.ansiIndex > 100) {
 
                                         style.fg = increase_luminosity(style.fg, 80);
                                 }

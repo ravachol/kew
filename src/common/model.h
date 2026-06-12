@@ -168,6 +168,9 @@ struct Msg {
         int chosen_search_result_row;
         FileSystemEntry *current_search_entry;
 
+        int progress_bar_row;
+        int footer_row;
+
         k_Rect region;
 
         int lyrics_offset;
