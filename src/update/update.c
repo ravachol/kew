@@ -727,11 +727,24 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->state.ui.current_search_entry = msg->current_search_entry;
                 break;
 
-        case MSG_PROGRESS_BARS_SET:
+        case MSG_PROGRESS_ROW_SET:
                 model->state.ui.num_progress_bars = msg->region.width / 2;
                 model->progressBar.col = msg->region.col + 1;
                 model->progressBar.row = msg->region.row + 1;
                 model->progressBar.length = msg->region.width;
+                if (msg->footer_row > -1)
+                {
+                        model->state.ui.footer_row = msg->footer_row + 1;
+                        model->state.ui.footer_col = msg->region.col + 1;
+                }
+                break;
+
+        case MSG_FOOTER_ROW_SET:
+                if (msg->footer_row > -1)
+                {
+                        model->state.ui.footer_row = msg->footer_row + 1;
+                        model->state.ui.footer_col = msg->region.col + 1;
+                }
                 break;
 
         case MSG_START_TITLE_ANIM:
