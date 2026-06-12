@@ -1049,8 +1049,8 @@ void init_mpris(void)
 
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
-                g_printerr("Failed to connect to D-Bus\n");
-                return;
+                set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
+                quit();
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
