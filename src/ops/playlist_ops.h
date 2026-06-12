@@ -191,7 +191,7 @@ void reshuffle_playlist(void);
  *
  * Adjusts current song selection depending on skipOutOfOrder and repeat state.
  */
-void handle_skip_out_of_order(void);
+void move_to_next_song_in_the_playlist(void);
 
 /**
  * @brief Play a song from the specified playlist.
@@ -266,5 +266,7 @@ void play_all_albums(void);
  * @param argv Argument vector containing file or directory paths.
  */
 void play_command_with_playlist(int *argc, char **argv);
+
+Node *choose_next_song(void);
 
 #endif
