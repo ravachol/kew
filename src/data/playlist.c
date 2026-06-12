@@ -345,6 +345,8 @@ void build_playlist_recursive(const char *directory_path,
 
         Model *model = get_model();
 
+        int list_row_num = 0;
+
         if (res != 1 && res != -1 && directory_path != NULL) {
                 Node *node = NULL;
 
@@ -352,8 +354,10 @@ void build_playlist_recursive(const char *directory_path,
 
                 int id = 0;
 
+                list_row_num = playlist->count + 1;
+
                 if (model->library)
-                        id = mark_as_enqueued(model->library, expanded_path);
+                        id = mark_as_enqueued(model->library, expanded_path, list_row_num);
 
                 if (id == 0)
                         id = node_id_counter++;
@@ -435,8 +439,10 @@ void build_playlist_recursive(const char *directory_path,
 
                                 int id = 0;
 
+                                list_row_num = playlist->count + 1;
+
                                 if (model->library)
-                                        id = mark_as_enqueued(model->library, file_path);
+                                        id = mark_as_enqueued(model->library, file_path, list_row_num);
 
                                 if (id == 0)
                                         id = node_id_counter++;
