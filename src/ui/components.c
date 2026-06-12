@@ -2323,9 +2323,23 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
                 const char *text = lyrics->lines[i].text ? lyrics->lines[i].text : "";
 
                 CellStyle style;
-                if (highlight == i && lyrics->isTimed)
+                if (highlight == i && lyrics->isTimed) {
                         style = cell_style_from_theme(ui->theme.nowplaying);
-                else
+
+                        if ((ui->theme.nowplaying.type == COLOR_TYPE_RGB && ui->theme.trackview_lyrics.type == COLOR_TYPE_RGB) ||
+                                ((ui->theme.nowplaying.type == COLOR_TYPE_ANSI && ui->theme.trackview_lyrics.type == COLOR_TYPE_ANSI) &&
+                                ui->theme.nowplaying.ansiIndex == ui->theme.trackview_lyrics.ansiIndex &&
+                                ui->theme.nowplaying.ansiIndex > 100)) {
+
+                                if ((ui->theme.nowplaying.rgb.r == ui->theme.trackview_lyrics.rgb.r &&
+                                    ui->theme.nowplaying.rgb.g == ui->theme.trackview_lyrics.rgb.g &&
+                                    ui->theme.nowplaying.rgb.b == ui->theme.trackview_lyrics.rgb.b) ||
+                                        ui->theme.nowplaying.ansiIndex > 100) {
+
+                                        style.fg = increase_luminosity(style.fg, 80);
+                                }
+                        }
+                } else
                         style = cell_style_from_theme(ui->theme.trackview_lyrics);
 
                 int draw_row = region.row + (i - offset);
