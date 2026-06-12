@@ -189,6 +189,8 @@ void init_model(void)
         model.state.ui.chosen_dir = NULL;
         model.state.ui.playlist_node = NULL;
 
+        model.state.ui.rendered = false;
+
         model.glimmer.active = false;
         model.title_delay.active = false;
 
