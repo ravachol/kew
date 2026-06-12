@@ -11,10 +11,10 @@
 
 #include "common/common.h"
 #include "common/model.h"
+#include "library_ops.h"
 #include "playback_clock.h"
 #include "playback_ops.h"
 #include "playback_state.h"
-#include "library_ops.h"
 #include "playback_system.h"
 
 #include "library_ops.h"
@@ -296,12 +296,10 @@ void silent_switch_to_next(bool load_song)
 
         set_next_song(NULL);
 
-        if (choose_next_song() != NULL)
-        {
+        if (choose_next_song() != NULL) {
                 ps->skipping = true;
                 set_current_song_to_next();
-        }
-        else
+        } else
                 return;
 
         ps->skipOutOfOrder = true;
@@ -363,17 +361,16 @@ void switch_to_next_song(void)
 {
         Model *model = get_model();
 
-        if (model->state.settings.repeatState == SOUND_STATE_REPEAT && model->playlist->count == 1)
-        {
+        Node *current = get_current_song();
+        Node *next = current ? current->next : NULL;
+
+        if (model->state.settings.repeatState == SOUND_STATE_REPEAT &&
+            (model->playlist->count == 1 || !next)) {
                 skip_to_begginning_of_song();
                 return;
         }
 
-        Node *current = get_current_song();
-        Node *next = current ? current->next : NULL;
-
-        if (model->state.settings.always_crossfade && !is_paused() && !is_repeat_enabled() && next)
-        {
+        if (model->state.settings.always_crossfade && !is_paused() && !is_repeat_enabled() && next) {
                 if (crossfade(model->state.settings.fade_medium_ms, model->state.settings.fade_enter_song_ms))
                         return;
         }
@@ -405,8 +402,7 @@ void switch_to_next_song(void)
                 if (!(next == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)) {
                         silent_switch_to_next(true);
                         return;
-                }
-                else {
+                } else {
                         set_end_of_list_reached();
                         return;
                 }
@@ -439,8 +435,7 @@ void switch_to_prev_song(void)
 
         Model *model = get_model();
 
-        if (model->state.settings.repeatState == SOUND_STATE_REPEAT && model->playlist->count == 1)
-        {
+        if (model->state.settings.repeatState == SOUND_STATE_REPEAT && model->playlist->count == 1) {
                 skip_to_begginning_of_song();
                 return;
         }
@@ -524,7 +519,7 @@ void delete_from_lists(Node *node)
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
-if (node != NULL)
+        if (node != NULL)
                 mark_as_dequeued(get_library(), node->song.file_path);
 
         Node *node2 = find_selected_entry_by_id(playlist, node->id);
@@ -534,7 +529,6 @@ if (node != NULL)
 
         if (node2 != NULL)
                 delete_from_list(playlist, node2);
-
 }
 
 void remove_song(Node *node)
@@ -613,8 +607,7 @@ void handle_remove(int chosen_row)
                 if (current)
                         node = find_selected_entry_by_id(unshuffled_playlist, current->id);
 
-                if (is_paused() && current->id == node->id)
-                {
+                if (is_paused() && current->id == node->id) {
                         switch_to_next_song();
                 }
                 remove_song(node);
