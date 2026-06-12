@@ -275,7 +275,7 @@ void run_command(UpdateResult result)
                                 break;
                 }
                 if (!crossfade(fade_ms, model->state.settings.fade_enter_song_ms))
-                        set_error_message("Crossfade disabled. The next song is of a different type.");
+                        set_error_message("Crossfade disabled. The next song is not loaded yet or is of a different type.");
 
                 break;
         }
