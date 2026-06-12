@@ -90,6 +90,8 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Exiting kew is no longer slow when you have a lot of music in the playlist. By @ravachol. Found by @Kuuube.
 
+- Make sure CTRL+z and fg are handled properly. By @ravachol. Reported by @that_owl.
+
 #### Refactor
 
 - Centralize PATH_MAX into common/path_max.h. By @hartalex.
