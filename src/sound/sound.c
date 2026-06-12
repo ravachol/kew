@@ -1,3 +1,4 @@
+#include "ops/playback_clock.h"
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MA_ENABLE_PIPEWIRE
@@ -900,6 +901,8 @@ sound_result_t handle_codec(
                 set_decoder_type_switch_reached(false);
 
                 atomic_store(&sound_s->decode_thread_running, true);
+
+                reset_clock();
 
                 pthread_create(&sound_s->decode_thread,
                                NULL,
