@@ -1212,5 +1212,7 @@ void render_ui(Model *model, RenderContext *ctx)
         layout_render_dirty(s_layout, model, s_buf, ctx);
         terminal_backend_commit(s_buf, model->dirty, &s_backend_state);
 
+        model->state.ui.rendered = true;
+
         rendering = false;
 }
