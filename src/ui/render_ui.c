@@ -585,11 +585,9 @@ void layout_reflow(Model *model,
                                 pane->region.width = auto_width;
 
                         // Final position
-                        pane->region.row =
-                            origin_y + current_row + pane->offsetY;
+                        pane->region.row = origin_y + current_row + pane->offsetY;
 
-                        pane->region.col =
-                            origin_x + current_col + pane->offsetX;
+                        pane->region.col = origin_x + current_col + pane->offsetX;
 
                         pane->region.height = row->resolved_height;
 
@@ -962,20 +960,11 @@ void rebuild_layout(Model *model)
                 break;
         }
 
-        Pane *footer = find_pane(s_layout, component_footer);
-        if (footer) {
-                model->state.ui.footer_row = footer->region.row + 1;
-                model->state.ui.footer_col = footer->region.col + 1;
-        }
-        else {
-                Pane *landscape = find_pane(s_layout, component_track_landscape);
-
-                if (landscape)
-                {
-                        model->state.ui.footer_row = landscape->region.row + landscape->region.height;
-                        model->state.ui.footer_col = landscape->region.col + 1;
-                }
-        }
+        // Reset footer and progress bar, these are chosen when the actual component renders
+        model->state.ui.footer_row = -1;
+        model->state.ui.footer_col = -1;
+        model->progressBar.row = -1;
+        model->progressBar.col = -1;
 
         rebuilding = false;
 }
