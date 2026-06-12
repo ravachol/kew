@@ -372,7 +372,7 @@ void switch_to_next_song(void)
         Node *current = get_current_song();
         Node *next = current ? current->next : NULL;
 
-        if (model->state.settings.always_crossfade && !is_paused() && next)
+        if (model->state.settings.always_crossfade && !is_paused() && !is_repeat_enabled() && next)
         {
                 if (crossfade(model->state.settings.fade_medium_ms, model->state.settings.fade_enter_song_ms))
                         return;
