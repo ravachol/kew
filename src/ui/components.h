@@ -41,7 +41,7 @@ FileSystemEntry *get_first_parent(FileSystemEntry *entry);
 
 void library_collapse_directory(Model *model, int direction);
 
-void component_library_helper_collapse_view(Model *model, int diff_rows);
+void library_collapse_view(Model *model, int diff_rows);
 
 void component_library_helper_reset(Model *model);
 

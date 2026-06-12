@@ -24,6 +24,7 @@
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
 #include "utils/utils.h"
+#include <stdbool.h>
 
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
 {
@@ -285,23 +286,72 @@ void check_and_load_next_song(double seconds)
         }
 }
 
-void prepare_next_song(void)
+void handle_decoder_switch(void)
 {
+        // Finish loading before switching
+        finish_loading();
+
+        Model *model = get_model();
+        Node *node = NULL;
+        SongData *songdata = NULL;
+
+        // Depending on if metadata has switched we have to get the current song or if it hasn't the next one
+        if ((model->state.ui.metadata_switched || is_metadata_switch_reached()) || model->playbackState.skipOutOfOrder || is_repeat_enabled()) {
+                songdata = sound_system_get_current_song(sound_sys);
+
+                if (model->state.ui.metadata_switched)
+                {
+                        model->state.ui.metadata_switched = false;
+                        model->state.ui.decoder_switched = false;
+                }
+                else {
+                        model->state.ui.decoder_switched = true;
+                }
+        } else {
+                node = choose_next_song();
+                model->state.ui.decoder_switched = true;
+        }
+
+        // Tell the system to load a next song
+        if (!is_repeat_enabled() || (is_repeat_enabled() && is_paused()) || !node) {
+
+                if (!sound_system_is_end_of_list_reached(sound_sys)) {
+                        PlaybackState *ps = get_playback_state();
+                        ps->loadedNextSong = false;
+                }
+        }
+
+        char *file_path = songdata ? songdata->file_path : node ? node->song.file_path : NULL;
+        sound_system_switch_decoder(sound_sys, file_path);
+}
+
+void handle_metadata_switch(void)
+{
+
         Model *model = get_model();
         AppState *state = &model->state;
 
-        handle_skip_out_of_order();
-        finish_loading();
+        move_to_next_song_in_the_playlist();
 
-        set_next_song(NULL);
-
-        reset_clock();
+        if (model->state.ui.decoder_switched || is_EOF_reached())
+        {
+                if (model->state.ui.decoder_switched) {
+                        model->state.ui.decoder_switched = false;
+                        model->state.ui.metadata_switched = false;
+                }
+                else {
+                        model->state.ui.metadata_switched = true;
+                }
+        }
+        else {
+                model->state.ui.metadata_switched = true;
+        }
 
         set_dirty(DIRTY_ALL);
 
         Node *current = get_current_song();
 
-        if ((!is_repeat_enabled() || (is_repeat_enabled() && is_paused())) || current == NULL) {
+        if (current == NULL) {
 
                 if (!sound_system_is_end_of_list_reached(sound_sys)) {
                         PlaybackState *ps = get_playback_state();
@@ -318,6 +368,15 @@ void prepare_next_song(void)
         } else {
                 determine_song_and_notify();
         }
+
+        // Tell the system there's no next song, as we just switched to the one that was the next
+        set_next_song(NULL);
+
+        int enter_song_at_ms = 0;
+        sound_system_get_fade_started(sound_sys, &enter_song_at_ms);
+
+        reset_clock();
+        clock_add_offset(-enter_song_at_ms);
 }
 
 void load_waiting_music(void)
@@ -336,11 +395,16 @@ void load_waiting_music(void)
                         try_load_next(false, true);
 
                 if (is_EOF_reached()) {
-                        set_EOF_handled();
-                        prepare_next_song();
-                        switch_decoder();
+                        sound_system_set_EOF_switch(sound_sys, false);
+                        handle_decoder_switch();
                 }
+
+                if (is_metadata_switch_reached()) {
+                        sound_system_set_metadata_switch(sound_sys, false);
+                        handle_metadata_switch();
+                }
+
         } else {
-                set_EOF_handled();
+                sound_system_set_EOF_switch(sound_sys, false);
         }
 }

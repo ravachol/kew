@@ -214,9 +214,9 @@ void scroll_next(Model *model)
                                       model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
                                         (model->state.ui.current_lib_entry->parent->parent && model->state.ui.current_lib_entry->parent->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
                                 (model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id && !model->state.ui.current_lib_entry->next))
-                                        component_library_helper_collapse_view(model, 1);
+                                        library_collapse_view(model, 1);
                         } else {
-                                component_library_helper_collapse_view(model, 1);
+                                library_collapse_view(model, 1);
                         }
                 }
 
@@ -251,7 +251,7 @@ void scroll_prev(Model *model)
                 if (model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->parent &&
                                                           (model->state.ui.current_lib_entry == model->state.ui.current_lib_entry->parent->children ||
                                                            (model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id == model->state.ui.treeCtx.chosen_dir->id))))
-                        component_library_helper_collapse_view(model, -1);
+                        library_collapse_view(model, -1);
 
                 set_dirty(DIRTY_LIBRARY);
 
@@ -705,7 +705,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 if (model->state.settings.collapseTopLevel)
                                         library_collapse_directory(model, 1);
                                 else
-                                        component_library_helper_collapse_view(model, 1);
+                                        library_collapse_view(model, 1);
                         }
                         model->state.ui.check_collapse_top_level = false;
                 }

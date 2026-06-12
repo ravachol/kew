@@ -12,7 +12,6 @@
 
 #include <glib.h>
 #include <stdbool.h>
-#include <time.h>
 
 /**
  * @brief Reset the playback clock state.
@@ -22,6 +21,8 @@
  * CLOCK_MONOTONIC.
  */
 void reset_clock(void);
+
+void clock_add_offset(long offset_ms);
 
 /**
  * @brief Recalculate the elapsed playback time.

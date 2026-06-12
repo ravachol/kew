@@ -85,12 +85,12 @@ sound_result_t sound_system_uninit_device(sound_system_t *system)
         return SOUND_OK;
 }
 
-sound_result_t sound_system_switch_decoder(sound_system_t *system)
+sound_result_t sound_system_switch_decoder(sound_system_t *system, char* file_path)
 {
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        sound_result_t result = sound_switch_decoder_type();
+        sound_result_t result = sound_switch_decoder_type(file_path);
 
         if (result < 0)
                 return SOUND_ERROR_BACKEND_FAILURE;
@@ -303,6 +303,11 @@ int sound_system_is_EOF_reached(void)
         return pb_is_EOF_reached();
 }
 
+int sound_system_is_metadata_switch_reached(void)
+{
+        return pb_is_metadata_switch_reached();
+}
+
 sound_playback_state_t sound_system_get_state(const sound_system_t *system)
 {
         if (!system)
@@ -317,12 +322,10 @@ int sound_system_get_fade_started(sound_system_t *system, int *reset_ms)
                 return SOUND_STATE_STOPPED;
 
         atomic_load_explicit(&system->fade_boundary_reached, memory_order_acquire);
+        long long fade_boundary = atomic_load_explicit(&system->fade_boundary, memory_order_acquire);
         atomic_load_explicit(&system->clock_reset_ms, memory_order_acquire);
 
-        bool reset = system->fade_boundary_reached;
-
-        atomic_store(&system->fade_boundary_reached, false);
-
+        bool reset = system->fade_boundary_reached || fade_boundary > 0;
         *reset_ms = system->clock_reset_ms;
 
         return reset;
@@ -426,15 +429,26 @@ sound_result_t sound_system_set_repeat_state(int value)
         return SOUND_OK;
 }
 
-sound_result_t sound_system_set_EOF_handled(const sound_system_t *system)
+sound_result_t sound_system_set_EOF_switch(const sound_system_t *system, bool value)
 {
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        pb_set_EOF_handled();
+        set_EOF_reached(value);
 
         return SOUND_OK;
 }
+
+sound_result_t sound_system_set_metadata_switch(const sound_system_t *system, bool value)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        set_metadata_switch_reached(value);
+
+        return SOUND_OK;
+}
+
 
 SongData *sound_system_get_current_song(const sound_system_t *system)
 {

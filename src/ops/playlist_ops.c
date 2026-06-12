@@ -846,7 +846,7 @@ void reshuffle_playlist(void)
         }
 }
 
-void handle_skip_out_of_order(void)
+void move_to_next_song_in_the_playlist(void)
 {
         PlaybackState *ps = get_playback_state();
 

@@ -317,7 +317,7 @@ bool library_chosen_dir_should_collapse(Model *model, int diff_rows)
         return false;
 }
 
-void component_library_helper_collapse_view(Model *model, int diff_rows)
+void library_collapse_view(Model *model, int diff_rows)
 {
         UIState *uis = &model->state.ui;
         FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
@@ -364,8 +364,6 @@ void component_library_helper_collapse_view(Model *model, int diff_rows)
                                 }
 
                                 uis->allowChooseSongs = false;
-
-
                         }
 
                 } else {

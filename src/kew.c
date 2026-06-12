@@ -661,6 +661,9 @@ void init_state(void)
         state->ui.chroma_start_requested = false;
         state->ui.chroma_height = 0;
 
+        state->ui.metadata_switched = 0;
+        state->ui.decoder_switched = 0;
+
         PlaybackState *ps = get_playback_state();
 
         ps->lastPlayedId = -1;

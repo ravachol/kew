@@ -39,6 +39,7 @@ int create_sound_system(void)
                 sound_system_set_always_crossfade(sound_sys, model->state.settings.always_crossfade, model->state.settings.fade_medium_ms);
                 start_playing(true);
                 atomic_store(&sound_sys->track_frames_sent, 0);
+                sound_sys->total_frames = 0;
         }
 
         if (result == SOUND_NOTIFY_SWITCH)
@@ -65,7 +66,14 @@ void switch_decoder(void)
 {
         Model *model = get_model();
 
-        sound_result_t result = sound_system_switch_decoder(sound_sys);
+        SongData *current_song = sound_system_get_current_song(sound_sys);
+
+        sound_result_t result = SOUND_OK;
+
+        if (current_song)
+                result = sound_system_switch_decoder(sound_sys, current_song->file_path);
+        else
+                result = sound_system_switch_decoder(sound_sys, NULL);
 
         if (result == SOUND_NOTIFY_SWITCH)
                 model->playbackState.notifySwitch = 1;
