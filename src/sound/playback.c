@@ -31,6 +31,7 @@ static float seek_percent = 0.0;
 static double seek_elapsed;
 
 static _Atomic bool EOF_reached = false;
+static _Atomic bool metadata_switch_reached = false;
 static _Atomic bool switch_reached = false;
 static _Atomic bool skip_to_next = false;
 
@@ -80,7 +81,7 @@ bool request_crossfade(int fade_ms, int enter_song_ms)
         if (!sound_s->fade_allowed)
                 return false;
 
-        if (sound_s->fade_requested || atomic_load(&sound_s->pending_switch) || atomic_load(&sound_s->switch_files))
+        if (sound_s->fade_requested || atomic_load(&sound_s->request_switch_metadata) || atomic_load(&sound_s->request_switch_decoder))
                 return true; // Don't say it's disallowed, just don't perform the crossfade
 
         sound_s->fade_ms = fade_ms;
@@ -113,9 +114,19 @@ bool pb_is_EOF_reached(void)
         return atomic_load(&EOF_reached);
 }
 
-void set_EOF_reached(void)
+void set_EOF_reached(bool value)
 {
-        atomic_store(&EOF_reached, true);
+        atomic_store(&EOF_reached, value);
+}
+
+bool pb_is_metadata_switch_reached(void)
+{
+        return atomic_load(&metadata_switch_reached);
+}
+
+void set_metadata_switch_reached(bool value)
+{
+        atomic_store(&metadata_switch_reached, value);
 }
 
 void pb_set_EOF_handled(void)
@@ -268,7 +279,7 @@ void cleanup_playback_device(void)
         if (!device_initialized)
                 return;
 
-        set_switch_files(false);
+        set_switch_decoder(false);
 
         stop_playback();
         stop_decode_thread();

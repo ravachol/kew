@@ -50,7 +50,7 @@ sound_result_t sound_create_audio_device(void);
  *
  * @return 0 if successful, or -1 if there is an error in switching the type.
  */
-sound_result_t sound_switch_decoder_type(void);
+sound_result_t sound_switch_decoder_type(char *file_path);
 
 /**
  * @brief Cleans up and uninitializes the audio context.
@@ -134,7 +134,7 @@ void sound_ringbuffer_cleanup(void);
  *
  * @param value true to allow file switching, false to prevent it.
  */
-void set_switch_files(bool value);
+void set_switch_decoder(bool value);
 
 /**
  * @brief Returns whether slot A is currently in use.

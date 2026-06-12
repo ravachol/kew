@@ -497,6 +497,9 @@ typedef struct
 
         bool link_clicked;
 
+        bool metadata_switched;
+        bool decoder_switched;
+
         ColorPalette visualizer_palettes[7];
 } UIState;
 

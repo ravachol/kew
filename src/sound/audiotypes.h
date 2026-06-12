@@ -61,8 +61,8 @@ struct sound_system {
         atomic_bool end_of_list_reached;
         atomic_bool decode_thread_running;
         atomic_bool decode_finished;
-        atomic_bool pending_switch;
-        atomic_bool switch_files;
+        atomic_bool request_switch_metadata;
+        atomic_bool request_switch_decoder;
         atomic_bool buffer_ready;
         atomic_bool using_song_slot_A;
         atomic_bool clock_reset_done;
