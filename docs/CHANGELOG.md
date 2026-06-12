@@ -90,7 +90,9 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Exiting kew is no longer slow when you have a lot of music in the playlist. By @ravachol. Found by @Kuuube.
 
-- Make sure CTRL+z and fg are handled properly. By @ravachol. Reported by @that_owl.
+- Make sure CTRL+Z and fg are handled properly. By @ravachol. Reported by @that_owl.
+
+- Provide an error message with instructions when D-BUS is not available and kew is compiled with USE_DBUS=1. By @ravachol. Suggested by @ktnb-netbsd.
 
 #### Refactor
 
