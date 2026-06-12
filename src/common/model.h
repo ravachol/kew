@@ -500,6 +500,9 @@ typedef struct
         bool metadata_switched;
         bool decoder_switched;
 
+        volatile sig_atomic_t resumed;
+        bool rendered;
+
         ColorPalette visualizer_palettes[7];
 } UIState;
 

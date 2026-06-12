@@ -454,7 +454,13 @@ UpdateResult update(Model *model, struct Msg *msg)
                 RenderContext *ctx = get_render_context();
                 model->state.ui.render_often = ctx->render_often;
                 model->state.ui.render_search = ctx->render_search;
-                set_dirty(DIRTY_NONE);
+                if (model->state.ui.rendered)
+                {
+                        set_dirty(DIRTY_NONE);
+                }
+                else {
+                        set_dirty(DIRTY_ALL);
+                }
                 result.cmd.type = CMD_RENDERED;
                 break;
 

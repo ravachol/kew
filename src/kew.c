@@ -229,6 +229,18 @@ void kew_shutdown()
         exit(0);
 }
 
+void resume()
+{
+        set_nonblocking_mode();
+        disable_terminal_line_input();
+        set_term_size();
+        enable_scrolling();
+        init_input();
+        enter_alternate_screen_buffer();
+        clear_screen();
+        set_dirty(DIRTY_ALL);
+}
+
 /**
  * @brief Main callback for the event loop, runs periodically.
  *
@@ -254,6 +266,13 @@ gboolean mainloop_callback(gpointer data)
         int update_counter = get_update_counter();
 
         Model *model = get_model();
+
+        if (model->state.ui.resumed)
+        {
+                resume();
+                model->state.ui.resumed = 0;
+                model->state.ui.rendered = false;
+        }
 
         bool has_active_animation = model->glimmer.active || model->title_delay.active || model->name_scroll.active;
 
@@ -644,6 +663,7 @@ void init_state(void)
         state->ui.start_lib_iter = 0;
         state->ui.chosen_lib_row = 0;
         state->ui.lib_row_count = 0;
+        state->ui.resumed = 0;
 
         state->ui.footer_row = 0;
         state->ui.footer_col = 0;
@@ -724,6 +744,20 @@ void force_terminal_restore(int sig)
         raise(sig);
 }
 
+void handle_sigtstp(int sig) {
+    force_terminal_restore(sig);
+    signal(SIGTSTP, handle_sigtstp);
+
+    signal(SIGTSTP, SIG_DFL);
+    raise(SIGTSTP);       // actually suspend
+}
+
+void handle_sigcont(int sig) {
+        (void)sig;
+        Model * model = get_model();
+        model->state.ui.resumed = 1;
+}
+
 /**
  * @brief Main entry point of the application.
  *
@@ -784,6 +818,8 @@ int main(int argc, char *argv[])
         signal(SIGINT, force_terminal_restore);
         signal(SIGSEGV, force_terminal_restore);
         signal(SIGABRT, force_terminal_restore);
+        signal(SIGTSTP, handle_sigtstp);
+        signal(SIGCONT, handle_sigcont);
 
         if (model->settings.path[0] == '\0') {
                 set_music_path();
