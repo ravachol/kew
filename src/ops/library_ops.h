@@ -173,7 +173,7 @@ bool mark_as_dequeued(FileSystemEntry *root, char *path);
  *
  * @return Id of the enqueued entry.
  */
-int mark_as_enqueued(FileSystemEntry *root, char *path);
+int mark_as_enqueued(FileSystemEntry *root, char *path, int list_row_num);
 
 /**
  * @brief Clear is_enqueued on all M3U file entries in the library tree.
