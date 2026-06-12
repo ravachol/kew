@@ -1892,7 +1892,7 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui)
                 set_volume(tmp);
 
         tmp = get_number(settings->fade_enter_song_ms);
-        if (tmp >= 0) {
+        if (tmp > 0) {
                 ui->fade_enter_song_ms = tmp;
         }
 

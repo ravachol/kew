@@ -163,4 +163,5 @@ void set_shuffle_enabled(int value);
  * Notifies the playback backend that the end-of-file state has been processed,
  * preventing repeated handling of the same EOF event.
  */
-void set_EOF_handled(void);
+
+bool is_metadata_switch_reached(void);

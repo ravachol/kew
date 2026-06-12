@@ -162,10 +162,8 @@ bool pb_is_EOF_reached(void);
 /**
  * @brief Sets the EOF state as reached.
  *
- * This function marks the end of the file (EOF) as reached. It signals that
- * there are no more tracks to play.
  */
-void set_EOF_reached(void);
+void set_EOF_reached(bool value);
 
 /**
  * @brief Marks the EOF as handled.
@@ -268,5 +266,9 @@ void sound_shutdown(void);
  * @return True if crossfade was successfully initiated.
  */
 bool request_crossfade(int fade_ms, int enter_song_ms);
+
+bool pb_is_metadata_switch_reached(void);
+
+void set_metadata_switch_reached(bool value);
 
 #endif

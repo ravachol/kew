@@ -85,7 +85,7 @@ void sound_system_destroy(sound_system_t **system);
  * @param system Double Pointer to the sound system instance to destroy.
  * @return sound_result_t Result code indicating success or failure.
  */
-sound_result_t sound_system_switch_decoder(sound_system_t *system);
+sound_result_t sound_system_switch_decoder(sound_system_t *system, char* file_path);
 
 /**
  * @brief Uninitializes the audio device.
@@ -296,13 +296,9 @@ sound_result_t sound_system_set_always_crossfade(sound_system_t *system, int val
  */
 sound_result_t sound_system_set_repeat_state(int value);
 
-/**
- * @brief Signals that the EOF status has been handled.
- *
- * @param system Pointer to the sound system instance.
- * @return sound_result_t Result code indicating success or failure.
- */
-sound_result_t sound_system_set_EOF_handled(const sound_system_t *system);
+sound_result_t sound_system_set_EOF_switch(const sound_system_t *system, bool value);
+
+sound_result_t sound_system_set_metadata_switch(const sound_system_t *system, bool value);
 
 /**
  * @brief Sets whether the end of the playlist has been reached.
@@ -442,6 +438,8 @@ int sound_system_is_switching_track(const sound_system_t *system);
  *       reflect a global or shared playback state.
  */
 int sound_system_is_EOF_reached(void);
+
+int sound_system_is_metadata_switch_reached(void);
 
 /**
  * @brief Returns whether the current song has been deleted.
