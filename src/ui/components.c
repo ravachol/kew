@@ -2244,7 +2244,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                     .height = 1,
                 };
                 if (dirty & DIRTY_VISUALIZER)
-                        result = component_error_row(model, progress_rect, buf, dirty);
+                        component_error_row(model, progress_rect, buf, dirty);
         }
 
         // Footer
@@ -2257,7 +2257,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                     .height = 1,
                 };
                 if (dirty & DIRTY_FOOTER)
-                        result = component_footer(model, progress_rect, buf, dirty);
+                        component_footer(model, progress_rect, buf, dirty);
         }
 
         return result;
