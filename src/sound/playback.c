@@ -84,6 +84,12 @@ bool request_crossfade(int fade_ms, int enter_song_ms)
         if (sound_s->fade_requested || atomic_load(&sound_s->request_switch_metadata) || atomic_load(&sound_s->request_switch_decoder))
                 return true; // Don't say it's disallowed, just don't perform the crossfade
 
+        void *decoder = get_other_decoder();
+        LoaderData *loader = get_loader_data();
+
+        if (!decoder || loader->loadingFirstDecoder)
+                return false;
+
         sound_s->fade_ms = fade_ms;
         sound_s->fade_enter_song_ms = enter_song_ms;
 
