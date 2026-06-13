@@ -1249,12 +1249,12 @@ ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBu
                 const char *state_icon;
                 if (model->is_paused) {
 #if defined(__ANDROID__) || defined(__APPLE__)
-                        state_icon = "။ ";
+                        state_icon = "။";
 #else
-                state_icon = "⏸ ";
+                state_icon = "⏸";
 #endif
                 } else if (model->is_stopped) {
-                        state_icon = "■ ";
+                        state_icon = "■";
                 } else {
                         state_icon = "";
                 }
@@ -1265,25 +1265,30 @@ ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBu
 #endif
 
         if (model->state.settings.repeatState == SOUND_STATE_REPEAT) {
-                snprintf(icons + icons_len, sizeof(icons) - icons_len, "↻ ");
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ↻");
                 icons_len = strnlen(icons, sizeof(icons));
         } else if (model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST) {
-                snprintf(icons + icons_len, sizeof(icons) - icons_len, "↻L ");
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ↻L");
                 icons_len = strnlen(icons, sizeof(icons));
         }
 
         if (model->state.settings.shuffle_enabled) {
-                snprintf(icons + icons_len, sizeof(icons) - icons_len, "⇄ ");
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ⇄");
                 icons_len = strnlen(icons, sizeof(icons));
         }
 
         if (uis->isFastForwarding) {
-                snprintf(icons + icons_len, sizeof(icons) - icons_len, "⇉ ");
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ⇉");
                 icons_len = strnlen(icons, sizeof(icons));
         }
 
         if (uis->isRewinding) {
-                snprintf(icons + icons_len, sizeof(icons) - icons_len, "⇇ ");
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ⇇");
+                icons_len = strnlen(icons, sizeof(icons));
+        }
+
+        if (ui->always_crossfade) {
+                snprintf(icons + icons_len, sizeof(icons) - icons_len, " ⋈");
                 icons_len = strnlen(icons, sizeof(icons));
         }
 
