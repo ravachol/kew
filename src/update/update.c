@@ -466,6 +466,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_LOAD_WAITING_MUSIC:
                 result.cmd.type = CMD_LOAD_WAITING_MUSIC;
+                set_dirty(DIRTY_FOOTER);
                 break;
 
         case MSG_ENQUEUE:
@@ -685,6 +686,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_STOP:
+                set_dirty(DIRTY_FOOTER);
                 result.cmd.type = CMD_STOP;
                 break;
 
