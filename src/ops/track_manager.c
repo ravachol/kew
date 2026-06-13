@@ -296,18 +296,11 @@ void handle_decoder_switch(void)
         SongData *songdata = NULL;
 
         // Depending on if metadata has switched we have to get the current song or if it hasn't the next one
-        if ((model->state.ui.metadata_switched || is_metadata_switch_reached()) || model->playbackState.skipOutOfOrder || is_repeat_enabled()) {
+        if (model->state.ui.metadata_switched) {
+                model->state.ui.metadata_switched = false;
+                model->state.ui.decoder_switched = false;
 
-                if (model->state.ui.metadata_switched)
-                {
-                        model->state.ui.metadata_switched = false;
-                        model->state.ui.decoder_switched = false;
-
-                        songdata = sound_system_get_current_song(sound_sys);
-                }
-                else {
-                        model->state.ui.decoder_switched = true;
-                }
+                songdata = sound_system_get_current_song(sound_sys);
         } else {
                 node = choose_next_song();
                 model->state.ui.decoder_switched = true;
@@ -322,7 +315,8 @@ void handle_decoder_switch(void)
                 }
         }
 
-        char *file_path = songdata ? songdata->file_path : node ? node->song.file_path : NULL;
+        char *file_path = songdata ? songdata->file_path : node ? node->song.file_path
+                                                                : NULL;
         sound_system_switch_decoder(sound_sys, file_path);
 }
 
@@ -334,17 +328,10 @@ void handle_metadata_switch(void)
 
         move_to_next_song_in_the_playlist();
 
-        if (model->state.ui.decoder_switched || is_EOF_reached())
-        {
-                if (model->state.ui.decoder_switched) {
-                        model->state.ui.decoder_switched = false;
-                        model->state.ui.metadata_switched = false;
-                }
-                else {
-                        model->state.ui.metadata_switched = true;
-                }
-        }
-        else {
+        if (model->state.ui.decoder_switched) {
+                model->state.ui.decoder_switched = false;
+                model->state.ui.metadata_switched = false;
+        } else {
                 model->state.ui.metadata_switched = true;
         }
 
