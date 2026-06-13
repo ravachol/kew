@@ -297,12 +297,13 @@ void handle_decoder_switch(void)
 
         // Depending on if metadata has switched we have to get the current song or if it hasn't the next one
         if ((model->state.ui.metadata_switched || is_metadata_switch_reached()) || model->playbackState.skipOutOfOrder || is_repeat_enabled()) {
-                songdata = sound_system_get_current_song(sound_sys);
 
                 if (model->state.ui.metadata_switched)
                 {
                         model->state.ui.metadata_switched = false;
                         model->state.ui.decoder_switched = false;
+
+                        songdata = sound_system_get_current_song(sound_sys);
                 }
                 else {
                         model->state.ui.decoder_switched = true;

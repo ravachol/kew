@@ -323,16 +323,7 @@ void toggle_repeat(void)
 void toggle_pause()
 {
         if (is_stopped()) {
-                Model *model = get_model();
-                PlayList *playlist = get_playlist();
-                Node *current_song = get_current_song();
-                Node *song = current_song;
-                if (current_song == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)
-                        song = playlist->head;
-
-                if (song != NULL) {
-                        clear_and_play(song);
-                }
+                view_enqueue(false);
         } else if (is_paused() && get_current_song() == NULL) {
                 PlayList *playlist = get_playlist();
                 playlist_play(playlist);
