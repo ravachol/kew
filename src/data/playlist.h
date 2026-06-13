@@ -85,22 +85,24 @@ int add_to_list(PlayList *list, Node *new_node);
  *
  * @param list Pointer to the playlist.
  * @param node Pointer to the node to move.
+ * @param change_library_status Affects the enqueued status in library that tracks playlist enqueued status.
  *
  * @note Does nothing if node is NULL, already at the head,
  *       or has no previous node.
  */
-void move_up_list(PlayList *list, Node *node);
+void move_up_list(PlayList *list, Node *node, bool change_library_status);
 
 /**
  * @brief Moves a node one position down in the playlist.
  *
  * @param list Pointer to the playlist.
  * @param node Pointer to the node to move.
+ * @param change_library_status Affects the enqueued status in library that tracks playlist enqueued status.
  *
  * @note Does nothing if node is NULL, already at the tail,
  *       or has no next node.
  */
-void move_down_list(PlayList *list, Node *node);
+void move_down_list(PlayList *list, Node *node, bool change_library_status);
 
 /**
  * @brief Removes a node from the playlist and frees its memory.
