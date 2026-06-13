@@ -370,11 +370,6 @@ void switch_to_next_song(void)
                 return;
         }
 
-        if (model->state.settings.always_crossfade && !is_paused() && !is_repeat_enabled() && next) {
-                if (crossfade(model->state.settings.fade_medium_ms, model->state.settings.fade_enter_song_ms))
-                        return;
-        }
-
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
