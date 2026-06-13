@@ -267,8 +267,7 @@ gboolean mainloop_callback(gpointer data)
 
         Model *model = get_model();
 
-        if (model->state.ui.resumed)
-        {
+        if (model->state.ui.resumed) {
                 resume();
                 model->state.ui.resumed = 0;
                 model->state.ui.rendered = false;
@@ -351,6 +350,34 @@ void create_loop(void)
         kew_shutdown();
 }
 
+void auto_resume(double *seconds)
+{
+        Model *model = get_model();
+        AppState *state = &model->state;
+        PlayList *playlist = model->playlist;
+        PlaybackState *ps = &model->playbackState;
+        Node *song = NULL;
+        find_node_in_list(playlist, model->state.settings.currentSongId, &song);
+
+        if (song) {
+                set_song_to_start_from(song);
+                ps->waitingForNext = true;
+                sound_system_set_end_of_list_reached(sound_sys, false);
+
+                if (model->state.settings.currentSongSeconds > 0.8) {
+                        model->state.settings.currentSongSeconds -= 0.8;
+                        *seconds = model->state.settings.currentSongSeconds;
+                }
+
+                sound_system_set_volume(sound_sys, 0.0);
+                model->restore_volume = true;
+
+                state->currentView = TRACK_VIEW;
+
+                set_dirty(DIRTY_NONE); // When the song plays, the UI will be set to dirty. To prevent flickering.
+        }
+}
+
 /**
  * @brief Runs the application with the specified settings.
  *
@@ -384,26 +411,7 @@ void run(bool start_playing)
                 set_dirty(DIRTY_ALL);
 
                 if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume) {
-                        Node *song = NULL;
-                        find_node_in_list(playlist, model->state.settings.currentSongId, &song);
-
-                        if (song) {
-                                set_song_to_start_from(song);
-                                ps->waitingForNext = true;
-                                sound_system_set_end_of_list_reached(sound_sys, false);
-
-                                if (model->state.settings.currentSongSeconds > 0.8) {
-                                        model->state.settings.currentSongSeconds -= 0.8;
-                                        seconds = model->state.settings.currentSongSeconds;
-                                }
-
-                                sound_system_set_volume(sound_sys, 0.0);
-                                model->restore_volume = true;
-
-                                state->currentView = TRACK_VIEW;
-
-                                set_dirty(DIRTY_NONE); // When the song plays, the UI will be set to dirty. To prevent flickering.
-                        }
+                        auto_resume(&seconds);
                 }
         }
 
@@ -744,17 +752,19 @@ void force_terminal_restore(int sig)
         raise(sig);
 }
 
-void handle_sigtstp(int sig) {
-    force_terminal_restore(sig);
-    signal(SIGTSTP, handle_sigtstp);
+void handle_sigtstp(int sig)
+{
+        force_terminal_restore(sig);
+        signal(SIGTSTP, handle_sigtstp);
 
-    signal(SIGTSTP, SIG_DFL);
-    raise(SIGTSTP);       // actually suspend
+        signal(SIGTSTP, SIG_DFL);
+        raise(SIGTSTP); // actually suspend
 }
 
-void handle_sigcont(int sig) {
+void handle_sigcont(int sig)
+{
         (void)sig;
-        Model * model = get_model();
+        Model *model = get_model();
         model->state.ui.resumed = 1;
 }
 

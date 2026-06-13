@@ -24,6 +24,8 @@ void reset_clock(void);
 
 void clock_add_offset(long offset_ms);
 
+void clock_log_time(void);
+
 /**
  * @brief Recalculate the elapsed playback time.
  *
