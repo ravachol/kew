@@ -2740,7 +2740,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Toggle Notifications: %s"),
                   get_binding_string(MSG_TOGGLENOTIFICATIONS, false));
-        HELP_LINE(_(" · Toggle Crossfade (experimental) Always on: %s"),
+        HELP_LINE(_(" · Toggle Crossfade (experimental) On: %s"),
                   get_binding_string(MSG_TOGGLECROSSFADE, false));
 
         HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
