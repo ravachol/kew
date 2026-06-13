@@ -1460,7 +1460,7 @@ void move_start_node_into_position(Model *model, int found_at, Node **start_node
 
 void component_playlist_helper_update_view_state(Model *model)
 {
-        model->state.ui.playlist_node = determine_start_node(model->playlist->head, &model->state.ui.current_at_row, model->unshuffled_playlist->count);
+        model->state.ui.playlist_node = determine_start_node(model->unshuffled_playlist->head, &model->state.ui.current_at_row, model->unshuffled_playlist->count);
         model->state.ui.start_iter = determine_playlist_start(&model->state.ui.start_iter,
                                                               model->state.ui.current_at_row, model->state.ui.max_playlist_rows, &model->state.ui.chosen_row,
                                                               model->state.ui.resetPlaylistDisplay,
