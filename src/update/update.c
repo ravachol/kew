@@ -734,7 +734,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->progressBar.col = msg->region.col + 1;
                 model->progressBar.row = msg->region.row + 1;
                 model->progressBar.length = msg->region.width;
-                if (msg->footer_row > -1)
+                if (msg->footer_row != DISABLED_ROW)
                 {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
@@ -742,7 +742,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_FOOTER_ROW_SET:
-                if (msg->footer_row > -1)
+                if (msg->footer_row != DISABLED_ROW)
                 {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
