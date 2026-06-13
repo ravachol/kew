@@ -342,9 +342,9 @@ void view_enqueue(bool play_immediately)
         Node *first_enqueued_node = NULL;
         bool canGoNext = (current_song != NULL && current_song->next != NULL);
 
-        if (state->currentView == TRACK_VIEW) {
+        if (state->currentView == TRACK_VIEW || state->currentView == HELP_VIEW) {
                 Node *song = current_song;
-                if (current_song == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)
+                if (current_song == NULL && (model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST || state->currentView == HELP_VIEW))
                         song = playlist->head;
 
                 if (song != NULL) {
