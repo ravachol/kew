@@ -264,7 +264,6 @@ void cycle_themes(void)
                 if (strcmp(ui->theme_name, "default") == 0)
                         ui->colorMode = COLOR_MODE_DEFAULT;
 
-
                 if (ui->colorMode == COLOR_MODE_THEME)
                         if (ui->visualizer_mode > 2)
                                 ui->visualizer_mode = 2;
@@ -324,7 +323,16 @@ void toggle_repeat(void)
 void toggle_pause()
 {
         if (is_stopped()) {
-                view_enqueue(false);
+                Model *model = get_model();
+                PlayList *playlist = get_playlist();
+                Node *current_song = get_current_song();
+                Node *song = current_song;
+                if (current_song == NULL && model->state.settings.repeatState == SOUND_STATE_REPEAT_LIST)
+                        song = playlist->head;
+
+                if (song != NULL) {
+                        clear_and_play(song);
+                }
         } else if (is_paused() && get_current_song() == NULL) {
                 PlayList *playlist = get_playlist();
                 playlist_play(playlist);
