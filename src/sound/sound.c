@@ -771,6 +771,9 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                 // Success, copy data
                 float gain = sound_s->gain_linear;
 
+                // Determine how many frames to copy this iteration
+                ma_uint32 framesToCopy = framesToRead;
+
                 // Load current played and boundary
                 uint64_t played = atomic_load_explicit(&sound_s->track_frames_sent, memory_order_relaxed);
                 uint64_t boundary = atomic_load_explicit(&sound_s->track_end_frame, memory_order_relaxed);
@@ -778,15 +781,12 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                 atomic_load_explicit(&sound_s->fade_boundary, memory_order_acquire);
                 atomic_load_explicit(&sound_s->clock_reset_done, memory_order_acquire);
                 if (sound_s->fade_boundary >= 0 &&
-                    sound_s->fade_boundary <= (long long)played &&
+                    sound_s->fade_boundary <= (long long)played + framesToCopy &&
                     !sound_s->clock_reset_done) {
 
                         atomic_store_explicit(&sound_s->fade_boundary_reached, true, memory_order_relaxed);
                         atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
                 }
-
-                // Determine how many frames to copy this iteration
-                ma_uint32 framesToCopy = framesToRead;
 
                 if (!boundary_handled &&
                     played + framesToCopy >= boundary &&
