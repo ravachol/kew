@@ -48,6 +48,21 @@ void clock_add_offset(long offset_ms)
         timespec_add_ms(&start_time, offset_ms);
 }
 
+void fprintf_timespec(const struct timespec *ts) {
+    fprintf(stderr, "tv_sec = %lld, tv_nsec = %ld\n",
+           (long long)ts->tv_sec,
+           ts->tv_nsec);
+}
+
+void clock_log_time(void)
+{
+        fprintf_timespec(&start_time);
+        fprintf_timespec(&current_time);
+
+        Model *model = get_model();
+        fprintf(stderr, "elapsed seconds: %f\n", model->elapsed_seconds);
+}
+
 void reset_clock(void)
 {
         Model *model = get_model();
