@@ -101,6 +101,9 @@ static bool execute_seek(sound_system_t *sound, ma_decoder *decoder, ma_uint64 t
                 ma_pcm_rb_reset(&pcm_rb);
                 atomic_store(&sound->decode_finished, false);
                 sound->current_frame = targetFrame;
+
+                uint64_t played = atomic_load_explicit(&sound_s->track_frames_sent, memory_order_relaxed);
+                sound->total_frames = played;
         }
 
         sound_system_play(sound);
@@ -250,6 +253,7 @@ void switch_metadata(sound_system_t *sound)
         atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
         atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
 
+        set_seek_elapsed(0.0);
         set_metadata_switch_reached(true);
 }
 
@@ -281,7 +285,6 @@ void switch_current_decoder(sound_system_t *sound)
         switch_decoder_index();
 
         set_replay_gain(sound);
-        set_seek_elapsed(0.0);
         set_EOF_reached(true);
 
         long long fade_boundary = atomic_load_explicit(&sound->fade_boundary, memory_order_acquire);
@@ -869,7 +872,6 @@ sound_result_t handle_codec(
 #endif
         }
 
-
         if (repeat_state == SOUND_STATE_REPEAT ||
             !(sameFormat && current_implementation == ops.decoder_type)) {
                 set_decoder_type_switch_reached(true);
@@ -1088,7 +1090,6 @@ sound_result_t create_audio_device(
             callback,
             user_data);
         set_current_volume(get_current_volume());
-
 
         sound_result = SOUND_NOTIFY_SWITCH;
 
