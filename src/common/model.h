@@ -38,6 +38,8 @@ extern sound_system_t *sound_sys;
 
 #define MAX_SEARCH_LEN 32
 
+#define DISABLED_ROW -1000
+
 typedef enum {
         DIRTY_NONE = 0,
         DIRTY_VISUALIZER = 1 << 0, // redraws 60fps

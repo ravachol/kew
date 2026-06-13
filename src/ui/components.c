@@ -1913,7 +1913,9 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         result.msg = (struct Msg){
             .type = MSG_PROGRESS_ROW_SET,
             .region = region,
-            .progress_bar_row = region.row};
+            .progress_bar_row = region.row,
+            .footer_row = DISABLED_ROW
+        };
 
         return result;
 }

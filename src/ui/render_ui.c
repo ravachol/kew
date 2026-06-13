@@ -961,10 +961,10 @@ void rebuild_layout(Model *model)
         }
 
         // Reset footer and progress bar, these are chosen when the actual component renders
-        model->state.ui.footer_row = -1;
-        model->state.ui.footer_col = -1;
-        model->progressBar.row = -1;
-        model->progressBar.col = -1;
+        model->state.ui.footer_row = DISABLED_ROW;
+        model->state.ui.footer_col = DISABLED_ROW;
+        model->progressBar.row = DISABLED_ROW;
+        model->progressBar.col = DISABLED_ROW;
 
         rebuilding = false;
 }
