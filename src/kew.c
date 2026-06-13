@@ -755,6 +755,7 @@ void force_terminal_restore(int sig)
 void handle_sigtstp(int sig)
 {
         force_terminal_restore(sig);
+        shutdown_input();
         signal(SIGTSTP, handle_sigtstp);
 
         signal(SIGTSTP, SIG_DFL);
