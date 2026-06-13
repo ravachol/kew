@@ -690,6 +690,7 @@ void repeat_list(void)
 void move_song_up(int *chosen_row)
 {
         AppState *state = get_app_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
@@ -699,7 +700,7 @@ void move_song_up(int *chosen_row)
 
         bool rebuild = false;
 
-        Node *node = find_selected_entry(playlist, *chosen_row);
+        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
 
         if (node == NULL) {
                 return;
@@ -729,7 +730,11 @@ void move_song_up(int *chosen_row)
                 }
         }
 
-        move_up_list(playlist, node);
+        move_up_list(unshuffled_playlist, node, true);
+        Node *pl_node = find_selected_entry_by_id(playlist, node->id);
+
+        if (!is_shuffle_enabled())
+                move_up_list(playlist, pl_node, false);
 
         *chosen_row = *chosen_row - 1;
         *chosen_row = (*chosen_row > 0) ? *chosen_row : 0;
@@ -754,6 +759,7 @@ void move_song_down(int *chosen_row)
 {
         AppState *state = get_app_state();
         PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlaybackState *ps = get_playback_state();
 
         if (state->currentView != PLAYLIST_VIEW) {
@@ -762,7 +768,7 @@ void move_song_down(int *chosen_row)
 
         bool rebuild = false;
 
-        Node *node = find_selected_entry(playlist, *chosen_row);
+        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
 
         Node *current = get_current_song();
 
@@ -795,7 +801,12 @@ void move_song_down(int *chosen_row)
                 }
         }
 
-        move_down_list(playlist, node);
+        move_down_list(unshuffled_playlist, node, true);
+
+        Node *pl_node = find_selected_entry_by_id(playlist, node->id);
+
+        if (!is_shuffle_enabled())
+                move_down_list(playlist, pl_node, false);
 
         *chosen_row = *chosen_row + 1;
         *chosen_row = (*chosen_row >= playlist->count)

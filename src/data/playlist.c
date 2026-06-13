@@ -89,7 +89,7 @@ int add_to_list(PlayList *list, Node *new_node)
         return 0;
 }
 
-void move_up_list(PlayList *list, Node *node)
+void move_up_list(PlayList *list, Node *node, bool change_library_status)
 {
         if (node == list->head || node == NULL || node->prev == NULL)
                 return;
@@ -113,18 +113,20 @@ void move_up_list(PlayList *list, Node *node)
         else
                 list->tail = prev_node;
 
-        // Is_enqueued in library stores the position of the song in the playlist and needs to be updated
-        FileSystemEntry *library = get_library();
-        FileSystemEntry *prev_entry = find_corresponding_entry(library, prev_node->song.file_path);
-        if (prev_entry)
-                prev_entry->is_enqueued += 1;
+        if (change_library_status) {
+                // Is_enqueued in library stores the position of the song in the playlist and needs to be updated
+                FileSystemEntry *library = get_library();
+                FileSystemEntry *prev_entry = find_corresponding_entry(library, prev_node->song.file_path);
+                if (prev_entry)
+                        prev_entry->is_enqueued += 1;
 
-        FileSystemEntry *node_entry = find_corresponding_entry(library, node->song.file_path);
-        if (node_entry)
-                node_entry->is_enqueued -= 1;
+                FileSystemEntry *node_entry = find_corresponding_entry(library, node->song.file_path);
+                if (node_entry)
+                        node_entry->is_enqueued -= 1;
+        }
 }
 
-void move_down_list(PlayList *list, Node *node)
+void move_down_list(PlayList *list, Node *node, bool change_library_status)
 {
         if (node == list->tail || node == NULL || node->next == NULL)
                 return;
@@ -149,15 +151,17 @@ void move_down_list(PlayList *list, Node *node)
         else
                 list->tail = node;
 
-        // Is_enqueued in library stores the position of the song in the playlist and needs to be updated
-        FileSystemEntry *library = get_library();
-        FileSystemEntry *next_entry = find_corresponding_entry(library, next_node->song.file_path);
-        if (next_entry)
-                next_entry->is_enqueued -= 1;
+        if (change_library_status) {
+                // Is_enqueued in library stores the position of the song in the playlist and needs to be updated
+                FileSystemEntry *library = get_library();
+                FileSystemEntry *next_entry = find_corresponding_entry(library, next_node->song.file_path);
+                if (next_entry)
+                        next_entry->is_enqueued -= 1;
 
-        FileSystemEntry *node_entry = find_corresponding_entry(library, node->song.file_path);
-        if (node_entry)
-                node_entry->is_enqueued += 1;
+                FileSystemEntry *node_entry = find_corresponding_entry(library, node->song.file_path);
+                if (node_entry)
+                        node_entry->is_enqueued += 1;
+        }
 }
 
 Node *delete_from_list(PlayList *list, Node *node)
