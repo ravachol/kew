@@ -4,7 +4,7 @@
 
 kew 4.1 comes with crossfade, auto-resume and the ability for users to make their own layouts. Layouting is as minimal as possible, the syntax for layouts is very simple and the files are small. Explained in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
 
-The whole UI system has been rewritten and is now much more clean and nice and great.
+The whole UI system has been rewritten and is now much more clean and nice internally.
 
 #### Enhancements
 
@@ -90,7 +90,7 @@ The whole UI system has been rewritten and is now much more clean and nice and g
 
 - Exiting kew is no longer slow when you have a lot of music in the playlist. By @ravachol. Found by @Kuuube.
 
-- Make sure CTRL+Z and fg are handled properly. By @ravachol. Reported by @that_owl.
+- Make sure CTRL+Z, fg and bg commands are handled properly. By @ravachol. Reported by @that_owl.
 
 - Provide an error message with instructions when D-BUS is not available and kew is compiled with USE_DBUS=1. By @ravachol. Suggested by @ktnb-netbsd.
 
