@@ -243,19 +243,25 @@ int in_foreground(void)
         }
 }
 
+
+void reinitialize()
+{
+        set_nonblocking_mode();
+        disable_terminal_line_input();
+        set_term_size();
+        enable_scrolling();
+        init_input();
+        enter_alternate_screen_buffer();
+        clear_screen();
+        set_dirty(DIRTY_ALL);
+}
+
 void resume()
 {
         Model *model = get_model();
 
         if (in_foreground()) {
-                set_nonblocking_mode();
-                disable_terminal_line_input();
-                set_term_size();
-                enable_scrolling();
-                init_input();
-                enter_alternate_screen_buffer();
-                clear_screen();
-                set_dirty(DIRTY_ALL);
+                reinitialize();
                 model->state.ui.resumed_in_background = false;
         } else {
                 model->state.ui.resumed_in_background = true;
@@ -292,6 +298,14 @@ gboolean mainloop_callback(gpointer data)
                 resume();
                 model->state.ui.resumed = 0;
                 model->state.ui.rendered = false;
+        }
+
+        if (model->state.ui.resumed_in_background)
+        {
+                if (in_foreground()) {
+                        model->state.ui.resumed_in_background = false;
+                        reinitialize();
+                }
         }
 
         bool has_active_animation = model->glimmer.active || model->title_delay.active || model->name_scroll.active;
@@ -693,6 +707,7 @@ void init_state(void)
         state->ui.chosen_lib_row = 0;
         state->ui.lib_row_count = 0;
         state->ui.resumed = 0;
+        state->ui.resumed_in_background = 0;
 
         state->ui.footer_row = 0;
         state->ui.footer_col = 0;
@@ -778,15 +793,15 @@ void handle_sigtstp(int sig)
         force_terminal_restore(sig);
         shutdown_input();
         disable_terminal_mouse_buttons();
-        signal(SIGTSTP, handle_sigtstp);
 
         signal(SIGTSTP, SIG_DFL);
-        raise(SIGTSTP); // actually suspend
+        raise(SIGTSTP);
 }
 
 void handle_sigcont(int sig)
 {
         (void)sig;
+        signal(SIGTSTP, handle_sigtstp);
         Model *model = get_model();
         model->state.ui.resumed = 1;
 }
