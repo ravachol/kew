@@ -398,9 +398,14 @@ void toggle_shuffle(Model *model)
 
 bool can_refresh_player(void)
 {
-        PlaybackState *ps = get_playback_state();
+        Model *model = get_model();
+        PlaybackState *ps = &model->playbackState;
 
-        return !ps->skipping && !is_EOF_reached() && !is_switching_track() && !should_exit();
+        return !ps->skipping &&
+        !is_EOF_reached() &&
+        !is_switching_track() &&
+        !should_exit() &&
+        !model->state.ui.resumed_in_background;
 }
 
 int load_theme(const char *theme_name,

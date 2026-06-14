@@ -507,6 +507,7 @@ typedef struct
 
         volatile sig_atomic_t resumed;
         bool rendered;
+        bool resumed_in_background;
 
         ColorPalette visualizer_palettes[7];
 } UIState;
