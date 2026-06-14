@@ -777,6 +777,7 @@ void handle_sigtstp(int sig)
 {
         force_terminal_restore(sig);
         shutdown_input();
+        disable_terminal_mouse_buttons();
         signal(SIGTSTP, handle_sigtstp);
 
         signal(SIGTSTP, SIG_DFL);
