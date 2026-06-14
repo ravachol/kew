@@ -95,6 +95,9 @@ bool resize_if_needed(void)
 
 void run_tick_commands(Model *model)
 {
+        if (model->state.ui.resumed_in_background)
+                return;
+
         process_d_bus_events();
 
         calc_elapsed_time(get_current_song_duration());

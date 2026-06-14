@@ -229,16 +229,37 @@ void kew_shutdown()
         exit(0);
 }
 
+int in_foreground(void)
+{
+        pid_t my_pgrp = getpgrp();
+        pid_t tty_pgrp = tcgetpgrp(STDIN_FILENO);
+
+        if (tty_pgrp == my_pgrp) {
+                // Resumed via fg
+                return true;
+        } else {
+                // Resumed via bg
+                return false;
+        }
+}
+
 void resume()
 {
-        set_nonblocking_mode();
-        disable_terminal_line_input();
-        set_term_size();
-        enable_scrolling();
-        init_input();
-        enter_alternate_screen_buffer();
-        clear_screen();
-        set_dirty(DIRTY_ALL);
+        Model *model = get_model();
+
+        if (in_foreground()) {
+                set_nonblocking_mode();
+                disable_terminal_line_input();
+                set_term_size();
+                enable_scrolling();
+                init_input();
+                enter_alternate_screen_buffer();
+                clear_screen();
+                set_dirty(DIRTY_ALL);
+                model->state.ui.resumed_in_background = false;
+        } else {
+                model->state.ui.resumed_in_background = true;
+        }
 }
 
 /**
