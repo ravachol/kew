@@ -127,6 +127,8 @@ void switch_view(ViewState view_to_show)
 {
         Model *model = get_model();
 
+        model->state.last_view = model->state.currentView;
+
         if (model->state.currentView == view_to_show) {
                 model->state.currentView = TRACK_VIEW;
         } else {
@@ -515,7 +517,13 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_SHOWLYRICSPAGE:
-                model->state.ui.showLyricsPage = !model->state.ui.showLyricsPage;
+                if (model->state.currentView != TRACK_VIEW) {
+                        switch_view(TRACK_VIEW);
+                        model->state.ui.showLyricsPage = true;
+                }
+                else {
+                        model->state.ui.showLyricsPage = !model->state.ui.showLyricsPage;
+                }
                 set_dirty(DIRTY_ALL);
                 break;
 
