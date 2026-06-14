@@ -464,11 +464,16 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
         bool cooldown2Elapsed = false;
 
+        Model *model = get_model();
+
         if (is_cooldown_elapsed(COOLDOWN2_MS))
                 cooldown2Elapsed = true;
 
         // Drain all available input
         while (1) {
+                if (model->state.ui.resumed_in_background)
+                        return FALSE;
+
                 if (!is_input_available())
                         break;
 
