@@ -302,7 +302,10 @@ void handle_decoder_switch(void)
 
                 songdata = sound_system_get_current_song(sound_sys);
         } else {
-                node = choose_next_song();
+                if (is_metadata_switch_reached())
+                        songdata = sound_system_get_current_song(sound_sys);
+                else
+                        node = choose_next_song();
                 model->state.ui.decoder_switched = true;
         }
 
