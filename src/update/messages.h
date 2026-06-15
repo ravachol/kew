@@ -22,3 +22,5 @@ bool has_pending_msgs(void);
  * @return msg
  */
 struct Msg next_msg(void);
+
+void reset_msg_queue_pointers(void);
