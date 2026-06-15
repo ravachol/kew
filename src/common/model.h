@@ -805,7 +805,7 @@ typedef struct Model {
         Layout *search_layout;
         Layout *help_layout;
 
-        volatile bool updating_library;
+        volatile sig_atomic_t updating_library;
 } Model;
 
 #endif

@@ -37,8 +37,6 @@ typedef struct
 
 static int current_sort = 0;
 
-static bool updating_library = false;
-
 void reset_sort_library(void)
 {
         FileSystemEntry *library = get_library();
@@ -204,6 +202,8 @@ void *update_library_thread(void *arg)
         if (model->updating_library)
                 return NULL;
 
+        model->updating_library = true;
+
         char *path = args->path;
         int tmp_directory_tree_entries = 0;
 
@@ -215,10 +215,9 @@ void *update_library_thread(void *arg)
 
         if (!tmp) {
                 perror("create_directory_tree");
-                pthread_mutex_unlock(&(model->state.library_mutex));
                 free(args->path);
                 free(args);
-                updating_library = false;
+                model->updating_library = false;
                 return NULL;
         }
 
@@ -238,14 +237,14 @@ void *update_library_thread(void *arg)
 
         free_tree(old);
 
-        pthread_mutex_unlock(&(model->state.library_mutex));
-
         c_sleep(1000); // Don't refresh immediately or we risk the error message
                        // not clearing
 
         free(args->path);
         free(args);
         model->updating_library = false;
+
+        pthread_mutex_unlock(&(model->state.library_mutex));
 
         return NULL;
 }
