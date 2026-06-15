@@ -51,25 +51,6 @@
 // Anything non-deterministic or external
 
 
-void component_library_helper_reset(Model *model)
-{
-        model->state.ui.chosen_dir = NULL;
-        model->state.ui.chosen_lib_row = 0;
-
-        model->state.ui.treeCtx.chosen_dir = NULL;
-        model->state.ui.treeCtx.start_lib_iter = 0;
-        model->state.ui.treeCtx.previous_chosen_row = -1;
-
-        model->state.ui.current_lib_entry = NULL;
-        model->state.ui.current_search_entry = NULL;
-        model->state.ui.chosen_search_dir = NULL;
-        model->state.ui.chosen_dir = NULL;
-        model->state.ui.last_search_parent = NULL;
-        
-        reset_msg_queue_pointers();
-}
-
-
 size_t string_hash(const char *str)
 {
         if (str == NULL)
