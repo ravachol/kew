@@ -2743,7 +2743,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         HELP_LINE(_(" · Toggle ASCII Cover: %s (disables Chroma)"),
                   get_binding_string(MSG_TOGGLEASCII, false));
-        HELP_LINE(_(" · Toggle Lyrics Page on Track View: %s"),
+        HELP_LINE(_(" · Toggle Lyrics Page: %s"),
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Toggle Notifications: %s"),
                   get_binding_string(MSG_TOGGLENOTIFICATIONS, false));

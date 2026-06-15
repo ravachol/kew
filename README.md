@@ -239,8 +239,6 @@ Disable by pressing <kbd>b</kbd>.
 
 This works by kew being fed frames from Chroma and does not add bloat to kew.
 
-### Configuration
-
 You can customize Chroma's behavior in your `kewrc` file:
 
 - `chromaPath`: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
