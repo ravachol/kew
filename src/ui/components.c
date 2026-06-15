@@ -375,22 +375,6 @@ void library_collapse_view(Model *model, int diff_rows)
         }
 }
 
-void component_library_helper_reset(Model *model)
-{
-        model->state.ui.chosen_dir = NULL;
-        model->state.ui.chosen_lib_row = 0;
-
-        model->state.ui.treeCtx.chosen_dir = NULL;
-        model->state.ui.treeCtx.start_lib_iter = 0;
-        model->state.ui.treeCtx.previous_chosen_row = -1;
-
-        model->state.ui.current_lib_entry = NULL;
-        model->state.ui.current_search_entry = NULL;
-        model->state.ui.chosen_search_dir = NULL;
-        model->state.ui.chosen_dir = NULL;
-        model->state.ui.last_search_parent = NULL;
-}
-
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
                                                              int max_list_size, int max_name_width,
                                                              k_Rect region, DrawBuffer *buf, int *row_count, int *iter)
@@ -414,7 +398,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
         if (*iter >= ctx.start_lib_iter + model->state.ui.max_lib_rows) {
                 (*iter)++;
-                return false;
+                return NULL;
         }
 
         if (current != NULL &&

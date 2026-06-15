@@ -43,8 +43,6 @@ void library_collapse_directory(Model *model, int direction);
 
 void library_collapse_view(Model *model, int diff_rows);
 
-void component_library_helper_reset(Model *model);
-
 void component_library_helper_update_view_state(Model *model);
 
 ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
