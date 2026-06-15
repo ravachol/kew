@@ -124,24 +124,30 @@ void cycle_color_mode(void)
         case COLOR_MODE_DEFAULT:
                 if (load_theme("default", true)) {
                         themeLoaded = true;
+                        if (ui->visualizer_mode > VIZ_REVERSED)
+                                ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_ALBUM_ONE:
                 if (load_theme("onealbumcolor", false)) {
                         themeLoaded = true;
+                        if (ui->visualizer_mode > VIZ_REVERSED)
+                                ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_ALBUM:
                 if (load_theme("albumcolors", false)) {
                         themeLoaded = true;
+                        if (ui->visualizer_mode != VIZ_KMEANS_CLUSTERING)
+                                ui->visualizer_mode = VIZ_KMEANS_CLUSTERING;
                 }
                 break;
         case COLOR_MODE_THEME:
                 if (ui->theme_name[0] != '\0' &&
                     load_theme(ui->theme_name, false)) {
                         themeLoaded = true;
-                        if (ui->visualizer_mode > 2)
-                                ui->visualizer_mode = 2;
+                        if (ui->visualizer_mode > VIZ_REVERSED)
+                                ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_NEUTRAL:
