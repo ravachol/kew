@@ -322,7 +322,7 @@ void library_collapse_view(Model *model, int diff_rows)
         UIState *uis = &model->state.ui;
         FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
         FileSystemEntry *current = model->state.ui.current_lib_entry;
-        FileSystemEntry *parent = current->parent;
+        FileSystemEntry *parent = current ? current->parent : NULL;
 
         if ((uis->allowChooseSongs || model->state.settings.collapseTopLevel) &&
             (chosen_dir == NULL ||

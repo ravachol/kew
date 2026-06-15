@@ -746,9 +746,6 @@ void init_state(void)
         ps->notifyPlaying = false;
         ps->notifySeek = false;
 
-        pthread_mutex_init(&ps->switch_mutex, NULL);
-        pthread_mutex_init(&(state->library_mutex), NULL);
-
         reset_digits_pressed();
 
         Model *model = get_model();
