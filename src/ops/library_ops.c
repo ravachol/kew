@@ -18,6 +18,7 @@
 #include "data/directorytree.h"
 #include "loader/tagLibWrapper.h"
 
+#include "ui/components.h"
 #include "utils/file.h"
 #include "utils/utils.h"
 
@@ -193,14 +194,15 @@ typedef struct
 
 void *update_library_thread(void *arg)
 {
-        if (arg == NULL || updating_library)
-                return NULL;
-
-        updating_library = true;
-
         UpdateLibraryArgs *args = arg;
 
+        if (args == NULL)
+                return NULL;
+
         Model *model = args->model;
+
+        if (model->updating_library)
+                return NULL;
 
         char *path = args->path;
         int tmp_directory_tree_entries = 0;
@@ -222,6 +224,8 @@ void *update_library_thread(void *arg)
 
         pthread_mutex_lock(&(model->state.library_mutex));
 
+        component_library_helper_reset(model);
+
         FileSystemEntry *old = model->library;
 
         copy_is_enqueued(old, tmp);
@@ -232,16 +236,16 @@ void *update_library_thread(void *arg)
 
         model->state.ui.numDirectoryTreeEntries = tmp_directory_tree_entries;
 
-        pthread_mutex_unlock(&(model->state.library_mutex));
-
         free_tree(old);
+
+        pthread_mutex_unlock(&(model->state.library_mutex));
 
         c_sleep(1000); // Don't refresh immediately or we risk the error message
                        // not clearing
 
         free(args->path);
         free(args);
-        updating_library = false;
+        model->updating_library = false;
 
         return NULL;
 }
