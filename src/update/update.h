@@ -1,4 +1,3 @@
-#include "common/events.h"
 #include "common/model.h"
 
 #include "effects.h"

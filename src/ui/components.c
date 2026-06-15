@@ -5,6 +5,8 @@
 #include "common/events.h"
 #include "common/model.h"
 
+#include "update/messages.h"
+
 #include "data/directorytree.h"
 #include "data/img_func.h"
 #include "ops/library_ops.h"
@@ -373,6 +375,23 @@ void library_collapse_view(Model *model, int diff_rows)
                         model->state.ui.chosen_lib_row -= num_children;
                 }
         }
+}
+
+void component_library_helper_reset(Model *model)
+{
+        model->state.ui.chosen_dir = NULL;
+        model->state.ui.chosen_lib_row = 0;
+
+        model->state.ui.treeCtx.chosen_dir = NULL;
+        model->state.ui.treeCtx.start_lib_iter = 0;
+        model->state.ui.treeCtx.previous_chosen_row = -1;
+
+        model->state.ui.current_lib_entry = NULL;
+        model->state.ui.current_search_entry = NULL;
+        model->state.ui.chosen_search_dir = NULL;
+        model->state.ui.chosen_dir = NULL;
+        model->state.ui.last_search_parent = NULL;
+        reset_msg_queue_pointers();
 }
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
