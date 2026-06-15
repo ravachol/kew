@@ -39,6 +39,8 @@
 
 #define MAX_BARS 26 // Counting 1/3 octave per bar, 50hz-10000hz range
 
+float *blackman_harris_window;
+
 static void generate_legacy_palette(ColorPalette *palette, PixelData base, int height, int mode)
 {
         int count = height < 16 ? height : 16;
@@ -519,27 +521,32 @@ void clear_magnitudes(int num_bars, float *magnitudes)
         }
 }
 
-void apply_blackman_harris(float *fft_input, int buffer_size)
+void generate_blackman_harris_window(float *window, int buffer_size)
 {
-        if (!fft_input ||
-            buffer_size < 2) // Must be at least 2 to avoid division by zero
-                return;
+    const float alpha0 = 0.35875f;
+    const float alpha1 = 0.48829f;
+    const float alpha2 = 0.14128f;
+    const float alpha3 = 0.01168f;
 
-        const float alpha0 = 0.35875f;
-        const float alpha1 = 0.48829f;
-        const float alpha2 = 0.14128f;
-        const float alpha3 = 0.01168f;
+    float denom = (float)(buffer_size - 1);
 
-        float denom = (float)(buffer_size - 1);
+    for (int i = 0; i < buffer_size; i++) {
+        float x = 2.0f * M_PI * i / denom;
 
-        for (int i = 0; i < buffer_size; i++) {
-                float fraction = (float)i / denom;
-                float window = alpha0 - alpha1 * cosf(2.0f * M_PI * fraction) +
-                               alpha2 * cosf(4.0f * M_PI * fraction) -
-                               alpha3 * cosf(6.0f * M_PI * fraction);
+        window[i] =
+            alpha0
+            - alpha1 * cosf(x)
+            + alpha2 * cosf(2.0f * x)
+            - alpha3 * cosf(3.0f * x);
+    }
+}
 
-                fft_input[i] *= window;
-        }
+void apply_blackman_harris(float *restrict data,
+                  const float *restrict window,
+                  int n)
+{
+    for (int i = 0; i < n; i++)
+        data[i] *= window[i];
 }
 
 // Fill center freqs for 1/3-octave bands, given min/max freq and num_bands
@@ -714,7 +721,7 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
         normalize_audio_samples(audio_buffer, fft_input, fft_size, bit_depth);
 
         // Apply Blackman Harris window function
-        apply_blackman_harris(fft_input, fft_size);
+        apply_blackman_harris(fft_input, blackman_harris_window, fft_size);
 
         // Compute fast fourier transform
         fftwf_execute(plan);
@@ -835,6 +842,10 @@ void free_visuals(void)
         if (fft_plan != NULL) {
                 fftwf_destroy_plan(fft_plan);
                 fft_plan = NULL;
+        }
+
+        if (blackman_harris_window != NULL) {
+                free(blackman_harris_window);
         }
 }
 
@@ -1112,6 +1123,12 @@ void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_
 
         if (fft_size != prev_fft_size) {
                 free_visuals();
+
+                blackman_harris_window = malloc(sizeof(float) * fft_size);
+                if (!blackman_harris_window)
+                        return;
+
+                generate_blackman_harris_window(blackman_harris_window, fft_size);
 
                 memset(display_magnitudes, 0, sizeof(display_magnitudes));
 
