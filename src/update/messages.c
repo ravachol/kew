@@ -1,7 +1,5 @@
 #include "messages.h"
 
-#include "common/events.h"
-
 #define MAX_MSG_QUEUE 256
 
 typedef struct {
@@ -34,4 +32,19 @@ struct Msg next_msg(void)
         struct Msg msg = queue.msgs[queue.head];
         queue.head = (queue.head + 1) % MAX_MSG_QUEUE;
         return msg;
+}
+
+
+void reset_msg_queue_pointers(void)
+{
+    int i = queue.head;
+
+    while (i != queue.tail) {
+        struct Msg *msg = &queue.msgs[i];
+
+        msg->current_lib_entry = NULL;
+        msg->current_search_entry = NULL;
+
+        i = (i + 1) % MAX_MSG_QUEUE;
+    }
 }
