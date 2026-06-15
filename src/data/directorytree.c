@@ -650,8 +650,6 @@ FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
         *num_entries = read_directory(start_path, root);
         *num_entries -= remove_empty_directories(root, 0);
 
-        last_used_id = 0;
-
         return root;
 }
 
