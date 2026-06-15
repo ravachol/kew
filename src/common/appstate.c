@@ -200,6 +200,9 @@ void init_model(void)
 
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &model.state.ui.windowSize);
 
+        pthread_mutex_init(&(model.playbackState.switch_mutex), NULL);
+        pthread_mutex_init(&(model.state.library_mutex), NULL);
+
         create_playlist(&model.playlist);
         create_playlist(&model.unshuffled_playlist);
         create_playlist(&model.favorites_playlist);

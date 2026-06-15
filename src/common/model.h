@@ -804,6 +804,8 @@ typedef struct Model {
         Layout *track_landscape_layout;
         Layout *search_layout;
         Layout *help_layout;
+
+        volatile bool updating_library;
 } Model;
 
 #endif
