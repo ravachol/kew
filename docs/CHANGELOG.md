@@ -1,58 +1,86 @@
 # CHANGELOG
 
-## 4.1.0 Crossfade, Auto-resume and user-defined layouts!
+## 4.1.0 Crossfade, Auto-resume and Layouts!
 
-kew 4.1 comes with crossfade, auto-resume and the ability for users to make their own layouts. Layouting is as minimal as possible, the syntax for layouts is very simple and the files are small. Explained in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
+kew 4.1 comes with crossfade, auto-resume and the ability for users to make their own layouts.
 
-The whole UI system has been rewritten and is now much more clean and nice internally.
+The sound system was rewritten in v4.0 and in this version the UI system has been rewritten using the MVU pattern. There are still smaller areas that need improvement, but most of the app is now in a much better shape.
 
-#### Enhancements
+### Enhancements
 
-- Crossfade (experimental, not safe for dance floors or anything). Works both as always on and on demand.
+### Layouts
 
-  Three new commands:
+It's now possible to change how kew looks. It's as minimal as possible, the syntax for layouts is very simple and the files are small. More info in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
 
-  shift+d = quick crossfade
-  shift+f = medium crossfade
-  shift+d = medium crossfade
+By @ravachol.
+
+### Crossfade (experimental)
+
+  Crossfade can be toggled on or off and affects the end of the song, or initiated on demand.
+
+  Four new commands:
+
+  z = Toggle crossfade on
+  
+  shift+d = Quick crossfade
+  
+  shift+f = Medium crossfade
+  
+  shift+g = Slow crossfade
 
   New settings:
 
   alwaysCrossfade=0
+  
   fadeEnterSongMs=0 // Tells kew to start fading x milliseconds into the next song.
+  
   fadeQuickMs=1000
+  
   fadeMediumMs=3000
+  
   fadeSlowMs=8000
-
-  If alwaysCrossfade is on, you will always crossfade when pressing next (right arrow).
-
-  We hope to get feedback on this to iron out the issues.
 
   By @ravachol.
 
-- AutoResume. Persists playback state between sessions, on by default.
+### AutoResume.
 
-  autoResume=1
+Persists playback state between sessions, on by default.
 
-  By @ravachol. Suggested by @thbemme.
+autoResume=1
 
-- User-defined layouts, and the UI now uses Model-View-Update and stateless rendering. By @ravachol.
+By @ravachol. Suggested by @thbemme.
 
-- New colorful spectrum visualizer modes. "Party Mode" is the default option. Cycle by pressing 'v'. By @emptyhead41.
+### New colorful spectrum visualizer modes.
+
+"Party Mode" is the default option. Cycle by pressing 'v'.
 
   Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning.
 
-  visualizerColorType=3
+By @emptyhead41.
 
-- New album color mode that uses up to 4 album colors instead of just one. And it's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match! By @ravachol, building on @emptyhead41's palettes.
+### New album color mode that uses up to 4 album colors
 
-- Improved Themes. All existing themes have been worked on and make a bit more sense now, and use colors more sparsely. By @ravachol.
+It's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match!
 
-- New theme pack with Nord and Nanagawa themes plus both the album colors themes. By @ravachol.
+By @ravachol, building on @emptyhead41's palettes.
+
+### New theme pack and Improved Themes.
+
+Nord and Nanagawa themes have been added, plus both the new album colors themes.
+
+Also all existing themes have been worked on and make a bit more sense now, and use colors more sparsely.
+
+By @ravachol.
+
+### Scrolling lyrics on the lyrics page
+
+You can also now access the lyrics page from any view.
+
+By @petoem. Suggested by @kewIT.
+
+### Other enhancements
 
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
-
-- Scrolling lyrics on the lyrics page (press m on track view to access lyrics page) By @petoem. Suggested by @kewIT.
 
 - Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
 

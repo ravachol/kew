@@ -112,7 +112,7 @@ kew .
 Play the "kew favorites.m3u" playlist.
 .SH "KEY BINDINGS"
 .TP 9n
-+, -
++ (or =), -
 Adjusts volume.
 .TP 9n
 Left-right arrows/h,l
@@ -143,28 +143,35 @@ u
 Update the library.
 .TP 9n
 i
-Toggle colors derived from album cover or from color theme.
-.TP 9n
-v
-Toggle spectrum visualizer.
-.TP 9n
-n
-Toggle desktop notifications on or off.
-.TP 9n
-c
-Cycles Chroma visualizations (requires that Chroma is installed).
-.TP 9n
-b
-Switch between ascii and image album cover. Also disables Chroma visualizations.
-.TP 9n
-r
-Cycles repeat mode (repeat, repeat list or off).
+Cycle color mode.
 .TP 9n
 t
-Cycles themes.
+Cycle themes.
+.TP 9n
+c
+Cycle Chroma visualization (requires that Chroma is installed).
+.TP 9n
+r
+Cycle repeat (repeat, repeat list or off).
+.TP 9n
+v
+Cycle spectrum visualizer mode and turn visualizer off.
+
+.TP 9n
+b
+Toggle ASCII Cover. Also disables Chroma visualizations.
+.TP 9n
+m
+Toggle lyrics page.
+.TP 9n
+n
+Toggle notifications.
+.TP 9n
+z
+Toggle crossfade (experimental).
 .TP 9n
 s
-Shuffles the playlist.
+Toggle shuffle.
 .TP 9n
 a
 Seek Backward.
@@ -173,7 +180,16 @@ d
 Seek Forward.
 .TP 9n
 m
-Show lyrics in track view.
+Show lyrics page
+.TP 9n
+shift+d
+Crossfade (quick)
+.TP 9n
+shift+f
+Crossfade (medium)
+.TP 9n
+shift+g
+Crossfade (slow)
 .TP 9n
 x
 Save currently loaded playlist to a .m3u file in the music folder.
