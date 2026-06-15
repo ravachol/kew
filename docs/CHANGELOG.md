@@ -21,23 +21,23 @@ By @ravachol.
   Four new commands:
 
   z = Toggle crossfade on
-  
+
   shift+d = Quick crossfade
-  
+
   shift+f = Medium crossfade
-  
+
   shift+g = Slow crossfade
 
   New settings:
 
   alwaysCrossfade=0
-  
+
   fadeEnterSongMs=0 // Tells kew to start fading x milliseconds into the next song.
-  
+
   fadeQuickMs=1000
-  
+
   fadeMediumMs=3000
-  
+
   fadeSlowMs=8000
 
   By @ravachol.
@@ -81,8 +81,6 @@ By @petoem. Suggested by @kewIT.
 ### Other enhancements
 
 - Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
-
-- Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
 
 - New setting coverstyle, which let's you decide how Chafa should render the covers. By @netodosrjoao.
 
