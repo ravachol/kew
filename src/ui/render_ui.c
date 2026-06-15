@@ -283,15 +283,27 @@ int print_about_for_version(Model *model)
         return num_rows;
 }
 
+static inline Cell cell_blank(void)
+{
+        Cell c = {0};
+
+        c.width = (k_Size){
+            .kind = SIZE_FIXED,
+            .value = 0};
+        c.codepoint = ' ';
+        c.attrs = ATTR_NONE;
+        c.kind = CELL_NORMAL;
+        c.style = cell_style_plain();
+        c.image = NULL;
+        c.link = NULL;
+
+        return c;
+}
+
 void draw_buffer_clear(DrawBuffer *buf)
 {
-        Cell blank = {
-            .codepoint = ' ',
-            .attrs = ATTR_NONE,
-            .kind = CELL_NORMAL,
-            .image = NULL,
-        };
 
+        Cell blank = cell_blank();
         blank.style = cell_style_plain();
 
         int total = buf->cols * buf->rows;
@@ -1155,19 +1167,15 @@ char *url_at_pos(int row, int col)
 
                         if (r == row) {
 
-
-
                                 Cell *cell = &s_buf->cells[r * s_buf->cols + c];
 
                                 if (cell->kind == CELL_LINK) {
 
                                         link_active = true;
                                         link = cell->link->url;
-
                                 }
 
-                                if (cell->kind != CELL_OCCUPIED && cell->kind != CELL_LINK && link_active)
-                                {
+                                if (cell->kind != CELL_OCCUPIED && cell->kind != CELL_LINK && link_active) {
                                         link_active = false;
                                 }
 
