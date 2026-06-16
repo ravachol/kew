@@ -98,6 +98,8 @@ By @petoem. Suggested by @kewIT.
 
 - New time line on track view that uses less info is now default. To enable the one with bitrate and kHz numbers, set simpleTimeStatus=0. By @ravachol.
 
+- New desktop shortcut and icon, that installs with kew. By @ravachol.
+
 #### Bug fixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
@@ -119,6 +121,7 @@ By @petoem. Suggested by @kewIT.
 - Make sure CTRL+Z, fg and bg commands are handled properly. By @ravachol. Reported by @that_owl.
 
 - Provide an error message with instructions when D-BUS is not available and kew is compiled with USE_DBUS=1. By @ravachol. Suggested by @ktnb-netbsd.
+- Fix bug realted to immediate play from search view when playlist is shuffled. By @ravachol
 
 #### Refactor
 

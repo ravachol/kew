@@ -48,9 +48,9 @@ void update_next_song_if_needed(void);
  *
  * @param entry The song entry to enqueue.
  * @param dont_dequeue True if you can not dequeue.
- * @return The first enqueued entry (if any).
+ * @return The first enqueued node (if any).
  */
-FileSystemEntry *enqueue(FileSystemEntry *entry, bool dont_dequeue);
+Node *enqueue(FileSystemEntry *entry, bool dont_dequeue);
 
 /**
  * @brief Enqueues a set of songs from a directory into the playlist.
@@ -61,10 +61,10 @@ FileSystemEntry *enqueue(FileSystemEntry *entry, bool dont_dequeue);
  * @param entry The directory entry to enqueue.
  * @param chosen_dir Pointer to the chosen directory, which can be updated.
  * @param dont_dequeue True if you can not dequeue.
- * @return The first enqueued entry (if any).
+ * @return The first enqueued node (if any).
  */
 
-FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue);
+Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue);
 
 
 /**
