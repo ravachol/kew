@@ -109,7 +109,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
         PlaybackState *ps = get_playback_state();
         Node *first_enqueued_node = NULL;
         bool has_enqueued = false;
-        bool shuffle = false;
+        bool is_root = false;
 
         if (entry != NULL) {
                 if (entry->is_directory) {
@@ -120,7 +120,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                                 if (has_dequeued_children(entry) || dont_dequeue) {
                                         if (entry->parent == NULL) // Shuffle playlist if it's
                                                                    // the root
-                                                shuffle = true;
+                                                is_root = true;
                                         bool sort = !(count_music_files_in_directory(entry) > MAX_SORT_SIZE ||
                                                       check_songs_for_track_number(entry) // songs are already ordered if track number is in name
                                         );
@@ -175,15 +175,18 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                 first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, model->playlist);
         }
 
-        if (shuffle) {
-                if (first_enqueued_entry) {
+        if (is_shuffle_enabled() && !is_root && has_enqueued) {
+
+                if (first_enqueued_node)
                         shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
-                } else
+                else
                         shuffle_playlist(model->playlist);
+        }
+
+        if (is_root && has_enqueued) {
+                shuffle_playlist(model->playlist);
                 set_song_to_start_from(NULL);
-                first_enqueued_entry = NULL;
-        } else if (ps->nextSongNeedsRebuilding) {
-                reshuffle_playlist();
+                first_enqueued_node = NULL;
         }
 
         return first_enqueued_node;
@@ -399,7 +402,6 @@ void view_enqueue(bool play_immediately)
 
         if (!first_enqueued_node && entry && entry->is_enqueued)
                 first_enqueued_node = find_path_in_playlist(entry->full_path, model->playlist);
-
 
         if (first_enqueued_node && (play_immediately || is_stopped()) && playlist->count != 0) {
                 clear_and_play(first_enqueued_node);
