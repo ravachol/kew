@@ -127,6 +127,17 @@ void player_tick(Model *model, RenderContext *ctx)
 
         // Load music
         dispatch_msg((struct Msg){.type = MSG_LOAD_WAITING_MUSIC});
+
+        // Process all side effects
+        while (has_pending_msgs()) {
+                struct Msg msg = next_msg();
+
+                // Update the model
+                UpdateResult res = update(model, &msg);
+
+                // Run commands
+                run_command(res);
+        }
 }
 
 /**
