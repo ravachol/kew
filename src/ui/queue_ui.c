@@ -397,6 +397,10 @@ void view_enqueue(bool play_immediately)
                 set_dirty(DIRTY_LIBRARY | DIRTY_SEARCH);
         }
 
+        if (!first_enqueued_node && entry && entry->is_enqueued)
+                first_enqueued_node = find_path_in_playlist(entry->full_path, model->playlist);
+
+
         if (first_enqueued_node && (play_immediately || is_stopped()) && playlist->count != 0) {
                 clear_and_play(first_enqueued_node);
         }
