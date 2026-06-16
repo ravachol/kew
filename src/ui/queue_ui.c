@@ -100,13 +100,14 @@ bool check_songs_for_track_number(FileSystemEntry *entry)
         return (starts_with_track_number(entry->name) && starts_with_track_number(entry->next->name));
 }
 
-FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue)
+Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue)
 {
         Model *model = get_model();
         AppState *state = &model->state;
         FileSystemEntry *first_enqueued_entry = NULL;
         UIState *uis = &(state->ui);
         PlaybackState *ps = get_playback_state();
+        Node *first_enqueued_node = NULL;
         bool has_enqueued = false;
         bool shuffle = false;
 
@@ -171,19 +172,21 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
         if (has_enqueued && first_enqueued_entry) {
                 autostart_if_stopped(first_enqueued_entry->full_path);
+                first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, model->playlist);
         }
 
         if (shuffle) {
-                PlayList *playlist = get_playlist();
-
-                shuffle_playlist(playlist);
+                if (first_enqueued_entry) {
+                        shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
+                } else
+                        shuffle_playlist(model->playlist);
                 set_song_to_start_from(NULL);
                 first_enqueued_entry = NULL;
         } else if (ps->nextSongNeedsRebuilding) {
                 reshuffle_playlist();
         }
 
-        return first_enqueued_entry;
+        return first_enqueued_node;
 }
 
 Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue)
@@ -215,10 +218,6 @@ Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue)
                 ps->nextSongNeedsRebuilding = true;
 
                 enqueue_m3u(entry->full_path, get_library(), &first_enqueued_node, dont_dequeue);
-
-                if (state->settings.shuffle_enabled)
-                        reshuffle_playlist();
-
                 entry->is_enqueued = 1;
         } else if (!dont_dequeue) {
                 set_next_song(NULL);
@@ -230,6 +229,13 @@ Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue)
                 set_next_song(NULL);
                 ps->nextSongNeedsRebuilding = true;
                 enqueue_m3u(entry->full_path, get_library(), &first_enqueued_node, dont_dequeue);
+        }
+
+        if (state->settings.shuffle_enabled) {
+                if (first_enqueued_node)
+                        shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
+                else
+                        reshuffle_playlist();
         }
 
         reset_list_after_dequeuing_playing_song();
@@ -260,11 +266,11 @@ void set_chosen_dir(FileSystemEntry *entry)
         }
 }
 
-FileSystemEntry *enqueue(FileSystemEntry *entry, bool dont_dequeue)
+Node *enqueue(FileSystemEntry *entry, bool dont_dequeue)
 {
         Model *model = get_model();
         AppState *state = &model->state;
-        FileSystemEntry *first_enqueued_entry = NULL;
+        Node *first_enqueued_node = NULL;
         PlaybackState *ps = &model->playbackState;
 
         if (should_start_playing()) {
@@ -291,7 +297,7 @@ FileSystemEntry *enqueue(FileSystemEntry *entry, bool dont_dequeue)
         if (state->currentView == SEARCH_VIEW)
                 chosen_dir = model->state.ui.chosen_search_dir;
 
-        first_enqueued_entry = enqueue_songs(entry, &chosen_dir, dont_dequeue);
+        first_enqueued_node = enqueue_songs(entry, &chosen_dir, dont_dequeue);
 
         if (state->currentView == LIBRARY_VIEW)
                 model->state.ui.chosen_dir = chosen_dir;
@@ -303,7 +309,7 @@ FileSystemEntry *enqueue(FileSystemEntry *entry, bool dont_dequeue)
 
         pthread_mutex_unlock(&(get_playlist()->mutex));
 
-        return first_enqueued_entry;
+        return first_enqueued_node;
 }
 
 Node *pick_random_node(Node *first)
@@ -335,7 +341,6 @@ void view_enqueue(bool play_immediately)
         AppState *state = &model->state;
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
         FileSystemEntry *entry = NULL;
         Node *current_song = get_current_song();
@@ -386,20 +391,10 @@ void view_enqueue(bool play_immediately)
                 if (is_m3u_file(entry)) {
                         first_enqueued_node = enqueue_playlist(entry, play_immediately);
                 } else {
-                        FileSystemEntry *first_enqueued_entry = enqueue(entry, play_immediately); // Enqueue song
-                        if (first_enqueued_entry)
-                                first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
+                        first_enqueued_node = enqueue(entry, play_immediately); // Enqueue song
                 }
 
                 set_dirty(DIRTY_LIBRARY | DIRTY_SEARCH);
-        }
-
-        if (first_enqueued_node && state->settings.shuffle_enabled) {
-                Node *unshuffled_node = find_path_in_playlist(first_enqueued_node->song.file_path, unshuffled_playlist);
-                if (unshuffled_node && unshuffled_node->next) {
-                        Node *rand = pick_random_node(unshuffled_node);
-                        first_enqueued_node = find_path_in_playlist(rand->song.file_path, playlist);
-                }
         }
 
         if (first_enqueued_node && (play_immediately || is_stopped()) && playlist->count != 0) {
