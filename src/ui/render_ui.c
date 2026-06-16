@@ -309,14 +309,16 @@ void draw_buffer_clear(DrawBuffer *buf)
         int total = buf->cols * buf->rows;
 
         for (int i = 0; i < total; i++) {
-                if (buf->cells[i].kind == CELL_IMAGE_ANCHOR && buf->cells[i].image) {
 
-                        if (buf->cells[i].image->data) {
-                                free(buf->cells[i].image->data);
-                                buf->cells[i].image->data = NULL;
-                        }
-                        free(buf->cells[i].image);
+
+                if (buf->cells[i].kind == CELL_IMAGE_ANCHOR && buf->cells[i].image) {
+                        free_image_payload(buf->cells[i].image);
                         buf->cells[i].image = NULL;
+                }
+
+                if (buf->cells[i].kind == CELL_LINK && buf->cells[i].link) {
+                        free_link_payload(buf->cells[i].link);
+                        buf->cells[i].link = NULL;
                 }
         }
 
@@ -532,6 +534,9 @@ void layout_reflow(Model *model,
                 for (int c = 0; c < row->pane_count; c++) {
 
                         Pane *pane = &row->panes[c];
+
+                        pane->region.width = 0;
+                        pane->region.height = 0;
 
                         if ((!model->state.settings.coverEnabled || model->state.settings.hideSideCover) &&
                             pane->fn == component_landscape_cover)
