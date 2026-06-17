@@ -7,6 +7,7 @@
 
 #include "update/messages.h"
 
+#include "data/artists.h"
 #include "data/directorytree.h"
 #include "data/img_func.h"
 #include "ops/library_ops.h"
@@ -1753,8 +1754,23 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         char line[METADATA_MAX_LENGTH + 2];
                         snprintf(line, sizeof(line), "%s", metadata->artist);
 
-                        draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
-                                                         line, max_width, style);
+                        const ArtistRecord *record = NULL;
+                        const char *homepage = NULL;
+
+                        if (model->hasArtistDb) {
+                                record = db_find(model->db, metadata->artist);
+
+                                if (record)
+                                        homepage = db_get_value(model->db, record);
+                        }
+
+                        if (homepage) {
+                                draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
+                                        homepage, metadata->artist, style);
+                        } else {
+                                draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
+                                                                 line, max_width, style);
+                        }
                 }
 
                 // Album
@@ -1917,8 +1933,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
             .type = MSG_PROGRESS_ROW_SET,
             .region = region,
             .progress_bar_row = region.row,
-            .footer_row = DISABLED_ROW
-        };
+            .footer_row = DISABLED_ROW};
 
         return result;
 }
@@ -2787,13 +2802,22 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         draw_buffer_set_string(buf, row, col, _(" Please Donate: "), help_style);
         draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Please Donate: ")),
                                "https://ko-fi.com/ravachol", link_style);
-        row += 3;
+        row += 2;
+        if (row >= region.row + region.height)
+                return (ComponentMsg){0};
+
+        // Wikidata license
+        draw_buffer_set_string_truncated(buf, row, col,
+                                         " Wikidata (https://www.wikidata.org/) license CC BY-SA 4.0",
+                                         max_width, text_style);
+
+        row += 2;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
         // Copyright
         draw_buffer_set_string_truncated(buf, row, col,
-                                         " Copyright © 2022-2026 Ravachol",
+                                         " Copyright © 2022-2026 Ravachol. License GPLv2+",
                                          max_width, text_style);
 
         return (ComponentMsg){0};
