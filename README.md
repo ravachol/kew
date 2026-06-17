@@ -332,6 +332,9 @@ Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 
 TermBox2 (adapted for input handling only) - By nsf and Adam Saponara https://github.com/termbox/termbox2
 
+This project uses artist homepage data from Wikidata.
+Wikidata is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0). https://creativecommons.org/licenses/by-sa/4.0/
+
 </details>
 
 ## Authors

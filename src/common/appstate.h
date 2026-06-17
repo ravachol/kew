@@ -65,6 +65,12 @@ void tty_init(void);
 /**@brief initializes the model */
 void init_model(void);
 
+void open_artistDb(char *name);
+
+/* ========================= DESTRUCTOR ========================= */
+
+void close_artistDb(void);
+
 /* ========================= GETTERS ========================= */
 
 /** @brief return the global model */

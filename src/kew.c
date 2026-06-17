@@ -186,6 +186,8 @@ void kew_shutdown()
         save_favorites_playlist(model->settings.path, model->favorites_playlist);
         save_library();
 
+        close_artistDb();
+
         ui_destroy(model);
 
         free_tree(model->library);
@@ -254,7 +256,6 @@ int in_foreground(void)
         }
 }
 
-
 void reinitialize()
 {
         set_nonblocking_mode();
@@ -311,8 +312,7 @@ gboolean mainloop_callback(gpointer data)
                 model->state.ui.rendered = false;
         }
 
-        if (model->state.ui.resumed_in_background)
-        {
+        if (model->state.ui.resumed_in_background) {
                 if (in_foreground()) {
                         model->state.ui.resumed_in_background = false;
                         reinitialize();
@@ -548,7 +548,11 @@ void kew_init(bool set_library_enqueued_status)
         srand(seed);
 
         create_library(model, set_library_enqueued_status);
+
+        open_artistDb("artists.db");
+
         model->state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
+
         clear_screen();
 
         hide_cursor();

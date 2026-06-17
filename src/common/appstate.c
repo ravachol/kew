@@ -6,8 +6,11 @@
 
 #include "common/appstate.h"
 #include "common/model.h"
+#include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
+
+#include "data/artists.h"
 
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef G_OS_WIN32
@@ -39,20 +42,24 @@ Node *try_next_song = NULL;
 
 Node *song_to_start_from = NULL;
 
+#ifndef DATADIR
+#define DATADIR "/usr/local/share"
+#endif
+
 void free_playlist(PlayList **plist)
 {
-    if (!plist || !*plist)
-        return;
+        if (!plist || !*plist)
+                return;
 
-    PlayList *list = *plist;
+        PlayList *list = *plist;
 
-    empty_playlist(list);
+        empty_playlist(list);
 
-    pthread_mutex_destroy(&list->mutex);
+        pthread_mutex_destroy(&list->mutex);
 
-    free(list);
+        free(list);
 
-    *plist = NULL;
+        *plist = NULL;
 }
 
 void create_playlist(PlayList **playlist)
@@ -198,6 +205,9 @@ void init_model(void)
 
         model.tick = 17;
 
+        model.hasArtistDb = false;
+        model.db = NULL;
+
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &model.state.ui.windowSize);
 
         pthread_mutex_init(&(model.playbackState.switch_mutex), NULL);
@@ -208,13 +218,43 @@ void init_model(void)
         create_playlist(&model.favorites_playlist);
 }
 
+void open_artistDb(char *name)
+{
+        Model *model = get_model();
+
+        char filepath[PATH_MAX];
+
+        snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, name);
+
+        if (!exists_file(filepath))
+                return;
+
+        if (model->db)
+                free(model->db);
+
+        model->db = malloc(sizeof(ArtistDb));
+
+        if (db_open(model->db, filepath) == 0) {
+                model->hasArtistDb = true;
+        }
+}
+
+void close_artistDb(void)
+{
+        Model *model = get_model();
+
+        db_close(model->db);
+
+        if (model->db)
+                free(model->db);
+}
+
 // --- Getters ---
 
 Model *get_model()
 {
         return &model;
 }
-
 
 RenderContext *get_render_context()
 {
@@ -306,7 +346,6 @@ void set_dirty(DirtyFlags dirty)
         }
         model.dirty |= dirty;
 }
-
 
 void set_pause_seconds(double seconds)
 {
