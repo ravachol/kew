@@ -222,7 +222,7 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
        src/ui/visuals.c src/ui/chroma.c src/ui/queue_ui.c src/ui/settings.c src/ui/anims.c src/ui/cli.c \
        src/update/messages.c src/update/update.c src/update/effects.c \
        src/data/theme.c src/data/directorytree.c src/loader/lyrics.c src/data/img_func.c \
-       src/data/playlist.c src/data/cache.c src/loader/song_loader.c src/kew.c
+       src/data/playlist.c src/data/cache.c src/data/artists.c src/loader/song_loader.c src/kew.c
 
 # TagLib wrapper
 WRAPPER_SRC = src/loader/tagLibWrapper.cpp
@@ -238,6 +238,8 @@ LAYOUTDIR = $(DATADIR)/kew/layouts
 LAYOUTSRCDIR := $(CURDIR)/layouts
 
 DEFINES += -DLOCALEDIR=\"$(LOCALEDIR)\"
+
+CFLAGS += -DDATADIR=\"$(DATADIR)\"
 
 all: kew
 
@@ -318,6 +320,10 @@ install: all
         # Install desktop icon
 	install -Dm644 kew.png \
 	$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png
+
+        # Install artist db
+	install -Dm644 data/artists.db \
+	$(DESTDIR)$(DATADIR)/kew/artists.db
 
 	@if [ -d $(THEMESRCDIR) ]; then \
 	        for theme in $(THEMESRCDIR)/*.theme; do \
