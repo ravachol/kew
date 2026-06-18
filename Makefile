@@ -3,6 +3,7 @@ CXX ?= g++
 PKG_CONFIG ?= pkg-config
 SYMBOLS ?= 0
 STRIP ?= 0
+INSTALL_ARTISTS_DB ?= 1
 
 # To enable debugging, run:
 # make DEBUG=1
@@ -321,9 +322,12 @@ install: all
 	install -Dm644 kew.png \
 	$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png
 
+# Optionally install the artist homepage database, should be an option when installing the package
+ifeq ($(INSTALL_ARTISTS_DB),1)
         # Install artist db
 	install -Dm644 data/artists.db \
 	$(DESTDIR)$(DATADIR)/kew/artists.db
+endif
 
 	@if [ -d $(THEMESRCDIR) ]; then \
 	        for theme in $(THEMESRCDIR)/*.theme; do \

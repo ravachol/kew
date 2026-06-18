@@ -1,166 +1,232 @@
 #!/usr/bin/env python3
 
+import asyncio
+import aiohttp
 import csv
+import os
+import signal
 import sys
 import socket
-import http.client
-import time
-import random
-import threading
+import aiodns
 from urllib.parse import urlparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# -----------------------
-# CONFIG
-# -----------------------
+CONCURRENCY = 80
+TIMEOUT = aiohttp.ClientTimeout(total=5)
 
-TIMEOUT = 3
-MAX_WORKERS = 8
+VERIFIED_FILE = "verified.tsv"
+REJECTED_FILE = "rejected.tsv"
 
-MIN_INTERVAL = 0.25   # 4 requests/sec max globally
-JITTER = 0.2
+stop_requested = False
+processed = 0
 
-socket.setdefaulttimeout(TIMEOUT)
+dns_cache = {}
+result_cache = {}
 
-# -----------------------
-# GLOBAL RATE LIMIT STATE
-# -----------------------
+# ============================================================
+# SIGNALS
+# ============================================================
 
-lock = threading.Lock()
-last_request_time = 0.0
-
-domain_cache = {}
-fail_count = 0
+def signal_handler(sig, frame):
+    global stop_requested
+    stop_requested = True
+    print("\nStopping...")
 
 
-def rate_limit():
-    global last_request_time
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
-    with lock:
-        now = time.time()
-        elapsed = now - last_request_time
+# ============================================================
+# HELPERS
+# ============================================================
 
-        wait = MIN_INTERVAL - elapsed
-        if wait > 0:
-            time.sleep(wait)
-
-        # jitter AFTER waiting (so we don't break pacing guarantees too much)
-        if JITTER > 0:
-            time.sleep(random.random() * JITTER)
-
-        last_request_time = time.time()
-
-
-def normalize_url(url):
-    if not url.startswith("http"):
-        return "https://" + url
+def normalize(url):
+    url = url.strip()
+    if not url:
+        return None
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
     return url
 
 
-def check_url(url):
-    global fail_count
+def host(url):
+    try:
+        return urlparse(url).netloc.lower()
+    except Exception:
+        return None
+
+
+def variants(h):
+    base = h.replace("www.", "")
+    return [
+        f"https://{base}",
+        f"https://www.{base}",
+        f"http://{base}",
+        f"http://www.{base}",
+    ]
+
+# ============================================================
+# DNS (NOW PASSED IN, NOT GLOBAL)
+# ============================================================
+
+async def resolve(resolver, hostname):
+    if hostname in dns_cache:
+        return dns_cache[hostname]
 
     try:
-        url = normalize_url(url)
-        parsed = urlparse(url)
-        host = parsed.netloc
-
-        if not host:
-            return False
-
-        if host in domain_cache:
-            return domain_cache[host]
-
-        # DNS check (no rate limit needed here)
-        socket.gethostbyname(host)
-
-        rate_limit()
-
-        path = parsed.path or "/"
-
-        # HTTPS attempt
-        try:
-            conn = http.client.HTTPSConnection(host, timeout=TIMEOUT)
-            conn.request("HEAD", path)
-            res = conn.getresponse()
-            conn.close()
-
-            ok = 200 <= res.status < 400
-            domain_cache[host] = ok
-
-            if not ok:
-                fail_count += 1
-
-            return ok
-
-        except Exception:
-            pass
-
-        rate_limit()
-
-        # HTTP fallback
-        try:
-            conn = http.client.HTTPConnection(host, timeout=TIMEOUT)
-            conn.request("HEAD", path)
-            res = conn.getresponse()
-            conn.close()
-
-            ok = 200 <= res.status < 400
-            domain_cache[host] = ok
-
-            if not ok:
-                fail_count += 1
-
-            return ok
-
-        except Exception:
-            fail_count += 1
-            domain_cache[host] = False
-            return False
-
+        result = await resolver.gethostbyname(hostname, socket.AF_INET)
+        ip = result.addresses[0] if result.addresses else None
+        dns_cache[hostname] = ip
+        return ip
     except Exception:
-        fail_count += 1
+        dns_cache[hostname] = None
+        return None
+
+# ============================================================
+# HTTP
+# ============================================================
+
+async def fetch(session, url):
+    try:
+        async with session.head(url, allow_redirects=True) as r:
+            if 200 <= r.status < 400:
+                return True
+            if r.status != 405:
+                return False
+    except Exception:
+        pass
+
+    try:
+        async with session.get(url, allow_redirects=True) as r:
+            return 200 <= r.status < 400
+    except Exception:
         return False
 
+# ============================================================
+# CORE CHECK
+# ============================================================
 
-def worker(row):
-    key, name, url = row
-    return (row, check_url(url))
+async def check(session, resolver, h):
+    if h in result_cache:
+        return result_cache[h]
 
+    base = h.replace("www.", "")
 
-if len(sys.argv) != 3:
-    print("usage: safe_filter.py input.tsv output.tsv")
-    sys.exit(1)
+    ip = await resolve(resolver, base)
+    if not ip:
+        result_cache[h] = False
+        return False
 
-inp = sys.argv[1]
-out = sys.argv[2]
+    for u in variants(base):
+        ok = await fetch(session, u)
+        if ok:
+            result_cache[h] = True
+            return True
 
-rows = []
+    result_cache[h] = False
+    return False
 
-with open(inp, "r", encoding="utf-8") as f:
-    r = csv.reader(f, delimiter="\t")
-    for row in r:
-        if len(row) < 3:
-            continue
-        rows.append((row[0], row[1], row[2]))
+# ============================================================
+# WORKER
+# ============================================================
 
-total = len(rows)
-kept = 0
+async def worker(queue, session, resolver):
+    global processed
 
-with open(out, "w", encoding="utf-8", newline="") as f_out:
-    w = csv.writer(f_out, delimiter="\t")
+    while True:
+        item = await queue.get()
+        if item is None:
+            queue.task_done()
+            return
 
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        futures = [ex.submit(worker, row) for row in rows]
+        row, h = item
 
-        for fut in as_completed(futures):
-            (key, name, url), ok = fut.result()
+        ok = await check(session, resolver, h)
 
+        results.append((row, ok))
+
+        processed += 1
+        if processed % 1000 == 0:
+            print(f"processed {processed:,}")
+
+        queue.task_done()
+
+# ============================================================
+# MAIN
+# ============================================================
+
+async def main():
+    global results
+
+    if len(sys.argv) != 2:
+        print("usage: python verify_urls.py input.tsv")
+        sys.exit(1)
+
+    infile = sys.argv[1]
+    results = []
+
+    # IMPORTANT: create resolver INSIDE event loop
+    resolver = aiodns.DNSResolver()
+
+    rows = []
+
+    with open(infile, "r", encoding="utf-8") as f:
+        r = csv.reader(f, delimiter="\t")
+
+        for row in r:
+            if len(row) < 3:
+                continue
+
+            u = normalize(row[2])
+            if not u:
+                continue
+
+            h = host(u)
+            if not h:
+                continue
+
+            rows.append((row, h))
+
+    print(f"rows: {len(rows):,}")
+
+    queue = asyncio.Queue()
+
+    for item in rows:
+        queue.put_nowait(item)
+
+    connector = aiohttp.TCPConnector(limit=CONCURRENCY)
+
+    async with aiohttp.ClientSession(
+        connector=connector,
+        timeout=TIMEOUT,
+        headers={"User-Agent": "FastVerifier/3.0"},
+    ) as session:
+
+        workers = [
+            asyncio.create_task(worker(queue, session, resolver))
+            for _ in range(CONCURRENCY)
+        ]
+
+        await queue.join()
+
+        for _ in workers:
+            queue.put_nowait(None)
+
+        await asyncio.gather(*workers)
+
+    with open(VERIFIED_FILE, "a", newline="", encoding="utf-8") as vf, \
+         open(REJECTED_FILE, "a", newline="", encoding="utf-8") as rf:
+
+        vw = csv.writer(vf, delimiter="\t")
+        rw = csv.writer(rf, delimiter="\t")
+
+        for row, ok in results:
             if ok:
-                w.writerow([key, name, url])
-                kept += 1
+                vw.writerow(row)
+            else:
+                rw.writerow(row)
 
-print(f"total: {total}")
-print(f"kept: {kept}")
-print(f"removed: {total - kept}")
-print(f"cached domains: {len(domain_cache)}")
+    print("\nDONE")
+    print(f"processed: {processed:,}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
