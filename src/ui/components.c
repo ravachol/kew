@@ -3062,9 +3062,6 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                 memcpy(name, tmp, n);
                 name[n] = '\0';
 
-                int test = utf8_display_width(tmp);
-                test = utf8_display_width(name);
-
                 draw_search_row(buf, draw_row, region.col, region.width,
                                 name, extra_indent,
                                 model->search_results[i].entry, ui, is_chosen, is_playing);
