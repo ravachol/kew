@@ -5,6 +5,8 @@
  */
 
 #include "common.h"
+#include "common/appstate.h"
+#include "common/model.h"
 
 #include <pthread.h>
 #include <string.h>
@@ -14,22 +16,13 @@
 
 static char current_error_message[ERROR_MESSAGE_LENGTH];
 static bool has_printed_error = true;
-static volatile bool refresh_triggered = true;
 static volatile sig_atomic_t g_should_exit = 0;
 
-void trigger_refresh(void)
-{
-        refresh_triggered = true;
-}
-
-void cancel_refresh(void)
-{
-        refresh_triggered = false;
-}
 
 bool is_refresh_triggered(void)
 {
-        return (refresh_triggered == true);
+        Model *model = get_model();
+        return (model->dirty == DIRTY_ALL);
 }
 
 void set_error_message(const char *message)
@@ -40,7 +33,8 @@ void set_error_message(const char *message)
         strncpy(current_error_message, message, ERROR_MESSAGE_LENGTH - 1);
         current_error_message[ERROR_MESSAGE_LENGTH - 1] = '\0';
         has_printed_error = false;
-        trigger_refresh();
+
+        set_dirty(DIRTY_FOOTER);
 }
 
 bool has_printed_error_message(void)

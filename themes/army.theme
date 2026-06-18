@@ -4,21 +4,21 @@
 
 [theme]
 name=Army
-author=Ravachol
 
 # Core colors
 accent=#a89074
-text=#d6cbb8
+text=#bca890
 textDim=#b59d82
 textMuted=#786b5a
 
 # General Colors
 logo=#786b5a
-header=#786b5a
+header=#8a8a70
 footer=#786b5a
-help=#bca890
+help=#d6cbb8
 link=#b59d82
 nowplaying=#a89074
+playbackstatus=#786b5a
 
 # Playlist View
 playlist.rownum=#786b5a
@@ -26,13 +26,13 @@ playlist.title=#d6cbb8
 playlist.playing=#b8a085
 
 # Track View
-trackview.title=#d6cbb8
-trackview.artist=#a89074
-trackview.album=#b59d82
-trackview.year=#b59d82
+trackview.title=#bca890
+trackview.artist=#bca890
+trackview.album=#bca890
+trackview.year=#bca890
 trackview.time=#bca890
-trackview.visualizer=#2b2721
-trackview.lyrics=#d6cbb8
+trackview.visualizer=#bca890
+trackview.lyrics=#bca890
 
 # Library View
 library.artist=#786b5a
@@ -42,7 +42,7 @@ library.enqueued=#8a8a70
 library.playing=#b8a085
 
 # Search
-search.label=#786b5a
+search.label=#8a8a70
 search.query=#a89074
 search.result=#d6cbb8
 search.enqueued=#8a8a70
@@ -50,8 +50,8 @@ search.playing=#b8a085
 
 # Progress
 progress.filled=#786b5a
-progress.empty=#1f1d1a
-progress.elapsed=#3a3630
+progress.empty=#bca890
+progress.elapsed=#786b5a
 
 # Status
 status.info=-1      	# Default foreground

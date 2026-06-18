@@ -10,8 +10,9 @@
 #include "common/appstate.h"
 
 #include "ui/common_ui.h"
-#include "ui/player_ui.h"
+#include "ui/render_ui.h"
 #include "ui/settings.h"
+#include "ui/input.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -38,7 +39,7 @@ void remove_arg_element(char *argv[], int index, int *argc)
 void handle_options(int *argc, char *argv[], bool *exact_search)
 {
         AppState *state = get_app_state();
-        UISettings *ui = &(state->uiSettings);
+        UISettings *ui = &(state->settings);
         const char *no_ui_option = "--noui";
         const char *no_cover_option = "--nocover";
         const char *quit_on_stop = "--quitonstop";
@@ -94,7 +95,7 @@ void handle_options(int *argc, char *argv[], bool *exact_search)
 void set_music_path(void)
 {
         AppState *state = get_app_state();
-        UISettings *ui = &(state->uiSettings);
+        UISettings *ui = &(state->settings);
 
         clear_screen();
         set_term_size();
@@ -103,8 +104,6 @@ void set_music_path(void)
         ui->color.g = ui->kewColorRGB.g;
         ui->color.b = ui->kewColorRGB.b;
 
-        ui->colorMode = COLOR_MODE_ALBUM;
-
         int row = 4;
         int col = 1;
 
@@ -112,7 +111,7 @@ void set_music_path(void)
 
         printf("\033[%d;%dH", row + 4, col);
 
-        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
+        apply_color(ui->defaultColorRGB);
 
         int indent = calc_indent_normal() + 1;
 
@@ -140,16 +139,16 @@ void set_music_path(void)
 
                         print_blank_spaces(indent);
                         printf(_("Music Library: "));
-                        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+                        apply_color(ui->kewColorRGB);
                         printf("%s\n\n", path);
-                        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
+                        apply_color(ui->defaultColorRGB);
                         print_blank_spaces(indent);
                         printf(_("Is this correct? Press Enter.\n\n"));
                         print_blank_spaces(indent);
                         printf(_("Or type a path:\n\n"));
                         print_blank_spaces(indent);
 
-                        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+                        apply_color(ui->kewColorRGB);
 
                         if (fgets(choice, sizeof(choice), stdin) == NULL) {
                                 print_blank_spaces(indent);
@@ -173,7 +172,7 @@ void set_music_path(void)
         if (found < 1) {
                 printf(_("Type a path:\n\n"));
                 print_blank_spaces(indent);
-                apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+                apply_color(ui->kewColorRGB);
 
                 if (fgets(choice, sizeof(choice), stdin) == NULL) {
                         print_blank_spaces(indent);

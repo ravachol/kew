@@ -26,7 +26,7 @@ paper
 
 To apply, run:
 
-kew theme <theme>
+kew theme <theme> # filename without the .theme part
 
 Or cycle by pressing 't'.
 

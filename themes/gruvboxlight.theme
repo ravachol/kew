@@ -4,7 +4,6 @@
 
 [theme]
 name=Gruvbox Light
-author=Ravachol
 
 # Core colors
 accent=#d65d0e
@@ -13,29 +12,30 @@ textDim=#504945
 textMuted=#7c6f64
 
 # General Colors
-logo=#7c6f64
-header=#7c6f64
-footer=#7c6f64
+logo=#282828
+header=#79740e
+footer=#282828
 help=#076678
 link=#79740e
 nowplaying=#b57614
+playbackstatus=#7c6f64
 
 # Playlist View
 playlist.rownum=#7c6f64
 playlist.title=#3c3836
-playlist.playing=#af3a03
+playlist.playing=#8f3f71
 
 # Track View
-trackview.title=#282828
-trackview.artist=#9d0006
-trackview.album=#665c54
-trackview.year=#665c54
-trackview.time=#665c54
-trackview.visualizer=#d5c4a1
-trackview.lyrics=#282828
+trackview.title=#8f3f71
+trackview.artist=#282828
+trackview.album=#282828
+trackview.year=#282828
+trackview.time=#282828
+trackview.visualizer=#076678
+trackview.lyrics=#665c54
 
 # Library View
-library.artist=#7c6f64
+library.artist=#79740e
 library.album=#3c3836
 library.track=#3c3836
 library.enqueued=#79740e
@@ -43,15 +43,15 @@ library.playing=#8f3f71
 
 # Search
 search.label=#7c6f64
-search.query=#af3a03
+search.query=#076678
 search.result=#3c3836
 search.enqueued=#79740e
 search.playing=#8f3f71
 
 # Progress
-progress.filled=#d5c4a1
-progress.empty=#fbf1c7
-progress.elapsed=#665c54
+progress.filled=#79740e
+progress.empty=#076678
+progress.elapsed=#79740e
 
 # Status
 status.info=-1      	# Default foreground

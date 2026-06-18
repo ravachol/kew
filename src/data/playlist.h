@@ -64,7 +64,9 @@ Node *get_list_next(Node *node);
  */
 Node *get_list_prev(Node *node);
 
-/**
+int compare_tracks_from_pointer(const void* trackA, const void* trackB);
+
+    /**
  * @brief Adds a node to the end of a playlist.
  *
  * @param list Pointer to the playlist.
@@ -83,22 +85,24 @@ int add_to_list(PlayList *list, Node *new_node);
  *
  * @param list Pointer to the playlist.
  * @param node Pointer to the node to move.
+ * @param change_library_status Affects the enqueued status in library that tracks playlist enqueued status.
  *
  * @note Does nothing if node is NULL, already at the head,
  *       or has no previous node.
  */
-void move_up_list(PlayList *list, Node *node);
+void move_up_list(PlayList *list, Node *node, bool change_library_status);
 
 /**
  * @brief Moves a node one position down in the playlist.
  *
  * @param list Pointer to the playlist.
  * @param node Pointer to the node to move.
+ * @param change_library_status Affects the enqueued status in library that tracks playlist enqueued status.
  *
  * @note Does nothing if node is NULL, already at the tail,
  *       or has no next node.
  */
-void move_down_list(PlayList *list, Node *node);
+void move_down_list(PlayList *list, Node *node, bool change_library_status);
 
 /**
  * @brief Removes a node from the playlist and frees its memory.
@@ -265,15 +269,6 @@ void save_favorites_playlist(const char *directory,
                              PlayList *favorites_playlist);
 
 /**
- * @brief Creates a deep copy of a playlist.
- *
- * @param original_list Playlist to copy.
- *
- * @return Newly allocated deep copy, or NULL on failure.
- */
-PlayList *deep_copy_playlist(const PlayList *original_list);
-
-/**
  * @brief Copies the contents of one playlist into another.
  *
  * @param original_list Source playlist.
@@ -281,7 +276,7 @@ PlayList *deep_copy_playlist(const PlayList *original_list);
  *
  * @note Existing contents of destination are cleared.
  */
-void deep_copy_play_list_onto_list(const PlayList *original_list,
+void deep_copy_list(const PlayList *original_list,
                                    PlayList **new_list);
 
 /**

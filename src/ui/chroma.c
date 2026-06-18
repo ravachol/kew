@@ -6,10 +6,9 @@
  */
 
 #include "chroma.h"
+
 #include "common/appstate.h"
 #include "common/common.h"
-
-#include "data/img_func.h"
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -42,15 +41,11 @@ Chroma g_viz = {
 
 #define MAX_HEIGHT 4000
 
-#define MAX_PRESET 11
-
 volatile int chroma_new_frame = 0;
 
 static int centered_indent = 0;
 
-static bool chroma_started;
-
-void chroma_set_next_preset(int height)
+void chroma_set_next_preset(void)
 {
         g_viz.preset++;
 
@@ -58,16 +53,15 @@ void chroma_set_next_preset(int height)
                 g_viz.preset = 0;
 
         AppState *state = get_app_state();
-        state->uiSettings.chromaPreset = g_viz.preset;
+        state->settings.chromaPreset = g_viz.preset;
 
         chroma_stop();
-        chroma_start(height);
+        chroma_start(state->ui.chroma_height);
 }
 
 int calc_chroma_width(int height)
 {
         TermSize ts;
-        tty_init();
 
         get_tty_size(&ts);
 
@@ -241,7 +235,10 @@ void chroma_start(int height)
 
         pthread_create(&g_viz.thread, NULL, chroma_thread, arg);
 
-        chroma_started = true;
+        Model *model = get_model();
+        model->state.ui.chroma_started = true;
+        model->state.ui.chroma_start_requested = false;
+        model->state.ui.chroma_height = height;
 }
 
 void chroma_stop()
@@ -259,11 +256,19 @@ void chroma_stop()
         }
         pthread_mutex_unlock(&g_viz.lock);
 
-        chroma_started = false;
+        Model *model = get_model();
+        model->state.ui.chroma_started = false;
+        model->state.ui.chroma_start_requested = false;
 }
 
-void chroma_print_frame(int row, int col, bool centered)
+void chroma_print_frame(int row, int col, int height, bool centered)
 {
+        if (!chroma_is_started())
+        {
+                chroma_start(height);
+                return;
+        }
+
         if (!chroma_new_frame)
                 return;
 
@@ -288,8 +293,6 @@ void chroma_print_frame(int row, int col, bool centered)
 
         if (centered)
                 col = centered_indent;
-
-        printf("\033[%d;%dH", row, col + 1);
 
         int row_pos = row;
 
@@ -348,7 +351,8 @@ bool chroma_is_installed(void)
 
 bool chroma_is_started(void)
 {
-        return chroma_started;
+        Model *model = get_model();
+        return model->state.ui.chroma_started;
 }
 
 int chroma_get_current_preset(void)

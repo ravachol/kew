@@ -4,16 +4,8 @@
  *
  */
 
-#include "common/appstate.h"
-
-/**
- * @brief Determines the current song and sends a notification if needed.
- *
- * This function checks the current song data and updates its duration. It also
- * checks if the song has changed since the last notification and, if so, sends
- * a notification about the song switch.
- */
-void determine_song_and_notify(void);
+#include "data/directorytree.h"
+#include "data/playlist_type.h"
 
 /**
  * @brief Resets the playlist and playback state after dequeuing the currently playing song.
@@ -55,9 +47,10 @@ void update_next_song_if_needed(void);
  * This function adds a single song entry to the playlist and returns the entry that was enqueued.
  *
  * @param entry The song entry to enqueue.
- * @return The first enqueued entry (if any).
+ * @param dont_dequeue True if you can not dequeue.
+ * @return The first enqueued node (if any).
  */
-FileSystemEntry *enqueue(FileSystemEntry *entry);
+Node *enqueue(FileSystemEntry *entry, bool dont_dequeue);
 
 /**
  * @brief Enqueues a set of songs from a directory into the playlist.
@@ -67,19 +60,12 @@ FileSystemEntry *enqueue(FileSystemEntry *entry);
  *
  * @param entry The directory entry to enqueue.
  * @param chosen_dir Pointer to the chosen directory, which can be updated.
- * @return The first enqueued entry (if any).
+ * @param dont_dequeue True if you can not dequeue.
+ * @return The first enqueued node (if any).
  */
-FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir);
 
-/**
- * @brief Enqueues a playlist from a given playlist entry.
- *
- * This function enqueues songs from a playlist and returns the first enqueued entry.
- *
- * @param playlist The playlist containing the songs to enqueue.
- * @return The first enqueued entry (if any).
- */
-FileSystemEntry *libraryEnqueue(PlayList *playlist);
+Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue);
+
 
 /**
  * @brief Toggle enqueue/dequeue for an M3U playlist file entry.
@@ -90,6 +76,7 @@ FileSystemEntry *libraryEnqueue(PlayList *playlist);
  * The caller is responsible for acting on the returned node (e.g. autoplay).
  *
  * @param entry FileSystemEntry for the .m3u / .m3u8 file.
+ * @param dont_dequeue True if you can not dequeue.
  * @return First Node added to the playlist, or NULL when dequeuing.
  */
-Node *enqueue_playlist(FileSystemEntry *entry);
+Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue);

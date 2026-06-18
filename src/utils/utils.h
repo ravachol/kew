@@ -301,4 +301,9 @@ float get_float(const char *str);
  */
 gint64 get_length_in_micro_sec(double duration);
 
+
+void start_timer(void);
+
+void end_timer(void);
+
 #endif

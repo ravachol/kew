@@ -31,6 +31,7 @@ static float seek_percent = 0.0;
 static double seek_elapsed;
 
 static _Atomic bool EOF_reached = false;
+static _Atomic bool metadata_switch_reached = false;
 static _Atomic bool switch_reached = false;
 static _Atomic bool skip_to_next = false;
 
@@ -75,10 +76,43 @@ void set_seek_requested(bool value)
         seek_requested = value;
 }
 
+bool request_crossfade(int fade_ms, int enter_song_ms)
+{
+        if (!sound_s->fade_allowed)
+                return false;
+
+        if (sound_s->fade_requested || atomic_load(&sound_s->request_switch_metadata) || atomic_load(&sound_s->request_switch_decoder))
+                return true; // Don't say it's disallowed, just don't perform the crossfade
+
+        void *decoder = get_other_decoder();
+        LoaderData *loader = get_loader_data();
+
+        if (!decoder || loader->loadingFirstDecoder)
+                return false;
+
+        sound_s->fade_ms = fade_ms;
+        sound_s->fade_enter_song_ms = enter_song_ms;
+
+        sound_s->fade_total_frames =
+            ((ma_uint64)sound_s->fade_ms *
+             sound_s->sample_rate) /
+            1000;
+
+        sound_s->fade_current_frame = 0;
+
+        sound_s->fade_seek_performed = false;
+
+        sound_s->fade_requested = true;
+
+        return true;
+}
+
 void seek_percentage(float percent)
 {
-        seek_percent = percent;
-        set_seek_requested(true);
+        if (percent >= 0.0f) {
+                seek_percent = percent;
+                set_seek_requested(true);
+        }
 }
 
 bool pb_is_EOF_reached(void)
@@ -86,9 +120,19 @@ bool pb_is_EOF_reached(void)
         return atomic_load(&EOF_reached);
 }
 
-void set_EOF_reached(void)
+void set_EOF_reached(bool value)
 {
-        atomic_store(&EOF_reached, true);
+        atomic_store(&EOF_reached, value);
+}
+
+bool pb_is_metadata_switch_reached(void)
+{
+        return atomic_load(&metadata_switch_reached);
+}
+
+void set_metadata_switch_reached(bool value)
+{
+        atomic_store(&metadata_switch_reached, value);
 }
 
 void pb_set_EOF_handled(void)
@@ -98,7 +142,7 @@ void pb_set_EOF_handled(void)
 
 bool pb_is_paused(void)
 {
-        return (sound_s->state == SOUND_STATE_PAUSED);
+        return (sound_s->state == SOUND_STATE_PAUSED || atomic_load(&sound_s->request_pause));
 }
 
 bool pb_is_stopped(void)
@@ -126,9 +170,9 @@ void stop_playback(void)
                 sound_s->state = SOUND_STATE_STOPPED;
 }
 
-int sound_resume_playback(void)
+sound_result_t sound_resume_playback(void)
 {
-        int result = 0;
+        sound_result_t result = 0;
 
         if (!ma_device_is_started(&device)) {
                 if (ma_device_start(&device) != MA_SUCCESS) {
@@ -137,14 +181,33 @@ int sound_resume_playback(void)
                 }
         }
 
+        if (atomic_load(&sound_s->request_pause))
+                atomic_store(&sound_s->request_pause, false);
+
         if (result < 0) {
                 sound_s->state = SOUND_STATE_STOPPED;
                 return result;
         }
 
+        sound_system_set_volume(sound_s, sound_s->volume);
+
         sound_s->state = SOUND_STATE_PLAYING;
 
-        return 0;
+        return result;
+}
+
+void request_pause_playback(void)
+{
+        if (sound_s->state != SOUND_STATE_PAUSED)
+                atomic_store(&sound_s->request_pause, true);
+
+        float vol = sound_system_get_volume(sound_s);
+
+        sound_system_set_volume(sound_s, 0.0f); // mute during pause, because of delay and draining
+
+        sound_s->volume = vol; // this value is used when unpausing.
+
+        sound_s->state = SOUND_STATE_PAUSED;
 }
 
 void pause_playback(void)
@@ -156,13 +219,17 @@ void pause_playback(void)
         sound_s->state = SOUND_STATE_PAUSED;
 }
 
-void toggle_pause_playback(void)
+sound_result_t toggle_pause_playback(void)
 {
-        if (ma_device_is_started(&device)) {
-                pause_playback();
-        } else if (pb_is_paused() || pb_is_stopped()) {
-                sound_resume_playback();
+        sound_result_t result = SOUND_OK;
+
+        if (!(pb_is_paused() || pb_is_stopped())) {
+                request_pause_playback();
+        } else {
+                result = sound_resume_playback();
         }
+
+        return result;
 }
 
 int init_playback_device(ma_context *context, sound_system_t *sound,
@@ -200,7 +267,8 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
                 return -1;
         }
 
-        sound_s->state = SOUND_STATE_PLAYING;
+        if (sound_s->state != SOUND_STATE_PAUSED)
+                sound_s->state = SOUND_STATE_PLAYING;
 
         return 0;
 }
@@ -217,7 +285,7 @@ void cleanup_playback_device(void)
         if (!device_initialized)
                 return;
 
-        set_switch_files(false);
+        set_switch_decoder(false);
 
         stop_playback();
         stop_decode_thread();

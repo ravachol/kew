@@ -2,15 +2,139 @@
 
 ## 4.1.0
 
-#### Enhancements
+kew 4.1 adds custom layouts, auto-resume, crossfade and more visualizer modes.
 
-- Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
-- Scrolling lyrics on lyrics page (press m) By @petoem. Suggested by @kewIT.
+The sound system was rewritten in v4.0 and in this version the UI system has been rewritten using the MVU pattern. There are still smaller areas that need improvement, but most of the app is now in a much better shape.
 
-#### Bugfixes
+### Enhancements
 
-There are no bugs. It's an illusion.
+### Layouts
 
+It's now possible to change how kew looks. It's as minimal as possible, the syntax for layouts is very simple and the files are small. More info in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
+
+By @ravachol.
+
+### Crossfade (experimental)
+
+  Crossfade can be toggled on or off and affects the end of the song, or initiated on demand.
+
+  Four new commands:
+
+  z = Toggle crossfade on
+
+  shift+d = Quick crossfade
+
+  shift+f = Medium crossfade
+
+  shift+g = Slow crossfade
+
+  New settings:
+
+  alwaysCrossfade=0
+
+  fadeEnterSongMs=0 // Tells kew to start fading x milliseconds into the next song.
+
+  fadeQuickMs=1000
+
+  fadeMediumMs=3000
+
+  fadeSlowMs=8000
+
+  By @ravachol.
+
+### AutoResume.
+
+Persists playback state between sessions, on by default.
+
+autoResume=1
+
+By @ravachol. Suggested by @thbemme.
+
+### New colorful spectrum visualizer modes.
+
+"Party Mode" is the default option. Cycle by pressing 'v'.
+
+  Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning.
+
+By @emptyhead41.
+
+### New album color mode that uses up to 4 album colors
+
+It's all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match!
+
+By @ravachol, building on @emptyhead41's palettes.
+
+### New theme pack and Improved Themes.
+
+Nord and Nanagawa themes have been added, plus both the new album colors themes.
+
+Also all existing themes have been worked on and make a bit more sense now, and use colors more sparsely.
+
+By @ravachol.
+
+### Scrolling lyrics on the lyrics page
+
+By @petoem. Suggested by @kewIT.
+
+### Other enhancements
+
+- Albums get sorted by metadata tracknumber, if the files aren't numbered. By @Moksh-Parikh.
+
+- New setting coverstyle, which let's you decide how Chafa should render the covers. By @netodosrjoao.
+
+- New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.
+
+- New settings simpleTimeStatus. Hides kHz and bitrate from the time line in track view. By @ravachol.
+
+- New color mode Neutral. Loads the neutral theme.
+
+- Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.
+
+- Better handling of repeat states and song switching if there's only one song. By @ravachol and @LeahTheSlug.
+
+- New visualizer color mode, flat colors. By @ravachol.
+
+- New time line on track view that uses less info is now default. To enable the one with bitrate and kHz numbers, set simpleTimeStatus=0. By @ravachol.
+
+- New desktop shortcut and icon, that installs with kew. By @ravachol.
+
+- You can now access the lyrics page (press 'm') from any view. By @ravachol.
+
+#### Bug fixes
+
+- Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
+
+- Fix new settings in kewrc not being respected if they also appear in kewstaterc. By @ravachol.
+
+- AAUDIO wasn't being used by miniaudio on Android/Termux. This is now fixed, and gives higher quality sound on Android. By @ravachol. Reported by @TNT4ME.
+
+- Prevent slight glitch when pausing and switching tracks. When unpausing a bit of the old song played. By @ravachol. Reported by @LeahTheSlug. Thanks to @petoem for helping.
+
+- Fix issue with wrong nesting in search in some situations. By @ravachol. Reported by @Moksh-Parikh.
+
+- Fix issues with repeat list and track management. By @ravachol. Found by @LeahTheSlug.
+
+- There were some issues with Chroma that emerged with as the launch of kew 4.0 which means you have to install a specific commit of Chroma recommended in the readme for it to work. And on top of that, the first commit that was recommended there wasn't reacting to audio. Now fixed and the commit in the readme should work.
+
+- Exiting kew is no longer slow when you have a lot of music in the playlist. By @ravachol. Found by @Kuuube.
+
+- Make sure CTRL+Z, fg and bg commands are handled properly. By @ravachol. Reported by @that_owl.
+
+- Provide an error message with instructions when D-BUS is not available and kew is compiled with USE_DBUS=1. By @ravachol. Suggested by @ktnb-netbsd.
+- Fix bug realted to immediate play from search view when playlist is shuffled. By @ravachol
+
+#### Refactor
+
+- Centralize PATH_MAX into common/path_max.h. By @hartalex.
+
+#### Sponsors
+
+Thank you to new sponsors @LTEder, @Lee, @rick and @enzawin for their generous contributions!
+
+You can sponsor kew here:
+
+Github Sponsors: https://github.com/sponsors/ravachol
+Ko-Fi: https://ko-fi.com/ravachol
 
 ## 4.0.0 LOVE IS GONNA SAVE US EDITION
 

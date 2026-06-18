@@ -11,8 +11,6 @@
 
 #include "common/appstate.h"
 
-#include "common/appstate.h"
-
 #include "sound/sound_facade.h"
 
 int shuffle_enabled;
@@ -27,7 +25,7 @@ void set_shuffle_enabled(int value)
         AppState *state = get_app_state();
 
         shuffle_enabled = value == 1 ? 1 : 0;
-        state->uiSettings.shuffle_enabled = value;
+        state->settings.shuffle_enabled = value;
 }
 
 bool is_repeat_list_enabled(void)
@@ -39,7 +37,7 @@ void set_repeat_state(int repeat_state)
 {
         AppState *state = get_app_state();
 
-        state->uiSettings.repeatState = repeat_state;
+        state->settings.repeatState = repeat_state;
         sound_system_set_repeat_state(repeat_state);
 }
 
@@ -73,6 +71,11 @@ bool is_EOF_reached(void)
         return sound_system_is_EOF_reached();
 }
 
+bool is_metadata_switch_reached(void)
+{
+        return sound_system_is_metadata_switch_reached();
+}
+
 bool is_switching_track(void)
 {
         return sound_system_is_switching_track(sound_sys);
@@ -89,30 +92,29 @@ bool is_valid_song(SongData *song_data)
                song_data->metadata != NULL;
 }
 
-void set_EOF_handled(void)
-{
-        sound_system_set_EOF_handled(sound_sys);
-}
-
 double get_current_song_duration(void)
 {
         double duration = 0.0;
-        SongData *current_song_data = get_current_song_data();
+        Model *model = get_model();
 
-        if (current_song_data != NULL)
-                duration = current_song_data->duration;
+        if (model->songdata != NULL)
+                duration = model->songdata->duration;
 
         return duration;
 }
 
 int get_volume()
 {
-        return (int)(sound_system_get_volume(sound_sys) * 100);
+        Model *model = get_model();
+        return model->volume;
 }
 
 void set_volume(int vol)
 {
         sound_system_set_volume(sound_sys, ((float)vol / 100));
+
+        Model *model = get_model();
+        model->volume = sound_system_get_volume(sound_sys) * 100;
 }
 
 SongData *get_current_song_data(void)

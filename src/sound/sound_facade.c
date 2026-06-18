@@ -17,6 +17,8 @@
 
 #include "sound_facade.h"
 
+#include "common/appstate.h"
+#include "common/model.h"
 #include "loader/song_loader.h"
 
 #include "decoders.h"
@@ -49,9 +51,12 @@ sound_result_t sound_system_create(sound_system_t **out_system)
         sound_s->volume = get_current_volume();
         sound_s->state = SOUND_STATE_STOPPED;
 
-        result = sound_create_audio_device();
+        atomic_store_explicit(&sound_s->fade_boundary_reached, false, memory_order_release);
+        atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
 
-        if (result < 0) {
+        sound_result_t sound_result = sound_create_audio_device();
+
+        if (sound_result < 0) {
                 sound_system_destroy(&sound_s);
 
                 return SOUND_ERROR_BACKEND_FAILURE;
@@ -59,7 +64,7 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         *out_system = sound_s;
 
-        return SOUND_OK;
+        return sound_result;
 }
 
 void sound_system_destroy(sound_system_t **system)
@@ -80,17 +85,17 @@ sound_result_t sound_system_uninit_device(sound_system_t *system)
         return SOUND_OK;
 }
 
-sound_result_t sound_system_switch_decoder(sound_system_t *system)
+sound_result_t sound_system_switch_decoder(sound_system_t *system, char* file_path)
 {
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        int result = sound_switch_decoder_type();
+        sound_result_t result = sound_switch_decoder_type(file_path);
 
         if (result < 0)
                 return SOUND_ERROR_BACKEND_FAILURE;
 
-        return SOUND_OK;
+        return result;
 }
 
 sound_result_t sound_system_load(
@@ -101,16 +106,20 @@ sound_result_t sound_system_load(
 {
         (void)system;
 
-        sound_load_song(file_path, is_first_decoder, is_next_song);
-
-        return SOUND_OK;
+        return sound_load_song(file_path, is_first_decoder, is_next_song);
 }
 
 sound_result_t sound_system_unload_songs(sound_system_t *system)
 {
         (void)system;
 
+        PlaybackState *ps = get_playback_state();
+
+        pthread_mutex_lock(&ps->switch_mutex);
+
         song_loader_unload_songs();
+
+        pthread_mutex_unlock(&ps->switch_mutex);
 
         return SOUND_OK;
 }
@@ -119,12 +128,6 @@ sound_result_t sound_system_set_volume(
     sound_system_t *system,
     float volume)
 {
-        if (volume > 1.0f) {
-                volume = 1.0f;
-        } else if (volume < 0.0f) {
-                volume = 0.0f;
-        }
-
         set_current_volume(volume);
 
         if (system) {
@@ -146,12 +149,7 @@ sound_result_t sound_system_play(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        int result = sound_resume_playback();
-
-        if (result < 0)
-                return SOUND_ERROR_BACKEND_FAILURE;
-
-        return SOUND_OK;
+        return sound_resume_playback();
 }
 
 sound_result_t sound_system_pause(sound_system_t *system)
@@ -159,9 +157,9 @@ sound_result_t sound_system_pause(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        pause_playback();
-        if (pb_is_paused())
-                system->state = SOUND_STATE_PAUSED;
+        request_pause_playback();
+
+        system->state = SOUND_STATE_PAUSED;
 
         return SOUND_OK;
 }
@@ -172,6 +170,7 @@ sound_result_t sound_system_stop(sound_system_t *system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         stop_playback();
+
         if (pb_is_stopped())
                 system->state = SOUND_STATE_STOPPED;
 
@@ -208,6 +207,17 @@ sound_result_t sound_system_switch_song_immediate(sound_system_t *system)
         return SOUND_OK;
 }
 
+sound_result_t sound_system_start_crossfade(const sound_system_t *system, int fade_ms, int enter_song_ms)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        if (!request_crossfade(fade_ms, enter_song_ms))
+                return SOUND_CROSSFADE_DISABLED;
+
+        return SOUND_OK;
+}
+
 sound_result_t sound_system_clear_current_track(sound_system_t *system)
 {
         if (!system)
@@ -223,15 +233,9 @@ sound_result_t sound_system_toggle_pause(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        toggle_pause_playback();
-        if (pb_is_stopped())
-                system->state = SOUND_STATE_STOPPED;
-        if (pb_is_paused())
-                system->state = SOUND_STATE_PAUSED;
-        if (pb_is_playing())
-                system->state = SOUND_STATE_PLAYING;
+        sound_result_t result = toggle_pause_playback();
 
-        return SOUND_OK;
+        return result;
 }
 
 sound_result_t sound_system_seek_percentage(sound_system_t *system, float percent)
@@ -263,6 +267,14 @@ int sound_system_is_end_of_list_reached(const sound_system_t *system)
         return atomic_load(&system->end_of_list_reached);
 }
 
+int sound_system_is_fade_allowed(const sound_system_t *system)
+{
+        if (!system)
+                return 0;
+
+        return system->fade_allowed;
+}
+
 sound_result_t sound_system_set_end_of_list_reached(sound_system_t *system, int value)
 {
         if (!system)
@@ -291,12 +303,32 @@ int sound_system_is_EOF_reached(void)
         return pb_is_EOF_reached();
 }
 
+int sound_system_is_metadata_switch_reached(void)
+{
+        return pb_is_metadata_switch_reached();
+}
+
 sound_playback_state_t sound_system_get_state(const sound_system_t *system)
 {
         if (!system)
                 return SOUND_STATE_STOPPED;
 
         return system->state;
+}
+
+int sound_system_get_fade_started(sound_system_t *system, int *reset_ms)
+{
+        if (!system)
+                return SOUND_STATE_STOPPED;
+
+        atomic_load_explicit(&system->fade_boundary_reached, memory_order_acquire);
+        long long fade_boundary = atomic_load_explicit(&system->fade_boundary, memory_order_acquire);
+        atomic_load_explicit(&system->clock_reset_ms, memory_order_acquire);
+
+        bool reset = system->fade_boundary_reached || fade_boundary > 0;
+        *reset_ms = system->clock_reset_ms;
+
+        return reset;
 }
 
 int sound_system_get_bit_depth(const sound_system_t *system)
@@ -344,6 +376,7 @@ int sound_system_is_current_song_deleted(const sound_system_t *system)
         if (!system)
                 return 1;
 
+
         LoaderData *loader_data = get_loader_data();
 
         return (sound_is_using_slot_A())
@@ -359,7 +392,9 @@ uint64_t sound_system_get_duration_ms(
 
         SongData *song_data = sound_get_current_song_data();
 
-        return song_data->duration * 1000;
+        uint64_t duration = song_data->duration * 1000;
+
+        return duration;
 }
 
 int sound_system_get_repeat_state(void)
@@ -394,22 +429,37 @@ sound_result_t sound_system_set_repeat_state(int value)
         return SOUND_OK;
 }
 
-sound_result_t sound_system_set_EOF_handled(const sound_system_t *system)
+sound_result_t sound_system_set_EOF_switch(const sound_system_t *system, bool value)
 {
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        pb_set_EOF_handled();
+        set_EOF_reached(value);
 
         return SOUND_OK;
 }
+
+sound_result_t sound_system_set_metadata_switch(const sound_system_t *system, bool value)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        set_metadata_switch_reached(value);
+
+        return SOUND_OK;
+}
+
 
 SongData *sound_system_get_current_song(const sound_system_t *system)
 {
         if (!system)
                 return NULL;
 
-        return sound_get_current_song_data();
+        SongData *songdata = NULL;
+
+        songdata = sound_get_current_song_data();
+
+        return songdata;
 }
 
 sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, int value)
@@ -422,6 +472,17 @@ sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, 
         return SOUND_OK;
 }
 
+sound_result_t sound_system_set_always_crossfade(sound_system_t *system, int value, int fade_ms)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        system->always_fade = value;
+        system->always_fade_ms = fade_ms;
+
+        return SOUND_OK;
+}
+
 int sound_system_get_replay_gain_check_first(const sound_system_t *system)
 {
         return system->replay_gain_check_first;
@@ -430,4 +491,9 @@ int sound_system_get_replay_gain_check_first(const sound_system_t *system)
 int sound_system_get_sample_rate(const sound_system_t *system)
 {
         return system->sample_rate;
+}
+
+int sound_system_get_fade_offset_seconds(const sound_system_t *system)
+{
+        return system->ring_buffer_secs;
 }

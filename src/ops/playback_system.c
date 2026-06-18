@@ -11,7 +11,6 @@
 #include "playback_state.h"
 
 #include "common/appstate.h"
-#include "common/common.h"
 
 #include "data/theme.h"
 
@@ -31,16 +30,22 @@ void start_playing(bool value)
 
 int create_sound_system(void)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
 
-        bool success = sound_system_create(&sound_sys) == SOUND_OK;
+        sound_result_t result = sound_system_create(&sound_sys);
 
-        if (success) {
-                sound_system_set_replay_gain_check_first(sound_sys, state->uiSettings.replayGainCheckFirst);
+        if (result >= 0) {
+                sound_system_set_replay_gain_check_first(sound_sys, model->state.settings.replayGainCheckFirst);
+                sound_system_set_always_crossfade(sound_sys, model->state.settings.always_crossfade, model->state.settings.fade_medium_ms);
                 start_playing(true);
+                atomic_store(&sound_sys->track_frames_sent, 0);
+                sound_sys->total_frames = 0;
         }
 
-        return success;
+        if (result == SOUND_NOTIFY_SWITCH)
+                model->playbackState.notifySwitch = 1;
+
+        return result;
 }
 
 void shutdown_sound_system(void)
@@ -59,7 +64,19 @@ void uninit_device(void)
 
 void switch_decoder(void)
 {
-        sound_system_switch_decoder(sound_sys);
+        Model *model = get_model();
+
+        SongData *current_song = sound_system_get_current_song(sound_sys);
+
+        sound_result_t result = SOUND_OK;
+
+        if (current_song)
+                result = sound_system_switch_decoder(sound_sys, current_song->file_path);
+        else
+                result = sound_system_switch_decoder(sound_sys, NULL);
+
+        if (result == SOUND_NOTIFY_SWITCH)
+                model->playbackState.notifySwitch = 1;
 }
 
 void skip(void)
@@ -79,12 +96,5 @@ void skip(void)
         } else {
                 sound_system_skip_to_next(sound_sys);
         }
-
-        if (!ps->skipOutOfOrder)
-                trigger_refresh();
 }
 
-void ensure_default_theme_pack()
-{
-        ensure_default_themes();
-}

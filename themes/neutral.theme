@@ -1,10 +1,8 @@
-# Neutral kew Theme
-#
-# This theme uses only the default text color
-#
+# ============================================
+# Neutral (Default terminal color)
+# ============================================
 
 name=Neutral
-author=Ravachol
 
 # Core Colors
 accent=-1
@@ -15,10 +13,11 @@ textMuted=-1
 # General Colors
 logo=-1
 header=-1
-footer=-1
+footer=#787878
 help=-1
 link=-1
 nowplaying=-1
+playbackstatus=-1
 
 # Playlist View
 playlist.rownum=-1
@@ -50,7 +49,7 @@ search.playing=-1
 
 # Progress
 progress.filled=-1
-progress.empty=0
+progress.empty=#787878
 progress.elapsed=-1
 
 # Status

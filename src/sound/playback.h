@@ -24,6 +24,13 @@
 void stop_playback(void);
 
 /**
+ * @brief Requests a pauses audio playback.
+ *
+ * This function triggers draining of audio before pausing.
+ */
+void request_pause_playback(void);
+
+/**
  * @brief Pauses audio playback.
  *
  * This function pauses the audio playback without stopping it. It can be resumed
@@ -38,7 +45,7 @@ void pause_playback(void);
  * playback state. If the audio is currently playing, it will pause. If it is
  * paused, it will resume.
  */
-void toggle_pause_playback(void);
+sound_result_t toggle_pause_playback(void);
 
 /**
  * @brief Checks if device is initialied
@@ -87,7 +94,7 @@ bool pb_is_playing(void);
  *
  * This function resumes the audio playback if it was previously paused.
  */
-int sound_resume_playback(void);
+sound_result_t sound_resume_playback(void);
 
 /**
  * @brief Sets the elapsed time for seeking.
@@ -155,10 +162,8 @@ bool pb_is_EOF_reached(void);
 /**
  * @brief Sets the EOF state as reached.
  *
- * This function marks the end of the file (EOF) as reached. It signals that
- * there are no more tracks to play.
  */
-void set_EOF_reached(void);
+void set_EOF_reached(bool value);
 
 /**
  * @brief Marks the EOF as handled.
@@ -251,5 +256,19 @@ void clear_current_track(void);
  * active audio playback or processing tasks.
  */
 void sound_shutdown(void);
+
+/**
+ * @brief Requests a cross-fade
+ *
+ * @param fade_ms How long the fade should take in milliseconds.
+ * @param enter_song_ms At what point to enter the next song in milliseconds.
+ *
+ * @return True if crossfade was successfully initiated.
+ */
+bool request_crossfade(int fade_ms, int enter_song_ms);
+
+bool pb_is_metadata_switch_reached(void);
+
+void set_metadata_switch_reached(bool value);
 
 #endif
