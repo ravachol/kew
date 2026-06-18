@@ -1,8 +1,8 @@
 # CHANGELOG
 
-## 4.1.0 Crossfade, Auto-resume and Layouts!
+## 4.1.0
 
-kew 4.1 comes with crossfade, auto-resume and the ability for users to make their own layouts.
+kew 4.1 adds custom layouts, auto-resume, crossfade and more visualizer modes.
 
 The sound system was rewritten in v4.0 and in this version the UI system has been rewritten using the MVU pattern. There are still smaller areas that need improvement, but most of the app is now in a much better shape.
 
@@ -74,8 +74,6 @@ By @ravachol.
 
 ### Scrolling lyrics on the lyrics page
 
-You can also now access the lyrics page from any view.
-
 By @petoem. Suggested by @kewIT.
 
 ### Other enhancements
@@ -99,6 +97,8 @@ By @petoem. Suggested by @kewIT.
 - New time line on track view that uses less info is now default. To enable the one with bitrate and kHz numbers, set simpleTimeStatus=0. By @ravachol.
 
 - New desktop shortcut and icon, that installs with kew. By @ravachol.
+
+- You can now access the lyrics page (press 'm') from any view. By @ravachol.
 
 #### Bug fixes
 
