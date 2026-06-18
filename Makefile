@@ -311,6 +311,9 @@ install: all
 	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
 	$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
 
+ifeq ($(UNAME_S),Darwin)
+	@true
+else
         # Install desktop shortcut
 	install -Dm644 kew.desktop \
 	$(DESTDIR)$(PREFIX)/share/applications/kew.desktop
@@ -318,6 +321,7 @@ install: all
         # Install desktop icon
 	install -Dm644 kew.png \
 	$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png
+endif
 
 	@if [ -d $(THEMESRCDIR) ]; then \
 	        for theme in $(THEMESRCDIR)/*.theme; do \
