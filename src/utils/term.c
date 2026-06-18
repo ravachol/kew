@@ -118,16 +118,6 @@ void restore_terminal_mode(void)
         }
 }
 
-void save_cursor_position(void)
-{
-        printf("\033[s");
-}
-
-void restore_cursor_position(void)
-{
-        printf("\033[u");
-}
-
 void set_default_text_color(void)
 {
         printf("\033[0m");
@@ -180,22 +170,6 @@ void enable_scrolling(void)
 void disable_terminal_line_input(void)
 {
         setvbuf(stdout, NULL, _IOFBF, BUFSIZ);
-}
-
-void set_raw_input_mode(void)
-{
-        struct termios term;
-        tcgetattr(STDIN_FILENO, &term);
-        term.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
-}
-
-void enable_input_buffering()
-{
-        struct termios term;
-        tcgetattr(STDIN_FILENO, &term);
-        term.c_lflag |= ICANON | ECHO;
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }
 
 void cursor_jump(int num_rows)

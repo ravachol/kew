@@ -4,7 +4,6 @@
 
 [theme]
 name=Ravachol's Theme
-author=Ravachol
 
 # Core colors
 accent=#e6607a
@@ -15,10 +14,11 @@ textMuted=#de2b4d
 # General Colors
 logo=#de2b4d
 header=#de2b4d
-footer=#5c5c5c
+footer=#787878
 help=#787878
 link=#e6607a
 nowplaying=#e6607a
+playbackstatus=#5c5c5c
 
 # Playlist View
 playlist.rownum=#de2b4d
@@ -26,13 +26,13 @@ playlist.title=#e0e0e0
 playlist.playing=#e6607a
 
 # Track View
-trackview.title=#de2b4d
-trackview.artist=-1
-trackview.album=-1
-trackview.year=-1
-trackview.time=-1
+trackview.title=#e0e0e0
+trackview.artist=#e0e0e0
+trackview.album=#e0e0e0
+trackview.year=#e0e0e0
+trackview.time=#e0e0e0
 trackview.visualizer=#de2b4d
-trackview.lyrics=#e0e0e0
+trackview.lyrics=#e6607a
 
 # Library View
 library.artist=#de2b4d

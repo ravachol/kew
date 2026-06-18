@@ -21,7 +21,7 @@ void remove_arg_element(char *argv[], int index, int *argc);
  *
  * This function scans the argument vector `argv` for known command-line
  * options and updates the corresponding fields in the application's
- * UI settings (`AppState::uiSettings`) as well as the `exact_search` flag.
+ * UI settings (`AppState:settings`) as well as the `exact_search` flag.
  * Recognized options are removed from `argv`, and `*argc` is adjusted.
  *
  * Recognized options:

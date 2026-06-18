@@ -4,21 +4,21 @@
 
 [theme]
 name=Purple
-author=Ravachol
 
 # Core colors
 accent=#9d8ba8
-text=#d8d0dc
+text=#b1a0bc
 textDim=#a896b0
 textMuted=#6d5f78
 
 # General Colors
 logo=#6d5f78
-header=#6d5f78
+header=#9d8ba8
 footer=#6d5f78
-help=#b1a0bc
-link=#a896b0
+help=#d8d0dc
+link=#8a9a87
 nowplaying=#9d8ba8
+playbackstatus=#6d5f78
 
 # Playlist View
 playlist.rownum=#6d5f78
@@ -26,31 +26,31 @@ playlist.title=#d8d0dc
 playlist.playing=#b09cbd
 
 # Track View
-trackview.title=#d8d0dc
+trackview.title=#9d8ba8
 trackview.artist=#9d8ba8
-trackview.album=#a896b0
-trackview.year=#a896b0
-trackview.time=#b09cbd
-trackview.visualizer=#2a2531
-trackview.lyrics=#d8d0dc
+trackview.album=#9d8ba8
+trackview.year=#9d8ba8
+trackview.time=#9d8ba8
+trackview.visualizer=#6d5f78
+trackview.lyrics=#9d8ba8
 
 # Library View
-library.artist=#6d5f78
+library.artist=#9d8ba8
 library.album=#c5bcc9
 library.track=#c5bcc9
-library.enqueued=#8a9a87
+library.enqueued=#9d8ba8
 library.playing=#b09cbd
 
 # Search
 search.label=#6d5f78
 search.query=#9d8ba8
 search.result=#d8d0dc
-search.enqueued=#8a9a87
+search.enqueued=#9d8ba8
 search.playing=#b09cbd
 
 # Progress
-progress.filled=#362f3d
-progress.empty=#1d1921
+progress.filled=#6d5f78
+progress.empty=#9d8ba8
 progress.elapsed=#6d5f78
 
 # Status

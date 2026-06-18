@@ -12,6 +12,7 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "common/model.h"
 #include "utils/utils.h"
 
 #include <ctype.h>
@@ -52,6 +53,7 @@ int hex_to_pixel(const char *hex, PixelData *result)
                 (*result).r = (unsigned char)strtol(r, NULL, 16);
                 (*result).g = (unsigned char)strtol(g, NULL, 16);
                 (*result).b = (unsigned char)strtol(b, NULL, 16);
+                (*result).a = 255;
         }
         return 0;
 }
@@ -97,6 +99,8 @@ int parse_hex_color(const char *hex, PixelData *out)
         out->r = (unsigned char)r;
         out->g = (unsigned char)g;
         out->b = (unsigned char)b;
+        out->a = 255;
+
         return 1;
 }
 
@@ -126,12 +130,13 @@ int parse_color_value(const char *value, ColorValue *out)
                 return 0; // invalid number
         }
 
-        if (index < -1 || index > 15) {
+        if (index < -1 || index > 105) {
                 return 0; // out of range for 16-color ANSI
         }
 
         out->type = COLOR_TYPE_ANSI;
         out->ansiIndex = (int8_t)index;
+
         return 1;
 }
 
@@ -155,7 +160,9 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
         FILE *file = fopen(path, "r");
         if (!file) {
                 fprintf(stderr, "Failed to open theme file.\n");
-                set_error_message("Failed to open theme file.");
+                char line[PATH_MAX + 100];
+                snprintf(line, sizeof(line), "Failed to open theme file: %s", filename);
+                set_error_message(line);
                 return 0;
         }
 
@@ -171,6 +178,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
             {"help", &current_theme->help},
             {"link", &current_theme->link},
             {"nowplaying", &current_theme->nowplaying},
+            {"playbackstatus", &current_theme->playbackstatus},
             {"playlist_rownum", &current_theme->playlist_rownum},
             {"playlist_title", &current_theme->playlist_title},
             {"playlist_playing", &current_theme->playlist_playing},
@@ -206,7 +214,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
 
         ColorValue default_color;
         default_color.type = COLOR_TYPE_RGB;
-        default_color.rgb = state->uiSettings.defaultColorRGB;
+        default_color.rgb = state->settings.defaultColorRGB;
 
         for (size_t i = 0; i < mapping_count; ++i) {
                 *(mappings[i].field) = default_color;
@@ -244,6 +252,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                 }
 
                 for (size_t i = 0; i < mapping_count; ++i) {
+
                         if (strcmp(key, "name") == 0) {
                                 // Copy theme name safely
                                 strncpy(current_theme->theme_name, value,
@@ -264,7 +273,8 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                                 found = 1;
                                 break;
                         } else if (strcmp(key, mappings[i].key) == 0) {
-                                ColorValue color;
+
+                                ColorValue color = {0};
 
                                 if (!parse_color_value(value, &color)) {
                                         fprintf(stderr,
@@ -318,13 +328,16 @@ bool ensure_default_themes(void)
         while ((entry = readdir(dir)) != NULL) {
                 // Only copy real files that look like themes
                 if (entry->d_type == DT_REG &&
-                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt"))) {
+                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md"))) {
 
-                        char src[PATH_MAX], dst[PATH_MAX];
+                        char src[PATH_MAX], dst[PATH_MAX], bak[PATH_MAX];
 
                         if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))
                                 continue;
                         if (snprintf(dst, sizeof(dst), "%s/%s", themes_path, entry->d_name) >= (int)sizeof(dst))
+                                continue;
+
+                        if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(dst))
                                 continue;
 
                         bool need_copy = true;
@@ -339,6 +352,11 @@ bool ensure_default_themes(void)
                         }
 
                         if (need_copy) {
+                                // Backup old file if it exists
+                                if (stat(dst, &st) == 0) {
+                                        rename(dst, bak);
+                                }
+
                                 if (copy_file(src, dst))
                                         copied = true;
                         }

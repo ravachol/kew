@@ -5,26 +5,25 @@
  */
 
 #include "common/appstate.h"
+#include "common/model.h"
+#include "utils/term.h"
 #include "utils/utils.h"
 
-AppState app_state;
-
-FileSystemEntry *library = NULL;
-
-PlaybackState playback_state;
+/* Include after chafa.h for G_OS_WIN32 */
+#ifdef G_OS_WIN32
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#include <io.h>
+#else
+#include <sys/ioctl.h> /* ioctl */
+#endif
 
 sound_system_t *sound_sys = NULL;
 
-AppSettings settings;
+RenderContext render_context;
 
-// The (sometimes shuffled) sequence of songs that will be played
-PlayList playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
-
-// The playlist unshuffled as it appears in playlist view
-PlayList *unshuffled_playlist = NULL;
-
-// The playlist from kew favorites .m3u
-PlayList *favorites_playlist = NULL;
+Model model;
 
 static const char LIBRARY_FILE[] = "library.dat";
 
@@ -40,29 +39,20 @@ Node *try_next_song = NULL;
 
 Node *song_to_start_from = NULL;
 
-ProgressBar progress_bar;
-
-void free_playlists(void)
+void free_playlist(PlayList **plist)
 {
-        empty_playlist(&playlist);
-        pthread_mutex_destroy(&playlist.mutex);
+    if (!plist || !*plist)
+        return;
 
-        PlayList *unshuffled = get_unshuffled_playlist();
-        PlayList *favorites = get_favorites_playlist();
+    PlayList *list = *plist;
 
-        if (unshuffled != NULL) {
-                empty_playlist(unshuffled);
-                pthread_mutex_destroy(&unshuffled->mutex);
-                free(unshuffled);
-                unshuffled_playlist = NULL;
-        }
+    empty_playlist(list);
 
-        if (favorites != NULL) {
-                empty_playlist(favorites);
-                pthread_mutex_destroy(&favorites->mutex);
-                free(favorites);
-                favorites_playlist = NULL;
-        }
+    pthread_mutex_destroy(&list->mutex);
+
+    free(list);
+
+    *plist = NULL;
 }
 
 void create_playlist(PlayList **playlist)
@@ -80,26 +70,175 @@ void create_playlist(PlayList **playlist)
         }
 }
 
+void get_tty_size(TermSize *term_size_out)
+{
+        TermSize term_size;
+
+        term_size.width_cells = term_size.height_cells = term_size.width_pixels = term_size.height_pixels = -1;
+
+#ifdef G_OS_WIN32
+        {
+                HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
+                CONSOLE_SCREEN_BUFFER_INFO csb_info;
+
+                if (chd != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(chd, &csb_info)) {
+                        term_size.width_cells = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
+                        term_size.height_cells = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
+                }
+        }
+#else
+        {
+                struct winsize w;
+                gboolean have_winsz = FALSE;
+
+                if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDERR_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDIN_FILENO, TIOCGWINSZ, &w) >= 0)
+                        have_winsz = TRUE;
+
+                if (have_winsz) {
+                        term_size.width_cells = w.ws_col;
+                        term_size.height_cells = w.ws_row;
+                        term_size.width_pixels = w.ws_xpixel;
+                        term_size.height_pixels = w.ws_ypixel;
+                }
+        }
+#endif
+
+        if (term_size.width_cells <= 0)
+                term_size.width_cells = -1;
+        if (term_size.height_cells <= 2)
+                term_size.height_cells = -1;
+
+        /* If .ws_xpixel and .ws_ypixel are filled out, we can calculate
+         * aspect information for the font used. Sixel-capable terminals
+         * like mlterm set these fields, but most others do not. */
+
+        if (term_size.width_pixels <= 0 || term_size.height_pixels <= 0) {
+                term_size.width_pixels = -1;
+                term_size.height_pixels = -1;
+        }
+
+        *term_size_out = term_size;
+}
+
+void tty_init(void)
+{
+#ifdef G_OS_WIN32
+        {
+                HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
+
+                saved_console_output_cp = GetConsoleOutputCP();
+                saved_console_input_cp = GetConsoleCP();
+
+                /* Enable ANSI escape sequence parsing etc. on MS Windows command prompt */
+
+                if (chd != INVALID_HANDLE_VALUE) {
+                        if (!SetConsoleMode(chd,
+                                            ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN))
+                                win32_stdout_is_file = TRUE;
+                }
+
+                /* Set UTF-8 code page I/O */
+
+                SetConsoleOutputCP(65001);
+                SetConsoleCP(65001);
+        }
+#endif
+}
+
+// --- Constructor ---
+
+void init_model(void)
+{
+        model.playlist = NULL;
+        model.unshuffled_playlist = NULL;
+        model.favorites_playlist = NULL;
+
+        model.library = NULL;
+        model.songdata = NULL;
+
+        model.library_updated = false;
+
+        model.songdata_ok = false;
+
+        model.volume = 50;
+        model.is_paused = false;
+        model.is_stopped = true;
+        model.should_refresh = true;
+        model.restore_volume = false;
+
+        set_term_size();
+        get_term_size(&model.term_w, &model.term_h);
+        get_tty_size(&model.term_size);
+
+        model.indent = 0;
+        model.updateCounter = 0;
+
+        model.current_path = NULL;
+        model.current_hash = 0;
+        model.last_cover_path_hash = (size_t)-1;
+
+        set_dirty(DIRTY_NONE);
+
+        model.glimmer.active = false;
+        model.title_delay.active = false;
+
+        model.search_results = NULL;
+        model.state.ui.chosen_search_dir = NULL;
+        model.state.ui.current_search_entry = NULL;
+        model.state.ui.current_lib_entry = NULL;
+        model.state.ui.chosen_dir = NULL;
+        model.state.ui.playlist_node = NULL;
+
+        model.state.ui.rendered = false;
+
+        model.glimmer.active = false;
+        model.title_delay.active = false;
+
+        model.elapsed_seconds = 0.0;
+
+        model.tick = 17;
+
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &model.state.ui.windowSize);
+
+        pthread_mutex_init(&(model.playbackState.switch_mutex), NULL);
+        pthread_mutex_init(&(model.state.library_mutex), NULL);
+
+        create_playlist(&model.playlist);
+        create_playlist(&model.unshuffled_playlist);
+        create_playlist(&model.favorites_playlist);
+}
+
 // --- Getters ---
+
+Model *get_model()
+{
+        return &model;
+}
+
+
+RenderContext *get_render_context()
+{
+        return &render_context;
+}
 
 AppState *get_app_state()
 {
-        return &app_state;
+        return &model.state;
 }
 
 AppSettings *get_app_settings()
 {
-        return &settings;
+        return &model.settings;
 }
 
 FileSystemEntry *get_library()
 {
-        return library;
+        return model.library;
 }
 
 PlaybackState *get_playback_state()
 {
-        return &playback_state;
+        return &model.playbackState;
 }
 
 char *get_library_file_path(void)
@@ -134,58 +273,40 @@ Node *get_try_next_song(void)
 
 ProgressBar *get_progress_bar(void)
 {
-        return &progress_bar;
+        return &model.progressBar;
 }
 
 PlayList *get_playlist(void)
 {
-        return &playlist;
+        return model.playlist;
 }
 
 PlayList *get_unshuffled_playlist(void)
 {
-        return unshuffled_playlist;
+        return model.unshuffled_playlist;
 }
 
 PlayList *get_favorites_playlist(void)
 {
-        return favorites_playlist;
+        return model.favorites_playlist;
 }
 
 // --- Setters ---
 
 void set_library(FileSystemEntry *root)
 {
-        library = root;
+        model.library = root;
 }
 
-void set_unshuffled_playlist(PlayList *pl)
+void set_dirty(DirtyFlags dirty)
 {
-        if (pl == unshuffled_playlist) {
+        if (dirty == DIRTY_NONE) {
+                model.dirty = DIRTY_NONE;
                 return;
         }
-
-        if (unshuffled_playlist != NULL) {
-                empty_playlist(unshuffled_playlist);
-                pthread_mutex_destroy(&unshuffled_playlist->mutex);
-                free(unshuffled_playlist);
-        }
-        unshuffled_playlist = pl;
+        model.dirty |= dirty;
 }
 
-void set_favorites_playlist(PlayList *pl)
-{
-        if (pl == favorites_playlist) {
-                return;
-        }
-
-        if (favorites_playlist != NULL) {
-                empty_playlist(favorites_playlist);
-                pthread_mutex_destroy(&favorites_playlist->mutex);
-                free(favorites_playlist);
-        }
-        favorites_playlist = pl;
-}
 
 void set_pause_seconds(double seconds)
 {

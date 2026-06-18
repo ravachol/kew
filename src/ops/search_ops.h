@@ -1,24 +1,13 @@
 /**
- * @file search_ui.h
+ * @file search_ops.h
  * @brief Search interface for tracks and artists.
  *
- * Provides UI and logic for querying the music library, filtering results,
+ * Provides logic for querying the music library, filtering results,
  * and adding songs to playlists from search results.
  */
 
+#include "common/model.h"
 #include "data/directorytree.h"
-
-/**
- * @brief Displays the search box with the current search text.
- *
- * This function renders the search box on the screen at the specified row and column,
- * including the current search text input by the user.
- *
- * @param row The row at which the search box is displayed.
- * @param col The column at which the search box is displayed.
- * @return Returns 0 on success.
- */
-int display_search_box(int row, int col);
 
 /**
  * @brief Adds a string to the search text.
@@ -26,10 +15,18 @@ int display_search_box(int row, int col);
  * This function appends a string to the current search text buffer. If there is not enough
  * space in the buffer, it will return without modifying the search text.
  *
+ * @param model
  * @param str The string to add to the search text.
  * @return Returns 0 on success, or -1 if the string is NULL.
  */
-int add_to_search_text(const char *str);
+int add_to_search_text(Model *model, const char *str);
+
+/**
+ * @brief Resets the search results.
+ *
+ * @param model
+ */
+void reset_search_result(Model *model);
 
 /**
  * @brief Removes the last character from the search text.
@@ -37,28 +34,11 @@ int add_to_search_text(const char *str);
  * This function removes the preceding character from the search text, updating the buffer
  * and adjusting the number of search letters accordingly.
  *
+ * @param model
+ *
  * @return Returns 0 on success.
  */
-int remove_from_search_text(void);
-
-/**
- * @brief Retrieves the count of search results.
- *
- * This function returns the total number of search results currently available.
- *
- * @return The number of search results.
- */
-int get_search_results_count(void);
-
-/**
- * @brief Checks if the search results have reached the last row.
- *
- * This function determines whether the current row of results is the last row in the search
- * result list.
- *
- * @return Returns true if the last row has been reached, false otherwise.
- */
-bool is_at_last_row(void);
+int remove_from_search_text(Model *model);
 
 /**
  * @brief Sets the chosen directory for search results.
@@ -82,19 +62,11 @@ void free_search_results(void);
  * This function performs a fuzzy search starting from the provided root entry, with the given
  * threshold value for distance. The search results are collected during the process.
  *
+ * @param search_term
  * @param root The root entry to begin the search from.
  * @param threshold The maximum allowed fuzzy search distance.
  */
-void fuzzy_search(FileSystemEntry *root, int threshold);
-
-/**
- * @brief Gets the current search entry.
- *
- * This function returns the current search entry that is selected or being highlighted in the UI.
- *
- * @return The currently selected FileSystemEntry in the search results.
- */
-FileSystemEntry *get_current_search_entry(void);
+void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold);
 
 /**
  * @brief Gets the chosen search directory.
@@ -121,4 +93,3 @@ FileSystemEntry *get_chosen_search_dir(void);
  * @return Returns 0 when the function completes successfully.
  */
 int display_search(int row, int col, int max_list_size, int *chosen_row);
-

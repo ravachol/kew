@@ -7,7 +7,8 @@
  * functions for finding and referencing track data.
  */
 
-#include "common/appstate.h"
+#include "data/playlist_type.h"
+#include <stdbool.h>
 
 /**
  * @brief Load a song into a decoder buffer.
@@ -20,6 +21,7 @@
  * @param is_first_decoder Whether to start a new decoder chain.
  * @param replace_next_song Whether to replace the song in the next slot.
  */
+
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song);
 
 /**
@@ -58,15 +60,6 @@ void unload_song_a(void);
 void unload_song_b(void);
 
 /**
- * @brief Attempt to load the next song if required.
- *
- * Triggers loading of the next track when playback state indicates
- * that a new song should be prepared. Typically used in conjunction
- * with preloading and seamless transitions.
- */
-void try_load_next(void);
-
-/**
  * @brief Automatically prepare playback if currently stopped.
  *
  * If a valid file path is provided, locates the corresponding song
@@ -91,3 +84,33 @@ void autostart_if_stopped(const char *path);
  * @return 0 on success, -1 if no playable song could be loaded.
  */
 int load_first(Node *song);
+
+/**
+ * @brief Checks and loads the next song if necessary.
+ *
+ * This function checks if a song needs to be loaded, either due to a restart or if the
+ * playlist is in shuffle mode. It prepares and loads the next song in the playlist if needed.
+ *
+ * @param seconds How far into the song to start playing.
+ */
+void check_and_load_next_song(double seconds);
+
+/**
+ * @brief Loads the next song if needed, considering the current state of the playlist and player.
+ *
+ * This function loads the next song from the playlist if the current song has finished or
+ * if the player is waiting for the next song. It handles various conditions, including
+ * handling end-of-list behavior and errors.
+ */
+ void load_waiting_music(void);
+
+/**
+ * @brief Determines the current song and sends a notification if needed.
+ *
+ * This function checks the current song data and updates its duration. It also
+ * checks if the song has changed since the last notification and, if so, sends
+ * a notification about the song switch.
+ */
+void determine_song_and_notify(void);
+
+void set_end_of_list_reached(void);

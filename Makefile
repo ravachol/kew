@@ -113,22 +113,25 @@ COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 
 ifeq ($(DEBUG), 1)
     SYMBOL_FLAGS := -g
-    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -Wformat -ffunction-sections -fdata-sections -Werror=format-security
 else ifeq ($(DEBUG), 2)
-    SYMBOL_FLAGS := -g
-    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -fsanitize=address,undefined \
+    SYMBOL_FLAGS := -g -O0
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -Wformat -ffunction-sections -fdata-sections -Werror=format-security -fsanitize=address,undefined \
           -fno-omit-frame-pointer \
           -fno-optimize-sibling-calls
     LDFLAGS += -fsanitize=address,undefined
 else
-    COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
+    ifeq ($(IS_ANDROID), 1)
+        COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -D_FORTIFY_SOURCE=2
+    else
+        COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
+    endif
 endif
 
 ifneq ($(strip $(KEW_VERSION)),)
     COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
 endif
 
-COMMONFLAGS += -DMA_NO_AAUDIO
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
 
 GC_SECTIONS_FLAG :=
@@ -213,11 +216,12 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
        src/sound/sound_facade.c src/sound/sound.c src/sound/m4a.c src/sound/audiobuffer.c \
        src/sound/decoders.c src/sound/audio_file_info.c src/sound/playback.c src/sound/volume.c \
        src/sys/sys_integration.c src/sys/notifications.c src/sys/mpris.c src/sys/discord_rpc.c \
-       src/ops/playback_ops.c src/ops/playback_clock.c src/ops/playback_system.c \
+       src/ops/playback_ops.c src/ops/playback_clock.c src/ops/search_ops.c  src/ops/playback_system.c \
        src/ops/playlist_ops.c src/ops/library_ops.c src/ops/track_manager.c src/ops/playback_state.c \
-       src/ui/control_ui.c  src/ui/input.c src/ui/playlist_ui.c  src/ui/search_ui.c  src/ui/player_ui.c \
-       src/ui/visuals.c src/ui/chroma.c src/ui/queue_ui.c src/ui/settings.c  src/ui/cli.c \
-       src/data/theme.c src/data/directorytree.c src/loader/lyrics.c src/data/img_func.c   \
+       src/ui/control_ui.c src/ui/components.c src/ui/input.c src/ui/playlist_ui.c src/ui/render_ui.c src/ui/render_terminal.c \
+       src/ui/visuals.c src/ui/chroma.c src/ui/queue_ui.c src/ui/settings.c src/ui/anims.c src/ui/cli.c \
+       src/update/messages.c src/update/update.c src/update/effects.c \
+       src/data/theme.c src/data/directorytree.c src/loader/lyrics.c src/data/img_func.c \
        src/data/playlist.c src/data/cache.c src/loader/song_loader.c src/kew.c
 
 # TagLib wrapper
@@ -230,6 +234,8 @@ DATADIR ?= $(PREFIX)/share
 LOCALEDIR ?= $(DATADIR)/locale
 THEMEDIR = $(DATADIR)/kew/themes
 THEMESRCDIR := $(CURDIR)/themes
+LAYOUTDIR = $(DATADIR)/kew/layouts
+LAYOUTSRCDIR := $(CURDIR)/layouts
 
 DEFINES += -DLOCALEDIR=\"$(LOCALEDIR)\"
 
@@ -289,6 +295,7 @@ install: all
 	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(THEMEDIR)
+	mkdir -p $(DESTDIR)$(LAYOUTDIR)
 	mkdir -p $(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES
 	mkdir -p $(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES
 
@@ -304,8 +311,16 @@ install: all
 	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
 	$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
 
+        # Install desktop shortcut
+	install -Dm644 kew.desktop \
+	$(DESTDIR)$(PREFIX)/share/applications/kew.desktop
+
+        # Install desktop icon
+	install -Dm644 kew.png \
+	$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png
+
 	@if [ -d $(THEMESRCDIR) ]; then \
-	for theme in $(THEMESRCDIR)/*.theme; do \
+	        for theme in $(THEMESRCDIR)/*.theme; do \
 			if [ -f "$$theme" ]; then \
 				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
 			fi; \
@@ -313,6 +328,24 @@ install: all
 		for theme in $(THEMESRCDIR)/*.txt; do \
 			if [ -f "$$theme" ]; then \
 				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+			fi; \
+		done; \
+		for theme in $(THEMESRCDIR)/*.md; do \
+			if [ -f "$$theme" ]; then \
+				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+			fi; \
+		done; \
+	fi
+
+	@if [ -d $(LAYOUTSRCDIR) ]; then \
+	        for layout in $(LAYOUTSRCDIR)/*.layout; do \
+			if [ -f "$$layout" ]; then \
+				install -m 0644 "$$layout" $(DESTDIR)$(LAYOUTDIR)/; \
+			fi; \
+		done; \
+		for layout in $(LAYOUTSRCDIR)/*.md; do \
+			if [ -f "$$layout" ]; then \
+				install -m 0644 "$$layout" $(DESTDIR)$(LAYOUTDIR)/; \
 			fi; \
 		done; \
 	fi
@@ -328,6 +361,7 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/kew
 	rm -f $(DESTDIR)$(MAN_DIR)/man1/kew.1
 	rm -rf $(DESTDIR)$(THEMEDIR)
+	rm -rf $(DESTDIR)$(LAYOUTDIR)
 	rm -f $(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
 	rm -f $(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo
 

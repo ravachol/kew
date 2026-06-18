@@ -25,6 +25,8 @@
 #include <time.h>
 #include <unistd.h>
 
+struct timespec timer_start;
+
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || \
     defined(__NetBSD__)
 #include <stdint.h> // For uint32_t
@@ -656,3 +658,21 @@ int get_number_from_string(const char *str)
 
         return (int)value;
 }
+
+
+void start_timer(void) {
+    clock_gettime(CLOCK_MONOTONIC, &timer_start);
+    fprintf(stderr, "Timer started\n");
+}
+
+void end_timer(void) {
+    struct timespec timer_end;
+    clock_gettime(CLOCK_MONOTONIC, &timer_end);
+
+    double elapsed =
+        (timer_end.tv_sec - timer_start.tv_sec) +
+        (timer_end.tv_nsec - timer_start.tv_nsec) / 1e9;
+
+    fprintf(stderr, "Timer ended: %.6f seconds elapsed\n", elapsed);
+}
+

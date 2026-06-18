@@ -16,7 +16,7 @@ extern "C" {
 
 #include "songdatatype.h"
 
-/**
+/*
  * @brief Extracts metadata tags, duration, and cover art from an audio file.
  *
  * This function parses an audio file to extract its metadata (e.g., title,
@@ -56,6 +56,16 @@ extern "C" {
  */
 int extractTags(const char *input_file, TagSettings *tag_settings,
                 double *duration, const char *cover_file_path, Lyrics **lyrics);
+
+/*
+ * @brief Extracts disc and track number from tags
+ *
+ * @param filepath full file path
+ * @param track A pointer to the variable where the extracted track number will be stored
+ * @param disc A pointer to the variable where the extracted disc number will be stored
+ */
+void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc);
+
 
 #ifdef __cplusplus
 }

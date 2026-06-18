@@ -65,14 +65,6 @@ void skip(void);
 void switch_decoder(void);
 
 /**
- * @brief Ensure that the default theme pack is available.
- *
- * Verifies the presence of the application's default themes and
- * installs or restores them if necessary.
- */
-void ensure_default_theme_pack(void);
-
-/**
  * @brief Returns whether audio should start playing.
  *
  * Retrieves the internal flag that indicates whether the audio

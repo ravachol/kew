@@ -3,7 +3,9 @@
  * @brief Handles keyboard and terminal input events.
  */
 
-#include "common/appstate.h"
+#include "common/model.h"
+
+#include <stdbool.h>
 
 /**
  * @brief Checks if any digits have been pressed.
@@ -23,6 +25,7 @@ bool is_digits_pressed(void);
  * @return A string of digits that have been pressed.
  */
 char *get_digits_pressed(void);
+
 
 /**
  * @brief Resets the stored digits that have been pressed.

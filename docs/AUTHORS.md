@@ -5,7 +5,7 @@
   * Founder and Main Author
 
 ## Advisors
-* @LeahtheSlug (Advisor)
+* @LeahtheSlug (Advisor) leahtheslug@slugmail.quest & https://slugmail.quest
 * Michael Petö @petoem (Technical advisor)
 
 ## Contributors (in alphabetical order)
@@ -17,6 +17,7 @@
 * Davis @kazemaksOG <davis.kazemaks@gmail.com>
 * @dandelion-75
 * DNEGEL3125 @DNEGEL3125
+* @emptyhead41
 * @episvr
 * @feng1st
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
@@ -33,6 +34,7 @@
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Michael Petö @petoem
 * @Moksh-Parikh
+* @netodosrjoao
 * @Overionised
 * Ravachol @ravachol <kew-player@proton.me>
 * Rioprastyo17
@@ -52,7 +54,7 @@
 * Vafone @vafone
 * Nicolas F
 * Ravachol @ravachol <kew-player@proton.me>
-* LeahTheSlug
+* LeahTheSlug leahtheslug@slugmail.quest & https://slugmail.quest
 
 ## Translations
 

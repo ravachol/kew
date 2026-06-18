@@ -8,17 +8,18 @@
 
 #include "sys_integration.h"
 
+#include "common/appstate.h"
+#include "common/model.h"
 #include "common/common.h"
 
 #include "discord_rpc.h"
 #include "mpris.h"
-#include "ops/playback_clock.h"
+
 #ifdef USE_MACOS_MEDIA
 #include "macos_nowplaying.h"
 #endif
 #include "notifications.h"
 
-#include "ui/player_ui.h"
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -30,6 +31,8 @@
 
 static GDBusConnection *connection = NULL;
 static GMainContext *global_main_context = NULL;
+
+volatile sig_atomic_t resizeFlag;
 
 void set_g_main_context(GMainContext *val)
 {
@@ -69,10 +72,7 @@ void resize(UIState *uis)
                 c_sleep(100);
         }
         alarm(0); // Cancel timer
-        printf("\033[1;1H");
-        clear_screen();
-        trigger_redraw_side_cover();
-        trigger_refresh();
+
         set_term_size();
 }
 
@@ -226,8 +226,9 @@ void notify_mpris_switch(SongData *current_song_data)
 
 void notify_song_switch(SongData *current_song_data)
 {
-        AppState *state = get_app_state();
-        UISettings *ui = &(state->uiSettings);
+        Model *model = get_model();
+        AppState *state = &model->state;
+        UISettings *ui = &(state->settings);
         if (current_song_data != NULL && current_song_data->hasErrors == 0 &&
             current_song_data->metadata &&
             strnlen(current_song_data->metadata->title, 10) > 0) {
@@ -242,12 +243,12 @@ void notify_song_switch(SongData *current_song_data)
                 notify_mpris_switch(current_song_data);
 
                 if (ui->discordRPCEnabled)
-                        notify_discord_update(current_song_data, get_elapsed_seconds(), get_current_song_duration());
+                        notify_discord_update(current_song_data, model->elapsed_seconds, current_song_data->duration);
 
                 Node *current = get_current_song();
 
                 if (current != NULL)
-                        state->uiState.lastNotifiedId = current->id;
+                        state->ui.lastNotifiedId = current->id;
         }
 }
 
@@ -443,15 +444,18 @@ void restart_if_already_running(char *argv[])
 void handle_resize(int sig)
 {
         (void)sig;
-        AppState *state = get_app_state();
-        state->uiState.resizeFlag = 1;
+        resizeFlag = 1;
 }
 
 void reset_resize_flag(int sig)
 {
         (void)sig;
-        AppState *state = get_app_state();
-        state->uiState.resizeFlag = 0;
+        resizeFlag = 0;
+}
+
+sig_atomic_t get_resize_flag()
+{
+        return resizeFlag;
 }
 
 void init_resize(void)

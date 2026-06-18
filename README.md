@@ -37,6 +37,8 @@ kew (/kjuː/) is a terminal music player.
  * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
  * Supports replay gain.
  * Use themes or colors derived from covers.
+ * Make your own color themes and layouts.
+ * Crossfade (experimental), both automatic and on demand.
 
  *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
 
@@ -161,6 +163,38 @@ kew path "/home/joe/Musik/" (changes the path)
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
 
+## Contributing
+
+We very much welcome contributions, and will help if guidance is needed. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) first though and also [DEVELOPERS.md](docs/DEVELOPERS.md). It's important to discuss with the maintainer before doing a lot of work, or it might end up being rejected or having to be redone unnecessarily.
+
+## Layouts
+
+It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](layouts/LAYOUTS-HOWTO.md)
+
+The layout used by kew is called current.layout.
+
+Replace current.layout to change the layout. If breaking changes are introduced, current.layout will be renamed to current.layout.bak, before the new one is copied over.
+
+Layouts are in \~/.config/kew/layouts (\~/Library/Preferences/kew/layouts on macOS).
+
+If layouts aren't working, try re-installing kew or running 'sudo make install' if you ran make yourself.
+
+## Themes
+
+Press t to cycle available themes.
+
+To set a theme from the command-line, run:
+
+```bash
+kew theme <themename> (ie 'kew theme midnight')
+```
+
+Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
+
+It's possible to define your own themes. How to make one is described in [THEMES-HOWTO.md](layouts/THEMES-HOWTO.md). If you change a theme and we update it, your theme will renamed and get the extension .bak. But ideally you should add your own themes as separate themes.
+
+Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https://bholroyd.github.io/Kew-tip/).
+
 ## Configuration
 
 Linux: ~/.config/kew/
@@ -180,22 +214,6 @@ If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
 kewrc is never changed by kew with the exception of when you run kew path.
 
 If you delete your kewrc a new default one will be generated. You wont get newer config options listed in your config file unless you do this.
-
-## Themes
-
-Press t to cycle available themes.
-
-To set a theme from the command-line, run:
-
-```bash
-kew theme <themename> (ie 'kew theme midnight')
-```
-
-Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
-
-Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.
-
-Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https://bholroyd.github.io/Kew-tip/).
 
 ## Visulizations / Chroma
 
@@ -220,8 +238,6 @@ Enable and cycle through the visualizations by pressing <kbd>c</kbd> in track vi
 Disable by pressing <kbd>b</kbd>.
 
 This works by kew being fed frames from Chroma and does not add bloat to kew.
-
-### Configuration
 
 You can customize Chroma's behavior in your `kewrc` file:
 

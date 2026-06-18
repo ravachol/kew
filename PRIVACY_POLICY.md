@@ -20,14 +20,14 @@
 
 - kew supports **MPRIS** (Media Player Remote Interfacing Specification) and **Discord Rich Presence (RPC)**.
 - Both Discord and MPRIS integrations can be **disabled** by the user at any time in the config file kewrc.
-- If Discord integration is enabled, it only shares your activity if you have Discord’s *“Display currently running game as status”* feature enabled.
+- If Discord integration is enabled and you have Discord running, what you are playing will be shared with Discord.
 - No additional user data is sent to Discord or any other external service.
 
 ---
 
 ## 3. Data Sharing and Privacy
 
-- All activity in kew remains **local** unless you explicitly expose it via MPRIS or Discord RPC.
+- All activity in kew remains **local** unless MPRIS or Discord RPC is on. Both are on by default, and need to be disabled in the settings.
 - kew does **not** collect, track, or share your listening habits, playlists, or any other personal data.
 
 ---
@@ -38,7 +38,7 @@ You have full control over integrations:
 
 - You can **disable Discord Rich Presence** at any time in the settings.
 - You can **disable MPRIS integration** at any time.
-- When these integrations are disabled, no activity data leaves your device.
+- When these integrations are disabled, no activity data leaves your device through kew.
 
 By using kew, you acknowledge and agree that:
 
@@ -55,4 +55,4 @@ By using kew, you acknowledge and agree that:
 
 ---
 
-**Summary:** kew is **completely offline** and respects your privacy. Your data stays on your device unless you intentionally share it via supported integrations.
+**Summary:** kew is **completely offline** and respects your privacy. Your data stays on your device unless supported integrations are enabled.

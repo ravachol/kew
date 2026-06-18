@@ -40,32 +40,39 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "common/appstate.h"
 #include "common/common.h"
+#include "common/events.h"
+#include "common/model.h"
 
 #include "sys/discord_rpc.h"
 #include "sys/mpris.h"
 #include "sys/notifications.h"
 #include "sys/sys_integration.h"
 
+#include "sound/sound_facade.h"
+
 #include "ui/chroma.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"
+#include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/input.h"
-#include "ui/player_ui.h"
-#include "ui/playlist_ui.h"
 #include "ui/queue_ui.h"
-#include "ui/search_ui.h"
+#include "ui/render_ui.h"
 #include "ui/settings.h"
 #include "ui/termbox2_input.h"
 #include "ui/visuals.h"
 
+#include "update/messages.h"
+#include "update/update.h"
+
 #include "ops/library_ops.h"
-#include "ops/playback_clock.h"
-#include "ops/playback_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
+#include "ops/search_ops.h"
 #include "ops/track_manager.h"
+
+#include "data/theme.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -88,183 +95,48 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-AppState *state_ptr = NULL;
-
 /**
- * @brief Updates the player state based on window size changes.
+ * @brief Runs the Model-View-Update Tick
  *
- * This function checks if the terminal window size has changed. If it has, it sets
- * the resize flag and adjusts the UI state. If the resize flag is set, it will resize
- * the UI; otherwise, it refreshes the player.
  */
-void update_player(void)
+void player_tick(Model *model, RenderContext *ctx)
 {
-        AppState *state = get_app_state();
-        UIState *uis = &(state->uiState);
-        struct winsize ws;
-        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != -1) {
-                if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row) {
-                        uis->resizeFlag = 1;
-                        state->uiState.windowSize = ws;
+        dispatch_msg((struct Msg){.type = MSG_TICK});
+
+        // Process all pending messages
+        while (has_pending_msgs()) {
+                struct Msg msg = next_msg();
+
+                // Update the model
+                UpdateResult res = update(model, &msg);
+
+                // Run commands
+                run_command(res);
+        }
+
+        if (can_refresh_player()) {
+
+                if (!resize_if_needed()) {
+                        // Render the UI
+                        render_ui(model, ctx);
+
+                        // Notify system that a frame was rendered
+                        dispatch_msg((struct Msg){.type = MSG_RENDERED});
                 }
         }
 
-        if (uis->resizeFlag) {
-                resize(uis);
-        } else {
-                refresh_player();
-        }
-}
+        // Load music
+        dispatch_msg((struct Msg){.type = MSG_LOAD_WAITING_MUSIC});
 
-/**
- * @brief Prepares the next song for playback.
- *
- * This function performs actions like resetting the clock, finishing loading,
- * and preparing the next song to be played. It handles playlist and repeat logic.
- */
-void prepare_next_song(void)
-{
-        AppState *state = get_app_state();
+        // Process all side effects
+        while (has_pending_msgs()) {
+                struct Msg msg = next_msg();
 
-        reset_clock();
-        handle_skip_out_of_order();
-        finish_loading();
+                // Update the model
+                UpdateResult res = update(model, &msg);
 
-        set_next_song(NULL);
-        trigger_refresh();
-
-        Node *current = get_current_song();
-
-        if (!is_repeat_enabled() || current == NULL) {
-
-                if (!sound_system_is_end_of_list_reached(sound_sys)) {
-                        PlaybackState *ps = get_playback_state();
-                        ps->loadedNextSong = false;
-                }
-        }
-
-        if (current == NULL) {
-                if (state->uiSettings.quitAfterStopping) {
-                        quit();
-                } else {
-                        set_end_of_list_reached();
-                }
-        } else {
-                determine_song_and_notify();
-        }
-}
-
-/**
- * @brief Prepares and plays the specified song.
- *
- * This function sets up the player to play the specified song, unloads previous songs,
- * and loads the new song. It then resumes playback, creating a playback device if needed.
- *
- * @param song Pointer to the song (Node) to be played.
- *
- * @return int Status of the operation: 0 on success, negative value on error.
- */
-int prepare_and_play_song(Node *song)
-{
-        if (!song)
-                return -1;
-
-        set_current_song(song);
-
-        stop();
-
-        int res = load_first(get_current_song());
-
-        finish_loading();
-
-        if (res >= 0) {
-                resume_playback();
-        }
-
-        if (res < 0)
-                set_end_of_list_reached();
-
-        trigger_refresh();
-        reset_clock();
-
-        return res;
-}
-
-/**
- * @brief Checks and loads the next song if necessary.
- *
- * This function checks if a song needs to be loaded, either due to a restart or if the
- * playlist is in shuffle mode. It prepares and loads the next song in the playlist if needed.
- */
-void check_and_load_next_song(void)
-{
-        AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-
-        if (should_start_playing()) {
-                PlayList *playlist = get_playlist();
-                if (playlist->head == NULL)
-                        return;
-
-                if (ps->waitingForPlaylist || ps->waitingForNext) {
-                        ps->songLoading = true;
-
-                        Node *next_song = determine_next_song(playlist);
-                        if (!next_song)
-                                return;
-
-                        start_playing(false);
-                        ps->waitingForPlaylist = false;
-                        ps->waitingForNext = false;
-                        state->uiState.songWasRemoved = false;
-
-                        if (is_shuffle_enabled())
-                                reshuffle_playlist();
-
-                        int res = prepare_and_play_song(next_song);
-
-                        if (res < 0)
-                                set_end_of_list_reached();
-
-                        ps->loadedNextSong = false;
-                        set_next_song(NULL);
-                }
-        } else if (get_current_song() != NULL &&
-                   (ps->nextSongNeedsRebuilding || get_next_song() == NULL) &&
-                   !ps->songLoading) {
-                update_next_song_if_needed();
-        }
-}
-
-/**
- * @brief Loads the next song if needed, considering the current state of the playlist and player.
- *
- * This function loads the next song from the playlist if the current song has finished or
- * if the player is waiting for the next song. It handles various conditions, including
- * handling end-of-list behavior and errors.
- */
-void load_waiting_music(void)
-{
-        PlayList *playlist = get_playlist();
-        PlaybackState *ps = get_playback_state();
-
-        if (playlist->head != NULL) {
-                if ((ps->skipFromStopped || !ps->loadedNextSong ||
-                     ps->nextSongNeedsRebuilding) &&
-                    !sound_system_is_end_of_list_reached(sound_sys)) {
-                        check_and_load_next_song();
-                }
-
-                if (ps->songHasErrors)
-                        try_load_next();
-
-                if (is_EOF_reached()) {
-                        set_EOF_handled();
-                        prepare_next_song();
-                        switch_decoder();
-                }
-        } else {
-                set_EOF_handled();
+                // Run commands
+                run_command(res);
         }
 }
 
@@ -276,80 +148,86 @@ void load_waiting_music(void)
  */
 void kew_shutdown()
 {
-        AppState *state = get_app_state();
-        FileSystemEntry *library = get_library();
-        AppSettings *settings = get_app_settings();
-        PlayList *favorites_playlist = get_favorites_playlist();
+        Model *model = get_model();
 
         shutdown_sound_system();
 
         emit_playback_stopped_mpris();
 
         if (chroma_is_started())
-                state->uiSettings.chromaPreset = chroma_get_current_preset();
+
+                model->state.settings.chromaPreset = chroma_get_current_preset();
         else
-                state->uiSettings.chromaPreset = -1;
+                model->state.settings.chromaPreset = -1;
 
         chroma_stop();
 
         bool noMusicFound = false;
 
-        if (library == NULL || library->children == NULL) {
+        if (model->library == NULL || model->library->children == NULL) {
                 noMusicFound = true;
         }
 
 #ifdef CHAFA_VERSION_1_16
-        retire_passthrough_workarounds_tmux();
+        retirePassthroughWorkarounds_tmux();
 #endif
         bool wait_until_complete = true;
+        component_library_helper_reset(model);
         update_library_if_changed_detected(wait_until_complete);
         shutdown_input();
 
-        if (state->uiSettings.discordRPCEnabled)
+        if (model->state.settings.discordRPCEnabled)
                 discord_rpc_shutdown();
+
         free_search_results();
         cleanup_mpris();
-        set_path(settings->path);
-        set_prefs(settings, &(state->uiSettings));
-        save_favorites_playlist(settings->path, favorites_playlist);
+        set_path(model->settings.path);
+        set_prefs(&model->settings, &(model->state.settings));
+        save_favorites_playlist(model->settings.path, model->favorites_playlist);
         save_library();
-        free_library();
-        free_playlists();
+
+        ui_destroy(model);
+
+        free_tree(model->library);
+
+        free_playlist(&model->playlist);
+        free_playlist(&model->unshuffled_playlist);
+        free_playlist(&model->favorites_playlist);
+        free_layout_config();
+        free_visuals();
+
         set_default_text_color();
 
-        pthread_mutex_destroy(&(state->switch_mutex));
-
-        free_visuals();
+        pthread_mutex_destroy(&(model->playbackState.switch_mutex));
+        pthread_mutex_destroy(&(model->state.library_mutex));
 
 #ifdef USE_DBUS
         cleanup_notifications();
 #endif
 
 #ifdef DEBUG
-        if (state->uiState.logFile)
-                fclose(state->uiState.logFile);
+        if (model->state.ui.logFile)
+                fclose(model->state.ui.logFile);
 #endif
 
         if (freopen("/dev/stderr", "w", stderr) == NULL) {
                 perror("freopen error");
         }
 
-        if (state_ptr->uiSettings.mouseEnabled)
+        if (model->state.settings.mouseEnabled)
                 disable_terminal_mouse_buttons();
 
         printf("\n");
         show_cursor();
         exit_alternate_screen_buffer();
         restore_terminal_mode();
-
-        if (state_ptr->uiSettings.trackTitleAsWindowTitle)
-                restore_terminal_window_title();
+        restore_terminal_window_title();
 
         if (noMusicFound) {
                 printf(_("No Music found.\n"));
                 printf(_("Please make sure the path is set correctly. \n"));
                 printf(_("To set it type: kew path \"/path/to/Music\". \n"));
-        } else if (state->uiState.noPlaylist) {
+        } else if (model->state.ui.noPlaylist) {
                 printf(_("Music not found.\n"));
         }
 
@@ -362,6 +240,45 @@ void kew_shutdown()
         exit(0);
 }
 
+int in_foreground(void)
+{
+        pid_t my_pgrp = getpgrp();
+        pid_t tty_pgrp = tcgetpgrp(STDIN_FILENO);
+
+        if (tty_pgrp == my_pgrp) {
+                // Resumed via fg
+                return true;
+        } else {
+                // Resumed via bg
+                return false;
+        }
+}
+
+
+void reinitialize()
+{
+        set_nonblocking_mode();
+        disable_terminal_line_input();
+        set_term_size();
+        enable_scrolling();
+        init_input();
+        enter_alternate_screen_buffer();
+        clear_screen();
+        set_dirty(DIRTY_ALL);
+}
+
+void resume()
+{
+        Model *model = get_model();
+
+        if (in_foreground()) {
+                reinitialize();
+                model->state.ui.resumed_in_background = false;
+        } else {
+                model->state.ui.resumed_in_background = true;
+        }
+}
+
 /**
  * @brief Main callback for the event loop, runs periodically.
  *
@@ -370,13 +287,12 @@ void kew_shutdown()
  *
  * @param data Additional data passed to the callback (unused in this case).
  *
- * @return gboolean Returns TRUE to keep the callback running.
+ * @return gboolean Returns TRUE to keep theq callback running.
  */
 gboolean mainloop_callback(gpointer data)
 {
         (void)data;
 
-        calc_elapsed_time(get_current_song_duration());
         increment_update_counter();
         handle_cooldown();
 
@@ -387,16 +303,55 @@ gboolean mainloop_callback(gpointer data)
 
         int update_counter = get_update_counter();
 
-        // Different views run at different speeds to lower the impact on system
-        // requirements
-        if ((update_counter % 2 == 0 && state_ptr->currentView == SEARCH_VIEW) ||
-            (state_ptr->currentView == TRACK_VIEW || update_counter % 3 == 0)) {
-                process_d_bus_events();
+        Model *model = get_model();
 
-                update_player();
-
-                load_waiting_music();
+        if (model->state.ui.resumed) {
+                resume();
+                model->state.ui.resumed = 0;
+                model->state.ui.rendered = false;
         }
+
+        if (model->state.ui.resumed_in_background)
+        {
+                if (in_foreground()) {
+                        model->state.ui.resumed_in_background = false;
+                        reinitialize();
+                }
+        }
+
+        bool has_active_animation = model->glimmer.active || model->title_delay.active || model->name_scroll.active;
+
+        RenderContext *ctx = get_render_context();
+
+        // Throttle updates depending on current view
+        gboolean should_run =
+            has_active_animation ||
+            (update_counter % 2 == 0 && ctx->render_often) ||
+            (update_counter % 4 == 0 && ctx->render_search) ||
+            update_counter % 6 == 0;
+
+        if (!should_run)
+                return TRUE;
+
+        int mutex_result = pthread_mutex_trylock(&(model->state.library_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "Failed to lock library mutex.\n");
+                return TRUE;
+        }
+
+        int mutex_result2 = pthread_mutex_trylock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result2 != 0) {
+                fprintf(stderr, "Failed to lock switch mutex.\n");
+                pthread_mutex_unlock(&(model->state.library_mutex));
+                return TRUE;
+        }
+
+        player_tick(model, ctx);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+        pthread_mutex_unlock(&(model->state.library_mutex));
 
         return TRUE;
 }
@@ -432,10 +387,41 @@ void create_loop(void)
         g_unix_signal_add(SIGINT, quit_on_signal, main_loop);
         g_unix_signal_add(SIGHUP, quit_on_signal, main_loop);
         g_unix_signal_add(SIGTERM, quit_on_signal, main_loop);
-        g_timeout_add(34, mainloop_callback, main_loop);
+
+        Model *model = get_model();
+
+        g_timeout_add(model->tick, mainloop_callback, main_loop);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
         kew_shutdown();
+}
+
+void auto_resume(double *seconds)
+{
+        Model *model = get_model();
+        AppState *state = &model->state;
+        PlayList *playlist = model->playlist;
+        PlaybackState *ps = &model->playbackState;
+        Node *song = NULL;
+        find_node_in_list(playlist, model->state.settings.currentSongId, &song);
+
+        if (song) {
+                set_song_to_start_from(song);
+                ps->waitingForNext = true;
+                sound_system_set_end_of_list_reached(sound_sys, false);
+
+                if (model->state.settings.currentSongSeconds > 0.8) {
+                        model->state.settings.currentSongSeconds -= 0.8;
+                        *seconds = model->state.settings.currentSongSeconds;
+                }
+
+                sound_system_set_volume(sound_sys, 0.0);
+                model->restore_volume = true;
+
+                state->currentView = TRACK_VIEW;
+
+                set_dirty(DIRTY_NONE); // When the song plays, the UI will be set to dirty. To prevent flickering.
+        }
 }
 
 /**
@@ -448,37 +434,47 @@ void create_loop(void)
  */
 void run(bool start_playing)
 {
-        AppState *state = get_app_state();
-        PlayList *playlist = get_playlist();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
-        PlaybackState *ps = get_playback_state();
+        Model *model = get_model();
+        AppState *state = &model->state;
+        PlayList *playlist = model->playlist;
+        PlaybackState *ps = &model->playbackState;
 
-        if (unshuffled_playlist == NULL) {
-                set_unshuffled_playlist(deep_copy_playlist(playlist));
-        }
+        deep_copy_list(playlist, &model->unshuffled_playlist);
 
-        if (state->uiSettings.saveRepeatShuffleSettings) {
+        if (state->settings.saveRepeatShuffleSettings) {
 
-                if (state->uiSettings.shuffle_enabled)
-                        toggle_shuffle();
+                if (state->settings.shuffle_enabled)
+                        toggle_shuffle(model);
         }
 
         if (playlist->head == NULL) {
                 state->currentView = LIBRARY_VIEW;
         }
 
+        double seconds = 0.0;
+        if (!start_playing) {
+
+                set_dirty(DIRTY_ALL);
+
+                if (model->state.settings.currentSongId > 0 && model->state.settings.auto_resume) {
+                        auto_resume(&seconds);
+                }
+        }
+
         init_mpris();
 
-        if (state->uiSettings.chromaPreset >= 0) {
-                chroma_set_current_preset(state->uiSettings.chromaPreset);
-                state->uiSettings.visualizations_instead_of_cover = true;
+        if (state->settings.chromaPreset >= 0) {
+                chroma_set_current_preset(state->settings.chromaPreset);
+                state->settings.visualizations_instead_of_cover = true;
         }
+
         ps->loadedNextSong = false;
+
         if (start_playing)
                 ps->waitingForPlaylist = true;
 
         if (playlist->count != 0)
-                check_and_load_next_song();
+                check_and_load_next_song(seconds);
 
         create_loop();
 }
@@ -498,6 +494,25 @@ void init_locale(void)
 }
 
 /**
+ * @brief Initializes logging to error.log if DEBUG is set.
+ *
+ */
+void init_logging(Model *model)
+{
+#ifdef DEBUG
+        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+        model->state.ui.logFile = freopen("error.log", "w", stderr);
+        if (model->state.ui.logFile == NULL) {
+                fprintf(stdout, "Failed to redirect stderr to error.log\n");
+        }
+#else
+        (void)model;
+        FILE *null_stream = freopen("/dev/null", "w", stderr);
+        (void)null_stream;
+#endif
+}
+
+/**
  * @brief Initializes the application and sets up necessary states.
  *
  * This function sets the initial state of the application, initializes resources, and prepares
@@ -507,53 +522,42 @@ void init_locale(void)
  */
 void kew_init(bool set_library_enqueued_status)
 {
-        AppState *state = get_app_state();
-
+        Model *model = get_model();
         set_nonblocking_mode();
-
         disable_terminal_line_input();
         init_resize();
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &state->uiState.windowSize);
+        set_term_size();
+
+        load_favorites_playlist(model->settings.path, &model->favorites_playlist);
+
         enable_scrolling();
 
         init_input();
 
-        if (state->uiSettings.discordRPCEnabled)
+        if (model->state.settings.discordRPCEnabled)
                 discord_rpc_init();
 
         // This is to not stop Chroma when we can't keep up with it, instead just return an error
         signal(SIGPIPE, SIG_IGN);
 
-        PlayList *playlist = get_playlist();
-
+        // The (sometimes shuffled) sequence of songs that will be played
         start_playing(true);
 
         unsigned int seed = (unsigned int)time(NULL);
 
         srand(seed);
 
-        pthread_mutex_init(&(playlist->mutex), NULL);
-        free_search_results();
-        reset_chosen_dir();
-        create_library(set_library_enqueued_status);
-        state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
+        create_library(model, set_library_enqueued_status);
+        model->state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         clear_screen();
+
+        hide_cursor();
+
         fflush(stdout);
 
-        set_term_size();
+        ui_init(model);
 
-#ifdef DEBUG
-        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-        state->uiState.logFile = freopen("error.log", "w", stderr);
-        if (state->uiState.logFile == NULL) {
-                fprintf(stdout, "Failed to redirect stderr to error.log\n");
-        }
-#else
-        FILE *null_stream = freopen("/dev/null", "w", stderr);
-        (void)null_stream;
-#endif
-
-        if (!create_sound_system())
+        if (create_sound_system() == -1)
                 quit();
 }
 
@@ -574,8 +578,6 @@ void init_default_state(void)
         PlaybackState *ps = get_playback_state();
 
         add_enqueued_songs_to_playlist(library, playlist);
-
-        set_unshuffled_playlist(deep_copy_playlist(playlist));
 
         reset_list_after_dequeuing_playing_song();
 
@@ -625,74 +627,116 @@ void init_state(void)
 {
         AppState *state = get_app_state();
 
-        state->uiSettings.VERSION = KEW_VERSION;
-        state->uiSettings.uiEnabled = true;
-        state->uiSettings.color.r = 125;
-        state->uiSettings.color.g = 125;
-        state->uiSettings.color.b = 125;
-        state->uiSettings.coverEnabled = true;
-        state->uiSettings.hideLogo = false;
-        state->uiSettings.hideHelp = false;
-        state->uiSettings.hideFooter = false;
-        state->uiSettings.hideTimeStatus = true;
-        state->uiSettings.quitAfterStopping = false;
-        state->uiSettings.hideGlimmeringText = false;
-        state->uiSettings.coverAnsi = false;
-        state->uiSettings.visualizerEnabled = true;
-        state->uiSettings.discordRPCEnabled = true;
-        state->uiSettings.visualizer_height = 5;
-        state->uiSettings.visualizer_color_type = 0;
-        state->uiSettings.visualizerBrailleMode = false;
-        state->uiSettings.visualizer_bar_mode = 2;
-        state->uiSettings.titleDelay = 9;
-        state->uiSettings.cacheLibrary = -1;
-        state->uiSettings.mouseEnabled = true;
-        state->uiSettings.mouseLeftClickAction = 0;
-        state->uiSettings.mouseMiddleClickAction = 1;
-        state->uiSettings.mouseRightClickAction = 2;
-        state->uiSettings.mouseScrollUpAction = 3;
-        state->uiSettings.mouseScrollDownAction = 4;
-        state->uiSettings.mouseAltScrollUpAction = 7;
-        state->uiSettings.mouseAltScrollDownAction = 8;
-        state->uiSettings.replayGainCheckFirst = 0;
-        state->uiSettings.saveRepeatShuffleSettings = 1;
-        state->uiSettings.repeatState = 0;
-        state->uiSettings.shuffle_enabled = 0;
-        state->uiSettings.trackTitleAsWindowTitle = 1;
-        state->uiState.numDirectoryTreeEntries = 0;
-        state->uiState.num_progress_bars = 35;
-        state->uiState.chosen_node_id = 0;
-        state->uiState.resetPlaylistDisplay = true;
-        state->uiState.allowChooseSongs = false;
-        state->uiState.allowChooseSearchSongs = false;
-        state->uiState.openedSubDir = false;
-        state->uiState.numSongsAboveSubDir = 0;
-        state->uiState.numSongsAboveSearchSubDir = 0;
-        state->uiState.openedSearchSubDir = 0;
-        state->uiState.collapseSearchView = 0;
-        state->uiState.previous_chosen_search_row = 0;
-        state->uiState.resizeFlag = 0;
-        state->uiState.collapseView = false;
-        state->uiState.refresh = true;
-        state->uiState.isFastForwarding = false;
-        state->uiState.isRewinding = false;
-        state->uiState.songWasRemoved = false;
-        state->uiState.startFromTop = false;
-        state->uiState.lastNotifiedId = -1;
-        state->uiState.noPlaylist = false;
-        state->uiState.logFile = NULL;
-        state->uiState.showLyricsPage = false;
-        state->uiState.currentLibEntry = NULL;
-        state->uiSettings.default_color = 150;
-        state->uiSettings.defaultColorRGB.r = state->uiSettings.default_color;
-        state->uiSettings.defaultColorRGB.g = state->uiSettings.default_color;
-        state->uiSettings.defaultColorRGB.b = state->uiSettings.default_color;
-        state->uiSettings.kewColorRGB.r = 222;
-        state->uiSettings.kewColorRGB.g = 43;
-        state->uiSettings.kewColorRGB.b = 77;
-        state->uiSettings.chromaPreset = -1;
-        state->uiSettings.visualizations_instead_of_cover = false;
-        state->uiSettings.lastVolume = 100;
+        state->settings.VERSION = KEW_VERSION;
+        state->settings.uiEnabled = true;
+        state->settings.color.r = 125;
+        state->settings.color.g = 125;
+        state->settings.color.b = 125;
+        state->settings.coverEnabled = true;
+        state->settings.hideLogo = false;
+        state->settings.hideHelp = false;
+        state->settings.hideFooter = false;
+        state->settings.hideTimeStatus = true;
+        state->settings.simpleTimeStatus = true;
+        state->settings.quitAfterStopping = false;
+        state->settings.hideGlimmeringText = false;
+        state->settings.coverAnsi = false;
+        state->settings.visualizer_mode = VIZ_KMEANS_CLUSTERING;
+        state->settings.discordRPCEnabled = true;
+        state->settings.visualizer_height = 5;
+
+        state->settings.visualizerBrailleMode = false;
+        state->settings.visualizer_bar_mode = 2;
+        state->settings.titleDelay = 1;
+        state->settings.auto_resume = true;
+        state->settings.always_crossfade = false;
+        state->settings.cacheLibrary = -1;
+        state->settings.mouseEnabled = true;
+        state->settings.mouseLeftClickAction = 0;
+        state->settings.mouseMiddleClickAction = 1;
+        state->settings.mouseRightClickAction = 2;
+        state->settings.mouseScrollUpAction = 3;
+        state->settings.mouseScrollDownAction = 4;
+        state->settings.mouseAltScrollUpAction = 7;
+        state->settings.mouseAltScrollDownAction = 8;
+        state->settings.replayGainCheckFirst = 0;
+        state->settings.saveRepeatShuffleSettings = 1;
+        state->settings.repeatState = 0;
+        state->settings.shuffle_enabled = 0;
+        state->settings.trackTitleAsWindowTitle = 1;
+        state->settings.footer_color.r = 120;
+        state->settings.footer_color.g = 120;
+        state->settings.footer_color.b = 120;
+        state->settings.footer_color.a = 255;
+        state->settings.default_color = 150;
+        state->settings.defaultColorRGB.r = state->settings.default_color;
+        state->settings.defaultColorRGB.g = state->settings.default_color;
+        state->settings.defaultColorRGB.b = state->settings.default_color;
+        state->settings.defaultColorRGB.a = 255;
+        state->settings.kewColorRGB.r = 222;
+        state->settings.kewColorRGB.g = 43;
+        state->settings.kewColorRGB.b = 77;
+        state->settings.kewColorRGB.a = 255;
+        state->settings.chromaPreset = -1;
+        state->settings.visualizations_instead_of_cover = false;
+        state->settings.lastVolume = 100;
+        state->settings.collapseTopLevel = true;
+        state->settings.colorMode = COLOR_MODE_ALBUM;
+        state->settings.fade_enter_song_ms = 0;
+        state->settings.fade_quick_ms = 2000;
+        state->settings.fade_medium_ms = 3000;
+        state->settings.fade_slow_ms = 5000;
+
+        state->ui.numDirectoryTreeEntries = 0;
+        state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
+        state->ui.chosen_node_id = 0;
+        state->ui.resetPlaylistDisplay = true;
+        state->ui.allowChooseSongs = false;
+        state->ui.allowChooseSearchSongs = false;
+        state->ui.resizeFlag = 0;
+        state->ui.refresh = true;
+        state->ui.isFastForwarding = false;
+        state->ui.isRewinding = false;
+        state->ui.songWasRemoved = false;
+        state->ui.startFromTop = false;
+        state->ui.lastNotifiedId = -1;
+        state->ui.noPlaylist = false;
+        state->ui.logFile = NULL;
+        state->ui.showLyricsPage = false;
+        state->ui.current_lib_entry = NULL;
+        state->ui.chosen_search_dir = NULL;
+        state->ui.current_search_entry = NULL;
+        state->ui.current_lib_entry = NULL;
+        state->ui.last_search_parent = NULL;
+        state->ui.chosen_dir = NULL;
+        state->ui.aspect_ratio = 0;
+        state->ui.visualizer_width = 0;
+        state->ui.previous_chosen_song = -1;
+        state->ui.has_chroma = -1;
+        state->ui.check_collapse_top_level = false;
+        state->ui.start_lib_iter = 0;
+        state->ui.chosen_lib_row = 0;
+        state->ui.lib_row_count = 0;
+        state->ui.resumed = 0;
+        state->ui.resumed_in_background = 0;
+
+        state->ui.footer_row = 0;
+        state->ui.footer_col = 0;
+
+        state->ui.chosen_dir = NULL;
+        state->ui.start_iter = 0;
+        state->ui.previous_chosen_song = 0;
+        state->ui.render_often = false;
+        state->ui.render_search = false;
+        state->ui.chosen_lyrics_row = 0;
+
+        state->ui.chroma_started = false;
+        state->ui.chroma_next_preset_requested = false;
+        state->ui.chroma_start_requested = false;
+        state->ui.chroma_height = 0;
+
+        state->ui.metadata_switched = 0;
+        state->ui.decoder_switched = 0;
 
         PlaybackState *ps = get_playback_state();
 
@@ -713,14 +757,12 @@ void init_state(void)
         ps->notifyPlaying = false;
         ps->notifySeek = false;
 
-        pthread_mutex_init(&(state->switch_mutex), NULL);
-
-        set_unshuffled_playlist(NULL);
-        set_favorites_playlist(NULL);
-
         reset_digits_pressed();
 
-        state_ptr = state;
+        Model *model = get_model();
+        init_logging(model);
+
+        init_model();
 }
 
 /**
@@ -754,6 +796,24 @@ void force_terminal_restore(int sig)
         raise(sig);
 }
 
+void handle_sigtstp(int sig)
+{
+        force_terminal_restore(sig);
+        shutdown_input();
+        disable_terminal_mouse_buttons();
+
+        signal(SIGTSTP, SIG_DFL);
+        raise(SIGTSTP);
+}
+
+void handle_sigcont(int sig)
+{
+        (void)sig;
+        signal(SIGTSTP, handle_sigtstp);
+        Model *model = get_model();
+        model->state.ui.resumed = 1;
+}
+
 /**
  * @brief Main entry point of the application.
  *
@@ -767,61 +827,65 @@ void force_terminal_restore(int sig)
  */
 int main(int argc, char *argv[])
 {
-        AppState *state = get_app_state();
+        tty_init();
 
         init_state();
         init_locale();
-        restart_if_already_running(argv);
 
-        AppSettings *settings = get_app_settings();
-        PlayList *playlist = get_playlist();
-        PlayList *favorites_playlist = get_favorites_playlist();
+        Model *model = get_model();
+        AppState *state = &model->state;
 
         if ((argc == 2 &&
              ((strcmp(argv[1], "--help") == 0) ||
               (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0)))) {
-                show_help();
+                print_help();
                 exit(0);
         } else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
                                  strcmp(argv[1], "-v") == 0)) {
-                state->uiSettings.colorMode = COLOR_MODE_ALBUM;
-                state->uiSettings.color = state->uiSettings.defaultColorRGB;
-                print_about_for_version(NULL);
+                state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
+                state->settings.color = state->settings.defaultColorRGB;
+                print_about_for_version(model);
                 exit(0);
         }
-        *settings = init_settings();
+
+#ifndef DEBUG // Only prevent multiple instances if not debugging. Yes, now you can finally listen to music in kew while you work on kew!
+        restart_if_already_running(argv);
+#endif
+
+        init_settings(&model->settings);
         transfer_settings_to_ui();
-        init_key_mappings(settings);
-        set_track_title_as_window_title();
+        init_key_mappings(&model->settings);
+        save_terminal_window_title();
 
         bool run_for_play_command_with_playlist = false;
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
                 collapse_path(argv[2], de_expanded);
-                c_strcpy(settings->path, de_expanded, sizeof(settings->path));
-                set_path(settings->path);
+                c_strcpy(model->settings.path, de_expanded, sizeof(model->settings.path));
+                set_path(model->settings.path);
                 exit(0);
         } else if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
                 run_for_play_command_with_playlist = handle_play_command_playlist(&argc, argv);
         }
 
-        enable_mouse(&(state->uiSettings));
         enter_alternate_screen_buffer();
 
         signal(SIGINT, force_terminal_restore);
         signal(SIGSEGV, force_terminal_restore);
         signal(SIGABRT, force_terminal_restore);
+        signal(SIGTSTP, handle_sigtstp);
+        signal(SIGCONT, handle_sigcont);
 
-        if (settings->path[0] == '\0') {
+        if (model->settings.path[0] == '\0') {
                 set_music_path();
         }
 
         bool exact_search = false;
         handle_options(&argc, argv, &exact_search);
-        load_favorites_playlist(settings->path, &favorites_playlist);
 
-        ensure_default_theme_pack();
+        ensure_default_themes();
+        ensure_default_layouts();
 
         init_theme(argc, argv);
 
@@ -835,28 +899,23 @@ int main(int argc, char *argv[])
                 kew_init(false);
                 play_all_albums();
                 run(true);
-        } else if (argc == 2 && strcmp(argv[1], ".") == 0 && favorites_playlist->count != 0) {
+        } else if (argc == 2 && strcmp(argv[1], ".") == 0 && model->favorites_playlist->count != 0) {
                 kew_init(false);
                 play_favorites_playlist();
                 run(true);
         } else if (run_for_play_command_with_playlist) {
                 kew_init(false);
-                FileSystemEntry *library = get_library();
-                mark_list_as_enqueued(library, playlist);
                 run(true);
         } else if (argc >= 2) {
                 kew_init(false);
-                make_playlist(&playlist, argc, argv, exact_search, settings->path);
+                make_playlist(&model->playlist, argc, argv, exact_search, model->settings.path);
 
-                if (playlist->count == 0) {
+                if (model->playlist->count == 0) {
                         if (argc > 1 && argv[1] && strcmp(argv[1], "theme") != 0)
-                                state->uiState.noPlaylist = true;
+                                state->ui.noPlaylist = true;
                         kew_shutdown();
                 }
 
-                FileSystemEntry *library = get_library();
-
-                mark_list_as_enqueued(library, playlist);
                 run(true);
         }
 
