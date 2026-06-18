@@ -10,7 +10,7 @@
 #ifndef LIBRARY_OPS_H
 #define LIBRARY_OPS_H
 
-#include "common/appstate.h"
+#include "common/model.h"
 
 /**
  * @brief Create and initialize the music library.
@@ -19,10 +19,11 @@
  * optionally restores the enqueued status of entries. If changes are detected
  * in the underlying filesystem, the library may be rebuilt.
  *
+ * @param model
  * @param set_enqueued_status If true, restore enqueued status from the cached
  *                            library representation.
  */
-void create_library(bool set_enqueued_status);
+void create_library(Model *model, bool set_enqueued_status);
 
 /**
  * @brief Update the library by rescanning the given path.
@@ -80,6 +81,14 @@ void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist);
 void enqueue_song(FileSystemEntry *child);
 
 /**
+ * @brief Saves the current state of the media library.
+ *
+ * This function persists the current media library state, saving any changes made
+ * to the library to disk or a database.
+ */
+void save_library(void);
+
+/**
  * @brief Dequeue a single song from the active playlists.
  *
  * Removes the song from both playlists, updates playback state if necessary,
@@ -111,7 +120,20 @@ void dequeue_children(FileSystemEntry *parent);
 void set_childrens_queued_status_on_parents(FileSystemEntry *parent, bool wanted_status);
 
 /**
- * @brief Recursively enqueue all songs under a directory.
+ * @brief Enqueues all music file siblings of a file in order according to track number
+ *
+ * Walks along the list of siblings and checks they are music files, then adds them to an array
+ * Array is then sorted and enqueued
+ *
+ * @param firstChild pointer to first file in album
+ *
+ * @return 1 if album wasn't NULL
+ */
+int enqueue_album(FileSystemEntry *firstChild,
+                  FileSystemEntry **first_enqueued);
+
+/**
+ * @brief Recursively enqueue all songs under a directory, with the option to be sorted by album, disc and track number.
  *
  * Traverses the subtree starting at the given entry and enqueues all
  * non-playlist song files. Optionally returns the first enqueued entry.
@@ -119,11 +141,13 @@ void set_childrens_queued_status_on_parents(FileSystemEntry *parent, bool wanted
  * @param child Root of the subtree to enqueue.
  * @param first_enqueued_entry Output parameter that receives the first
  *                             enqueued FileSystemEntry, if any.
+ * @param sort if true, sort by album, disc and track number
  *
  * @return 1 if at least one entry was enqueued, 0 otherwise.
  */
 int enqueue_children(FileSystemEntry *child,
-                     FileSystemEntry **first_enqueued_entry);
+                     FileSystemEntry **first_enqueued_entry,
+                     bool sort);
 
 /**
  * @brief Mark a specific entry as dequeued by path.
@@ -137,6 +161,19 @@ int enqueue_children(FileSystemEntry *child,
  * @return true if the entry was found and dequeued, false otherwise.
  */
 bool mark_as_dequeued(FileSystemEntry *root, char *path);
+
+/**
+ * @brief Mark a specific entry as enqueued by path.
+ *
+ * Recursively searches the tree for the entry matching the given path,
+ * sets the enqueued flag, and updates parent flags if necessary.
+ *
+ * @param root Root of the library tree.
+ * @param path Full path of the entry to enqueued.
+ *
+ * @return Id of the enqueued entry.
+ */
+int mark_as_enqueued(FileSystemEntry *root, char *path, int list_row_num);
 
 /**
  * @brief Clear is_enqueued on all M3U file entries in the library tree.
@@ -210,9 +247,10 @@ void update_library_if_changed_detected(bool wait_until_complete);
  *                             should be set.
  * @param first_enqueued_node  Output: first Node added to the playlist, or
  *                             NULL if nothing was added.
+ * @param dont_dequeue  True if only enqueue is allowed
  */
 void enqueue_m3u(const char *filepath, FileSystemEntry *library,
-                 Node **first_enqueued_node);
+                 Node **first_enqueued_node, bool dont_dequeue);
 
 /**
  * @brief Dequeue all songs referenced by an M3U playlist file.

@@ -9,7 +9,9 @@
 #ifndef SYS_INTEGRATION_H
 #define SYS_INTEGRATION_H
 
-#include "common/appstate.h"
+#include "common/model.h"
+
+#include "loader/songdatatype.h"
 
 #include "gio/gio.h"
 #include "glib.h"
@@ -127,7 +129,6 @@ void process_d_bus_events(void);
  * This function handles resizing the terminal and refreshing the UI. It will
  * ensure that the UI is correctly updated when the terminal size changes.
  *
- * @param uis A pointer to the UIState structure containing UI settings.
  */
 void resize(UIState *uis);
 
@@ -163,6 +164,14 @@ void restart_kew(char *argv[]);
  * the terminal is resized.
  */
 void init_resize(void);
+
+
+/**
+ * @brief Returns the resize flag.
+ *
+ * @return An either 0 or 1 value.
+ */
+sig_atomic_t get_resize_flag();
 
 /**
  * @brief Retrieves the global D-Bus connection.

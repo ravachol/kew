@@ -1,0 +1,64 @@
+
+# ============================================
+# One Album Color kew Theme
+# ============================================
+#
+#   1-Color album color palette (Colors 101-104)
+#
+#   Replicates the original album color mode which used only one color.
+
+name=One Album Color
+
+# Core Colors
+accent=-1
+text=-1         # Default terminal foreground
+textDim=-1
+textMuted=-1
+
+# General Colors
+logo=101
+header=-1
+footer=#787878  # The old school gray, this works on most terminals
+help=-1         # Default foreground
+link=101
+nowplaying=101   # Default foreground
+playbackstatus=101
+
+# Playlist View
+playlist.rownum=101
+playlist.title=-1    # Default foreground
+playlist.playing=101
+
+# Track View
+trackview.title=101
+trackview.artist=101
+trackview.album=101
+trackview.year=101
+trackview.time=101
+trackview.visualizer=101
+trackview.lyrics=101
+
+# Library View
+library.artist=101
+library.album=-1
+library.track=-1    # Default foreground
+library.enqueued=101
+library.playing=101
+
+# Search
+search.label=-1
+search.query=-1     # Default foreground
+search.result=-1    # Default foreground
+search.enqueued=101
+search.playing=101
+
+# Progress
+progress.filled=101
+progress.empty=101
+progress.elapsed=101
+
+# Status
+status.info=-1      # Default foreground
+status.warning=101
+status.error=101
+status.success=101

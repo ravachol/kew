@@ -4,7 +4,6 @@
 
 [theme]
 name=Monochrome
-author=Ravachol
 
 # Core colors
 accent=#ffffff
@@ -19,6 +18,7 @@ footer=#808080
 help=#c0c0c0
 link=#b0b0b0
 nowplaying=#ffffff
+playbackstatus=#808080
 
 # Playlist View
 playlist.rownum=#808080
@@ -27,12 +27,12 @@ playlist.playing=#ffffff
 
 # Track View
 trackview.title=#f0f0f0
-trackview.artist=#ffffff
-trackview.album=#c0c0c0
-trackview.year=#c0c0c0
-trackview.time=#d0d0d0
-trackview.visualizer=#f0f0f0
-trackview.lyrics=#f0f0f0
+trackview.artist=#808080
+trackview.album=#808080
+trackview.year=#808080
+trackview.time=#808080
+trackview.visualizer=#808080
+trackview.lyrics=#808080
 
 # Library View
 library.artist=#808080
@@ -49,8 +49,8 @@ search.enqueued=#b0b0b0
 search.playing=#ffffff
 
 # Progress
-progress.filled=#202020
-progress.empty=#101010
+progress.filled=#808080
+progress.empty=#808080
 progress.elapsed=#707070
 
 # Status

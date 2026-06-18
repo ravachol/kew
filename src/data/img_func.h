@@ -10,43 +10,10 @@
 #ifndef IMG_FUNC_H
 #define IMG_FUNC_H
 
+#include "common/model.h"
+
 #include <chafa.h>
 #include <stdbool.h>
-
-typedef struct
-{
-        gint width_cells, height_cells;
-        gint width_pixels, height_pixels;
-} TermSize;
-
-/**
- * Initializes TTY-specific settings.
- *
- * On Windows, enables ANSI escape sequence processing and
- * configures the console to use UTF-8 for input and output.
- * On other platforms, this function currently performs no action.
- */
-void tty_init(void);
-
-/**
- * Prints an image file as colored ASCII art.
- *
- * Loads the image from disk, rescales it according to the
- * terminal cell aspect ratio, and renders it using ANSI
- * escape sequences.
- *
- * @param row              The starting row in the terminal
- * @param col              The starting column in the terminal
- * @param path_to_img_file Path to the image file
- * @param height           Target height in terminal cells
- * @param centered         Whether the output should be horizontally centered
- *
- * @return Always returns 0 (prints reset sequence on failure)
- */
-int print_in_ascii(int row, int col,
-                   const char *path_to_img_file,
-                   int height,
-                   bool centered);
 
 /**
  * Extracts a representative bright color from an RGBA bitmap.
@@ -69,6 +36,29 @@ int get_cover_color(unsigned char *pixels,
                     int *r,
                     int *g,
                     int *b);
+
+/**
+ * Draws a square bitmap image to a buffer using Chafa.
+ *
+ * Converts the RGBA pixel buffer into a printable terminal
+ * representation and renders it at the specified position.
+ * The width is adjusted to compensate for terminal cell
+ * aspect ratio.
+ *
+ * @param row         Starting row in the terminal
+ * @param col         Starting column in the terminal
+ * @param pixels      RGBA pixel buffer
+ * @param width       Image width in pixels
+ * @param height      Image height in pixels
+ * @param base_height Target height in terminal cells
+ * @param centered    Whether the output should be horizontally centered
+ * @param just_mark_cover  Whether to just mark the x, y of the cover with an empty image
+ * @param draw_occupied_markers Whether to mark cells as occupied
+ */
+void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
+                               unsigned char *pixels, int width, int height, int max_width,
+                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
+                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers);
 
 /**
  * Returns the terminal cell aspect ratio.
@@ -109,41 +99,6 @@ unsigned char *get_bitmap(const char *image_path,
                           int *width,
                           int *height);
 
-/**
- * Prints a square bitmap image in the terminal using Chafa.
- *
- * Converts the RGBA pixel buffer into a printable terminal
- * representation and renders it at the specified position.
- * The width is adjusted to compensate for terminal cell
- * aspect ratio.
- *
- * @param row         Starting row in the terminal
- * @param col         Starting column in the terminal
- * @param pixels      RGBA pixel buffer
- * @param width       Image width in pixels
- * @param height      Image height in pixels
- * @param base_height Target height in terminal cells
- * @param centered    Whether the output should be horizontally centered
- */
-void print_square_bitmap(int row,
-                         int col,
-                         unsigned char *pixels,
-                         int width,
-                         int height,
-                         int base_height,
-                         bool centered);
-
-/**
- * Retrieves the current terminal size.
- *
- * Fills the provided TermSize structure with terminal
- * dimensions in both character cells and pixels
- * (if available). Unsupported values are set to -1.
- *
- * @param term_size_out Output parameter receiving terminal size data
- */
-void get_tty_size(TermSize *term_size_out);
-
 #ifdef CHAFA_VERSION_1_16
 /**
  * Restores tmux passthrough settings modified for image rendering.
@@ -156,6 +111,9 @@ void get_tty_size(TermSize *term_size_out);
  *         FALSE on failure
  */
 gboolean retirePassthroughWorkarounds_tmux(void);
+
 #endif
+
+void free_image_payload(ImagePayload *img);
 
 #endif

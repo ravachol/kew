@@ -9,7 +9,7 @@
 #ifndef NOTIFICATIONS_H
 #define NOTIFICATIONS_H
 
-#include "common/appstate.h"
+#include "common/model.h"
 
 #ifdef USE_DBUS
 

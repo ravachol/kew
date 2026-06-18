@@ -4,7 +4,6 @@
 
 [theme]
 name=Solarized Light
-author=Ravachol
 
 # Core colors
 accent=#268bd2
@@ -14,44 +13,45 @@ textMuted=#93a1a1
 
 # General Colors
 logo=#93a1a1
-header=#93a1a1
+header=#2aa198
 footer=#93a1a1
-help=#2aa198
-link=#859900
+help=#93a1a1
+link=#268bd2
 nowplaying=#268bd2
+playbackstatus=#93a1a1
 
 # Playlist View
 playlist.rownum=#93a1a1
-playlist.title=#586e75
-playlist.playing=#cb4b16
+playlist.title=#93a1a1
+playlist.playing=#268bd2
 
 # Track View
-trackview.title=#586e75
-trackview.artist=#268bd2
-trackview.album=#2aa198
-trackview.year=#2aa198
-trackview.time=#b58900
-trackview.visualizer=#eee8d5
-trackview.lyrics=#586e75
+trackview.title=#657b83
+trackview.artist=#93a1a1
+trackview.album=#93a1a1
+trackview.year=#93a1a1
+trackview.time=#93a1a1
+trackview.visualizer=#657b83
+trackview.lyrics=#93a1a1
 
 # Library View
 library.artist=#93a1a1
-library.album=#657b83
-library.track=#657b83
-library.enqueued=#859900
+library.album=#2aa198
+library.track=#93a1a1
+library.enqueued=#2aa198
 library.playing=#cb4b16
 
 # Search
 search.label=#93a1a1
 search.query=#268bd2
 search.result=#657b83
-search.enqueued=#859900
+search.enqueued=#2aa198
 search.playing=#cb4b16
 
 # Progress
-progress.filled=#eee8d5
-progress.empty=#fdf6e3
-progress.elapsed=#93a1a1
+progress.filled=#657b83
+progress.empty=#93a1a1
+progress.elapsed=#657b83
 
 # Status
 status.info=-1      	# Default foreground

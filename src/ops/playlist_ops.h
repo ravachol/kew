@@ -10,8 +10,6 @@
 #ifndef PLAYLIST_OPS_H
 #define PLAYLIST_OPS_H
 
-#include "common/appstate.h"
-
 #include "data/playlist.h"
 
 /**
@@ -147,7 +145,7 @@ void skip_to_last_song(void);
  * Handles paused/stopped states, rebuilds decoders if required,
  * and restarts playback from the previous entry.
  */
-void skip_to_prev_song(void);
+void switch_to_prev_song(void);
 
 /**
  * @brief Skip to the next song in the playlist.
@@ -155,7 +153,7 @@ void skip_to_prev_song(void);
  * Advances playback to the next entry, respecting shuffle,
  * repeat-list, and paused/stopped states.
  */
-void skip_to_next_song(void);
+void switch_to_next_song(void);
 
 /**
  * @brief Set the current song pointer to the next entry.
@@ -170,7 +168,7 @@ void set_current_song_to_next(void);
  * Updates both shuffled and unshuffled playlists and clears enqueued
  * flags in the library for removed entries.
  */
-void dequeue_all_except_playing_song(void);
+void clear_playlist(void);
 
 /**
  * @brief Add the currently playing song to the favorites playlist.
@@ -193,7 +191,7 @@ void reshuffle_playlist(void);
  *
  * Adjusts current song selection depending on skipOutOfOrder and repeat state.
  */
-void handle_skip_out_of_order(void);
+void move_to_next_song_in_the_playlist(void);
 
 /**
  * @brief Play a song from the specified playlist.
@@ -268,5 +266,7 @@ void play_all_albums(void);
  * @param argv Argument vector containing file or directory paths.
  */
 void play_command_with_playlist(int *argc, char **argv);
+
+Node *choose_next_song(void);
 
 #endif

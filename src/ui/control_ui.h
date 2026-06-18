@@ -6,6 +6,8 @@
  * maps user actions to playback operations.
  */
 
+#include "common/model.h"
+
 #include <stdbool.h>
 
 /**
@@ -14,8 +16,11 @@
  * This function moves the playback position forward by a fixed percentage
  * of the song's total duration. The amount of the seek is determined by the
  * number of progress bars in the UI. It also sets the state of fast-forwarding.
+ *
+ * @param model
+ *
  */
-void seek_forward(void);
+void seek_forward(Model *model);
 
 /**
  * @brief Seeks backward in the current song by one step.
@@ -23,8 +28,11 @@ void seek_forward(void);
  * This function moves the playback position backward by a fixed percentage
  * of the song's total duration. The amount of the seek is determined by the
  * number of progress bars in the UI. It also sets the state of rewinding.
+ *
+ * @param model
+ *
  */
-void seek_back(void);
+void seek_back(Model *model);
 
 /**
  * @brief Cycles through different color modes for the UI.
@@ -71,8 +79,11 @@ void toggle_visualizer(void);
  *
  * This function toggles shuffle mode on or off, and modifies the current
  * playlist to match the new shuffle state.
+ *
+ * @param model
+ *
  */
-void toggle_shuffle(void);
+void toggle_shuffle(Model *model);
 
 /**
  * @brief Toggles the repeat mode for playback.
@@ -111,7 +122,7 @@ void toggle_folder_display(void);
  *
  * @return true if the player needs to be refreshed, false otherwise.
  */
-bool should_refresh_player(void);
+bool can_refresh_player(void);
 
 /**
  * @brief Loads the specified theme.
@@ -125,3 +136,8 @@ bool should_refresh_player(void);
  * @return 1 if the theme was successfully loaded, 0 if loading failed.
  */
 int load_theme(const char *theme_name, bool is_ansi_theme);
+
+/**
+ * @brief Cycles visualizations (Chroma).
+ */
+void cycle_visualization(void);

@@ -4,7 +4,6 @@
 
 [theme]
 name=Forest
-author=Ravachol
 
 # Core colors
 accent=#5fb3a1
@@ -19,6 +18,7 @@ footer=#4a7c70
 help=#8fbc94
 link=#87b96b
 nowplaying=#e76f51
+playbackstatus=#4a7c70
 
 # Playlist View
 playlist.rownum=#4a7c70
@@ -27,25 +27,25 @@ playlist.playing=#5fb3a1
 
 # Track View
 trackview.title=#d8ebe4
-trackview.artist=#5fb3a1
-trackview.album=#8fbc94
-trackview.year=#8fbc94
-trackview.time=#f4a261
-trackview.visualizer=#2d4a43
+trackview.artist=#d8ebe4
+trackview.album=#d8ebe4
+trackview.year=#d8ebe4
+trackview.time=#d8ebe4
+trackview.visualizer=#d8ebe4
 trackview.lyrics=#d8ebe4
 
 # Library View
 library.artist=#4a7c70
 library.album=#c8dcd1
 library.track=#c8dcd1
-library.enqueued=#87b96b
+library.enqueued=#4a7c70
 library.playing=#5fb3a1
 
 # Search
 search.label=#4a7c70
 search.query=#5fb3a1
 search.result=#d8ebe4
-search.enqueued=#87b96b
+search.enqueued=#4a7c70
 search.playing=#5fb3a1
 
 # Progress

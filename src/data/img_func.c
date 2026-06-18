@@ -7,9 +7,9 @@
  * and different rendering modes (truecolor, ASCII, etc.).
  */
 
+#include "common/appstate.h"
 #include "common/common.h"
-
-#include "utils/img_utils.h"
+#include "common/model.h"
 
 #include "img_func.h"
 
@@ -248,86 +248,42 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 }
 #endif
 
-void get_tty_size(TermSize *term_size_out)
+static ChafaPixelMode style_to_pixel_mode(const char *style)
 {
-        TermSize term_size;
-
-        term_size.width_cells = term_size.height_cells = term_size.width_pixels = term_size.height_pixels = -1;
-
-#ifdef G_OS_WIN32
-        {
-                HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
-                CONSOLE_SCREEN_BUFFER_INFO csb_info;
-
-                if (chd != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(chd, &csb_info)) {
-                        term_size.width_cells = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
-                        term_size.height_cells = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
-                }
-        }
-#else
-        {
-                struct winsize w;
-                gboolean have_winsz = FALSE;
-
-                if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDERR_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDIN_FILENO, TIOCGWINSZ, &w) >= 0)
-                        have_winsz = TRUE;
-
-                if (have_winsz) {
-                        term_size.width_cells = w.ws_col;
-                        term_size.height_cells = w.ws_row;
-                        term_size.width_pixels = w.ws_xpixel;
-                        term_size.height_pixels = w.ws_ypixel;
-                }
-        }
-#endif
-
-        if (term_size.width_cells <= 0)
-                term_size.width_cells = -1;
-        if (term_size.height_cells <= 2)
-                term_size.height_cells = -1;
-
-        /* If .ws_xpixel and .ws_ypixel are filled out, we can calculate
-         * aspect information for the font used. Sixel-capable terminals
-         * like mlterm set these fields, but most others do not. */
-
-        if (term_size.width_pixels <= 0 || term_size.height_pixels <= 0) {
-                term_size.width_pixels = -1;
-                term_size.height_pixels = -1;
-        }
-
-        *term_size_out = term_size;
+        if (strcmp(style, "kitty") == 0)
+                return CHAFA_PIXEL_MODE_KITTY;
+        if (strcmp(style, "sixels") == 0)
+                return CHAFA_PIXEL_MODE_SIXELS;
+        if (strcmp(style, "block") == 0 ||
+            strcmp(style, "braille") == 0 ||
+            strcmp(style, "ascii") == 0 ||
+            strcmp(style, "dot") == 0 ||
+            strcmp(style, "vhalf") == 0 ||
+            strcmp(style, "quad") == 0)
+                return CHAFA_PIXEL_MODE_SYMBOLS;
+        return (ChafaPixelMode)-1;
 }
 
-void tty_init(void)
+static ChafaSymbolTags style_to_symbol_tag(const char *style)
 {
-#ifdef G_OS_WIN32
-        {
-                HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
-
-                saved_console_output_cp = GetConsoleOutputCP();
-                saved_console_input_cp = GetConsoleCP();
-
-                /* Enable ANSI escape sequence parsing etc. on MS Windows command prompt */
-
-                if (chd != INVALID_HANDLE_VALUE) {
-                        if (!SetConsoleMode(chd,
-                                            ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN))
-                                win32_stdout_is_file = TRUE;
-                }
-
-                /* Set UTF-8 code page I/O */
-
-                SetConsoleOutputCP(65001);
-                SetConsoleCP(65001);
-        }
-#endif
+        if (strcmp(style, "braille") == 0)
+                return CHAFA_SYMBOL_TAG_BRAILLE;
+        if (strcmp(style, "ascii") == 0)
+                return CHAFA_SYMBOL_TAG_ASCII;
+        if (strcmp(style, "dot") == 0)
+                return CHAFA_SYMBOL_TAG_DOT;
+        if (strcmp(style, "vhalf") == 0)
+                return CHAFA_SYMBOL_TAG_VHALF;
+        if (strcmp(style, "quad") == 0)
+                return CHAFA_SYMBOL_TAG_QUAD;
+        return CHAFA_SYMBOL_TAG_BLOCK;
 }
 
 static GString *
 convert_image(const void *pixels, gint pix_width, gint pix_height,
               gint pix_rowstride, ChafaPixelType pixel_type,
               gint width_cells, gint height_cells,
-              gint cell_width, gint cell_height)
+              gint cell_width, gint cell_height, const char *cover_style)
 {
         ChafaTermInfo *term_info;
         ChafaCanvasMode mode;
@@ -346,6 +302,16 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         detect_terminal(&term_info, &mode, &pixel_mode,
                         &passthrough, &symbol_map);
+
+        ChafaPixelMode forced_mode = style_to_pixel_mode(cover_style);
+        if (forced_mode != (ChafaPixelMode)-1) {
+                pixel_mode = forced_mode;
+                if (forced_mode == CHAFA_PIXEL_MODE_SYMBOLS)
+                        passthrough = CHAFA_PASSTHROUGH_NONE;
+                chafa_symbol_map_unref(symbol_map);
+                symbol_map = chafa_symbol_map_new();
+                chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
+        }
 
         if (passthrough == CHAFA_PASSTHROUGH_TMUX)
                 apply_passthrough_workarounds_tmux();
@@ -401,8 +367,12 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         detect_terminal(&term_info, &mode, &pixel_mode);
 
+        ChafaPixelMode forced_mode_14 = style_to_pixel_mode(cover_style);
+        if (forced_mode_14 != (ChafaPixelMode)-1)
+                pixel_mode = forced_mode_14;
+
         symbol_map = chafa_symbol_map_new();
-        chafa_symbol_map_add_by_tags(symbol_map, CHAFA_SYMBOL_TAG_BLOCK);
+        chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
 
         config = chafa_canvas_config_new();
         chafa_canvas_config_set_canvas_mode(config, mode);
@@ -415,7 +385,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         canvas = chafa_canvas_new(config);
         frame = chafa_frame_new_borrow((gpointer)pixels, pixel_type, pix_width,
-                                         pix_height, pix_rowstride);
+                                       pix_height, pix_rowstride);
         image = chafa_image_new();
         chafa_image_set_frame(image, frame);
 
@@ -443,10 +413,12 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 #else
         detect_terminal(&term_info, &mode, &pixel_mode);
 
-        /* Specify the symbols we want */
+        ChafaPixelMode forced_mode_old = style_to_pixel_mode(cover_style);
+        if (forced_mode_old != (ChafaPixelMode)-1)
+                pixel_mode = forced_mode_old;
 
         symbol_map = chafa_symbol_map_new();
-        chafa_symbol_map_add_by_tags(symbol_map, CHAFA_SYMBOL_TAG_BLOCK);
+        chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
 
         /* Set up a configuration with the symbols and the canvas size in characters */
 
@@ -498,7 +470,6 @@ float calc_aspect_ratio(void)
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
-        tty_init();
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0) {
@@ -520,7 +491,6 @@ float get_aspect_ratio()
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
-        tty_init();
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
@@ -539,235 +509,114 @@ float get_aspect_ratio()
         return (float)cell_height / (float)cell_width;
 }
 
-void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height, bool centered)
+void free_image_payload(ImagePayload *img)
 {
-        if (pixels == NULL) {
-                set_error_message("Invalid pixel data.\n");
+        if (!img)
                 return;
-        }
 
-        // Use the provided width and height
-        int pix_width = width;
-        int pix_height = height;
-        int n_channels = 4; // Assuming RGBA format
-
-        // Validate the image dimensions
-        if (pix_width == 0 || pix_height == 0) {
-                set_error_message("Invalid image dimensions.\n");
-                return;
-        }
-
-        TermSize term_size;
-        GString *printable;
-        gint cell_width = -1, cell_height = -1;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-        }
-
-        // Set default cell size for some terminals
-        if (cell_width <= -1 || cell_height <= -1) {
-                cell_width = 8;
-                cell_height = 16;
-        }
-
-        if (cell_width == 0 || cell_height == 0) {
-                set_error_message("Invalid image cell width dimensions.\n");
-                return;
-        }
-
-        // Calculate corrected width based on aspect ratio correction
-        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        int corrected_width = (int)(base_height * aspect_ratio_correction);
-
-        if (term_size.width_cells > 0 && corrected_width > term_size.width_cells) {
-                set_error_message("Invalid terminal dimensions.\n");
-                return;
-        }
-
-        if (term_size.height_cells > 0 && base_height > term_size.height_cells) {
-                set_error_message("Invalid terminal dimensions.\n");
-                return;
-        }
-
-        // Convert image to a printable string using Chafa
-        printable = convert_image(
-            pixels,
-            pix_width,
-            pix_height,
-            pix_width * n_channels,         // Row stride
-            CHAFA_PIXEL_RGBA8_UNASSOCIATED, // Correct pixel format
-            corrected_width,
-            base_height,
-            cell_width,
-            cell_height);
-
-        // Ensure the string is null-terminated
-        g_string_append_c(printable, '\0');
-
-        // Split the printable string into lines
-        const gchar *delimiters = "\n";
-        gchar **lines = g_strsplit(printable->str, delimiters, -1);
-
-        if (centered)
-                col = ((term_size.width_cells - corrected_width) / 2) + 1;
-
-        // Print each line with indentation
-        for (int i = 0; lines[i] != NULL; i++) {
-                printf("\033[%d;%dH", row + i, col);
-                printf("%s", lines[i]);
-                fflush(stdout);
-        }
-
-        // Free allocated memory
-        g_strfreev(lines);
-        g_string_free(printable, TRUE);
+        free(img->data);
+        free(img);
 }
 
-int convert_to_ascii(int row, int col, const char *filepath, unsigned int height, bool centered)
+void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
+                               unsigned char *pixels, int width, int height, int max_width,
+                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
+                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
 {
-        /*
-        Modified, originally by Danny Burrows:
-        https://github.com/danny-burrows/img_to_txt
-
-        MIT License
-
-        Copyright (c) 2021 Danny Burrows
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        */
-
-        TermSize term_size;
-        gint cell_width = -1, cell_height = -1;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-        }
-
-        // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1) {
-                cell_width = 8;
-                cell_height = 16;
-        }
-
-        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        unsigned int corrected_width = (int)(height * aspect_ratio_correction);
-
-        int rwidth, rheight, rchannels;
-        unsigned char *read_data = image_load_rgb(filepath, &rwidth, &rheight, &rchannels);
-
-        if (read_data == NULL) {
-                return -1;
-        }
-
-        float scale_w = (float)corrected_width / (float)rwidth;
-        float scale_h = (float)height / (float)rheight;
-        
-        int fit_w = (int)(rwidth * scale_w + 0.5f);
-        int fit_h = (int)(rheight * scale_h + 0.5f);
-        if (fit_w < 1)
-                fit_w = 1;
-        if (fit_h < 1)
-                fit_h = 1;
-        if (fit_w > (int)corrected_width)
-                fit_w = (int)corrected_width;
-        if (fit_h > (int)height)
-                fit_h = (int)height;
-
-        unsigned char *composed =
-            calloc((size_t)3 * corrected_width * height, 1);
-        if (composed == NULL) {
-                image_free(read_data);
-                return -1;
-        }
-
-        unsigned char *fit_pixels = read_data;
-        gboolean did_resize = FALSE;
-        if (fit_w != rwidth || fit_h != rheight) {
-                fit_pixels = malloc((size_t)3 * fit_w * fit_h);
-                if (fit_pixels == NULL) {
-                        image_free(read_data);
-                        free(composed);
-                        return -1;
-                }
-                image_resize_uint8_srgb(read_data, rwidth, rheight, fit_pixels,
-                                        fit_w, fit_h, 3);
-                image_free(read_data);
-                did_resize = TRUE;
-        }
-
-        int off_x = ((int)corrected_width - fit_w) / 2;
-        int off_y = ((int)height - fit_h) / 2;
-        for (int y = 0; y < fit_h; y++) {
-                for (int x = 0; x < fit_w; x++) {
-                        size_t dst =
-                            (size_t)((off_y + y) * (int)corrected_width +
-                                     (off_x + x)) *
-                            3;
-                        size_t src = ((size_t)y * (size_t)fit_w + (size_t)x) * 3;
-                        composed[dst + 0] = fit_pixels[src + 0];
-                        composed[dst + 1] = fit_pixels[src + 1];
-                        composed[dst + 2] = fit_pixels[src + 2];
-                }
-        }
-        if (did_resize)
-                free(fit_pixels);
-        else
-                image_free(fit_pixels);
-
-        PixelData *data = (PixelData *)composed;
-
-        // Calculate indentation to center the image
-        if (centered)
-                col = ((term_size.width_cells - corrected_width) / 2) + 1;
+        int cell_width = 8;
+        int cell_height = 16;
 
         printf("\033[%d;%dH", row, col);
 
-        for (unsigned int d = 0; d < corrected_width * height; d++) {
-                if (d % corrected_width == 0 && d != 0) {
-                        row++;
-                        printf("\033[%d;%dH", row, col);
-                }
-
-                PixelData *c = data + d;
-
-                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
+        if (term_size->width_cells > 0 && term_size->height_cells > 0 &&
+            term_size->width_pixels > 0 && term_size->height_pixels > 0) {
+                cell_width = term_size->width_pixels / term_size->width_cells;
+                cell_height = term_size->height_pixels / term_size->height_cells;
         }
 
-        image_free(data);
-        return 0;
-}
+        if (cell_width == 0 || cell_height == 0) {
+                set_error_message("Invalid cell dimensions.\n");
+                return;
+        }
 
-int print_in_ascii(int row, int col, const char *path_to_img_file, int height, bool centered)
-{
-        int ret = convert_to_ascii(row, col, path_to_img_file, (unsigned)height, centered);
-        if (ret == -1)
-                printf("\033[0m");
-        return 0;
+        float aspect = (float)cell_height / (float)cell_width;
+        int corrected_width = (int)(base_height * aspect);
+
+        if (corrected_width > max_width)
+                corrected_width = max_width;
+
+        if (term_size->width_cells > 0 && corrected_width > term_size->width_cells) {
+                set_error_message("Invalid terminal dimensions.\n");
+                return;
+        }
+        if (term_size->height_cells > 0 && base_height > term_size->height_cells) {
+                set_error_message("Invalid terminal dimensions.\n");
+                return;
+        }
+
+        if (centered && term_size->width_cells > 0)
+                col = ((term_size->width_cells - corrected_width) / 2) + 1;
+
+        Cell *anchor = &buf->cells[row * buf->cols + col];
+
+        if (anchor->image)
+                free_image_payload(anchor->image);
+
+        // Store the encoded blob in an ImagePayload and place it in the buffer.
+        // The terminal backend emits it verbatim at commit time — same as sixels.
+        ImagePayload *img = calloc(1, sizeof(ImagePayload));
+        if (!img) {
+                return;
+        }
+
+        img->protocol = IMAGE_SIXEL;
+        img->pixel_w = corrected_width * cell_width;
+        img->pixel_h = base_height * cell_height;
+        img->id = img_hash;
+        img->screen_h = base_height;
+        img->screen_w = corrected_width;
+
+        anchor->kind = CELL_IMAGE_ANCHOR;
+        anchor->image = img;
+
+        // Place anchor cell
+        if (row < 0 || row >= buf->rows || col < 0 || col >= buf->cols) {
+                free(img->data);
+                free(img);
+                return;
+        }
+
+        if (draw_occupied_markers) {
+                int rows = MIN(row + base_height, buf->rows);
+                int cols = MIN(col + corrected_width, buf->cols);
+
+                // Mark occupied region
+                for (int r = row; r < rows; r++) {
+                        for (int c = col; c < cols; c++) {
+                                if (r == row && c == col)
+                                        continue;
+                                buf->cells[r * buf->cols + c].kind = CELL_OCCUPIED;
+                        }
+                }
+        }
+
+        if (width == 0 || height == 0 || !pixels) {
+                return;
+        }
+
+        if (!just_mark_cover) {
+                GString *printable = convert_image(
+                    pixels, width, height,
+                    width * 4,
+                    CHAFA_PIXEL_RGBA8_UNASSOCIATED,
+                    corrected_width, base_height,
+                    cell_width, cell_height, cover_style);
+
+                if (!printable)
+                        return;
+
+                g_string_append_c(printable, '\0');
+                img->data = (uint8_t *)g_string_free(printable, FALSE);
+                img->data_len = strlen((char *)img->data);
+        }
 }

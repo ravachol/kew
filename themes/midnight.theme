@@ -4,7 +4,6 @@
 
 [theme]
 name=Midnight
-author=Ravachol
 
 # Core colors
 accent=#ffffff
@@ -14,43 +13,44 @@ textMuted=#444444
 
 # General Colors
 logo=#444444
-header=#444444
+header=#787878
 footer=#444444
-help=#888888
+help=#aaaaaa
 link=#aaaaaa
-nowplaying=#ffffff
+nowplaying=#aaaaaa
+playbackstatus=#444444
 
 # Playlist View
 playlist.rownum=#444444
-playlist.title=#cccccc
-playlist.playing=#ffffff
+playlist.title=#aaaaaa
+playlist.playing=#787878
 
 # Track View
-trackview.title=#ffffff
-trackview.artist=#ffffff
-trackview.album=#888888
-trackview.year=#888888
-trackview.time=#cccccc
-trackview.visualizer=#222222
-trackview.lyrics=#ffffff
+trackview.title=#888888
+trackview.artist=#aaaaaa
+trackview.album=#aaaaaa
+trackview.year=#aaaaaa
+trackview.time=#aaaaaa
+trackview.visualizer=15
+trackview.lyrics=#aaaaaa
 
 # Library View
-library.artist=#ffffff
+library.artist=#787878
 library.album=#888888
-library.track=#cccccc
-library.enqueued=#aaaaaa
-library.playing=#ffffff
+library.track=#aaaaaa
+library.enqueued=#787878
+library.playing=#787878
 
 # Search
 search.label=#888888
-search.query=#cccccc
-search.result=#cccccc
-search.enqueued=#aaaaaa
-search.playing=#ffffff
+search.query=#aaaaaa
+search.result=#aaaaaa
+search.enqueued=#787878
+search.playing=#787878
 
 # Progress
 progress.filled=#ffffff
-progress.empty=#222222
+progress.empty=#787878
 progress.elapsed=#ffffff
 
 # Status

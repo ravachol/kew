@@ -8,18 +8,22 @@
 
 #include "mpris.h"
 
+#include "common/appstate.h"
 #include "common/common.h"
+#include "common/model.h"
+#include "common/events.h"
 
 #include "sys_integration.h"
 
 #include "ui/control_ui.h"
+#include "ui/input.h"
+
+#include "update/messages.h"
 
 #include "ops/playback_clock.h"
 #include "ops/playback_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playlist_ops.h"
-
-#include "sound/playback.h"
 
 #ifdef USE_MACOS_MEDIA
 #include "macos_nowplaying.h"
@@ -209,7 +213,7 @@ static void handle_next(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        skip_to_next_song();
+        switch_to_next_song();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -228,7 +232,7 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        skip_to_prev_song();
+        switch_to_prev_song();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -283,7 +287,7 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        if (!pb_is_stopped())
+        if (!is_stopped())
                 stop();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
@@ -303,7 +307,10 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        play();
+        if (get_current_song() == NULL)
+                dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
+        else
+                play();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -451,9 +458,9 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
 
         const gchar *status = "Stopped";
 
-        if (pb_is_paused()) {
+        if (is_paused()) {
                 status = "Paused";
-        } else if (get_current_song() == NULL || pb_is_stopped()) {
+        } else if (get_current_song() == NULL || is_stopped()) {
                 status = "Stopped";
         } else {
                 status = "Playing";
@@ -744,7 +751,9 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
-        if (get_current_song() == NULL)
+        Model *model = get_model();
+
+        if (get_current_song() == NULL && model->playlist->count == 0)
                 can_play = FALSE;
         else
                 can_play = TRUE;
@@ -930,12 +939,13 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         new_volume *= 100;
 
                         set_volume((int)new_volume);
+                        set_dirty(DIRTY_VISUALIZER);
                         return TRUE;
                 } else if (g_strcmp0(property_name, "LoopStatus") == 0) {
                         toggle_repeat();
                         return TRUE;
                 } else if (g_strcmp0(property_name, "Shuffle") == 0) {
-                        toggle_shuffle();
+                        toggle_shuffle(get_model());
                         return TRUE;
                 } else if (g_strcmp0(property_name, "Position") == 0) {
                         gint64 new_position;
@@ -1039,7 +1049,7 @@ void init_mpris(void)
 
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
-                g_printerr("Failed to connect to D-Bus\n");
+                set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
                 quit();
         }
 
@@ -1052,7 +1062,7 @@ void init_mpris(void)
 
         if (bus_name_id == 0) {
                 printf(_("Failed to own D-Bus name: %s\n"), app_name);
-                quit();
+                return;
         }
 
         registration_id = g_dbus_connection_register_object(
@@ -1062,10 +1072,9 @@ void init_mpris(void)
 
         if (!registration_id) {
                 g_dbus_node_info_unref(introspection_data);
-                g_printerr("Failed to register media player object: %s\n",
-                           error->message);
+                g_printerr("Failed to register mpris");
                 g_error_free(error);
-                quit();
+                return;
         }
 
         player_registration_id = g_dbus_connection_register_object(
@@ -1075,10 +1084,9 @@ void init_mpris(void)
 
         if (!player_registration_id) {
                 g_dbus_node_info_unref(introspection_data);
-                g_printerr("Failed to register media player object: %s\n",
-                           error->message);
+                g_printerr("Failed to register mpris");
                 g_error_free(error);
-                quit();
+                return;
         }
 
         g_dbus_node_info_unref(introspection_data);

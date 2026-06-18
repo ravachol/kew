@@ -11,11 +11,12 @@
 
 #include "playback_ops.h"
 
-#include "common/common.h"
+#include "common/model.h"
 #include "playback_clock.h"
 #include "playback_state.h"
 #include "playback_system.h"
 #include "playlist_ops.h"
+#include "sound/audiotypes.h"
 #include "track_manager.h"
 
 #include "sound/sound_facade.h"
@@ -24,33 +25,27 @@
 
 #include "utils/utils.h"
 
-void resume_playback(void)
+void resume_playback(double seconds)
 {
-        sound_system_play(sound_sys);
-}
-
-void try_load_next(void)
-{
+        Model *model = get_model();
         PlaybackState *ps = get_playback_state();
-        Node *current = get_current_song();
-        Node *try_next_song = get_try_next_song();
 
-        ps->songHasErrors = false;
-        ps->clearingErrors = true;
+        sound_result_t result = sound_system_play(sound_sys);
 
-        if (try_next_song == NULL && current != NULL)
-                try_next_song = current->next;
-        else if (try_next_song != NULL)
+        if (seconds > 0.0)
         {
-                try_next_song = try_next_song->next;
-                set_try_next_song(try_next_song);
+                // seek and restore volume after seeking
+                add_to_accumulated_seconds(seconds);
         }
-        if (try_next_song != NULL) {
-                ps->songLoading = true;
-                load_song(try_next_song, false, false);
-        } else {
-                ps->clearingErrors = false;
+        else if (model->restore_volume)
+        {
+                // restore volume now
+                set_volume(model->volume);
+                model->restore_volume = false;
         }
+
+        if (result == SOUND_NOTIFY_SWITCH)
+                ps->notifySwitch = 1;
 }
 
 void pause_song(void)
@@ -58,15 +53,14 @@ void pause_song(void)
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
+                sound_system_pause(sound_sys);
         }
 
-        AppState *state = get_app_state();
+        Model *model = get_model();
 
-        if (state->currentView != TRACK_VIEW) {
-                trigger_refresh();
+        if (model->state.currentView != TRACK_VIEW) {
+                set_dirty(DIRTY_ALL);
         }
-
-        sound_system_pause(sound_sys);
 }
 
 void skip_to_begginning_of_song(void)
@@ -117,7 +111,7 @@ void play(void)
                 skip_to_begginning_of_song();
         }
 
-        resume_playback();
+        resume_playback(0.0);
 
         if (ps->hasSilentlySwitched) {
                 set_total_pause_seconds(0);
@@ -196,6 +190,7 @@ void volume_change(int change_percent)
         sound_volume += change_percent;
 
         set_volume(sound_volume);
+        set_dirty(DIRTY_VISUALIZER);
 }
 
 void skip_to_song(int id, bool start_playing)
@@ -236,7 +231,6 @@ void stop(void)
 
 void ops_toggle_pause(void)
 {
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
@@ -247,19 +241,19 @@ void ops_toggle_pause(void)
                 return;
         }
 
-        sound_system_toggle_pause(sound_sys);
+        sound_result_t result = sound_system_toggle_pause(sound_sys);
+
+        if (result == SOUND_NOTIFY_SWITCH)
+                ps->notifySwitch = 1;
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING && should_start_playing()) {
                 sound_system_set_end_of_list_reached(sound_sys, false);
         }
 
-        if (state->currentView != TRACK_VIEW) {
-                trigger_refresh();
-        }
-
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
+                set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         } else {
                 if (ps->hasSilentlySwitched && !ps->skipping) {
                         set_total_pause_seconds(0);
@@ -268,6 +262,8 @@ void ops_toggle_pause(void)
                         set_total_pause_seconds(get_total_pause_seconds() + get_pause_seconds());
                 }
                 emit_string_property_changed("PlaybackStatus", "Playing");
+
+                set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         }
 }
 
@@ -281,4 +277,11 @@ void seek(int seconds)
                 return;
 
         add_to_accumulated_seconds(seconds);
+}
+
+bool crossfade(int fade_ms, int enter_song_ms)
+{
+        sound_result_t res = sound_system_start_crossfade(sound_sys, fade_ms, enter_song_ms);
+
+        return (res != SOUND_CROSSFADE_DISABLED);
 }

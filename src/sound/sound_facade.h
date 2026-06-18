@@ -33,13 +33,17 @@ extern "C" {
  */
 typedef enum {
         SOUND_OK = 0,
-        SOUND_ERROR_INVALID_ARGUMENT,
-        SOUND_ERROR_NOT_INITIALIZED,
-        SOUND_ERROR_ALREADY_INITIALIZED,
-        SOUND_ERROR_BACKEND_FAILURE,
-        SOUND_ERROR_UNSUPPORTED_FORMAT,
-        SOUND_ERROR_IO,
-        SOUND_ERROR_INTERNAL
+        SOUND_ERROR = -1,
+        SOUND_ERROR_NOT_INITIALIZED = -2,
+        SOUND_ERROR_ALREADY_INITIALIZED = -3,
+        SOUND_ERROR_BACKEND_FAILURE = -4,
+        SOUND_ERROR_UNSUPPORTED_FORMAT = -5,
+        SOUND_ERROR_IO = -6,
+        SOUND_ERROR_INTERNAL = -7,
+        SOUND_ERROR_INVALID_ARGUMENT = -8,
+        SOUND_ERROR_SONG = -9,
+        SOUND_CROSSFADE_DISABLED = -10,
+        SOUND_NOTIFY_SWITCH = 1,
 } sound_result_t;
 
 /*
@@ -81,7 +85,7 @@ void sound_system_destroy(sound_system_t **system);
  * @param system Double Pointer to the sound system instance to destroy.
  * @return sound_result_t Result code indicating success or failure.
  */
-sound_result_t sound_system_switch_decoder(sound_system_t *system);
+sound_result_t sound_system_switch_decoder(sound_system_t *system, char* file_path);
 
 /**
  * @brief Uninitializes the audio device.
@@ -274,6 +278,15 @@ sound_result_t sound_system_seek_percentage(sound_system_t *system, float percen
 sound_result_t sound_system_set_seek_elapsed(double seek_elapsed);
 
 /**
+ * @brief Sets crossfade to always on or off.
+ *
+ * @param value Either 1=on or 0.
+ * @param fade_ms Milliseconds length of fade.
+ * @return sound_result_t Result code indicating success or failure.
+ */
+sound_result_t sound_system_set_always_crossfade(sound_system_t *system, int value, int fade_ms);
+
+/**
  * @brief Sets the repeat state.
  *
  * Updates the repeat mode of the sound system.
@@ -283,13 +296,9 @@ sound_result_t sound_system_set_seek_elapsed(double seek_elapsed);
  */
 sound_result_t sound_system_set_repeat_state(int value);
 
-/**
- * @brief Signals that the EOF status has been handled.
- *
- * @param system Pointer to the sound system instance.
- * @return sound_result_t Result code indicating success or failure.
- */
-sound_result_t sound_system_set_EOF_handled(const sound_system_t *system);
+sound_result_t sound_system_set_EOF_switch(const sound_system_t *system, bool value);
+
+sound_result_t sound_system_set_metadata_switch(const sound_system_t *system, bool value);
 
 /**
  * @brief Sets whether the end of the playlist has been reached.
@@ -339,6 +348,15 @@ sound_result_t sound_system_set_buffer_ready(const sound_system_t *system, int v
  */
 sound_result_t sound_system_update_audio_buffer(const sound_system_t *system);
 
+/**
+ * @brief Starts a cross-fade
+ *
+ * @param sound The sound system.
+ * @param fade_ms How long the fade should take in milliseconds.
+ * @param enter_song_ms At what point to enter the next song in milliseconds.
+ */
+sound_result_t sound_system_start_crossfade(const sound_system_t *system, int fade_ms, int enter_song_ms);
+
 /*=========================================================
   State Queries
 =========================================================*/
@@ -385,6 +403,17 @@ int sound_system_get_repeat_state(void);
 double sound_system_get_seek_elapsed(void);
 
 /**
+ * @brief Gets if the clock should be reset
+ *
+ * Returns if the clock has should be reset, likely by auto-fade, and sets clock_reset to false.
+ *
+ * @param system
+ * @param reset_ms What to reset the clock to in milliseconds.
+ * @return 1 If the clock has been reset.
+ */
+int sound_system_get_fade_started(sound_system_t *system, int *reset_ms);
+
+/**
  * @brief Returns whether the system is currently switching tracks.
  *
  * Indicates if a track transition is in progress, such as during
@@ -409,6 +438,8 @@ int sound_system_is_switching_track(const sound_system_t *system);
  *       reflect a global or shared playback state.
  */
 int sound_system_is_EOF_reached(void);
+
+int sound_system_is_metadata_switch_reached(void);
 
 /**
  * @brief Returns whether the current song has been deleted.
@@ -550,6 +581,16 @@ sound_result_t sound_system_set_volume(sound_system_t *system, float volume);
  * @return float Current master volume in the range 0.0f to 1.0f.
  */
 float sound_system_get_volume(const sound_system_t *system);
+
+/**
+ * @brief Retrieves the number of seconds to adjust the clock after fading
+ *
+*
+ * @param system Pointer to the sound system instance.
+ * @return Number of seconds.
+ */
+int sound_system_get_fade_offset_seconds(const sound_system_t *system);
+
 
 #ifdef __cplusplus
 }
