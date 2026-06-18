@@ -48,7 +48,7 @@ void reset_list_after_dequeuing_playing_song(void)
                 emit_metadata_changed("", "", "", "",
                                       "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                       NULL, 0);
-                emit_playback_stopped_mpris();
+                emit_playback_stopped();
 
                 sound_system_uninit_device(sound_sys);
 

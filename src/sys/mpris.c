@@ -984,21 +984,30 @@ static const GDBusInterfaceVTable player_interface_vtable = {
                 handle_stop, handle_play, handle_seek, handle_set_position}};
 #endif
 
-void emit_playback_stopped_mpris()
+void emit_playback_playing()
 {
 #ifdef USE_DBUS
-        if (get_gd_bus_connection()) {
-                g_dbus_connection_call(
-                    get_gd_bus_connection(), NULL, "/org/mpris/MediaPlayer2",
-                    "org.freedesktop.DBus.Properties", "Set",
-                    g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player",
-                                  "PlaybackStatus",
-                                  g_variant_new_string("Stopped")),
-                    G_VARIANT_TYPE("(v)"), G_DBUS_CALL_FLAGS_NONE, -1, NULL,
-                    NULL, NULL);
-        }
+        emit_string_property_changed("PlaybackStatus", "Playing");
+#elif defined(USE_MACOS_MEDIA)
+        macos_set_playback_state_playing();
+#endif
+}
+
+void emit_playback_stopped()
+{
+#ifdef USE_DBUS
+        emit_string_property_changed("PlaybackStatus", "Stopped");
 #elif defined(USE_MACOS_MEDIA)
         macos_set_playback_state_stopped();
+#endif
+}
+
+void emit_playback_paused()
+{
+#ifdef USE_DBUS
+        emit_string_property_changed("PlaybackStatus", "Paused");
+#elif defined(USE_MACOS_MEDIA)
+        macos_set_playback_state_paused();
 #endif
 }
 
@@ -1092,17 +1101,6 @@ void init_mpris(void)
         g_dbus_node_info_unref(introspection_data);
 #elif defined(USE_MACOS_MEDIA)
         init_macos_nowplaying();
-#endif
-}
-
-void emit_start_playing_mpris()
-{
-#ifdef USE_DBUS
-        GVariant *parameters = g_variant_new("(s)", "Playing");
-        g_dbus_connection_emit_signal(
-            get_gd_bus_connection(), NULL, "/org/mpris/MediaPlayer2",
-            "org.mpris.MediaPlayer2.Player", "PlaybackStatusChanged",
-            parameters, NULL);
 #endif
 }
 
