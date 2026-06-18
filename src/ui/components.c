@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 700
+
 #include "components.h"
 
 #include "common/appstate.h"
@@ -24,6 +26,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <sys/param.h>
+#include <wchar.h>
 
 // clang-format off
 const char *LOGO[] =  {"  __",
@@ -1917,8 +1920,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
             .type = MSG_PROGRESS_ROW_SET,
             .region = region,
             .progress_bar_row = region.row,
-            .footer_row = DISABLED_ROW
-        };
+            .footer_row = DISABLED_ROW};
 
         return result;
 }
@@ -2890,6 +2892,41 @@ void component_search_helper_collapse_view(Model *model, int diff_rows)
         }
 }
 
+size_t utf8_truncate(const char *s, int max_width)
+{
+    mbstate_t st = {0};
+    size_t pos = 0;
+    int width = 0;
+
+    while (s[pos] != '\0') {
+        wchar_t wc;
+
+        size_t len = mbrtowc(&wc, s + pos, MB_CUR_MAX, &st);
+
+        if (len == (size_t)-1 || len == (size_t)-2) {
+            /* invalid/incomplete UTF-8 */
+            break;
+        }
+
+        if (len == 0) {
+            break;
+        }
+
+        int w = wcwidth(wc);
+
+        if (w < 0)
+            w = 0;
+
+        if (width + w > max_width)
+            break;
+
+        width += w;
+        pos += len;
+    }
+
+    return pos; /* byte offset */
+}
+
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -2992,26 +3029,41 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                                                             model->search_results[i].entry->full_path) == 0;
 
                 // Build display name
-                char name[max_name_width + 1];
+                char name[PATH_MAX];
                 name[0] = '\0';
+
+                char tmp[1024];
 
                 if (model->search_results[i].entry->is_directory) {
 
-                        if (model->search_results[i].entry->parent != NULL && model->search_results[i].entry->parent->parent == NULL) {
-                                char *upper = string_to_upper(model->search_results[i].entry->name);
-                                snprintf(name, name_width + 1, "%s", upper);
+                        if (model->search_results[i].entry->parent != NULL &&
+                            model->search_results[i].entry->parent->parent == NULL) {
+
+                                char *upper = string_to_upper(
+                                    model->search_results[i].entry->name);
+
+                                snprintf(tmp, sizeof(tmp), "%s", upper);
                                 free(upper);
+
                         } else {
-                                snprintf(name, name_width + 1, "[%s]",
+                                snprintf(tmp, sizeof(tmp), "[%s]",
                                          model->search_results[i].entry->name);
                         }
+
                 } else {
-                        snprintf(name, name_width + 1, "%s [%s]",
+                        snprintf(tmp, sizeof(tmp), "%s [%s]",
                                  model->search_results[i].entry->name,
                                  model->search_results[i].entry->parent != NULL
                                      ? model->search_results[i].entry->parent->name
                                      : "Root");
                 }
+
+                size_t n = utf8_truncate(tmp, name_width);
+                memcpy(name, tmp, n);
+                name[n] = '\0';
+
+                int test = utf8_display_width(tmp);
+                test = utf8_display_width(name);
 
                 draw_search_row(buf, draw_row, region.col, region.width,
                                 name, extra_indent,

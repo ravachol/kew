@@ -8,8 +8,8 @@
 * and rendering shared UI components across multiple screens.
 */
 
-#include "common/model.h"
 #include "common_ui.h"
+#include "common/model.h"
 
 #include "common/appstate.h"
 #include "common/events.h"
@@ -575,31 +575,31 @@ const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
 // number of bytes eaten. Returns 0xFFFD on invalid sequences.
 uint32_t utf8_next(const char *s, int *bytes_consumed)
 {
-        unsigned char c = (unsigned char)*s;
+        const unsigned char *p = (const unsigned char *)s;
+        unsigned char c = p[0];
 
         if (c == 0) {
                 *bytes_consumed = 0;
                 return 0;
         }
+
+        // ASCII
         if (c < 0x80) {
                 *bytes_consumed = 1;
                 return c;
         }
-        if (c < 0xC2) {
-                *bytes_consumed = 1;
-                return 0xFFFD;
-        } // continuation or overlong
 
-        int len;
-        uint32_t cp;
+        uint32_t cp = 0;
+        int len = 0;
 
-        if (c < 0xE0) {
+        // Determine sequence length
+        if ((c & 0xE0) == 0xC0) {
                 len = 2;
                 cp = c & 0x1F;
-        } else if (c < 0xF0) {
+        } else if ((c & 0xF0) == 0xE0) {
                 len = 3;
                 cp = c & 0x0F;
-        } else if (c < 0xF8) {
+        } else if ((c & 0xF8) == 0xF0) {
                 len = 4;
                 cp = c & 0x07;
         } else {
@@ -607,23 +607,55 @@ uint32_t utf8_next(const char *s, int *bytes_consumed)
                 return 0xFFFD;
         }
 
+        // Decode continuation bytes safely
         for (int i = 1; i < len; i++) {
-                unsigned char b = (unsigned char)s[i];
+                unsigned char b = p[i];
+
+                // premature end of string
+                if (b == 0) {
+                        *bytes_consumed = i;
+                        return 0xFFFD;
+                }
+
+                // must be continuation byte
                 if ((b & 0xC0) != 0x80) {
                         *bytes_consumed = i;
                         return 0xFFFD;
                 }
+
                 cp = (cp << 6) | (b & 0x3F);
         }
 
         *bytes_consumed = len;
+
+        // Reject overlong encodings
+        if ((cp < 0x80 && len > 1) ||
+            (cp < 0x800 && len > 2) ||
+            (cp < 0x10000 && len > 3)) {
+                return 0xFFFD;
+        }
+
+        // Reject UTF-16 surrogate halves
+        if (cp >= 0xD800 && cp <= 0xDFFF) {
+                return 0xFFFD;
+        }
+
+        // Reject invalid Unicode range
+        if (cp > 0x10FFFF) {
+                return 0xFFFD;
+        }
+
         return cp;
 }
 
 int codepoint_display_width(uint32_t cp)
 {
         int w = wcwidth((wchar_t)cp);
-        return (w > 0) ? w : 1; // treat non-printing as width 1
+
+        if (w < 0)
+                return 1; // Fallback only for unknowns
+
+        return w; // Allow 0-width chars
 }
 
 void draw_buffer_set_cell(DrawBuffer *buf,
@@ -699,12 +731,15 @@ void draw_buffer_set_string_truncated(
                 int bytes;
                 uint32_t cp = utf8_next(p, &bytes);
 
-                if (bytes == 0)
+                if (bytes <= 0)
                         break;
 
                 p += bytes;
 
                 int w = codepoint_display_width(cp);
+
+                if (w == 0)
+                        continue;
 
                 if (cell + w > end)
                         break;
@@ -753,7 +788,7 @@ void free_link_payload(LinkPayload *link)
 }
 
 void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
-                        char *url, char *title, CellStyle style)
+                         char *url, char *title, CellStyle style)
 {
         (void)style;
 
@@ -768,29 +803,21 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
         bool draw_title = true;
         bool draw_url = true;
 
-        if (anchor->kind == CELL_LINK)
-        {
-                if (strcmp(anchor->link->title, title) == 0)
-                {
+        if (anchor->kind == CELL_LINK) {
+                if (strcmp(anchor->link->title, title) == 0) {
                         draw_title = false;
-                }
-                else if (anchor->link->title != NULL)
-                {
+                } else if (anchor->link->title != NULL) {
                         free(anchor->link->title);
                         anchor->link->title = NULL;
                 }
 
-                if (strcmp(anchor->link->url, url) == 0)
-                {
+                if (strcmp(anchor->link->url, url) == 0) {
                         draw_url = false;
-                }
-                else if (anchor->link->url != NULL)
-                {
+                } else if (anchor->link->url != NULL) {
                         free(anchor->link->url);
                         anchor->link->url = NULL;
                 }
-        }
-        else {
+        } else {
                 LinkPayload *link = calloc(1, sizeof(LinkPayload));
                 anchor->link = link;
         }
@@ -801,13 +828,11 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
         anchor->style = style;
         anchor->attrs = style.attrs;
 
-        if (draw_title)
-        {
+        if (draw_title) {
                 anchor->link->title = calloc(1, tlen + 1);
-                 snprintf(anchor->link->title, tlen + 1, "%s", title);
+                snprintf(anchor->link->title, tlen + 1, "%s", title);
         }
-        if (draw_url)
-        {
+        if (draw_url) {
                 anchor->link->url = calloc(1, ulen + 1);
                 snprintf(anchor->link->url, ulen + 1, "%s", url);
         }
