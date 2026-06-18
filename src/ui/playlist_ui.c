@@ -8,120 +8,15 @@
 
 #include "playlist_ui.h"
 
-#include "common/common.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 
 #include "common/appstate.h"
-#include "common_ui.h"
 
 #include "ops/playlist_ops.h"
 #include "sys/mpris.h"
-#include "utils/term.h"
-#include "utils/utils.h"
 
 #include <math.h>
-#include <string.h>
-
-static const int MAX_TERM_WIDTH = 1000;
-
-static int start_iter = 0;
-static int previous_chosen_song = 0;
-static bool is_same_name_as_last_time = false;
-
-static bool same_folder(const char *path1, const char *path2)
-{
-        if (path1 == NULL || path2 == NULL)
-                return false;
-
-        const char *slash1 = strrchr(path1, '/');
-        const char *slash2 = strrchr(path2, '/');
-
-        if (slash1 == NULL || slash2 == NULL)
-                return false;
-
-        size_t dir_len1 = (size_t)(slash1 - path1);
-        size_t dir_len2 = (size_t)(slash2 - path2);
-
-        if (dir_len1 != dir_len2)
-                return false;
-
-        return strncmp(path1, path2, dir_len1) == 0;
-}
-
-static void get_folder_basename(const char *file_path, char *out, int out_size)
-{
-        out[0] = '\0';
-        if (file_path == NULL)
-                return;
-
-        const char *last_slash = strrchr(file_path, '/');
-        if (last_slash == NULL || last_slash == file_path)
-                return;
-
-        const char *end = last_slash;
-        const char *start = end - 1;
-        while (start > file_path && *start != '/')
-                start--;
-        if (*start == '/')
-                start++;
-
-        int len = (int)(end - start);
-        if (len <= 0 || len >= out_size)
-                len = out_size - 1;
-
-        memcpy(out, start, len);
-        out[len] = '\0';
-}
-
-/**
- * @brief Render a folder header with a separator row when the folder changes.
- *
- * If folder display is enabled and node belongs to a different folder than
- * prev_node, prints an empty separator row followed by the folder name and
- * advances num_printed_rows by 2. Does nothing when the setting is off, the
- * folder is unchanged, the folder name is empty, or there isn't room left in
- * the view.
- */
-static void render_folder_header_if_changed(int row, int col,
-                                            int *num_printed_rows,
-                                            int max_list_size, int term_width,
-                                            int indent, Node *node,
-                                            Node *prev_node, UISettings *ui)
-{
-        if (!ui->showFoldersInPlaylist || node == NULL)
-                return;
-
-        if (prev_node != NULL &&
-            same_folder(node->song.file_path, prev_node->song.file_path))
-                return;
-
-        char folder_name[NAME_MAX];
-        get_folder_basename(node->song.file_path, folder_name,
-                            sizeof(folder_name));
-        if (folder_name[0] == '\0')
-                return;
-
-        if (*num_printed_rows + 2 > max_list_size)
-                return;
-
-        int max_folder_width = term_width - indent - 3;
-        if (max_folder_width > 0)
-                str_truncate_display_width(folder_name, folder_name,
-                                           max_folder_width);
-
-        apply_color(ui->colorMode, ui->theme.header, ui->color);
-
-        printf("\033[%d;%dH", row + *num_printed_rows, col);
-        clear_rest_of_line();
-        printf("\033[%d;%dH", row + *num_printed_rows + 1, col);
-        clear_rest_of_line();
-        printf("   %s", folder_name);
-
-        reset_color();
-
-        *num_printed_rows += 2;
-}
 
 Node *determine_start_node(Node *head, int *found_at, int list_size)
 {
@@ -135,6 +30,9 @@ Node *determine_start_node(Node *head, int *found_at, int list_size)
         int num_songs = 0;
         *found_at = -1;
 
+        if (!current)
+                return head;
+
         while (node != NULL && num_songs <= list_size) {
                 if (current != NULL && current->id == node->id) {
                         *found_at = num_songs;
@@ -146,189 +44,6 @@ Node *determine_start_node(Node *head, int *found_at, int list_size)
         }
 
         return found_node ? found_node : head;
-}
-
-void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
-{
-        if (node == NULL || buffer == NULL || node->song.file_path == NULL ||
-            buffer_size <= 0) {
-                if (buffer && buffer_size > 0)
-                        buffer[0] = '\0';
-                return;
-        }
-
-        if (strnlen(node->song.file_path, PATH_MAX) >= PATH_MAX) {
-                buffer[0] = '\0';
-                return;
-        }
-
-        char file_path[PATH_MAX];
-        c_strcpy(file_path, node->song.file_path, sizeof(file_path));
-
-        char *last_slash = strrchr(file_path, '/');
-        size_t len = strnlen(file_path, sizeof(file_path));
-
-        if (last_slash != NULL && last_slash < file_path + len) {
-                c_strcpy(buffer, last_slash + 1, buffer_size);
-                buffer[buffer_size - 1] = '\0';
-        } else {
-                // If no slash found or invalid pointer arithmetic, just copy
-                // whole path safely or clear
-                c_strcpy(buffer, file_path, buffer_size);
-                buffer[buffer_size - 1] = '\0';
-        }
-}
-
-int display_playlist_items(int row, int col, Node *start_node, int start_iter, int max_list_size,
-                           int term_width, int chosen_song,
-                           int *chosen_node_id, UISettings *ui)
-{
-        int num_printed_rows = 0;
-        Node *node = start_node;
-        int indent = col - 1;
-
-        if (term_width < 0 || term_width > MAX_TERM_WIDTH || indent < 0 ||
-            indent >= term_width)
-                return 0;
-
-        int max_name_width = term_width - indent - (indent / 4) - 10;
-        if (max_name_width <= 0)
-                return 0;
-
-        unsigned char default_color = ui->default_color;
-
-        PixelData row_color = {default_color, default_color, default_color};
-        PixelData row_color2 = {default_color, default_color, default_color};
-
-        char *buffer = malloc(NAME_MAX + 1);
-        if (!buffer)
-                return 0;
-
-        char *filename = malloc(NAME_MAX + 1);
-        if (!filename) {
-                free(buffer);
-                return 0;
-        }
-
-        Node *prev_node = (node != NULL) ? node->prev : NULL;
-
-        for (int i = start_iter; node != NULL && num_printed_rows < max_list_size;
-             i++) {
-                PixelData rgbRowNum = {default_color, default_color, default_color};
-                PixelData rgbTitle = {default_color, default_color, default_color};
-
-                if (ui->colorMode == COLOR_MODE_THEME &&
-                    ui->theme.playlist_rownum.type == COLOR_TYPE_RGB) {
-                        rgbRowNum = ui->theme.playlist_rownum.rgb;
-                        rgbTitle = ui->theme.playlist_title.rgb;
-                } else {
-                        rgbRowNum = ui->color;
-                }
-
-                prepare_playlist_string(node, buffer, NAME_MAX);
-
-                if (buffer[0] != '\0') {
-                        render_folder_header_if_changed(
-                            row, col, &num_printed_rows, max_list_size,
-                            term_width, indent, node, prev_node, ui);
-
-                        if (num_printed_rows >= max_list_size)
-                                break;
-
-                        if (!(rgbRowNum.r == default_color &&
-                              rgbRowNum.g == default_color &&
-                              rgbRowNum.b == default_color))
-                                row_color = get_gradient_color(
-                                    rgbRowNum, num_printed_rows,
-                                    max_list_size, max_list_size / 2, 0.7f);
-
-                        if (!(rgbTitle.r == default_color &&
-                              rgbTitle.g == default_color &&
-                              rgbTitle.b == default_color))
-                                row_color2 = get_gradient_color(
-                                    rgbTitle, num_printed_rows,
-                                    max_list_size, max_list_size / 2, 0.7f);
-
-                        if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME &&
-                                                                  ui->theme.playlist_rownum.type == COLOR_TYPE_RGB))
-                                apply_color(COLOR_MODE_ALBUM, ui->theme.playlist_rownum,
-                                            row_color);
-                        else
-                                apply_color(ui->colorMode, ui->theme.playlist_rownum,
-                                            row_color);
-
-                        printf("\033[%d;%dH", row + num_printed_rows, col);
-                        clear_rest_of_line();
-
-                        printf("   %d. ", i + 1);
-
-                        if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME &&
-                                                                  ui->theme.playlist_rownum.type == COLOR_TYPE_RGB))
-                                apply_color(COLOR_MODE_ALBUM, ui->theme.playlist_title,
-                                            row_color2);
-                        else
-                                apply_color(ui->colorMode, ui->theme.playlist_title,
-                                            ui->defaultColorRGB);
-
-                        is_same_name_as_last_time =
-                            (previous_chosen_song == chosen_song);
-
-                        if (!is_same_name_as_last_time) {
-                                reset_name_scroll();
-                        }
-
-                        filename[0] = '\0';
-
-                        if (i == chosen_song) {
-                                previous_chosen_song = chosen_song;
-
-                                *chosen_node_id = node->id;
-
-                                process_name_scroll(buffer, filename,
-                                                    max_name_width,
-                                                    is_same_name_as_last_time);
-
-                                inverse_text();
-                        } else {
-                                process_name(buffer, filename, max_name_width,
-                                             true, true);
-                        }
-
-                        Node *current = get_current_song();
-
-                        if (current != NULL && current->id == node->id)
-                                apply_color(ui->colorMode,
-                                            ui->theme.playlist_playing,
-                                            row_color);
-
-                        if (i + 1 < 10)
-                                printf(" ");
-
-                        if (current != NULL && current->id == node->id &&
-                            i == chosen_song) {
-                                inverse_text();
-                        }
-
-                        if (current != NULL && current->id == node->id &&
-                            i != chosen_song) {
-                                printf("\e[4m");
-                        }
-
-                        printf("%s", filename);
-
-                        num_printed_rows++;
-                }
-
-                prev_node = node;
-                node = node->next;
-
-                reset_color();
-        }
-
-        free(buffer);
-        free(filename);
-
-        return num_printed_rows;
 }
 
 void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list)
@@ -344,7 +59,7 @@ void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list)
         }
 }
 
-int determine_playlist_start(int previous_start_iter, int found_at, int max_list_size,
+int determine_playlist_start(int *previous_start_iter, int found_at, int max_list_size,
                              int *chosen_song, bool reset, bool end_of_list_reached)
 {
         int start_iter = 0;
@@ -353,9 +68,9 @@ int determine_playlist_start(int previous_start_iter, int found_at, int max_list
                          ? found_at
                          : start_iter;
 
-        if (previous_start_iter <= found_at &&
-            found_at < previous_start_iter + max_list_size)
-                start_iter = previous_start_iter;
+        if (*previous_start_iter <= found_at &&
+            found_at < *previous_start_iter + max_list_size)
+                start_iter = *previous_start_iter;
 
         if (*chosen_song < start_iter) {
                 start_iter = *chosen_song;
@@ -367,159 +82,10 @@ int determine_playlist_start(int previous_start_iter, int found_at, int max_list
 
         if (reset && !end_of_list_reached) {
                 if (found_at > max_list_size)
-                        start_iter = previous_start_iter = *chosen_song = found_at;
+                        start_iter = *previous_start_iter = *chosen_song = found_at;
                 else
                         start_iter = *chosen_song = 0;
         }
 
         return start_iter;
-}
-
-void move_start_node_into_position(int found_at, Node **start_node)
-{
-        // Go up to adjust the start_node
-        for (int i = found_at; i > start_iter; i--) {
-                if (i > 0 && (*start_node)->prev != NULL)
-                        *start_node = (*start_node)->prev;
-        }
-
-        // Go down to adjust the start_node
-        for (int i = (found_at == -1) ? 0 : found_at; i < start_iter; i++) {
-                if ((*start_node)->next != NULL)
-                        *start_node = (*start_node)->next;
-        }
-}
-
-// Each folder change in view consumes 2 visual rows (separator + header).
-static int count_extra_header_rows(Node *start_node, int start, int end)
-{
-        if (start_node == NULL || start >= end)
-                return 0;
-
-        int extra = 0;
-        Node *node = start_node;
-        Node *prev = node->prev;
-
-        for (int i = start; i < end && node != NULL; i++) {
-                if (prev == NULL ||
-                    !same_folder(node->song.file_path, prev->song.file_path))
-                        extra += 2;
-                prev = node;
-                node = node->next;
-        }
-
-        return extra;
-}
-
-int display_playlist(int row, int col, PlayList *list, int max_list_size,
-                     int *chosen_song, int *chosen_node_id, bool reset)
-{
-        AppState *state = get_app_state();
-        int term_width, termHeight;
-        get_term_size(&term_width, &termHeight);
-
-        UISettings *ui = &(state->uiSettings);
-
-        int found_at = -1;
-
-        Node *start_node = NULL;
-        if (list != NULL)
-                start_node = determine_start_node(list->head, &found_at, list->count);
-
-        ensure_chosen_song_within_limits(chosen_song, list);
-
-        start_iter = determine_playlist_start(start_iter, found_at, max_list_size, chosen_song,
-                                              reset, sound_system_is_end_of_list_reached(sound_sys));
-
-        move_start_node_into_position(found_at, &start_node);
-
-        // When folder display is on, folder headers consume visible rows.
-        // Walk backward from chosen_song to find the exact start_iter that
-        // keeps it visually centered.
-        if (state->uiSettings.showFoldersInPlaylist && start_node != NULL &&
-            *chosen_song >= start_iter) {
-                int half = max_list_size / 2;
-                int songs_to_chosen = *chosen_song - start_iter + 1;
-                int extra = count_extra_header_rows(start_node, start_iter,
-                                                    *chosen_song + 1);
-                int visual_pos = songs_to_chosen + extra - 1;
-
-                if (visual_pos > half) {
-                        // Find the node at chosen_song
-                        Node *cn = start_node;
-                        for (int k = start_iter;
-                             k < *chosen_song && cn != NULL; k++)
-                                cn = cn->next;
-
-                        if (cn != NULL) {
-                                int va = 0;
-                                Node *n = cn;
-                                int si = *chosen_song;
-
-                                // Folder header above chosen_song
-                                if (n->prev == NULL ||
-                                    !same_folder(n->song.file_path,
-                                                 n->prev->song.file_path))
-                                        va += 2;
-
-                                // Walk backward counting visual rows
-                                while (n->prev != NULL && va < half) {
-                                        n = n->prev;
-                                        si--;
-                                        va++; // song row
-                                        if (va >= half)
-                                                break;
-                                        // folder header for this song
-                                        if (n->prev == NULL ||
-                                            !same_folder(
-                                                n->song.file_path,
-                                                n->prev->song.file_path))
-                                                va += 2;
-                                }
-
-                                start_iter = si;
-                                start_node = n;
-                        }
-                }
-        }
-
-        int printed_rows = display_playlist_items(row, col, start_node, start_iter, max_list_size, term_width,
-                                                  *chosen_song, chosen_node_id, ui);
-
-        while (printed_rows <= max_list_size) {
-                printf("\033[%d;%dH", row + printed_rows, col);
-                clear_rest_of_line();
-                printed_rows++;
-        }
-
-        return printed_rows;
-}
-
-void set_end_of_list_reached(void)
-{
-        AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-
-        ps->skipping = false;
-        ps->skipOutOfOrder = false;
-
-        sound_system_set_end_of_list_reached(sound_sys, true);
-        start_playing(true);
-
-        clear_current_song();
-
-        uninit_device();
-
-        trigger_refresh();
-
-        if (is_repeat_list_enabled())
-                repeat_list();
-        else {
-                emit_playback_stopped_mpris();
-                emit_metadata_changed("", "", "", "",
-                                      "/org/mpris/MediaPlayer2/TrackList/NoTrack",
-                                      NULL, 0);
-                state->currentView = LIBRARY_VIEW;
-                clear_screen();
-        }
 }

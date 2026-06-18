@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=kew
+GenericName=Music Player
+Comment=Music for the Shell
+Exec=kew
+Icon=kew
+Terminal=true
+Type=Application
+Categories=Audio;Music;Player;AudioVideo;ConsoleOnly;
+Keywords=music;audio;player;terminal;tui;winamp;radio;podcast;
+StartupNotify=false

@@ -59,6 +59,8 @@ int song_loader_init(void)
         loader_data.songdataADeleted = true;
         loader_data.songdataBDeleted = true;
 
+        loader_data.dirty = false;
+
         tmpCache = create_cache();
 
         pthread_mutex_init(&(loader_data.mutex), NULL);
@@ -452,6 +454,11 @@ void load_meta_data(SongData *songdata)
                        &(songdata->coverHeight));
 }
 
+void asdf()
+{
+
+}
+
 SongData *load_song_data(char *file_path)
 {
         SongData *songdata = NULL;
@@ -473,6 +480,7 @@ SongData *load_song_data(char *file_path)
         songdata->lyrics = loadLyricsFromLRC(songdata->file_path);
         load_meta_data(songdata);
         load_color(songdata);
+        load_kmeans_palette(songdata->cover, songdata->coverWidth, songdata->coverHeight, songdata->kmeans_palette);
 
         return songdata;
 }

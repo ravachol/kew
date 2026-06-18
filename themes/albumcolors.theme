@@ -1,0 +1,63 @@
+# ============================================
+# Album Colors kew Theme
+# ============================================
+#
+#   4-Color album color palette (Colors 101-104)
+#
+#   This theme will be used if you choose album cover colors (press i in kew to cycle color settings)
+
+name=Album Colors
+
+# Core Colors
+accent=101
+text=-1         # Default terminal foreground
+textDim=102
+textMuted=103
+
+# General Colors
+logo=101
+header=101
+footer=#787878  # The old school gray, this works on most terminals
+help=-1         # Default foreground
+link=103
+nowplaying=103
+playbackstatus=102
+
+# Playlist View
+playlist.rownum=101
+playlist.title=-1    # Default foreground
+playlist.playing=103
+
+# Track View
+trackview.title=103
+trackview.artist=102
+trackview.album=102
+trackview.year=102
+trackview.time=102
+trackview.visualizer=104
+trackview.lyrics=101
+
+# Library View
+library.artist=102
+library.album=102
+library.track=-1    # Default foreground
+library.enqueued=101
+library.playing=103
+
+# Search
+search.label=101
+search.query=-1     # Default foreground
+search.result=-1    # Default foreground
+search.enqueued=102
+search.playing=101
+
+# Progress
+progress.filled=102
+progress.empty=102
+progress.elapsed=102
+
+# Status
+status.info=-1      # Default foreground
+status.warning=104
+status.error=104
+status.success=104

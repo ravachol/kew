@@ -9,10 +9,9 @@
 #include "control_ui.h"
 
 #include "ops/playlist_ops.h"
-#include "sound/sound.h"
 #include "ui/chroma.h"
-#include "ui/player_ui.h"
 #include "ui/queue_ui.h"
+#include "ui/render_ui.h"
 
 #include "common/appstate.h"
 #include "ops/playback_ops.h"
@@ -24,7 +23,6 @@
 
 #include "data/theme.h"
 
-#include "utils/term.h"
 #include "utils/utils.h"
 
 #include <miniaudio.h>
@@ -33,66 +31,89 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-void seek_forward(void)
+int get_num_progress_bars(void)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
+        if (model->state.ui.num_progress_bars <= 0)
+                return DEFAULT_NUM_PROGRESS_BARS;
+        return model->state.ui.num_progress_bars;
+}
+
+void seek_forward(Model *model)
+{
+        AppState *state = &model->state;
         Node *current = get_current_song();
         if (current == NULL)
                 return;
 
-        SongData *songdata = sound_get_current_song_data();
+        SongData *songdata = model->songdata;
+
+        if (!songdata)
+                return;
+
         double duration = songdata->duration;
 
         if (duration <= 0.0)
                 return;
 
-        double step_percent = 100.0 / state->uiState.num_progress_bars;
+        double step_percent = 100.0 / get_num_progress_bars();
 
         int seconds = (int)(duration * (step_percent / 100.0));
 
+        if (seconds == 0)
+                seconds = 1;
+
         seek(seconds);
 
-        state->uiState.isFastForwarding = true;
+        state->ui.isFastForwarding = true;
 }
 
-void seek_back(void)
+void seek_back(Model *model)
 {
-        AppState *state = get_app_state();
+        AppState *state = &model->state;
         Node *current = get_current_song();
 
         if (current == NULL)
                 return;
 
-        SongData *songdata = sound_get_current_song_data();
+        SongData *songdata = model->songdata;
+
+        if (!songdata)
+                return;
+
         double duration = songdata->duration;
 
         if (duration <= 0.0)
                 return;
 
-        double step_percent = 100.0 / state->uiState.num_progress_bars;
+        double step_percent = 100.0 / get_num_progress_bars();
 
         int seconds = (int)(duration * (step_percent / 100.0));
 
         seek(-seconds);
 
-        state->uiState.isRewinding = true;
+        state->ui.isRewinding = true;
 }
 
 void cycle_color_mode(void)
 {
         AppState *state = get_app_state();
-        UISettings *ui = &(state->uiSettings);
-
-        clear_screen();
+        UISettings *ui = &(state->settings);
 
         switch (ui->colorMode) {
         case COLOR_MODE_DEFAULT:
+                ui->colorMode = COLOR_MODE_ALBUM_ONE;
+                break;
+        case COLOR_MODE_ALBUM_ONE:
                 ui->colorMode = COLOR_MODE_ALBUM;
                 break;
         case COLOR_MODE_ALBUM:
                 ui->colorMode = COLOR_MODE_THEME;
                 break;
         case COLOR_MODE_THEME:
+                ui->colorMode = COLOR_MODE_NEUTRAL;
+                break;
+        case COLOR_MODE_NEUTRAL:
                 ui->colorMode = COLOR_MODE_DEFAULT;
                 break;
         }
@@ -103,40 +124,80 @@ void cycle_color_mode(void)
         case COLOR_MODE_DEFAULT:
                 if (load_theme("default", true)) {
                         themeLoaded = true;
+                        if (ui->visualizer_mode > VIZ_REVERSED)
+                                ui->visualizer_mode = VIZ_REVERSED;
+                }
+                break;
+        case COLOR_MODE_ALBUM_ONE:
+                if (load_theme("onealbumcolor", false)) {
+                        themeLoaded = true;
+                        if (ui->visualizer_mode > VIZ_REVERSED)
+                                ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_ALBUM:
-                themeLoaded = true;
+                if (load_theme("albumcolors", false)) {
+                        themeLoaded = true;
+                        if (ui->visualizer_mode != VIZ_KMEANS_CLUSTERING)
+                                ui->visualizer_mode = VIZ_KMEANS_CLUSTERING;
+                }
                 break;
         case COLOR_MODE_THEME:
                 if (ui->theme_name[0] != '\0' &&
-                    load_theme(ui->theme_name, true)) {
+                    load_theme(ui->theme_name, false)) {
+                        themeLoaded = true;
+                        if (ui->visualizer_mode > VIZ_REVERSED)
+                                ui->visualizer_mode = VIZ_REVERSED;
+                }
+                break;
+        case COLOR_MODE_NEUTRAL:
+                if (load_theme("neutral", false)) {
                         themeLoaded = true;
                 }
+                break;
         }
 
         if (!themeLoaded) {
                 cycle_color_mode();
         }
 
-        trigger_redraw_side_cover();
-        trigger_refresh();
+        set_dirty(DIRTY_ALL);
 }
 
 void cycle_visualization(void)
 {
-        if (chroma_is_started())
-                request_stop_visualization();
+        Model *model = get_model();
 
-        request_next_visualization();
+        model->state.settings.coverAnsi = false;
+
+        if (model->songdata_ok && model->state.settings.coverEnabled) {
+
+                if (model->state.ui.has_chroma == -1)
+                        model->state.ui.has_chroma = chroma_is_installed();
+
+                if (model->state.ui.has_chroma == 1) {
+
+                        if (model->state.ui.chroma_started) {
+
+                                model->state.ui.chroma_next_preset_requested = true;
+
+                        } else {
+
+                                if (model->state.settings.chromaPreset >= 0)
+                                        chroma_set_current_preset(model->state.settings.chromaPreset);
+
+                                model->state.ui.chroma_start_requested = true;
+                        }
+
+                        model->state.settings.visualizations_instead_of_cover = true;
+                }
+        }
 }
 
 void cycle_themes(void)
 {
-        clear_screen();
-
         AppState *state = get_app_state();
-        UISettings *ui = &(state->uiSettings);
+        UISettings *ui = &(state->settings);
 
         char *config_path = get_config_path();
 
@@ -159,7 +220,7 @@ void cycle_themes(void)
 
         // Collect all *.theme files
         while ((entry = readdir(dir)) != NULL) {
-                if (strstr(entry->d_name, ".theme")) {
+                if (strstr(entry->d_name, ".theme") && !strstr(entry->d_name, ".theme.bak")) {
                         themes[theme_count++] = strdup(entry->d_name);
                 }
         }
@@ -199,10 +260,22 @@ void cycle_themes(void)
                 char *dot = strstr(ui->theme_name, ".theme");
                 if (dot)
                         *dot = '\0';
+
+                if (strcmp(ui->theme_name, "onealbumcolor") == 0)
+                        ui->colorMode = COLOR_MODE_ALBUM_ONE;
+                if (strcmp(ui->theme_name, "albumcolors") == 0)
+                        ui->colorMode = COLOR_MODE_ALBUM;
+                if (strcmp(ui->theme_name, "neutral") == 0)
+                        ui->colorMode = COLOR_MODE_NEUTRAL;
+                if (strcmp(ui->theme_name, "default") == 0)
+                        ui->colorMode = COLOR_MODE_DEFAULT;
+
+                if (ui->colorMode == COLOR_MODE_THEME)
+                        if (ui->visualizer_mode > 2)
+                                ui->visualizer_mode = 2;
         }
 
-        trigger_redraw_side_cover();
-        trigger_refresh();
+        set_dirty(DIRTY_ALL);
 
         for (int i = 0; i < theme_count; i++) {
                 free(themes[i]);
@@ -211,43 +284,17 @@ void cycle_themes(void)
         free(config_path);
 }
 
-void toggle_visualizer(void)
-{
-        AppSettings *settings = get_app_settings();
-        AppState *state = get_app_state();
-
-        state->uiSettings.visualizerEnabled = !state->uiSettings.visualizerEnabled;
-        c_strcpy(settings->visualizerEnabled, state->uiSettings.visualizerEnabled ? "1" : "0",
-                 sizeof(settings->visualizerEnabled));
-
-        restore_cursor_position();
-        trigger_redraw_side_cover();
-        trigger_refresh();
-}
-
-void toggle_show_lyrics_page(void)
-{
-        AppState *state = get_app_state();
-        state->uiState.showLyricsPage = !state->uiState.showLyricsPage;
-        trigger_refresh();
-}
-
 void toggle_ascii(void)
 {
         if (chroma_is_started()) {
                 request_stop_visualization();
-                trigger_refresh();
+                set_dirty(DIRTY_ALL);
                 return;
         }
 
-        AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
-
-        state->uiSettings.coverAnsi = !state->uiSettings.coverAnsi;
-        c_strcpy(settings->coverAnsi, state->uiSettings.coverAnsi ? "1" : "0",
-                 sizeof(settings->coverAnsi));
-        trigger_redraw_side_cover();
-        trigger_refresh();
+        state->settings.coverAnsi = !state->settings.coverAnsi;
+        set_dirty(DIRTY_ALL);
 }
 
 void toggle_repeat(void)
@@ -266,18 +313,17 @@ void toggle_repeat(void)
         if (repeat_state == 0) {
                 emit_string_property_changed("loop_status", "None");
 
-                state->uiSettings.repeatState = 0;
+                state->settings.repeatState = 0;
         } else if (repeat_state == 1) {
 
                 emit_string_property_changed("loop_status", "Track");
-                state->uiSettings.repeatState = 1;
+                state->settings.repeatState = 1;
         } else {
                 emit_string_property_changed("loop_status", "List");
-                state->uiSettings.repeatState = 2;
+                state->settings.repeatState = 2;
         }
 
-        if (state->currentView != TRACK_VIEW)
-                trigger_refresh();
+        set_dirty(DIRTY_FOOTER);
 }
 
 void toggle_pause()
@@ -294,62 +340,57 @@ void toggle_pause()
         }
 }
 
-void toggle_folder_display(void)
-{
-        AppState *state = get_app_state();
-        AppSettings *settings = get_app_settings();
-        state->uiSettings.showFoldersInPlaylist = !state->uiSettings.showFoldersInPlaylist;
-        c_strcpy(settings->showFoldersInPlaylist,
-                 state->uiSettings.showFoldersInPlaylist ? "1" : "0",
-                 sizeof(settings->showFoldersInPlaylist));
-        trigger_refresh();
-}
-
-void toggle_notifications(void)
-{
-        AppState *state = get_app_state();
-        AppSettings *settings = get_app_settings();
-        UISettings *ui = &(state->uiSettings);
-
-        ui->allowNotifications = !ui->allowNotifications;
-        c_strcpy(settings->allowNotifications,
-                 ui->allowNotifications ? "1" : "0",
-                 sizeof(settings->allowNotifications));
-}
-
-void toggle_shuffle(void)
+void toggle_shuffle(Model *model)
 {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        state->uiSettings.shuffle_enabled = !is_shuffle_enabled();
-        set_shuffle_enabled(state->uiSettings.shuffle_enabled);
+        state->settings.shuffle_enabled = !is_shuffle_enabled();
+        set_shuffle_enabled(state->settings.shuffle_enabled);
 
         Node *current = get_current_song();
-        PlayList *playlist = get_playlist();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
-        if (state->uiSettings.shuffle_enabled) {
-                pthread_mutex_lock(&(playlist->mutex));
+        if (state->settings.shuffle_enabled) {
 
-                shuffle_playlist_starting_from_song(playlist, current);
+                if (model->playlist) {
+                        pthread_mutex_lock(&(model->playlist->mutex));
 
-                pthread_mutex_unlock(&(playlist->mutex));
+                        shuffle_playlist_starting_from_song(model->playlist, current);
 
-                emit_boolean_property_changed("Shuffle", TRUE);
-        } else {
-                char *path = NULL;
-                if (current != NULL) {
-                        path = strdup(current->song.file_path);
+                        pthread_mutex_unlock(&(model->playlist->mutex));
                 }
 
-                PlayList *playlist = get_playlist();
+                emit_boolean_property_changed("Shuffle", TRUE);
 
-                deep_copy_play_list_onto_list(unshuffled_playlist, &playlist);
+        } else if (model->playlist && model->unshuffled_playlist) {
 
-                if (path != NULL) {
-                        set_current_song(find_path_in_playlist(path, playlist));
-                        free(path);
+                char *path = NULL;
+
+                if (model->playlist && model->unshuffled_playlist) {
+
+                        pthread_mutex_lock(&(model->playlist->mutex));
+
+                        int id = -1;
+                        if (current)
+                                id = current->id;
+
+                        current = NULL;
+
+                        deep_copy_list(model->unshuffled_playlist, &(model->playlist));
+
+                        if (id >= 0 && current == NULL)
+                                current = find_selected_entry_by_id(model->playlist, id);
+
+                        pthread_mutex_unlock(&(model->playlist->mutex));
+                }
+
+                if (current != NULL) {
+                        path = strdup(current->song.file_path);
+
+                        if (path != NULL) {
+                                set_current_song(find_path_in_playlist(path, model->playlist));
+                                free(path);
+                        }
                 }
 
                 emit_boolean_property_changed("Shuffle", FALSE);
@@ -358,25 +399,28 @@ void toggle_shuffle(void)
         ps->loadedNextSong = false;
         set_next_song(NULL);
 
-        if (state->currentView == PLAYLIST_VIEW ||
-            state->currentView == LIBRARY_VIEW)
-                trigger_refresh();
+        set_dirty(DIRTY_PLAYLIST | DIRTY_LIBRARY | DIRTY_FOOTER);
 }
 
-bool should_refresh_player(void)
+bool can_refresh_player(void)
 {
-        PlaybackState *ps = get_playback_state();
+        Model *model = get_model();
+        PlaybackState *ps = &model->playbackState;
 
-        return !ps->skipping && !is_EOF_reached() && !is_switching_track();
+        return !ps->skipping &&
+        !is_EOF_reached() &&
+        !is_switching_track() &&
+        !should_exit() &&
+        !model->state.ui.resumed_in_background;
 }
 
 int load_theme(const char *theme_name,
                bool is_ansi_theme)
 {
-        AppState *app_state = get_app_state();
+        AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
 
-        if (!app_state || !theme_name)
+        if (!state || !theme_name)
                 return 0;
 
         char *config_path = get_config_path();
@@ -433,19 +477,20 @@ int load_theme(const char *theme_name,
 
         // Call the loader
         int loaded =
-            load_theme_from_file(themes_dir, lower_filename, &app_state->uiSettings.theme);
+            load_theme_from_file(themes_dir, lower_filename, &state->settings.theme);
         if (!loaded) {
                 free(config_path);
                 free(lower_filename);
                 return 0; // failed to load
         }
 
-        app_state->uiSettings.themeIsSet = true;
-
+        state->settings.themeIsSet = true;
 
         if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme
                 snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
+                         theme_name);
+                snprintf(settings->theme, sizeof(settings->theme), "%s",
                          theme_name);
         } else {
                 // Truecolor theme: store in settings->theme

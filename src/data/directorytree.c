@@ -28,7 +28,7 @@
 #define FSDB_MAGIC 0x46534442 // "FSDB"
 
 static int last_used_id = 0;
-static uint32_t DB_VERSION = 2;
+static uint32_t DB_VERSION = 3;
 
 // Header for the DB
 typedef struct {
@@ -48,6 +48,7 @@ typedef struct {
         int32_t is_directory;
         int32_t is_enqueued;
         uint32_t name_offset;
+        uint64_t mtime;
 } FileSystemEntryDisk;
 
 typedef struct {
@@ -83,7 +84,7 @@ static void collect_entries(FileSystemEntry *node, EntryArray *arr)
                 collect_entries(child, arr);
 }
 
-int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *playlist)
+int write_tree_to_binary(FileSystemEntry *root, const char *filename)
 {
         if (!root || !filename)
                 return -1;
@@ -118,7 +119,7 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
                 return -1;
         }
 
-        FileSystemEntryDisk *disk_entries = malloc(sizeof(FileSystemEntryDisk) * arr.size);
+        FileSystemEntryDisk *disk_entries = calloc(arr.size, sizeof(FileSystemEntryDisk));
         if (!disk_entries) {
                 free(arr.data);
                 free(string_table);
@@ -135,30 +136,12 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
                 d->parent_id = n->parent_id;
                 d->is_directory = n->is_directory;
                 d->is_enqueued = n->is_enqueued;
+                d->mtime = (uint64_t)n->mtime;
 
                 if (n->name) {
                         d->name_offset = (uint32_t)offset;
                         strcpy(&string_table[offset], n->name);
                         offset += strlen(n->name) + 1;
-
-                        if (playlist->head && n->is_enqueued)
-                        {
-                                Node *node = playlist->head;
-
-                                int count = 0;
-
-                                while (node != NULL)
-                                {
-                                        count++;
-
-                                        if (strcmp(node->song.file_path, n->full_path) == 0)
-                                        {
-                                                d->is_enqueued = count;
-                                        }
-
-                                        node = node->next;
-                                }
-                        }
                 } else {
                         d->name_offset = UINT32_MAX; // fallback if name is NULL
                 }
@@ -214,7 +197,7 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *
 }
 
 FileSystemEntry *create_entry(const char *name, int is_directory,
-                              FileSystemEntry *parent)
+                              FileSystemEntry *parent, time_t mtime)
 {
         if (last_used_id == INT_MAX)
                 return NULL;
@@ -232,6 +215,7 @@ FileSystemEntry *create_entry(const char *name, int is_directory,
 
                 new_entry->is_directory = is_directory;
                 new_entry->is_enqueued = 0;
+                new_entry->mtime = mtime;
                 new_entry->parent = parent;
                 new_entry->children = NULL;
                 new_entry->next = NULL;
@@ -626,7 +610,7 @@ int read_directory(const char *path, FileSystemEntry *parent)
                         if (is_audio == 0 || is_dir) {
 
                                 FileSystemEntry *child =
-                                    create_entry(entry->d_name, is_dir, parent);
+                                    create_entry(entry->d_name, is_dir, parent, file_stats.st_mtime);
 
                                 if (child == NULL)
                                         continue;
@@ -659,16 +643,12 @@ int read_directory(const char *path, FileSystemEntry *parent)
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
 {
-        FileSystemEntry *root = create_entry("root", 1, NULL);
-
-        set_library(root);
+        FileSystemEntry *root = create_entry("root", 1, NULL, 0);
 
         set_full_path(root, start_path, "");
 
         *num_entries = read_directory(start_path, root);
         *num_entries -= remove_empty_directories(root, 0);
-
-        last_used_id = 0;
 
         return root;
 }
@@ -792,6 +772,8 @@ FileSystemEntry *read_tree_from_binary(
                 n->id = d->id;
                 n->parent_id = d->parent_id;
                 n->is_directory = d->is_directory;
+                n->mtime = (time_t)d->mtime;
+
                 if (set_enqueued_status)
                 {
                         n->is_enqueued = d->is_enqueued;
@@ -802,6 +784,7 @@ FileSystemEntry *read_tree_from_binary(
                         n->name = strdup(""); // empty name
                 else
                         n->name = strdup(string_table + d->name_offset);
+
                 n->parent = n->children = n->next = n->lastChild = NULL;
                 n->full_path = NULL;
 
@@ -1042,20 +1025,20 @@ void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
         fuzzy_search_recursive(node->next, search_term, threshold, callback);
 }
 
-FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp,
+FileSystemEntry *find_corresponding_entry(FileSystemEntry *root,
                                           const char *full_path)
 {
-        if (tmp == NULL)
+        if (root == NULL)
                 return NULL;
-        if (strcmp(tmp->full_path, full_path) == 0)
-                return tmp;
+        if (strcmp(root->full_path, full_path) == 0)
+                return root;
 
         FileSystemEntry *found =
-            find_corresponding_entry(tmp->children, full_path);
+            find_corresponding_entry(root->children, full_path);
         if (found != NULL)
                 return found;
 
-        return find_corresponding_entry(tmp->next, full_path);
+        return find_corresponding_entry(root->next, full_path);
 }
 
 bool is_m3u(const char *filename)
@@ -1100,13 +1083,8 @@ int compare_folders_by_age_files_alphabetically(const void *a, const void *b)
 
         // Both are directories → sort by mtime descending
         if (entry_a->is_directory && entry_b->is_directory) {
-                struct stat stat_a, statB;
 
-                if (stat(entry_a->full_path, &stat_a) != 0 ||
-                    stat(entry_b->full_path, &statB) != 0)
-                        return 0;
-
-                return (int)(statB.st_mtime - stat_a.st_mtime); // newer first
+                return (int)(entry_b->mtime - entry_a->mtime); // newer first
         }
 
         // Both are files → sort alphabetically
@@ -1172,3 +1150,36 @@ void sort_file_system_tree(FileSystemEntry *root,
                 child = child->next;
         }
 }
+
+unsigned long count_directories_in_directory(FileSystemEntry *directory) {
+    unsigned long dir_count = 0;
+    FileSystemEntry* child = directory->children;
+
+    while (child != NULL) {
+        if (child->is_directory && child->children != NULL) {
+            dir_count += count_directories_in_directory(child);
+            dir_count++;
+        }
+        child = child->next;
+    }
+
+    return dir_count;
+}
+
+unsigned long count_music_files_in_directory(FileSystemEntry *directory) {
+    unsigned long file_count = 0;
+    FileSystemEntry* child = directory->children;
+
+    while (child != NULL) {
+        if (child->is_directory && child->children != NULL) {
+            file_count += count_music_files_in_directory(child);
+        }
+        else if (is_music_file(child->name)) {
+            file_count++;
+        }
+        child = child->next;
+    }
+
+    return file_count;
+}
+

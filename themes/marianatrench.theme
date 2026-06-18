@@ -4,54 +4,54 @@
 
 [theme]
 name=Mariana Trench
-author=Ravachol
 
 # Core colors
 accent=#7a92a8
-text=#c8d5de
+text=#92a5b5
 textDim=#8599ab
 textMuted=#5a6e7d
 
 # General Colors
 logo=#5a6e7d
-header=#5a6e7d
+header=#7a9487
 footer=#5a6e7d
 help=#92a5b5
 link=#8599ab
 nowplaying=#7a92a8
+playbackstatus=#5a6e7d
 
 # Playlist View
 playlist.rownum=#5a6e7d
-playlist.title=#c8d5de
+playlist.title=#92a5b5
 playlist.playing=#8fa4b6
 
 # Track View
-trackview.title=#c8d5de
-trackview.artist=#7a92a8
-trackview.album=#8599ab
-trackview.year=#8599ab
+trackview.title=#92a5b5
+trackview.artist=#92a5b5
+trackview.album=#92a5b5
+trackview.year=#92a5b5
 trackview.time=#92a5b5
-trackview.visualizer=#212c35
-trackview.lyrics=#c8d5de
+trackview.visualizer=#5a6e7d
+trackview.lyrics=#92a5b5
 
 # Library View
-library.artist=#5a6e7d
+library.artist=#7a9487
 library.album=#b5c4ce
-library.track=#b5c4ce
+library.track=#92a5b5
 library.enqueued=#7a9487
 library.playing=#8fa4b6
 
 # Search
 search.label=#5a6e7d
 search.query=#7a92a8
-search.result=#c8d5de
+search.result=#92a5b5
 search.enqueued=#7a9487
 search.playing=#8fa4b6
 
 # Progress
-progress.filled=#2f3d48
-progress.empty=#1a2329
-progress.elapsed=#2f3d48
+progress.filled=#5a6e7d
+progress.empty=#b5c4ce
+progress.elapsed=#5a6e7d
 
 # Status
 status.info=-1      	# Default foreground

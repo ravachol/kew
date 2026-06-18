@@ -4,7 +4,6 @@
 
 [theme]
 name=Pewter
-author=Ravachol
 
 # Core colors
 accent=#7a8a96
@@ -14,44 +13,45 @@ textMuted=#556169
 
 # General Colors
 logo=#556169
-header=#556169
+header=#7a8f7f
 footer=#556169
 help=#94a1ab
-link=#8d9ba5
-nowplaying=#7a8a96
+link=#7a8f7f
+nowplaying=#7a8f7f
+playbackstatus=#556169
 
 # Playlist View
 playlist.rownum=#556169
 playlist.title=#c5ced6
-playlist.playing=#8c9aa5
+playlist.playing=#7a8f7f
 
 # Track View
-trackview.title=#c5ced6
-trackview.artist=#7a8a96
-trackview.album=#8d9ba5
-trackview.year=#8d9ba5
+trackview.title=#7a8f7f
+trackview.artist=#94a1ab
+trackview.album=#94a1ab
+trackview.year=#94a1ab
 trackview.time=#94a1ab
-trackview.visualizer=#1f262b
-trackview.lyrics=#c5ced6
+trackview.visualizer=#94a1ab
+trackview.lyrics=#94a1ab
 
 # Library View
-library.artist=#556169
+library.artist=#7a8f7f
 library.album=#b0b9c1
 library.track=#b0b9c1
 library.enqueued=#7a8f7f
-library.playing=#8c9aa5
+library.playing=#7a8f7f
 
 # Search
 search.label=#556169
 search.query=#7a8a96
 search.result=#c5ced6
 search.enqueued=#7a8f7f
-search.playing=#8c9aa5
+search.playing=#7a8f7f
 
 # Progress
-progress.filled=#2d363c
-progress.empty=#181e22
-progress.elapsed=#556169
+progress.filled=#7a8f7f
+progress.empty=#556169
+progress.elapsed=#7a8f7f
 
 # Status
 status.info=-1      	# Default foreground

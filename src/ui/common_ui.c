@@ -8,10 +8,10 @@
 * and rendering shared UI components across multiple screens.
 */
 
+#include "common/model.h"
 #include "common_ui.h"
 
 #include "common/appstate.h"
-#include "common/common.h"
 #include "common/events.h"
 
 #include "data/theme.h"
@@ -25,11 +25,6 @@
 #include <wchar.h>
 
 static unsigned int update_counter = 0;
-static const int start_scrolling_delay = 10;
-static bool finished_scrolling = false;
-static int last_name_position = 0;
-static bool is_long_name = false;
-static int scroll_delay_skipped_count = 0;
 
 void set_RGB(PixelData p)
 {
@@ -41,52 +36,52 @@ void set_album_color(PixelData color)
 {
         if (color.r >= 210 && color.g >= 210 && color.b >= 210) {
                 AppState *state = get_app_state();
-                set_RGB(state->uiSettings.defaultColorRGB);
+                set_RGB(state->settings.defaultColorRGB);
         } else {
                 set_RGB(color);
         }
 }
 
-enum EventType get_mouse_action(int num)
+enum MsgType get_mouse_action(int num)
 {
-        enum EventType value = EVENT_NONE;
+        enum MsgType value = MSG_NONE;
 
         switch (num) {
         case 0:
-                value = EVENT_NONE;
+                value = MSG_NONE;
                 break;
         case 1:
-                value = EVENT_ENQUEUE;
+                value = MSG_ENQUEUE;
                 break;
         case 2:
-                value = EVENT_PLAY_PAUSE;
+                value = MSG_PLAY_PAUSE;
                 break;
         case 3:
-                value = EVENT_SCROLLUP;
+                value = MSG_SCROLLUP;
                 break;
         case 4:
-                value = EVENT_SCROLLDOWN;
+                value = MSG_SCROLLDOWN;
                 break;
         case 5:
-                value = EVENT_SEEKFORWARD;
+                value = MSG_SEEKFORWARD;
                 break;
         case 6:
-                value = EVENT_SEEKBACK;
+                value = MSG_SEEKBACK;
                 break;
         case 7:
-                value = EVENT_VOLUME_UP;
+                value = MSG_VOLUME_UP;
                 break;
         case 8:
-                value = EVENT_VOLUME_DOWN;
+                value = MSG_VOLUME_DOWN;
                 break;
         case 9:
-                value = EVENT_NEXTVIEW;
+                value = MSG_NEXTVIEW;
                 break;
         case 10:
-                value = EVENT_PREVVIEW;
+                value = MSG_PREVVIEW;
                 break;
         default:
-                value = EVENT_NONE;
+                value = MSG_NONE;
                 break;
         }
 
@@ -117,15 +112,18 @@ void transfer_settings_to_ui(void)
 {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
-        UISettings *ui = &(state->uiSettings);
+        UISettings *ui = &(state->settings);
 
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
+                 settings->coverStyle[0] ? settings->coverStyle : "auto");
         ui->hideHelp = (settings->hideHelp[0] == '1');
-        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
+        ui->visualizer_mode = get_number(settings->visualizer_mode);
         ui->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
+        ui->simpleTimeStatus = (settings->simpleTimeStatus[0] == '1');
         ui->discordRPCEnabled = (settings->discordRPCEnabled[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->clearListClearsAll = (settings->clearListClearsAll[0] == '1');
@@ -136,15 +134,17 @@ void transfer_settings_to_ui(void)
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideFooter = (settings->hideFooter[0] == '1');
         ui->hideSideCover = (settings->hideSideCover[0] == '1');
-        ui->saveRepeatShuffleSettings =
-            (settings->saveRepeatShuffleSettings[0] == '1');
-        ui->trackTitleAsWindowTitle =
-            (settings->trackTitleAsWindowTitle[0] == '1');
-        ui->showFoldersInPlaylist =
-            (settings->showFoldersInPlaylist[0] == '1');
+        ui->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
+        ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
+        ui->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
+        ui->auto_resume = (settings->auto_resume[0] == '1');
+        ui->always_crossfade = (settings->always_crossfade[0] == '1');
+        ui->showFoldersInPlaylist = (settings->showFoldersInPlaylist[0] == '1');
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
+                 settings->coverStyle[0] ? settings->coverStyle : "auto");
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
 
         snprintf(ui->chromaPath, sizeof(ui->chromaPath), "%s", settings->chromaPath);
@@ -182,7 +182,7 @@ void transfer_settings_to_ui(void)
                 ui->repeatState = tmp;
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp < 3) {
+        if (tmp >= 0 && tmp < 4) {
                 ui->colorMode = tmp;
         }
 
@@ -192,7 +192,7 @@ void transfer_settings_to_ui(void)
 
         tmp = get_number(settings->mouseLeftClickAction);
 
-        enum EventType tmp_event = get_mouse_action(tmp);
+        enum MsgType tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseLeftClickAction = tmp_event;
 
@@ -234,17 +234,13 @@ void transfer_settings_to_ui(void)
         if (tmp >= 0)
                 ui->visualizer_bar_mode = tmp;
 
-        tmp = get_number(settings->visualizer_color_type);
-        if (tmp >= 0)
-                ui->visualizer_color_type = tmp;
-
         tmp = get_number(settings->titleDelay);
         if (tmp >= 0)
                 ui->titleDelay = tmp;
 
         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
 
-        if (!(ui->colorMode >= 0 && ui->colorMode < 3)) {
+        if (!(ui->colorMode >= 0 && ui->colorMode <= 4)) {
                 bool useConfigColors = (settings->useConfigColors[0] == '1');
 
                 if (useConfigColors)
@@ -274,32 +270,10 @@ void inverse_text(void)
         printf("\x1b[7m");
 }
 
-void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color)
+void apply_color(PixelData color)
 {
         reset_color();
-
-        switch (mode) {
-        case COLOR_MODE_ALBUM:
-                set_album_color(album_color);
-                break;
-
-        case COLOR_MODE_THEME:
-        case COLOR_MODE_DEFAULT:
-                if (theme_color.type == COLOR_TYPE_RGB) {
-                        set_RGB(theme_color.rgb);
-                } else {
-                        set_terminal_color(theme_color.ansiIndex);
-                }
-                break;
-        }
-}
-
-void reset_name_scroll()
-{
-        last_name_position = 0;
-        is_long_name = false;
-        finished_scrolling = false;
-        scroll_delay_skipped_count = 0;
+        set_album_color(color);
 }
 
 /*
@@ -415,7 +389,7 @@ void process_name_strip_suffix(const char *name, char *output)
 
 void process_name_strip_unneeded_chars(char *str)
 {
-        if (get_app_state()->uiSettings.stripTrackNumbers)
+        if (get_app_state()->settings.stripTrackNumbers)
                 format_filename(str);
 
         g_strstrip(str);
@@ -442,47 +416,33 @@ void process_name(const char *name, char *output, int max_width,
         str_truncate_display_width(output, output, max_width);
 }
 
-void process_name_scroll(const char *name, char *output, int max_width,
-                         bool is_same_name_as_last_time)
+int process_name_scroll(const Model *model, const char *name, char *output, int max_width,
+                        bool strip_unneeded_chars, bool strip_suffix)
 {
-        process_name_strip_suffix(name, output);
-        process_name_strip_unneeded_chars(output);
+        if (strip_suffix)
+                process_name_strip_suffix(name, output);
+        else
+                g_utf8_strncpy(output, name, g_utf8_strlen(name, -1));
+
+        if (strip_unneeded_chars)
+                process_name_strip_unneeded_chars(output);
+
         int name_width = str_calculate_display_width(output);
 
-        if (scroll_delay_skipped_count <= start_scrolling_delay &&
-            name_width > max_width) {
-                scroll_delay_skipped_count++;
-                trigger_refresh();
-                is_long_name = true;
-        }
-
-        int start = (is_same_name_as_last_time) ? last_name_position : 0;
-
-        if (finished_scrolling || name_width <= max_width) {
-                process_name(name, output, max_width, true, true);
-        } else {
-                is_long_name = true;
-                if (str_calculate_display_width(g_utf8_offset_to_pointer(output, start)) < max_width) {
-                        finished_scrolling = true;
-                }
-
-                gchar *tmp = g_utf8_substring(output, start, -1);
+        if (name_width < max_width - 1) {
+                process_name(name, output, max_width, strip_unneeded_chars, strip_suffix);
+        } else if (model->name_scroll.frame >= 0 && model->name_scroll.frame + max_width <= name_width) {
+                gchar *tmp = g_utf8_substring(output, model->name_scroll.frame, -1);
                 str_truncate_display_width(tmp, output, max_width);
                 g_free(tmp);
-
-                last_name_position++;
-                trigger_refresh();
         }
-}
 
-bool get_is_long_name()
-{
-        return is_long_name;
+        return name_width;
 }
 
 PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, bool reversed)
 {
-        PixelData pixel2;
+        PixelData pixel2 = {0};
 
         // Calculate how much each color can be lightened, based on how far the color is from white (255)
         float lightening_factor_r = (255 - pixel.r) / 255.0f;
@@ -521,15 +481,18 @@ PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, b
         pixel2.b = (current_b > 255) ? 255 : (current_b < 0) ? 0
                                                              : current_b;
 
+        pixel2.a = 255;
+
         return pixel2;
 }
 
 PixelData increase_luminosity(PixelData pixel, int amount)
 {
-        PixelData pixel2;
+        PixelData pixel2 = {0};
         pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
         pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
         pixel2.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
+        pixel2.a = 255;
 
         return pixel2;
 }
@@ -538,7 +501,7 @@ PixelData increase_luminosity(PixelData pixel, int amount)
 
 PixelData decrease_luminosity_pct(PixelData base, float pct)
 {
-        PixelData c;
+        PixelData c = {0};
 
         int r = (int)((float)base.r * pct);
         int g = (int)((float)base.g * pct);
@@ -547,6 +510,8 @@ PixelData decrease_luminosity_pct(PixelData base, float pct)
         c.r = (r < MIN_CHANNEL) ? MIN_CHANNEL : r;
         c.g = (g < MIN_CHANNEL) ? MIN_CHANNEL : g;
         c.b = (b < MIN_CHANNEL) ? MIN_CHANNEL : b;
+
+        c.a = 255;
 
         return c;
 }
@@ -573,4 +538,365 @@ PixelData get_gradient_color(PixelData base_color, int row, int max_list_size,
                 pct = 1.0f;
 
         return decrease_luminosity_pct(base_color, pct);
+}
+
+const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
+{
+        if (!lyrics || lyrics->count == 0)
+                return "";
+
+        static char line[1024];
+        line[0] = '\0';
+
+        double last_timestamp = -1.0;
+
+        for (size_t i = 0; i < lyrics->count; i++) {
+                double ts = lyrics->lines[i].timestamp;
+                const char *text = lyrics->lines[i].text;
+
+                if (elapsed_seconds < ts)
+                        break;
+
+                if (ts == last_timestamp) {
+                        // Same timestamp → append
+                        strncat(line, " | ", sizeof(line) - strlen(line) - 1);
+                        strncat(line, text, sizeof(line) - strlen(line) - 1);
+                } else {
+                        // New timestamp → start fresh
+                        snprintf(line, sizeof(line), "%s", text);
+                        last_timestamp = ts;
+                }
+        }
+
+        return line;
+}
+
+// Advance one UTF-8 codepoint, return it. *bytes_consumed is set to the
+// number of bytes eaten. Returns 0xFFFD on invalid sequences.
+uint32_t utf8_next(const char *s, int *bytes_consumed)
+{
+        unsigned char c = (unsigned char)*s;
+
+        if (c == 0) {
+                *bytes_consumed = 0;
+                return 0;
+        }
+        if (c < 0x80) {
+                *bytes_consumed = 1;
+                return c;
+        }
+        if (c < 0xC2) {
+                *bytes_consumed = 1;
+                return 0xFFFD;
+        } // continuation or overlong
+
+        int len;
+        uint32_t cp;
+
+        if (c < 0xE0) {
+                len = 2;
+                cp = c & 0x1F;
+        } else if (c < 0xF0) {
+                len = 3;
+                cp = c & 0x0F;
+        } else if (c < 0xF8) {
+                len = 4;
+                cp = c & 0x07;
+        } else {
+                *bytes_consumed = 1;
+                return 0xFFFD;
+        }
+
+        for (int i = 1; i < len; i++) {
+                unsigned char b = (unsigned char)s[i];
+                if ((b & 0xC0) != 0x80) {
+                        *bytes_consumed = i;
+                        return 0xFFFD;
+                }
+                cp = (cp << 6) | (b & 0x3F);
+        }
+
+        *bytes_consumed = len;
+        return cp;
+}
+
+int codepoint_display_width(uint32_t cp)
+{
+        int w = wcwidth((wchar_t)cp);
+        return (w > 0) ? w : 1; // treat non-printing as width 1
+}
+
+void draw_buffer_set_cell(DrawBuffer *buf,
+                          int row,
+                          int col,
+                          uint32_t cp,
+                          CellStyle style)
+{
+        if (!buf)
+                return;
+
+        if (row < 0 || row >= buf->rows)
+                return;
+
+        if (col < 0 || col >= buf->cols)
+                return;
+
+        int w = codepoint_display_width(cp);
+
+        if (col + w > buf->cols)
+                return;
+
+        Cell *anchor = &buf->cells[row * buf->cols + col];
+
+        anchor->codepoint = cp;
+        anchor->style.fg = style.fg;
+        anchor->style.bg = style.bg;
+        anchor->style.fgAnsi = style.fgAnsi;
+        anchor->style.bgAnsi = style.bgAnsi;
+        anchor->style.isAnsi = style.isAnsi;
+        anchor->attrs = style.attrs;
+        anchor->kind = CELL_NORMAL;
+
+        if (w == 2) {
+                Cell *cont =
+                    &buf->cells[row * buf->cols + col + 1];
+
+                cont->codepoint = 0;
+                cont->style = anchor->style;
+                cont->attrs = style.attrs;
+                cont->kind = CELL_WIDE_CONT;
+        }
+}
+
+// Write a UTF-8 string into the buffer at (row, col), stopping at
+// max_width display columns. Remaining columns up to max_width are
+// filled with spaces. Clips if row/col is outside the buffer.
+void draw_buffer_set_string_truncated(
+    DrawBuffer *restrict buf,
+    int row,
+    int col,
+    const char *restrict str,
+    int max_width,
+    CellStyle style)
+{
+        if ((unsigned)row >= (unsigned)buf->rows ||
+            (unsigned)col >= (unsigned)buf->cols)
+                return;
+
+        if (buf->dirty_rows)
+                buf->dirty_rows[row] = true;
+
+        int col_end = col + max_width;
+        if (col_end > buf->cols)
+                col_end = buf->cols;
+
+        Cell *cell = &buf->cells[row * buf->cols + col];
+        Cell *end = &buf->cells[row * buf->cols + col_end];
+
+        const char *p = str;
+
+        while (cell < end && *p) {
+                int bytes;
+                uint32_t cp = utf8_next(p, &bytes);
+
+                if (bytes == 0)
+                        break;
+
+                p += bytes;
+
+                int w = codepoint_display_width(cp);
+
+                if (cell + w > end)
+                        break;
+
+                cell->codepoint = cp;
+                cell->style = style;
+                cell->attrs = style.attrs;
+                cell->kind = CELL_NORMAL;
+
+                if (w == 2) {
+                        Cell *cont = cell + 1;
+
+                        cont->codepoint = 0;
+                        cont->style = style;
+                        cont->attrs = style.attrs;
+                        cont->kind = CELL_WIDE_CONT;
+                }
+
+                cell += w;
+        }
+
+        while (cell < end) {
+                cell->codepoint = ' ';
+                cell->style = style;
+                cell->attrs = ATTR_NONE;
+                cell->kind = CELL_NORMAL;
+                cell++;
+        }
+}
+
+void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
+                            const char *str, CellStyle style)
+{
+        int max_width = buf->cols - col;
+        draw_buffer_set_string_truncated(buf, row, col, str, max_width, style);
+}
+
+void free_link_payload(LinkPayload *link)
+{
+        if (!link)
+                return;
+
+        free(link->title);
+        free(link->url);
+        free(link);
+}
+
+void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
+                        char *url, char *title, CellStyle style)
+{
+        (void)style;
+
+        if ((unsigned)row >= (unsigned)buf->rows ||
+            (unsigned)col >= (unsigned)buf->cols)
+                return;
+
+        Cell *anchor = &buf->cells[row * buf->cols + col];
+
+        size_t ulen = strlen(url);
+        size_t tlen = strlen(title);
+        bool draw_title = true;
+        bool draw_url = true;
+
+        if (anchor->kind == CELL_LINK)
+        {
+                if (strcmp(anchor->link->title, title) == 0)
+                {
+                        draw_title = false;
+                }
+                else if (anchor->link->title != NULL)
+                {
+                        free(anchor->link->title);
+                        anchor->link->title = NULL;
+                }
+
+                if (strcmp(anchor->link->url, url) == 0)
+                {
+                        draw_url = false;
+                }
+                else if (anchor->link->url != NULL)
+                {
+                        free(anchor->link->url);
+                        anchor->link->url = NULL;
+                }
+        }
+        else {
+                LinkPayload *link = calloc(1, sizeof(LinkPayload));
+                anchor->link = link;
+        }
+
+        style.attrs |= ATTR_UNDERLINE;
+
+        anchor->kind = CELL_LINK;
+        anchor->style = style;
+        anchor->attrs = style.attrs;
+
+        if (draw_title)
+        {
+                anchor->link->title = calloc(1, tlen + 1);
+                 snprintf(anchor->link->title, tlen + 1, "%s", title);
+        }
+        if (draw_url)
+        {
+                anchor->link->url = calloc(1, ulen + 1);
+                snprintf(anchor->link->url, ulen + 1, "%s", url);
+        }
+
+        // Mark occupied region
+        int col_occupied = col + 1;
+        int col_end = col_occupied + width + 100;
+        col_end = (col_end > buf->cols) ? buf->cols : col_end;
+        for (int c = col_occupied; c < col_end; c++) {
+                if (c == col)
+                        continue;
+                buf->cells[row * buf->cols + c].kind = CELL_OCCUPIED;
+        }
+}
+
+CellStyle cell_style_plain(void)
+{
+        return (CellStyle){.fg = COLOR_DEFAULT, .bg = COLOR_DEFAULT, .isAnsi = false, .attrs = ATTR_NONE};
+}
+
+CellStyle cell_style_fg(PixelData color)
+{
+        return (CellStyle){
+            .fg = color,
+            .bg = COLOR_DEFAULT,
+            .attrs = ATTR_NONE,
+        };
+}
+
+CellStyle cell_style_from_theme(ColorValue theme)
+{
+        CellStyle style = cell_style_plain();
+
+        if (theme.type == COLOR_TYPE_RGB) {
+                style.fg = theme.rgb;
+        } else {
+                if (theme.ansiIndex < 100) {
+                        style.fgAnsi = theme.ansiIndex;
+                        style.isAnsi = true;
+                } else {
+                        Model *model = get_model();
+                        SongData *songdata = model->songdata;
+
+                        if (!songdata || !songdata->cover) {
+                                style.fgAnsi = -1;
+                                style.isAnsi = true;
+                        } else {
+                                switch (theme.ansiIndex) {
+
+                                case 101:
+                                        style.fg = model->state.settings.color;
+                                        break;
+                                case 102:
+                                        style.fg = songdata->kmeans_palette[0];
+                                        break;
+                                case 103:
+                                        style.fg = songdata->kmeans_palette[1];
+                                        break;
+                                case 104:
+                                        style.fg = songdata->kmeans_palette[2];
+                                        break;
+                                default:
+                                        style.fg = model->state.settings.color;
+                                        break;
+                                }
+                        }
+                }
+        }
+
+        return style;
+}
+
+int utf8_display_width(const char *s)
+{
+        wchar_t *ws;
+        int width;
+        size_t len;
+
+        len = mbstowcs(NULL, s, 0);
+        if (len == (size_t)-1)
+                return -1;
+
+        ws = malloc((len + 1) * sizeof(wchar_t));
+        if (!ws)
+                return -1;
+
+        mbstowcs(ws, s, len + 1);
+        width = wcswidth(ws, len);
+
+        free(ws);
+        return width;
 }

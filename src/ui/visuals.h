@@ -7,6 +7,8 @@
  * to playback data.
  */
 
+#include "common/model.h"
+
 #include "sound/sound_facade.h"
 
 /**
@@ -24,10 +26,14 @@ void free_visuals(void);
  * It calculates the frequency magnitudes and displays the visual representation of the audio data
  * in the specified position and size.
  *
+ * @param model
+ * @param buf
  * @param system Pointer to the sound system instance.
  * @param row The row position (top-left corner) where the visualizer should be drawn.
  * @param col The column position (top-left corner) where the visualizer should be drawn.
  * @param height The height of the visualizer in rows.
  * @param width The width of the visualizer in columns.
  */
-void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int height, int width);
+void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width);
+
+void generate_all_visualizer_palettes(Model *model, int height);

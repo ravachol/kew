@@ -1,0 +1,59 @@
+
+# KANAGAWA (Japanese Ink)
+# ============================================
+[theme]
+name=Kanagawa
+
+# Core colors
+accent=#7E9CD8
+text=#7E9CD8
+textDim=#C8C093
+textMuted=#727169
+
+# General Colors
+logo=#7E9CD8
+header=#7FB4CA
+footer=#727169
+help=#7FB4CA
+link=#C8C093
+nowplaying=#7E9CD8
+playbackstatus=#1F1F28
+
+# Playlist View
+playlist.rownum=#7E9CD8
+playlist.title=#7FB4CA
+playlist.playing=#C8C093
+
+# Track View
+trackview.title=#7E9CD8
+trackview.artist=#7FB4CA
+trackview.album=#7FB4CA
+trackview.year=#7FB4CA
+trackview.time=#7FB4CA
+trackview.visualizer=#7FB4CA
+trackview.lyrics=#7FB4CA
+
+# Library View
+library.artist=#7E9CD8
+library.album=#C8C093
+library.track=#7FB4CA
+library.enqueued=#7E9CD8
+library.playing=#C8C093
+
+# Search
+search.label=#7E9CD8
+search.query=#DCD7BA
+search.result=#7FB4CA
+search.enqueued=#7E9CD8
+search.playing=#C8C093
+
+# Progress
+progress.filled=#7FB4CA
+progress.empty=#727169
+progress.elapsed=#7FB4CA
+
+# Status
+status.info=-1
+status.warning=#DCA561
+status.error=#C34043
+status.success=#98BB6C

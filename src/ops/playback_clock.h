@@ -12,7 +12,6 @@
 
 #include <glib.h>
 #include <stdbool.h>
-#include <time.h>
 
 /**
  * @brief Reset the playback clock state.
@@ -22,6 +21,10 @@
  * CLOCK_MONOTONIC.
  */
 void reset_clock(void);
+
+void clock_add_offset(long offset_ms);
+
+void clock_log_time(void);
 
 /**
  * @brief Recalculate the elapsed playback time.
@@ -99,13 +102,6 @@ bool flush_seek(void);
  * @return Elapsed playback time in seconds.
  */
 double get_elapsed_seconds(void);
-
-/**
- * @brief Get the timestamp at which playback was paused.
- *
- * @return The stored pause timestamp as a struct timespec.
- */
-struct timespec get_pause_time(void);
 
 /**
  * @brief Get the duration of the currently playing track.

@@ -11,6 +11,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <complex.h>
+#include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -1349,6 +1352,51 @@ static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
         return true;
 }
 
+void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
+    TagLib::FileRef file(filepath);
+    if (file.isNull() || !file.file()) {
+            fprintf(stderr,
+                    "FileRef is null or file could not be opened: "
+                    "'%s'\n",
+                    filepath);
+
+            return;
+    }
+
+    const TagLib::Tag *tag = file.tag();
+    if (!tag) {
+            fprintf(stderr, "Tag is null for file '%s'\n",
+                    filepath);
+            return;
+    }
+
+    uint32_t trackNumber = tag->track();
+
+    if (track != NULL) *track = trackNumber;
+    if (disc == NULL) return;
+
+    auto mpeg = dynamic_cast<TagLib::MPEG::File *>(file.file());
+    if (mpeg == NULL || !mpeg->isValid()) return;
+
+    auto mpegTag = mpeg->ID3v2Tag();
+    if (!mpegTag) return;
+
+    TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
+
+    if (discNumber.isEmpty()) return;
+
+    auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
+    if (!frame) return;
+
+    TagLib::String str = frame->toString();
+    std::string raw = str.to8Bit(true);
+    char *delimiter;
+    uint32_t disc_number = strtoul(raw.c_str(), &delimiter, 10);
+    *disc = disc_number;
+
+    return;
+}
+
 int extractTags(const char *input_file, TagSettings *tag_settings,
                 double *duration, const char *coverFilePath, Lyrics **lyrics)
 {
@@ -1383,7 +1431,6 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         input_file);
                 return -2;
         }
-
         // Copy the title
         c_strcpy(tag_settings->title, tag->title().toCString(true),
                  sizeof(tag_settings->title) - 1);

@@ -8,6 +8,7 @@
 #ifndef SONGDATATYPE_H
 #define SONGDATATYPE_H
 
+#include "utils/img_utils.h"
 #include <gio/gio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -55,6 +56,8 @@ typedef struct
         int red;
         int green;
         int blue;
+
+        PixelData kmeans_palette[3];
 
         TagSettings *metadata;
 

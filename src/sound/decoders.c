@@ -11,6 +11,7 @@
 
 #include "audiotypes.h"
 #include "utils/utils.h"
+#include <sys/stat.h>
 
 #ifdef USE_FAAD
 #include "m4a.h"
@@ -442,6 +443,14 @@ void *get_current_decoder(void)
         return atomic_load_explicit(&current_decoder, memory_order_acquire);
 }
 
+void *get_other_decoder(void)
+{
+        if (decoder_index == -1)
+                return decoders[0];
+
+        return decoders[1 - decoder_index];
+}
+
 enum decoder_type_t get_current_decoder_decoder_type(void)
 {
         return atomic_load(&decoder_decoder_type);
@@ -599,6 +608,59 @@ void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
         }
 }
 
+
+int is_decoding_possible(const char *filepath, const CodecOps *ops)
+{
+        void *decoder = malloc(ops->decoderSize);
+        ma_decoding_backend_config config = {0};
+        config.preferredFormat = ma_format_f32;
+        config.seekPointCount = 0;
+
+        if (ops->init(filepath, &config, decoder) != MA_SUCCESS) {
+                free(decoder);
+                return -1;
+        }
+
+        ops->uninit(decoder);
+        free(decoder);
+        return 0;
+}
+
+long long get_file_size(const char *filename)
+{
+        struct stat st;
+        if (stat(filename, &st) == 0) {
+                return (long long)st.st_size;
+        } else {
+                return -1;
+        }
+}
+
+int calc_avg_bit_rate(double duration, const char *file_path)
+{
+        long long file_size = get_file_size(file_path); // in bytes
+        int avg_bit_rate = 0;
+
+        if (duration > 0.0)
+                avg_bit_rate = (int)((file_size * 8.0) / duration /
+                                     1000.0); // use 1000 for kbps
+
+        return avg_bit_rate;
+}
+
+static void set_avg_bit_rate(SongData *song_data, const char *file_path)
+{
+        if (path_ends_with(file_path, ".mp3") && song_data) {
+                int avg_bit_rate = calc_avg_bit_rate(song_data->duration, file_path);
+                if (avg_bit_rate > 320)
+                        avg_bit_rate = 320;
+                song_data->avg_bit_rate = avg_bit_rate;
+        }
+        else {
+                song_data->avg_bit_rate = calc_avg_bit_rate(song_data->duration, file_path);
+        }
+}
+
 /* Prepare next decoder */
 
 int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *ops)
@@ -654,14 +716,18 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         if (!sameFormat) {
                 ops->uninit(decoder);
                 free(decoder);
-                return 0;
+                return -2;
         }
 
         if (ops->setup_decoder)
                 ops->setup_decoder(decoder, first_decoder);
 
         if (ops->decoder_type == WEBM)
+        {
                 song->duration = ((ma_webm *)decoder)->duration;
+        }
+
+        set_avg_bit_rate(song, song->file_path);
 
         set_next_decoder(decoder, ops->decoder_type);
 

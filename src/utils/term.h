@@ -138,21 +138,6 @@ int read_input_sequence(char *seq, size_t seq_size);
 int is_input_available(void);
 
 /**
- * @brief Saves the current cursor position.
- *
- * This function saves the cursor's current position, allowing it to be restored later
- * using `restore_cursor_position()`.
- */
-void save_cursor_position(void);
-
-/**
- * @brief Restores the cursor to its previously saved position.
- *
- * This function restores the cursor to the position saved by `save_cursor_position()`.
- */
-void restore_cursor_position(void);
-
-/**
  * @brief Sets the terminal text color to the default color.
  *
  * This function resets the terminal's text color to the default color, typically black or white.
@@ -203,36 +188,12 @@ void clear_rest_of_line(void);
 void goto_first_line_first_row(void);
 
 /**
- * @brief Initializes terminal resizing settings.
- *
- * This function sets up terminal resize handling, likely enabling proper re-layout during
- * terminal resizing.
- */
-void init_resize(void);
-
-/**
  * @brief Disables terminal line input buffering.
  *
  * This function disables line input buffering, meaning input will be processed immediately without
  * waiting for the Enter key.
  */
 void disable_terminal_line_input(void);
-
-/**
- * @brief Sets the terminal to raw input mode.
- *
- * This function puts the terminal into raw input mode, where input is immediately processed
- * without line buffering, echoing, or other terminal settings.
- */
-void set_raw_input_mode(void);
-
-/**
- * @brief Enables input buffering in the terminal.
- *
- * This function restores the terminal's default line input mode, where input is buffered until
- * the user presses Enter.
- */
-void enable_input_buffering(void);
 
 /**
  * @brief Enables terminal scrolling.
@@ -342,7 +303,7 @@ int str_calculate_display_width(const char *str);
  * Truncates a string to fit within a maximum display width.
  *
  * Copies characters from @str to @dst, ensuring the resulting string
- * does not exceed @max_width characters in display width. 
+ * does not exceed @max_width characters in display width.
  *
  * @param str       Source string to truncate (null-terminated).
  * @param dst       Destination buffer where truncated string is written.

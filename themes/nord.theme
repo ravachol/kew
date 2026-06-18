@@ -1,0 +1,60 @@
+# ============================================
+# NORD (Cool & Minimal)
+# ============================================
+
+[theme]
+name=Nord
+
+# Core colors (Nord palette)
+accent=#81A1C1
+text=#88C0D0
+textDim=#D8DEE9
+textMuted=#4C566A
+
+# General Colors
+logo=#81A1C1
+header=#81A1C1
+footer=#81A1C1
+help=#D8DEE9
+link=#88C0D0
+nowplaying=#88C0D0
+playbackstatus=#2E3440
+
+# Playlist View
+playlist.rownum=#4C566A
+playlist.title=#E5E9F0
+playlist.playing=#88C0D0
+
+# Track View
+trackview.title=#81A1C1
+trackview.artist=#81A1C1
+trackview.album=#81A1C1
+trackview.year=#81A1C1
+trackview.time=#81A1C1
+trackview.visualizer=#81A1C1
+trackview.lyrics=#88C0D0
+
+# Library View
+library.artist=#81A1C1
+library.album=#D8DEE9
+library.track=#E5E9F0
+library.enqueued=#81A1C1
+library.playing=#88C0D0
+
+# Search
+search.label=#88C0D0
+search.query=#E5E9F0
+search.result=#E5E9F0
+search.enqueued=#88C0D0
+search.playing=#81A1C1
+
+# Progress
+progress.filled=#81A1C1
+progress.empty=#81A1C1
+progress.elapsed=#81A1C1
+
+# Status
+status.info=-1
+status.warning=#EBCB8B
+status.error=#BF616A
+status.success=#A3BE8C

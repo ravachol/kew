@@ -24,7 +24,6 @@
 #   -1: Default terminal foreground
 
 name=Default 16-color
-author=Ravachol
 
 # Core Colors
 accent=13       # Bright Magenta
@@ -36,9 +35,10 @@ textMuted=7     # White (dim)
 logo=6          # Cyan
 header=6        # Cyan
 footer=#787878  # The old school gray, this works on most terminals
-help=6          # Cyan
+help=-1         # Default foreground
 link=14         # Bright Cyan
 nowplaying=-1   # Default foreground
+playbackstatus=#787878
 
 # Playlist View
 playlist.rownum=8   # Bright Black / Gray
@@ -69,8 +69,8 @@ search.enqueued=14  # Bright Cyan
 search.playing=6    # Cyan
 
 # Progress
-progress.filled=8   # Bright Black / Gray
-progress.empty=0    # Black
+progress.filled=-1   # Bright Black / Gray
+progress.empty=#787878    # Black
 progress.elapsed=8  # Bright Black / Gray
 
 # Status

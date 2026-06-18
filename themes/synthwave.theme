@@ -4,54 +4,54 @@
 
 [theme]
 name=Synthwave
-author=Ravachol
 
 # Core colors
 accent=#ff6ec7
-text=#9a9a9a
+text=#6272a4
 textDim=#bd93f9
 textMuted=#6272a4
 
 # General Colors
 logo=#6272a4
-header=#6272a4
+header=#bd93f9
 footer=#6272a4
-help=#8be9fd
+help=#9a9a9a
 link=#ff6ec7
 nowplaying=#ff6ec7
+playbackstatus=#6272a4
 
 # Playlist View
 playlist.rownum=#6272a4
 playlist.title=#9a9a9a
-playlist.playing=#ff6ec7
+playlist.playing=#6272a4
 
 # Track View
 trackview.title=#ff6ec7
-trackview.artist=#bd93f9
-trackview.album=#bd93f9
-trackview.year=#bd93f9
-trackview.time=#44475a
-trackview.visualizer=#44475a
-trackview.lyrics=#ff6ec7
+trackview.artist=#6272a4
+trackview.album=#6272a4
+trackview.year=#6272a4
+trackview.time=#6272a4
+trackview.visualizer=#6272a4
+trackview.lyrics=#6272a4
 
 # Library View
 library.artist=#6272a4
 library.album=#bd93f9
 library.track=#9a9a9a
 library.enqueued=#bd93f9
-library.playing=#ff6ec7
+library.playing=#6272a4
 
 # Search
 search.label=#6272a4
 search.query=#50fa7b
 search.result=#9a9a9a
 search.enqueued=#bd93f9
-search.playing=#ff6ec7
+search.playing=#6272a4
 
 # Progress
-progress.filled=#ff6ec7
-progress.empty=#44475a
-progress.elapsed=#ffb86c
+progress.filled=#6272a4
+progress.empty=#6272a4
+progress.elapsed=#6272a4
 
 # Status
 status.info=-1      	# Default foreground

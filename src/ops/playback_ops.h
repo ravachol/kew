@@ -10,7 +10,8 @@
 #ifndef PLAYBACK_OPS_H
 #define PLAYBACK_OPS_H
 
-#include "common/appstate.h"
+#include "data/playlist_type.h"
+#include <stdbool.h>
 
 /**
  * @brief Start playback of the specified song node.
@@ -24,6 +25,7 @@
  *
  * @return 0 on success, -1 if the node is invalid or playback could not start.
  */
+
 int play_song(Node *node);
 
 /**
@@ -66,8 +68,9 @@ void ops_toggle_pause(void);
  *
  * Calls the underlying audio backend to resume playback without modifying
  * clock or pause accounting state.
+ * @param seconds How far into the song
  */
-void resume_playback(void);
+void resume_playback(double seconds);
 
 /**
  * @brief Adjust the playback volume.
@@ -106,5 +109,9 @@ void seek(int seconds);
  * @param start_playing If true, ensures playback is active before skipping.
  */
 void skip_to_song(int id, bool start_playing);
+
+void skip_to_begginning_of_song(void);
+
+bool crossfade(int fade_ms, int enter_song_ms);
 
 #endif
