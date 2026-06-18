@@ -65,6 +65,8 @@ void seek_forward(Model *model)
 
         seek(seconds);
 
+        set_dirty(DIRTY_FOOTER);
+
         state->ui.isFastForwarding = true;
 }
 
@@ -91,6 +93,8 @@ void seek_back(Model *model)
         int seconds = (int)(duration * (step_percent / 100.0));
 
         seek(-seconds);
+
+        set_dirty(DIRTY_FOOTER);
 
         state->ui.isRewinding = true;
 }
