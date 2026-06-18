@@ -171,7 +171,7 @@ void set_end_of_list_reached(void)
         if (is_repeat_list_enabled())
                 repeat_list();
         else {
-                emit_playback_stopped_mpris();
+                emit_playback_stopped();
                 emit_metadata_changed("", "", "", "",
                                       "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                       NULL, 0);
