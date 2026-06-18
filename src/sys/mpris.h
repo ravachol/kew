@@ -88,7 +88,7 @@ void emit_metadata_changed(const gchar *title, const gchar *artist, const gchar 
  * This function emits a signal indicating that playback has started. It notifies
  * external clients that the media player has begun playing a track.
  */
-void emit_start_playing_mpris(void);
+void emit_playback_playing(void);
 
 /**
  * @brief Emits a D-Bus signal when playback has stopped.
@@ -96,7 +96,15 @@ void emit_start_playing_mpris(void);
  * This function emits a signal indicating that playback has stopped. It notifies
  * external clients that the media player has ceased playing any track.
  */
-void emit_playback_stopped_mpris(void);
+void emit_playback_stopped(void);
+
+/**
+ * @brief Emits a D-Bus signal when playback has paused.
+ *
+ * This function emits a signal indicating that playback has stopped. It notifies
+ * external clients that the media player has ceased playing any track.
+ */
+void emit_playback_paused();
 
 /**
  * @brief Cleans up MPRIS integration and D-Bus connections.
