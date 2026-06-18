@@ -152,7 +152,7 @@ void kew_shutdown()
 
         shutdown_sound_system();
 
-        emit_playback_stopped_mpris();
+        emit_playback_stopped();
 
         if (chroma_is_started())
 

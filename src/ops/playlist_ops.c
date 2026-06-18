@@ -19,6 +19,7 @@
 
 #include "library_ops.h"
 #include "sound/audiotypes.h"
+#include "sys/mpris.h"
 #include "track_manager.h"
 
 #include "common/appstate.h"
@@ -103,7 +104,7 @@ void stop_and_clear_current_song(void)
                 return;
 
         sound_system_stop(sound_sys);
-        emit_string_property_changed("PlaybackStatus", "Stopped");
+        emit_playback_stopped();
         sound_system_clear_current_track(sound_sys);
         clear_current_song();
 }
@@ -113,12 +114,7 @@ void remove_currently_playing_song(void)
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
 
-        if (current != NULL) {
-                sound_system_stop(sound_sys);
-                emit_string_property_changed("PlaybackStatus", "Stopped");
-                sound_system_clear_current_track(sound_sys);
-                clear_current_song();
-        }
+        stop_and_clear_current_song();
 
         ps->loadedNextSong = false;
         start_playing(true);

@@ -22,6 +22,7 @@
 #include "sound/sound_facade.h"
 
 #include "sys/sys_integration.h"
+#include "sys/mpris.h"
 
 #include "utils/utils.h"
 
@@ -44,14 +45,19 @@ void resume_playback(double seconds)
                 model->restore_volume = false;
         }
 
-        if (result == SOUND_NOTIFY_SWITCH)
+        if (result == SOUND_NOTIFY_SWITCH) {
                 ps->notifySwitch = 1;
+
+        }
+
+        if (sound_sys->state == SOUND_STATE_PLAYING)
+                emit_playback_playing();
 }
 
 void pause_song(void)
 {
         if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
-                emit_string_property_changed("PlaybackStatus", "Paused");
+                emit_playback_paused();
                 update_pause_time();
                 sound_system_pause(sound_sys);
         }
@@ -102,9 +108,6 @@ void play(void)
 
         if (state == SOUND_STATE_PAUSED) {
                 set_total_pause_seconds(get_total_pause_seconds() + get_pause_seconds());
-                emit_string_property_changed("PlaybackStatus", "Playing");
-        } else if (state == SOUND_STATE_STOPPED) {
-                emit_string_property_changed("PlaybackStatus", "Playing");
         }
 
         if (state == SOUND_STATE_STOPPED && !ps->hasSilentlySwitched) {
@@ -225,7 +228,7 @@ void stop(void)
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
                 skip_to_begginning_of_song();
-                emit_string_property_changed("PlaybackStatus", "Stopped");
+                emit_playback_stopped();
         }
 }
 
@@ -251,7 +254,7 @@ void ops_toggle_pause(void)
         }
 
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
-                emit_string_property_changed("PlaybackStatus", "Paused");
+                emit_playback_paused();
                 update_pause_time();
                 set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         } else {
@@ -261,7 +264,7 @@ void ops_toggle_pause(void)
                 } else {
                         set_total_pause_seconds(get_total_pause_seconds() + get_pause_seconds());
                 }
-                emit_string_property_changed("PlaybackStatus", "Playing");
+                emit_playback_playing();
 
                 set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         }

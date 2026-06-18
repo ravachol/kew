@@ -107,7 +107,7 @@ void run_tick_commands(Model *model)
         if (ps->notifyPlaying) {
                 ps->notifyPlaying = false;
 
-                emit_string_property_changed("PlaybackStatus", "Playing");
+                emit_playback_playing();
         }
 
         if (ps->notifySwitch) {
