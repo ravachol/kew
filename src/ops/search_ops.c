@@ -313,6 +313,8 @@ int add_to_search_text(Model *model, const char *str)
 
         num_search_letters++;
 
+        set_dirty(DIRTY_SEARCH);
+
         return 0;
 }
 
@@ -345,7 +347,7 @@ int remove_from_search_text(Model *model)
 
         num_search_letters--;
 
-        set_dirty(DIRTY_ALL);
+        set_dirty(DIRTY_SEARCH);
 
         return 0;
 }
