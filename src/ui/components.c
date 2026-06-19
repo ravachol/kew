@@ -807,16 +807,16 @@ static int draw_cover_ascii(const TermSize *term_size, const char *path, int row
         int cell_width = 8;
         int cell_height = 16;
 
-        if (term_size->width_cells > 0 &&
-            term_size->height_cells > 0 &&
+        if (term_size->cols > 0 &&
+            term_size->rows > 0 &&
             term_size->width_pixels > 0 &&
             term_size->height_pixels > 0) {
 
                 cell_width =
-                    term_size->width_pixels / term_size->width_cells;
+                    term_size->width_pixels / term_size->cols;
 
                 cell_height =
-                    term_size->height_pixels / term_size->height_cells;
+                    term_size->height_pixels / term_size->rows;
         }
 
         float aspect = (float)cell_height / (float)cell_width;
@@ -900,8 +900,8 @@ static int draw_cover_ascii(const TermSize *term_size, const char *path, int row
                 image_free(fit_pixels);
 
         // Buffer coordinates are usually 0-based.
-        if (centered && term_size->width_cells > 0)
-                col = ((term_size->width_cells - (int)corr_w) / 2) + 1;
+        if (centered && term_size->cols > 0)
+                col = ((term_size->cols - (int)corr_w) / 2) + 1;
 
         for (unsigned int d = 0; d < corr_w * height; d++) {
 
@@ -960,10 +960,10 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         gint cell_width = 8;
         gint cell_height = 16;
 
-        if (term_size->width_cells > 0 && term_size->height_cells > 0 &&
+        if (term_size->cols > 0 && term_size->rows > 0 &&
             term_size->width_pixels > 0 && term_size->height_pixels > 0) {
-                cell_width = term_size->width_pixels / term_size->width_cells;
-                cell_height = term_size->height_pixels / term_size->height_cells;
+                cell_width = term_size->width_pixels / term_size->cols;
+                cell_height = term_size->height_pixels / term_size->rows;
         }
 
         float aspect = (float)cell_height / (float)cell_width;
@@ -1096,10 +1096,10 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
         gint cell_width = 8;
         gint cell_height = 16;
 
-        if (term_size->width_cells > 0 && term_size->height_cells > 0 &&
+        if (term_size->cols > 0 && term_size->rows > 0 &&
             term_size->width_pixels > 0 && term_size->height_pixels > 0) {
-                cell_width = term_size->width_pixels / term_size->width_cells;
-                cell_height = term_size->height_pixels / term_size->height_cells;
+                cell_width = term_size->width_pixels / term_size->cols;
+                cell_height = term_size->height_pixels / term_size->rows;
         }
 
         float aspect = (float)cell_height / (float)cell_width;

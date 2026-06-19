@@ -65,18 +65,18 @@ int calc_chroma_width(int height)
 
         get_tty_size(&ts);
 
-        int cell_w = (ts.width_pixels > 0 && ts.width_cells > 0) ? ts.width_pixels / ts.width_cells : 8;
-        int cell_h = (ts.height_pixels > 0 && ts.height_cells > 0) ? ts.height_pixels / ts.height_cells : 16;
+        int cell_w = (ts.width_pixels > 0 && ts.cols > 0) ? ts.width_pixels / ts.cols : 8;
+        int cell_h = (ts.height_pixels > 0 && ts.rows > 0) ? ts.height_pixels / ts.rows : 16;
         float aspect = (float)cell_h / (float)cell_w;
 
         float aspect_ratio_correction = aspect;
         int corrected_width = (int)(height * aspect_ratio_correction) - 1;
         if (corrected_width < 0)
                 corrected_width = 0;
-        if (corrected_width > ts.width_cells)
-                corrected_width = ts.width_cells;
+        if (corrected_width > ts.cols)
+                corrected_width = ts.cols;
 
-        centered_indent = (ts.width_cells - corrected_width) / 2;
+        centered_indent = (ts.cols - corrected_width) / 2;
 
         int width = (int)(height * aspect);
         if (width < 1)

@@ -67,25 +67,30 @@ void ui_resize(Model *model)
         set_dirty(DIRTY_ALL);
 }
 
-static int get_terminal_size(struct winsize *ws)
+static int get_terminal_size(TermSize *ws)
 {
 #ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    if (h == INVALID_HANDLE_VALUE ||
-        !GetConsoleScreenBufferInfo(h, &csbi)) {
-        return -1;
-    }
+        if (h == INVALID_HANDLE_VALUE ||
+            !GetConsoleScreenBufferInfo(h, &csbi)) {
+                return -1;
+        }
 
-    ws->ws_col = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    ws->ws_row = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    return 0;
+        ws->cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        ws->rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+        return 0;
 
 #else
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, ws) == -1)
-        return -1;
-    return 0;
+        struct winsize w;
+
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
+                return -1;
+
+        ws->cols = w.ws_col;
+        ws->rows = w.ws_row;
+        return 0;
 #endif
 }
 
@@ -97,24 +102,24 @@ bool resize_if_needed(void)
     bool resized = false;
     uis->resizeFlag = 0;
 
-    struct winsize ws;
+    TermSize ws;
 
-    /* Get terminal size (platform independent) */
+    // Get terminal size (platform independent)
     if (get_terminal_size(&ws) == 0) {
 
-        /* fallback ONLY if invalid result */
-        if (ws.ws_col == 0 || ws.ws_row == 0) {
-            ws.ws_col = 80;
-            ws.ws_row = 24;
+        // Fallback ONLY if invalid result
+        if (ws.cols == 0 || ws.rows == 0) {
+            ws.cols = 80;
+            ws.rows = 24;
         }
 
-        /* detect resize */
-        if (ws.ws_col != model->term_w ||
-            ws.ws_row != model->term_h) {
+        // Detect resize
+        if (ws.cols != model->term_w ||
+            ws.rows != model->term_h) {
 
             uis->resizeFlag = 1;
-            model->term_w = ws.ws_col;
-            model->term_h = ws.ws_row;
+            model->term_w = ws.cols;
+            model->term_h = ws.rows;
         }
     }
 

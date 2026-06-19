@@ -90,14 +90,14 @@ void set_term_size(void)
         HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
         CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-        term_size.height_cells = 24;
-        term_size.width_cells = 80;
+        term_size.rows = 24;
+        term_size.cols = 80;
 
         if (h != INVALID_HANDLE_VALUE &&
             GetConsoleScreenBufferInfo(h, &csbi)) {
 
-                term_size.width_cells = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-                term_size.height_cells = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+                term_size.cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+                term_size.rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
         }
 
 #else
@@ -109,18 +109,18 @@ void set_term_size(void)
                 w.ws_col = 80;
         }
 
-        term_size.height_cells = w.ws_row;
-        term_size.width_cells = w.ws_col;
+        term_size.rows = w.ws_row;
+        term_size.cols = w.ws_col;
 #endif
 }
 
 void get_term_size(int *width, int *height)
 {
         if (width)
-                *width = term_size.width_cells;
+                *width = term_size.cols;
 
         if (height)
-                *height = term_size.height_cells;
+                *height = term_size.rows;
 }
 
 #ifdef _WIN32
