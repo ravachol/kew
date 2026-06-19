@@ -1918,46 +1918,60 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c)
 
 static int win_wait_event(struct tb_event *event, int timeout_ms)
 {
-        INPUT_RECORD buf[128];
-        DWORD nread;
+        char buf[128];
+        int rv;
 
         memset(event, 0, sizeof(*event));
 
-        HANDLE h = global.rfd;
+        // Try buffered events first
+        rv = extract_event(event);
+        if (rv == TB_OK)
+                return TB_OK;
 
-        DWORD wait = (timeout_ms < 0) ? INFINITE : (DWORD)timeout_ms;
+        fd_set fds;
+        struct timeval tv;
+        struct timeval *ptv = NULL;
 
-        DWORD w = WaitForSingleObject(h, wait);
-        if (w == WAIT_TIMEOUT)
-                return TB_ERR_NO_EVENT;
-
-        if (w != WAIT_OBJECT_0)
-                return TB_ERR_POLL;
-
-        if (!ReadConsoleInputA(h, buf, 128, &nread))
-                return TB_ERR_READ;
-
-        for (DWORD i = 0; i < nread; i++) {
-
-                if (buf[i].EventType == KEY_EVENT &&
-                    buf[i].Event.KeyEvent.bKeyDown) {
-
-                        char c = buf[i].Event.KeyEvent.uChar.AsciiChar;
-
-                        if (c != 0)
-                                bytebuf_nputs(&global.in, &c, 1);
-                }
-
-                if (buf[i].EventType == WINDOW_BUFFER_SIZE_EVENT) {
-                        update_term_size();
-                        event->type = TB_EVENT_RESIZE;
-                        event->w = global.width;
-                        event->h = global.height;
-                        return TB_OK;
-                }
+        if (timeout_ms >= 0) {
+                tv.tv_sec = timeout_ms / 1000;
+                tv.tv_usec = (timeout_ms % 1000) * 1000;
+                ptv = &tv;
         }
 
-        return extract_event(event);
+        while (1) {
+                FD_ZERO(&fds);
+                FD_SET(global.rfd, &fds);
+
+                int sel = select(global.rfd + 1, &fds, NULL, NULL, ptv);
+
+                if (sel < 0) {
+                        if (errno == EINTR)
+                                continue;
+                        global.last_errno = errno;
+                        return TB_ERR_POLL;
+                }
+
+                if (sel == 0)
+                        return TB_ERR_NO_EVENT;
+
+                if (FD_ISSET(global.rfd, &fds)) {
+                        ssize_t n = read(global.rfd, buf, sizeof(buf));
+                        if (n < 0) {
+                                global.last_errno = errno;
+                                return TB_ERR_READ;
+                        }
+
+                        if (n > 0)
+                                bytebuf_nputs(&global.in, buf, n);
+                }
+
+                rv = extract_event(event);
+                if (rv == TB_OK)
+                        return TB_OK;
+
+                if (timeout_ms >= 0)
+                        return TB_ERR_NO_EVENT;
+        }
 }
 
 #else
@@ -2282,17 +2296,19 @@ static int win_update_term_size(void)
 {
         CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-        HANDLE h = global.wfd;
-        if (!h || h == INVALID_HANDLE_VALUE)
+        int fd = global.wfd;
+
+        HANDLE h = (HANDLE)_get_osfhandle(fd);
+        if (h == INVALID_HANDLE_VALUE)
                 return TB_ERR_RESIZE_IOCTL;
 
-        if (!GetConsoleScreenBufferInfo(h, &csbi)) {
-                global.last_errno = GetLastError();
+        if (!GetConsoleScreenBufferInfo(h, &csbi))
                 return TB_ERR_RESIZE_IOCTL;
-        }
 
-        global.width  = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-        global.height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+        global.width =
+            csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        global.height =
+            csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
         return TB_OK;
 }
