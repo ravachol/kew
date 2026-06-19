@@ -208,7 +208,7 @@ void *update_library_thread(void *arg)
         int tmp_directory_tree_entries = 0;
 
         char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path);
+        expand_path(path, expanded_path, PATH_MAX);
 
         FileSystemEntry *tmp =
             create_directory_tree(expanded_path, &tmp_directory_tree_entries);
@@ -365,7 +365,7 @@ void update_library_if_changed_detected(bool wait_until_complete)
 
         AppSettings *settings = get_app_settings();
         char expanded[PATH_MAX];
-        expand_path(settings->path, expanded);
+        expand_path(settings->path, expanded, PATH_MAX);
 
         args->path = strdup(expanded);
         if (args->path == NULL) {
@@ -411,7 +411,7 @@ void create_library(Model *model, bool set_enqueued_status)
 
         char expanded[PATH_MAX];
 
-        expand_path(settings->path, expanded);
+        expand_path(settings->path, expanded, PATH_MAX);
 
         char *lib_path = get_library_file_path();
 
@@ -438,7 +438,7 @@ void create_library(Model *model, bool set_enqueued_status)
 
                 char expanded[PATH_MAX];
 
-                expand_path(settings->path, expanded);
+                expand_path(settings->path, expanded, PATH_MAX);
 
                 FileSystemEntry *tmp = create_directory_tree(expanded, &(state->ui.numDirectoryTreeEntries));
 
@@ -767,7 +767,7 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
         gchar *contents;
 
         char filename[PATH_MAX];
-        expand_path(filepath, filename);
+        expand_path(filepath, filename, PATH_MAX);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
                 g_clear_error(&error);
@@ -867,7 +867,7 @@ void dequeue_m3u(const char *filepath, FileSystemEntry *library)
         gchar *contents;
 
         char filename[PATH_MAX];
-        expand_path(filepath, filename);
+        expand_path(filepath, filename, PATH_MAX);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
                 g_clear_error(&error);

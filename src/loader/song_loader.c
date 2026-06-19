@@ -406,7 +406,7 @@ void load_meta_data(SongData *songdata)
         songdata->metadata->replaygainTrack = 0.0;
         songdata->metadata->replaygainAlbum = 0.0;
 
-        generate_temp_file_path(songdata->cover_art_path, "cover", ".jpg");
+        generate_temp_file_path(songdata->cover_art_path, PATH_MAX, "cover", ".jpg");
 
         int res = extractTags(songdata->file_path, songdata->metadata,
                               &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics));

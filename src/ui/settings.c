@@ -1722,7 +1722,7 @@ int get_music_library_path(char *path)
         char expanded_path[PATH_MAX];
 
         if (path[0] != '\0' && path[0] != '\r') {
-                if (expand_path(path, expanded_path) >= 0) {
+                if (expand_path(path, expanded_path, PATH_MAX) >= 0) {
                         c_strcpy(path, expanded_path, sizeof(expanded_path));
                 }
         }

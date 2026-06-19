@@ -343,7 +343,7 @@ void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions, PlayList *playlist)
 {
         char expanded_path[PATH_MAX - NAME_MAX - 1];
-        expand_path(directory_path, expanded_path);
+        expand_path(directory_path, expanded_path, PATH_MAX - NAME_MAX - 1);
 
         int res = is_directory(expanded_path);
 
@@ -515,7 +515,7 @@ Node *read_m3u_file(const char *filepath, PlayList *playlist)
         Node *first_in_list = NULL;
 
         char filename[PATH_MAX];
-        expand_path(filepath, filename);
+        expand_path(filepath, filename, PATH_MAX);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
                 g_clear_error(&error);
@@ -599,7 +599,7 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
         PlayList partial_playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
         char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path);
+        expand_path(path, expanded_path, PATH_MAX);
 
         if (strcmp(argv[1], "all") == 0) {
                 search_type = ReturnAllSongs;
@@ -773,7 +773,7 @@ void load_playlist(const char *directory, const char *playlist_name,
 void load_favorites_playlist(const char *directory, PlayList **favorites_playlist)
 {
         char expanded_path[PATH_MAX];
-        expand_path(directory, expanded_path);
+        expand_path(directory, expanded_path, PATH_MAX);
         load_playlist(expanded_path, favorites_playlist_name, favorites_playlist);
 }
 
@@ -866,7 +866,7 @@ void save_named_playlist(const char *directory, const char *playlist_name,
 void save_favorites_playlist(const char *directory, PlayList *favorites_playlist)
 {
         char expanded_path[PATH_MAX];
-        expand_path(directory, expanded_path);
+        expand_path(directory, expanded_path, PATH_MAX);
 
         if (favorites_playlist != NULL && favorites_playlist->count > 0) {
                 save_named_playlist(expanded_path, favorites_playlist_name,
@@ -881,7 +881,7 @@ void save_playlist(const char *path, const PlayList *playlist)
         }
 
         char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path);
+        expand_path(path, expanded_path, PATH_MAX);
 
         if (playlist->head == NULL || playlist->head->song.file_path == NULL)
                 return;
@@ -893,7 +893,7 @@ void export_current_playlist(const char *path, const PlayList *playlist)
 {
         char m3u_filename[PATH_MAX];
         char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path);
+        expand_path(path, expanded_path, PATH_MAX);
 
         if (path == NULL || playlist->head == NULL)
                 return;

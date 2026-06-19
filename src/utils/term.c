@@ -10,16 +10,23 @@
 
 #include <fcntl.h>
 #include <glib.h>
-#include <poll.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
+
+#ifdef G_OS_WIN32
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#include <io.h>
+#else
+#include <sys/ioctl.h> /* ioctl */
+#endif
 
 static const int MAX_TERMINAL_ROWS = 9999;
 static struct termios orig_termios;
@@ -76,15 +83,34 @@ void set_text_color_RGB(int r, int g, int b)
                (unsigned int)b);
 }
 
-void set_term_size()
+void set_term_size(void)
 {
-        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
-            w.ws_row == 0 || w.ws_col == 0) {
-                // Fallback for non-interactive environments (like Homebrew tests)
-                w.ws_row = 24; // default terminal height
-                w.ws_col = 80; // default terminal width
-                return;
-        }
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    if (h != INVALID_HANDLE_VALUE &&
+        GetConsoleScreenBufferInfo(h, &csbi)) {
+
+        w.ws_col = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        w.ws_row = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    } else {
+        w.ws_row = 24;
+        w.ws_col = 80;
+    }
+
+    if (w.ws_col == 0 || w.ws_row == 0) {
+        w.ws_row = 24;
+        w.ws_col = 80;
+    }
+#else
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
+        w.ws_row == 0 || w.ws_col == 0) {
+
+        w.ws_row = 24;
+        w.ws_col = 80;
+    }
+#endif
 }
 
 void get_term_size(int *width, int *height)
