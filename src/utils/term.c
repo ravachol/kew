@@ -13,16 +13,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
 
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 #include <io.h>
 #else
 #include <pwd.h>
 #include <sys/ioctl.h> /* ioctl */
+#include <sys/select.h>
 #endif
 
 static const int MAX_TERMINAL_ROWS = 9999;
