@@ -13,6 +13,7 @@
 #include "common/common.h"
 
 #include "common/model.h"
+#include "utils/file.h"
 #include "utils/utils.h"
 
 #include <ctype.h>
@@ -311,7 +312,7 @@ bool ensure_default_themes(void)
         struct stat st;
         if (stat(themes_path, &st) == -1) {
                 // Directory doesn't exist → create it
-                if (mkdir(themes_path, 0755) == -1) {
+                if (create_directory(themes_path) == -1) {
                         free(config_path);
                         return false;
                 }

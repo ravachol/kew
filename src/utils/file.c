@@ -399,18 +399,6 @@ static const char *get_tmp_dir(void)
 #endif
 }
 
-
-static int mkdir_p(const char *path)
-{
-    if (mkdir(path, 0755) == 0)
-        return 0;
-
-    if (errno == EEXIST)
-        return 0;
-
-    return -1;
-}
-
 void generate_temp_file_path(char *file_path,
                              size_t max_size,
                              const char *prefix,
@@ -438,8 +426,8 @@ void generate_temp_file_path(char *file_path,
     snprintf(user_dir, sizeof(user_dir), "%s/kew/%s", tmp_dir, username);
 #endif
 
-    mkdir_p(base_dir);
-    mkdir_p(user_dir);
+    create_directory(base_dir);
+    create_directory(user_dir);
 
     /* random string */
     char rnd[7];
