@@ -293,6 +293,7 @@ gboolean mainloop_callback(gpointer data)
 
         increment_update_counter();
         handle_cooldown();
+        poll_resize_event();
 
         if (should_exit()) {
                 g_main_loop_quit((GMainLoop *)data);
@@ -523,6 +524,7 @@ void kew_init(bool set_library_enqueued_status)
         Model *model = get_model();
         set_nonblocking_mode();
         disable_terminal_line_input();
+
         init_resize();
         set_term_size();
 
