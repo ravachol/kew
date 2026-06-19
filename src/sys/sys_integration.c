@@ -28,6 +28,9 @@
 #include "math.h"
 #include <stdio.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static GDBusConnection *connection = NULL;
 static GMainContext *global_main_context = NULL;
@@ -66,12 +69,12 @@ void process_d_bus_events(void)
 
 void resize(UIState *uis)
 {
-        alarm(1); // Timer
-        while (uis->resizeFlag) {
+        int timeout = 10; // ~1 second total (10 * 100ms)
+
+        while (uis->resizeFlag && timeout-- > 0) {
                 uis->resizeFlag = 0;
                 c_sleep(100);
         }
-        alarm(0); // Cancel timer
 
         set_term_size();
 }
@@ -254,6 +257,10 @@ void notify_song_switch(SongData *current_song_data)
 
 int is_process_running(pid_t pid)
 {
+#ifdef _WIN32
+        void(pid);
+        return 0;
+#else
         if (pid <= 0) {
                 return 0; // Invalid PID
         }
@@ -271,6 +278,7 @@ int is_process_running(pid_t pid)
         }
 
         return 0; // Other errors
+#endif
 }
 
 int is_kew_process(pid_t pid)
@@ -303,6 +311,9 @@ int is_kew_process(pid_t pid)
 
 void delete_pid_file()
 {
+#ifdef _WIN32
+        return;
+#else
         char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
@@ -317,10 +328,14 @@ void delete_pid_file()
                 fclose(pidfile);
                 unlink(pidfile_path);
         }
+#endif
 }
 
 pid_t read_pid_file()
 {
+#ifdef _WIN32
+        return NULL;
+#else
         char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
@@ -343,6 +358,7 @@ pid_t read_pid_file()
         }
 
         return pid;
+#endif
 }
 
 void create_pid_file()
@@ -365,6 +381,10 @@ void create_pid_file()
 
 void restart_kew(char *argv[])
 {
+#ifdef _WIN32
+        (void)argv;
+        return;
+#else
         pid_t oldpid = read_pid_file();
 
         if (oldpid > 0) {
@@ -418,11 +438,15 @@ void restart_kew(char *argv[])
                 "Failed to restart kew via execvp: %s\n",
                 strerror(errno));
         _exit(1);
+#endif
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
 void restart_if_already_running(char *argv[])
 {
+#ifdef _WIN32
+        void(argv);
+#else
         signal(SIGUSR1, handle_exit_signal);
 
         pid_t pid = read_pid_file();
@@ -439,7 +463,33 @@ void restart_if_already_running(char *argv[])
         }
 
         create_pid_file();
+#endif
 }
+
+void poll_resize_event(void)
+{
+#ifdef _WIN32
+        static int last_cols = 0;
+        static int last_rows = 0;
+
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        if (!GetConsoleScreenBufferInfo(h, &csbi))
+                return;
+
+        int cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        int rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+        if (cols != last_cols || rows != last_rows) {
+                last_cols = cols;
+                last_rows = rows;
+                resizeFlag = 1;
+        }
+#endif
+}
+
+#ifndef _WIN32
 
 void handle_resize(int sig)
 {
@@ -458,8 +508,11 @@ sig_atomic_t get_resize_flag()
         return resizeFlag;
 }
 
+#endif
+
 void init_resize(void)
 {
+#ifndef _WIN32
         signal(SIGWINCH, handle_resize);
 
         struct sigaction sa;
@@ -467,4 +520,5 @@ void init_resize(void)
         sigemptyset(&(sa.sa_mask));
         sa.sa_flags = 0;
         sigaction(SIGALRM, &sa, NULL);
+#endif
 }
