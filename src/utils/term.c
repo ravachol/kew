@@ -8,6 +8,8 @@
 
 #include "term.h"
 
+#include "common/model.h"
+
 #include <fcntl.h>
 #include <glib.h>
 #include <stdio.h>
@@ -30,7 +32,8 @@ static struct termios orig_termios;
 
 static const int MAX_TERMINAL_ROWS = 9999;
 
-struct winsize w;
+
+TermSize term_size;
 
 void set_terminal_color(int color)
 {
@@ -84,37 +87,40 @@ void set_text_color_RGB(int r, int g, int b)
 void set_term_size(void)
 {
 #ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-    if (h != INVALID_HANDLE_VALUE &&
-        GetConsoleScreenBufferInfo(h, &csbi)) {
+        term_size.height_cells = 24;
+        term_size.width_cells = 80;
 
-        w.ws_col = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-        w.ws_row = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    } else {
-        w.ws_row = 24;
-        w.ws_col = 80;
-    }
+        if (h != INVALID_HANDLE_VALUE &&
+            GetConsoleScreenBufferInfo(h, &csbi)) {
 
-    if (w.ws_col == 0 || w.ws_row == 0) {
-        w.ws_row = 24;
-        w.ws_col = 80;
-    }
+                term_size.width_cells = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+                term_size.height_cells = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+        }
+
 #else
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
-        w.ws_row == 0 || w.ws_col == 0) {
+        struct winsize w;
 
-        w.ws_row = 24;
-        w.ws_col = 80;
-    }
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
+            w.ws_row == 0 || w.ws_col == 0) {
+                w.ws_row = 24;
+                w.ws_col = 80;
+        }
+
+        term_size.height_cells = w.ws_row;
+        term_size.width_cells = w.ws_col;
 #endif
 }
 
 void get_term_size(int *width, int *height)
 {
-        *height = (int)w.ws_row;
-        *width = (int)w.ws_col;
+        if (width)
+                *width = term_size.width_cells;
+
+        if (height)
+                *height = term_size.height_cells;
 }
 
 #ifdef _WIN32
