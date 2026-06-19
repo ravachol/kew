@@ -7,6 +7,8 @@
  * library. Used by library and playlist modules to index songs efficiently.
  */
 
+#define _GNU_SOURCE
+
 #include "directorytree.h"
 
 #include "common/appstate.h"

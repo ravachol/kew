@@ -77,7 +77,7 @@ void get_tty_size(TermSize *term_size_out)
 {
         TermSize term_size;
 
-        term_size.width_cells = term_size.height_cells = term_size.width_pixels = term_size.height_pixels = -1;
+        term_size.cols = term_size.rows = term_size.width_pixels = term_size.height_pixels = -1;
 
 #ifdef _WIN32
         {
@@ -85,8 +85,8 @@ void get_tty_size(TermSize *term_size_out)
                 CONSOLE_SCREEN_BUFFER_INFO csb_info;
 
                 if (chd != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(chd, &csb_info)) {
-                        term_size.width_cells = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
-                        term_size.height_cells = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
+                        term_size.cols = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
+                        term_size.rows = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
                 }
         }
 #else
@@ -98,18 +98,18 @@ void get_tty_size(TermSize *term_size_out)
                         have_winsz = TRUE;
 
                 if (have_winsz) {
-                        term_size.width_cells = w.ws_col;
-                        term_size.height_cells = w.ws_row;
+                        term_size.cols = w.ws_col;
+                        term_size.rows = w.ws_row;
                         term_size.width_pixels = w.ws_xpixel;
                         term_size.height_pixels = w.ws_ypixel;
                 }
         }
 #endif
 
-        if (term_size.width_cells <= 0)
-                term_size.width_cells = -1;
-        if (term_size.height_cells <= 2)
-                term_size.height_cells = -1;
+        if (term_size.cols <= 0)
+                term_size.cols = -1;
+        if (term_size.rows <= 2)
+                term_size.rows = -1;
 
         /* If .ws_xpixel and .ws_ypixel are filled out, we can calculate
          * aspect information for the font used. Sixel-capable terminals

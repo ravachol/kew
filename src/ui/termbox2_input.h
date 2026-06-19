@@ -57,8 +57,8 @@ kew, which handles setting non-blocking mode itself.
 #ifdef _WIN32
 #include <io.h>
 #include <synchapi.h>
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #else
 #include <sys/ioctl.h> /* ioctl */
 #include <sys/select.h>

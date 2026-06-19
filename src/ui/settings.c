@@ -673,7 +673,7 @@ void free_key_value_pairs(KeyValuePair *pairs, int count)
         free(pairs);
 }
 
-static int stricmp(const char *a, const char *b)
+static int k_stricmp(const char *a, const char *b)
 {
         while (*a && *b) {
                 int diff = tolower(*a) - tolower(*b);
@@ -751,7 +751,7 @@ static enum MsgType parse_to_event(const char *name)
                 return MSG_NONE;
 
         for (int i = 0; event_map[i].name != NULL; i++) {
-                if (stricmp(name, event_map[i].name) == 0)
+                if (k_stricmp(name, event_map[i].name) == 0)
                         return event_map[i].event;
         }
         return MSG_NONE;
@@ -815,17 +815,17 @@ TBKeyBinding parse_binding(const char *binding_str,
                 // If tokenbuf is still empty (shouldn't happen), skip it
                 if (tokenbuf[0] != '\0') {
                         // Handle modifiers
-                        if (stricmp(tokenbuf, "Ctrl") == 0 ||
-                            stricmp(tokenbuf, "LCtrl") == 0 ||
-                            stricmp(tokenbuf, "RCtrl") == 0) {
+                        if (k_stricmp(tokenbuf, "Ctrl") == 0 ||
+                            k_stricmp(tokenbuf, "LCtrl") == 0 ||
+                            k_stricmp(tokenbuf, "RCtrl") == 0) {
                                 kb.mods |= TB_MOD_CTRL;
-                        } else if (stricmp(tokenbuf, "Alt") == 0 ||
-                                   stricmp(tokenbuf, "LAlt") == 0 ||
-                                   stricmp(tokenbuf, "RAlt") == 0) {
+                        } else if (k_stricmp(tokenbuf, "Alt") == 0 ||
+                                   k_stricmp(tokenbuf, "LAlt") == 0 ||
+                                   k_stricmp(tokenbuf, "RAlt") == 0) {
                                 kb.mods |= TB_MOD_ALT;
-                        } else if (stricmp(tokenbuf, "Shift") == 0 ||
-                                   stricmp(tokenbuf, "LShift") == 0 ||
-                                   stricmp(tokenbuf, "RShift") == 0) {
+                        } else if (k_stricmp(tokenbuf, "Shift") == 0 ||
+                                   k_stricmp(tokenbuf, "LShift") == 0 ||
+                                   k_stricmp(tokenbuf, "RShift") == 0) {
                                 kb.mods |= TB_MOD_SHIFT;
                         } else if (strcmp(tokenbuf, "Space") == 0) {
                                 kb.key = TB_KEY_SPACE;
@@ -1793,46 +1793,6 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[67] = (EventMapping){settings->fade_slow, MSG_CROSSFADE_SLOW};
 }
 
-int mkdir_p(const char *path, mode_t mode)
-{
-        if (path == NULL)
-                return -1;
-
-        if (path[0] == '~') {
-                // Just try a plain mkdir if there's a tilde
-                if (mkdir(path, mode) == -1) {
-                        if (errno != EEXIST)
-                                return -1;
-                }
-                return 0;
-        }
-
-        char tmp[PATH_MAX];
-        char *p = NULL;
-        size_t len;
-
-        snprintf(tmp, sizeof(tmp), "%s", path);
-        len = strnlen(tmp, PATH_MAX);
-        if (len > 0 && tmp[len - 1] == '/')
-                tmp[len - 1] = 0;
-
-        for (p = tmp + 1; *p; p++) {
-                if (*p == '/') {
-                        *p = 0;
-                        if (mkdir(tmp, mode) == -1) {
-                                if (errno != EEXIST)
-                                        return -1;
-                        }
-                        *p = '/';
-                }
-        }
-        if (mkdir(tmp, mode) == -1) {
-                if (errno != EEXIST)
-                        return -1;
-        }
-        return 0;
-}
-
 void migrate_prefs_file(char *new_filepath)
 {
         char *prefs_dir = get_prefs_path();
@@ -1927,7 +1887,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
 
         struct stat st = {0};
         if (stat(configdir, &st) == -1) {
-                if (mkdir_p(configdir, 0700) != 0) {
+                if (create_directory(configdir) != 0) {
                         perror("mkdir");
                         free(configdir);
                         quit();
@@ -1959,7 +1919,7 @@ void get_config(AppSettings *settings, UISettings *ui)
 
         struct stat st = {0};
         if (stat(configdir, &st) == -1) {
-                if (mkdir_p(configdir, 0700) != 0) {
+                if (create_directory(configdir) != 0) {
                         perror("mkdir");
                         quit();
                 }

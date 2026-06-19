@@ -328,8 +328,13 @@ bool ensure_default_themes(void)
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
                 // Only copy real files that look like themes
-                if (entry->d_type == DT_REG &&
-                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md"))) {
+                char full_path[PATH_MAX];
+                snprintf(full_path, sizeof(full_path), "%s/%s", system_themes, entry->d_name);
+
+                struct stat st;
+                if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode) &&
+                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md")))
+                {
 
                         char src[PATH_MAX], dst[PATH_MAX], bak[PATH_MAX];
 
