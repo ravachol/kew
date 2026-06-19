@@ -287,12 +287,12 @@ void apply_color(PixelData color)
  */
 
 struct interval {
-        wchar_t first;
-        wchar_t last;
+    uint32_t first;
+    uint32_t last;
 };
 
 // Auxiliary function for binary search in interval table
-static int bisearch(wchar_t ucs, const struct interval *table, int max)
+static int bisearch(uint32_t ucs, const struct interval *table, int max)
 {
         if (table == NULL || max < 0)
                 return 0;

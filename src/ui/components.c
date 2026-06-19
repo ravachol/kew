@@ -25,7 +25,6 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <sys/param.h>
 #include <wchar.h>
 
 // clang-format off
@@ -1527,8 +1526,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 CellStyle rownum_style = cell_style_from_theme(ui->theme.playlist_rownum);
                 CellStyle title_style = cell_style_from_theme(ui->theme.playlist_title);
 
-                char buffer[NAME_MAX + 1];
-                char filename[NAME_MAX + 1];
+                char buffer[KEW_NAME_MAX + 1];
+                char filename[KEW_NAME_MAX + 1];
                 buffer[0] = filename[0] = '\0';
 
                 int draw_row = row_offset + printed;
@@ -1542,7 +1541,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         continue;
                 }
 
-                prepare_playlist_string(node, buffer, NAME_MAX);
+                prepare_playlist_string(node, buffer, KEW_NAME_MAX);
 
                 if (buffer[0] == '\0') {
                         node = node->next;

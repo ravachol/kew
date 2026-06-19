@@ -21,8 +21,6 @@
 #include <miniaudio.h>
 #include <stdatomic.h>
 
-#include <sys/param.h>
-
 #define _(STRING) gettext(STRING)
 
 #ifndef G_USEC_PER_SEC
