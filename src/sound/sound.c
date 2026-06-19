@@ -45,7 +45,6 @@
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__ANDROID__)
 #include <sys/resource.h>
 #endif
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -314,6 +313,19 @@ void set_decode_thread_priority(pthread_t thread)
 #elif defined(__ANDROID__)
         (void)thread;
         setpriority(PRIO_PROCESS, 0, -8);
+#elif defined(_WIN32)
+
+#include <windows.h>
+
+    (void)thread;
+
+    HANDLE hThread = GetCurrentThread();
+
+    // Similar to "above normal" / responsive decoding thread
+    if (!SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL)) {
+        // fallback: try normal priority
+        SetThreadPriority(hThread, THREAD_PRIORITY_NORMAL);
+    }
 #endif
 }
 
@@ -459,20 +471,43 @@ void write_to_ring_buffer(sound_system_t *sound, ma_uint64 frames_to_read, float
         }
 }
 
+static inline void *aligned64_alloc(size_t size)
+{
+#if defined(_WIN32)
+        return _aligned_malloc(size, 64);
+#else
+        void *ptr = NULL;
+        if (posix_memalign(&ptr, 64, size) != 0)
+                return NULL;
+        return ptr;
+#endif
+}
+
+static inline void aligned64_free(void *ptr)
+{
+#if defined(_WIN32)
+        _aligned_free(ptr);
+#else
+        free(ptr);
+#endif
+}
+
 bool memalign_buffers(float **current_buf, float **next_buf, float **mixed_buf, int buf_size)
 {
-        if (posix_memalign((void **)current_buf, 64, buf_size) != 0) {
+        *current_buf = aligned64_alloc(buf_size);
+        if (!*current_buf)
+                return false;
+
+        *next_buf = aligned64_alloc(buf_size);
+        if (!*next_buf) {
+                aligned64_free(*current_buf);
                 return false;
         }
 
-        if (posix_memalign((void **)next_buf, 64, buf_size) != 0) {
-                free(current_buf);
-                return false;
-        }
-
-        if (posix_memalign((void **)mixed_buf, 64, buf_size) != 0) {
-                free(next_buf);
-                free(current_buf);
+        *mixed_buf = aligned64_alloc(buf_size);
+        if (!*mixed_buf) {
+                aligned64_free(*next_buf);
+                aligned64_free(*current_buf);
                 return false;
         }
 
@@ -713,9 +748,9 @@ void *decode_loop(void *arg)
                 }
         }
 
-        free(mixed_buf);
-        free(current_buf);
-        free(next_buf);
+        aligned64_free(mixed_buf);
+        aligned64_free(current_buf);
+        aligned64_free(next_buf);
         atomic_store(&sound->decode_thread_running, false);
         atomic_store(&sound_s->drain_callbacks_remaining, 0);
         atomic_store(&sound_s->request_pause, false);
@@ -835,9 +870,8 @@ sound_result_t handle_codec(
         ma_channel channel_map[MA_MAX_CHANNELS], nChannelMap[MA_MAX_CHANNELS];
         enum decoder_type_t current_implementation = get_current_decoder_type();
 
-        int avg_bit_rate = 0;
-
 #ifdef USE_FAAD
+        int avg_bit_rate = 0;
         k_m4adec_filetype file_type = 0;
 
         if (ops.decoder_type == M4A) {

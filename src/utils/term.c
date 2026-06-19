@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <termios.h>
 #include <unistd.h>
 
 #ifdef _WIN32
@@ -21,14 +20,15 @@
 #include <windows.h>
 #include <io.h>
 #else
+#include <termios.h>
 #include <pwd.h>
 #include <sys/ioctl.h> /* ioctl */
 #include <sys/select.h>
+
+static struct termios orig_termios;
 #endif
 
 static const int MAX_TERMINAL_ROWS = 9999;
-static struct termios orig_termios;
-static int termios_saved = 0;
 
 struct winsize w;
 
@@ -117,30 +117,69 @@ void get_term_size(int *width, int *height)
         *width = (int)w.ws_col;
 }
 
+#ifdef _WIN32
+#include <windows.h>
+
+static DWORD orig_mode;
+static HANDLE hStdin;
+static int win_saved = 0;
+
 void set_nonblocking_mode(void)
 {
-        struct termios ttystate;
-        tcgetattr(STDIN_FILENO, &orig_termios); // save original
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    if (hStdin == INVALID_HANDLE_VALUE)
+        return;
 
-        termios_saved = 1;
+    GetConsoleMode(hStdin, &orig_mode);
+    win_saved = 1;
 
-        ttystate = orig_termios;
-        ttystate.c_lflag &= ~(ICANON | ECHO); // non-canonical, no echo
-        // ISIG left intact to handle Ctrl-C etc.
-        ttystate.c_cc[VMIN] = 0; // return immediately
-        ttystate.c_cc[VTIME] = 0;
+    DWORD mode = orig_mode;
 
-        tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
-        tcflush(STDIN_FILENO, TCIFLUSH); // flush any leftover input
+    // disable line buffering + echo
+    mode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+
+    // allow ctrl-c processing (optional)
+    mode |= ENABLE_PROCESSED_INPUT;
+
+    SetConsoleMode(hStdin, mode);
 }
 
 void restore_terminal_mode(void)
 {
-        if (termios_saved) {
-                tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
-                tcflush(STDIN_FILENO, TCIFLUSH);
-        }
+    if (win_saved)
+        SetConsoleMode(hStdin, orig_mode);
 }
+
+#else
+#include <termios.h>
+#include <unistd.h>
+
+static struct termios orig_termios;
+static int termios_saved = 0;
+
+void set_nonblocking_mode(void)
+{
+    struct termios ttystate;
+
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    termios_saved = 1;
+
+    ttystate = orig_termios;
+    ttystate.c_lflag &= ~(ICANON | ECHO);
+
+    ttystate.c_cc[VMIN] = 0;
+    ttystate.c_cc[VTIME] = 0;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+    tcflush(STDIN_FILENO, TCIFLUSH);
+}
+
+void restore_terminal_mode(void)
+{
+    if (termios_saved)
+        tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+}
+#endif
 
 void set_default_text_color(void)
 {
