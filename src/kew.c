@@ -84,13 +84,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <glib.h>
 #include <libintl.h>
 #include <locale.h>
-#include <poll.h>
+
 #include <pwd.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -608,7 +607,7 @@ static bool handle_play_command_playlist(int *argc, char **argv)
         //validate all paths
 
         for (int i = 2; i < *argc; i++) {
-                if ((expand_path(argv[i], de_expanded) != 0) || (exists_file(de_expanded) == -1)) {
+                if ((expand_path(argv[i], de_expanded, PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
                         return false;
                 }
         }
@@ -861,7 +860,7 @@ int main(int argc, char *argv[])
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
-                collapse_path(argv[2], de_expanded);
+                collapse_path(argv[2], de_expanded, PATH_MAX);
                 c_strcpy(model->settings.path, de_expanded, sizeof(model->settings.path));
                 set_path(model->settings.path);
                 exit(0);
