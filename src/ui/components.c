@@ -2911,7 +2911,7 @@ size_t utf8_truncate(const char *s, int max_width)
             break;
         }
 
-        int w = wcwidth(wc);
+        int w = mk_wcwidth(wc);
 
         if (w < 0)
             w = 0;

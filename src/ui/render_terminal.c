@@ -63,10 +63,19 @@ void emit_image(ImagePayload *image,
         }
 }
 
+static inline void safe_putchar(int c)
+{
+#ifdef _WIN32
+        putchar(c);
+#else
+        putchar_unlocked(c);
+#endif
+}
+
 static inline void emit_codepoint(uint32_t cp)
 {
         if (cp < 0x80) {
-                putchar_unlocked((int)cp);
+                safe_putchar((int)cp);
                 return;
         }
 
