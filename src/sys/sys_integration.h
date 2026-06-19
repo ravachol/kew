@@ -183,4 +183,6 @@ sig_atomic_t get_resize_flag();
  */
 GDBusConnection *get_gd_bus_connection(void);
 
+void poll_resize_event(void);
+
 #endif
