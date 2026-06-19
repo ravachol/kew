@@ -2912,7 +2912,7 @@ bool ensure_default_layouts(void)
         struct stat st;
         if (stat(layouts_path, &st) == -1) {
                 // Directory doesn't exist → create it
-                if (mkdir(layouts_path, 0755) == -1) {
+                if (create_directory(layouts_path) == -1) {
                         free(config_path);
                         return false;
                 }
