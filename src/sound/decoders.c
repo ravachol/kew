@@ -464,6 +464,8 @@ int can_decoder_seek(void *decoder)
                 if (dec != NULL && dec->file_type == k_rawAAC)
                         return 0;
         }
+#else
+        (void)decoder;
 #endif
 
         if (get_current_decoder_decoder_type() == WEBM) {
