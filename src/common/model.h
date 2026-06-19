@@ -726,7 +726,7 @@ typedef struct {
 
 typedef struct
 {
-        gint width_cells, height_cells;
+        gint cols, rows;
         gint width_pixels, height_pixels;
 } TermSize;
 

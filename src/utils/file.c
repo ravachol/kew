@@ -28,7 +28,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <direct.h>
-#define mkdir_p(path) _mkdir(path)
 #else
 #include <sys/types.h>
 #include <errno.h>

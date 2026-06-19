@@ -470,9 +470,9 @@ float calc_aspect_ratio(void)
 
         get_tty_size(&term_size);
 
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
+        if (term_size.cols > 0 && term_size.rows > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0) {
+                cell_width = term_size.width_pixels / term_size.cols;
+                cell_height = term_size.height_pixels / term_size.rows;
         }
 
         // Set default for some terminals
@@ -491,10 +491,10 @@ float get_aspect_ratio()
 
         get_tty_size(&term_size);
 
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+        if (term_size.cols > 0 && term_size.rows > 0 &&
             term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
+                cell_width = term_size.width_pixels / term_size.cols;
+                cell_height = term_size.height_pixels / term_size.rows;
         }
 
         // Set default cell size for some terminals
@@ -526,10 +526,10 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         printf("\033[%d;%dH", row, col);
 
-        if (term_size->width_cells > 0 && term_size->height_cells > 0 &&
+        if (term_size->cols > 0 && term_size->rows > 0 &&
             term_size->width_pixels > 0 && term_size->height_pixels > 0) {
-                cell_width = term_size->width_pixels / term_size->width_cells;
-                cell_height = term_size->height_pixels / term_size->height_cells;
+                cell_width = term_size->width_pixels / term_size->cols;
+                cell_height = term_size->height_pixels / term_size->rows;
         }
 
         if (cell_width == 0 || cell_height == 0) {
@@ -543,17 +543,17 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         if (corrected_width > max_width)
                 corrected_width = max_width;
 
-        if (term_size->width_cells > 0 && corrected_width > term_size->width_cells) {
+        if (term_size->cols > 0 && corrected_width > term_size->cols) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
-        if (term_size->height_cells > 0 && base_height > term_size->height_cells) {
+        if (term_size->rows > 0 && base_height > term_size->rows) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
-        if (centered && term_size->width_cells > 0)
-                col = ((term_size->width_cells - corrected_width) / 2) + 1;
+        if (centered && term_size->cols > 0)
+                col = ((term_size->cols - corrected_width) / 2) + 1;
 
         Cell *anchor = &buf->cells[row * buf->cols + col];
 

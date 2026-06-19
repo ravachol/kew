@@ -1,5 +1,6 @@
-#define _XOPEN_SOURCE 700
-#define __USE_XOPEN_EXTENDED 1
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 
 /**
  * @file playlist.c
