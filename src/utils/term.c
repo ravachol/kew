@@ -10,7 +10,6 @@
 
 #include <fcntl.h>
 #include <glib.h>
-#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +21,7 @@
 #include <windows.h>
 #include <io.h>
 #else
+#include <pwd.h>
 #include <sys/ioctl.h> /* ioctl */
 #endif
 

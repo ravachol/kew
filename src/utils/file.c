@@ -18,6 +18,7 @@
 #include <glib.h>
 #include <libgen.h>
 #include <regex.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,7 +30,6 @@
 #include <direct.h>
 #define mkdir_p(path) _mkdir(path)
 #else
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <pwd.h>
@@ -279,7 +279,7 @@ int expand_path(const char *input, char *out, size_t max_size)
 
 #ifdef _WIN32
     /* Windows/MSYS2: do NOT rely on realpath always */
-    if (_fullpath(out, input, out_sz) == NULL)
+    if (_fullpath(out, input, max_size) == NULL)
         return -1;
 #else
     if (!realpath(input, out))
@@ -321,6 +321,15 @@ void collapse_path(const char *input, char *out, size_t max_size)
     snprintf(out, max_size, "%s", input);
 }
 
+static int dir_mkdir(const char *path)
+{
+#ifdef _WIN32
+    return mkdir(path);
+#else
+    return mkdir(path, 0700);
+#endif
+}
+
 int create_directory(const char *path)
 {
         struct stat st;
@@ -334,7 +343,7 @@ int create_directory(const char *path)
         }
 
         // Directory does not exist, so create it
-        if (mkdir(path, 0700) == 0)
+        if (dir_mkdir(path) == 0)
                 return 1; // Directory created successfully
 
         return -1; // Failed to create directory
@@ -440,7 +449,7 @@ void generate_temp_file_path(char *file_path,
 
     /* final path */
 #ifdef _WIN32
-    int written = snprintf(file_path, out_sz, "%s\\%s%s%s",
+    int written = snprintf(file_path, max_size, "%s\\%s%s%s",
                            user_dir, prefix, rnd, suffix);
 #else
     int written = snprintf(file_path, max_size, "%s/%s%s%s",
