@@ -244,7 +244,7 @@ int is_valid_entry_name(const char *name)
                 return 0;
 
         size_t len = strnlen(name, PATH_MAX + 1);
-        if (len > NAME_MAX || len > PATH_MAX)
+        if (len > KEW_NAME_MAX || len > PATH_MAX)
                 return 0;
 
         if (len == 0)

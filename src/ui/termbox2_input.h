@@ -56,10 +56,8 @@ kew, which handles setting non-blocking mode itself.
 #include <unistd.h>
 #include <wchar.h>
 
-#ifdef G_OS_WIN32
-#ifdef HAVE_WINDOWS_H
+#ifdef _WIN32
 #include <windows.h>
-#endif
 #include <io.h>
 #else
 #include <sys/ioctl.h> /* ioctl */

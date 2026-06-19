@@ -238,7 +238,7 @@ void cycle_themes(void)
 
         // Find the index of the current theme
         int current_index = -1;
-        char current_filename[NAME_MAX];
+        char current_filename[KEW_NAME_MAX];
 
         strncpy(current_filename, ui->theme_name, sizeof(current_filename) - 1);
         current_filename[sizeof(current_filename) - 1] = '\0';
@@ -439,7 +439,7 @@ int load_theme(const char *theme_name,
         }
 
         // Build full theme filename
-        char filename[NAME_MAX];
+        char filename[KEW_NAME_MAX];
         const char *extension = ".theme";
         size_t themeNameLen = strlen(theme_name);
         size_t extLen = strlen(extension);

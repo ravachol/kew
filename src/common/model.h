@@ -21,8 +21,6 @@
 #include <stdatomic.h>
 #include <stdio.h>
 
-#include <sys/param.h>
-
 extern sound_system_t *sound_sys;
 
 #define ATTR_NONE 0
@@ -39,6 +37,8 @@ extern sound_system_t *sound_sys;
 #define MAX_SEARCH_LEN 32
 
 #define DISABLED_ROW -1000
+
+#define KEW_NAME_MAX 255
 
 typedef enum {
         DIRTY_NONE = 0,
@@ -244,8 +244,8 @@ typedef struct
  */
 typedef struct
 {
-        char theme_name[NAME_MAX];   /**< Theme display name. */
-        char theme_author[NAME_MAX]; /**< Theme author name. */
+        char theme_name[KEW_NAME_MAX];   /**< Theme display name. */
+        char theme_author[KEW_NAME_MAX]; /**< Theme author name. */
 
         ColorValue accent;
         ColorValue text;
@@ -375,8 +375,8 @@ typedef struct
 
         Theme theme;                /**< Active theme. */
         bool themeIsSet;            /**< Whether a theme has been loaded. */
-        char theme_name[NAME_MAX];  /**< Theme filename (without extension). */
-        char themeAuthor[NAME_MAX]; /**< Author name stored from theme file. */
+        char theme_name[KEW_NAME_MAX];  /**< Theme filename (without extension). */
+        char themeAuthor[KEW_NAME_MAX]; /**< Author name stored from theme file. */
 
         int lastVolume; /* volume the last time kew was run, int between 0 and 100. */
 
@@ -540,8 +540,8 @@ typedef struct
 typedef struct
 {
         char path[PATH_MAX];
-        char theme[NAME_MAX];
-        char ansiTheme[NAME_MAX];
+        char theme[KEW_NAME_MAX];
+        char ansiTheme[KEW_NAME_MAX];
         char colorMode[6];
         char coverEnabled[2];
         char coverAnsi[2];
