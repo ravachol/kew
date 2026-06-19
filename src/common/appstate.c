@@ -13,6 +13,11 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <io.h>
+
+static UINT saved_console_output_cp;
+static UINT saved_console_input_cp;
+static int win32_stdout_is_file = 0;
+
 #else
 #include <sys/ioctl.h> /* ioctl */
 #endif
