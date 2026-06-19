@@ -51,7 +51,6 @@ kew, which handles setting non-blocking mode itself.
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <termios.h>
 #include <unistd.h>
 #include <wchar.h>
 
@@ -60,6 +59,7 @@ kew, which handles setting non-blocking mode itself.
 #include <windows.h>
 #include <io.h>
 #else
+#include <termios.h>
 #include <sys/select.h>
 #include <sys/ioctl.h> /* ioctl */
 #endif
