@@ -14,15 +14,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
 
-#ifdef G_OS_WIN32
-#ifdef HAVE_WINDOWS_H
+#ifdef _WIN32
 #include <windows.h>
-#endif
 #include <io.h>
 #else
 #include <sys/ioctl.h> /* ioctl */
