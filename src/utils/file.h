@@ -14,7 +14,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define __USE_GNU
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 
 #define MUSIC_FILE_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|aiff|opus|webm)$"
 
