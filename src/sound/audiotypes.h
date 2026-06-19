@@ -14,6 +14,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <pthread.h>
 
 typedef enum {
         SOUND_STATE_STOPPED = 0,

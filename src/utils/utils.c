@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -26,6 +25,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
+#include <io.h>
 #else
 #include <unistd.h>
 #include <pwd.h>
@@ -565,6 +565,16 @@ float get_float(const char *str)
         return value;
 }
 
+static int file_sync(int fd)
+{
+#ifdef _WIN32
+    /* Windows equivalent */
+    return _commit(fd);
+#else
+    return fsync(fd);
+#endif
+}
+
 int copy_file(const char *src, const char *dst)
 {
         // Validate inputs
@@ -645,7 +655,7 @@ int copy_file(const char *src, const char *dst)
         }
 
         // Sync to disk before closing
-        if (fsync(dst_fd) != 0) {
+        if (file_sync(dst_fd) != 0) {
                 close(src_fd);
                 close(dst_fd);
                 unlink(dst);

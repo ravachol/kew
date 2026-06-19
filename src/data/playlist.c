@@ -342,8 +342,8 @@ void exit_if_overflow(int counter)
 void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions, PlayList *playlist)
 {
-        char expanded_path[PATH_MAX - NAME_MAX - 1];
-        expand_path(directory_path, expanded_path, PATH_MAX - NAME_MAX - 1);
+        char expanded_path[PATH_MAX - KEW_NAME_MAX - 1];
+        expand_path(directory_path, expanded_path, PATH_MAX - KEW_NAME_MAX - 1);
 
         int res = is_directory(expanded_path);
 
@@ -412,7 +412,7 @@ void build_playlist_recursive(const char *directory_path,
                          entry->d_name);
 
                 size_t pathLen = strnlen(expanded_path, sizeof(expanded_path));
-                size_t nameLen = strnlen(entry->d_name, NAME_MAX);
+                size_t nameLen = strnlen(entry->d_name, KEW_NAME_MAX);
 
                 if (pathLen + 1 + nameLen >= PATH_MAX) {
                         fprintf(stderr, "Path too long: %s/%s\n", expanded_path, entry->d_name);

@@ -90,7 +90,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
