@@ -258,7 +258,7 @@ void notify_song_switch(SongData *current_song_data)
 int is_process_running(pid_t pid)
 {
 #ifdef _WIN32
-        void(pid);
+        (void)pid;
         return 0;
 #else
         if (pid <= 0) {
@@ -334,7 +334,7 @@ void delete_pid_file()
 pid_t read_pid_file()
 {
 #ifdef _WIN32
-        return NULL;
+        return 0;
 #else
         char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
@@ -363,6 +363,9 @@ pid_t read_pid_file()
 
 void create_pid_file()
 {
+#ifdef _WIN32
+        return;
+#else
         char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
@@ -377,6 +380,7 @@ void create_pid_file()
 
         fprintf(pidfile, "%d\n", getpid());
         fclose(pidfile);
+#endif
 }
 
 void restart_kew(char *argv[])
@@ -445,7 +449,7 @@ void restart_kew(char *argv[])
 void restart_if_already_running(char *argv[])
 {
 #ifdef _WIN32
-        void(argv);
+        (void)argv;
 #else
         signal(SIGUSR1, handle_exit_signal);
 
