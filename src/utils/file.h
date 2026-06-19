@@ -12,6 +12,7 @@
 #include "common/path_max.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #define __USE_GNU
 
@@ -59,8 +60,9 @@ void get_directory_from_path(const char *path, char *directory);
  *
  * @param input The input file path to collapse.
  * @param output The buffer to store the collapsed path.
+ * @param max_size The max size of the buffer
  */
-void collapse_path(const char *input, char *output);
+void collapse_path(const char *input, char *output, size_t max_size);
 
 
 /**
@@ -71,10 +73,11 @@ void collapse_path(const char *input, char *output);
  * temporary directory.
  *
  * @param file_path The buffer to store the generated file path.
+ * @param max_size The maximum size of the file_path buffer.
  * @param prefix The prefix to be added at the beginning of the file path.
  * @param suffix The suffix to be added at the end of the file path.
  */
-void generate_temp_file_path(char *file_path, const char *prefix, const char *suffix);
+void generate_temp_file_path(char *file_path, size_t max_size, const char *prefix, const char *suffix);
 
 
 /**
@@ -134,10 +137,11 @@ int walker(const char *start_path, const char *searching, char *result,
  *
  * @param input_path The input path to expand.
  * @param expanded_path The buffer to store the expanded absolute path.
+ * @param max_size The maxmimum size of the buffer.
  *
  * @return `0` if expansion is successful, `-1` if an error occurs.
  */
-int expand_path(const char *input_path, char *expanded_path);
+int expand_path(const char *input_path, char *expanded_path, size_t max_size);
 
 
 /**

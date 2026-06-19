@@ -198,8 +198,6 @@ void init_model(void)
 
         model.tick = 17;
 
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &model.state.ui.windowSize);
-
         pthread_mutex_init(&(model.playbackState.switch_mutex), NULL);
         pthread_mutex_init(&(model.state.library_mutex), NULL);
 

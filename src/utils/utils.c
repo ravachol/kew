@@ -12,7 +12,6 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <math.h>
-#include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,7 +22,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <shlobj.h>
+#else
 #include <unistd.h>
+#include <pwd.h>
+#endif
 
 struct timespec timer_start;
 
@@ -334,90 +340,99 @@ void trim(char *str, size_t max_len)
 
 const char *get_home_path(void)
 {
-        struct passwd *pw = getpwuid(getuid());
-        if (pw && pw->pw_dir) {
-                return pw->pw_dir;
-        }
-        return NULL;
+#ifdef _WIN32
+    const char *home = getenv("USERPROFILE");
+    if (home) return home;
+
+    static char path[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))) {
+        return path;
+    }
+    return NULL;
+#else
+    const char *home = getenv("HOME");
+    if (home) return home;
+
+    struct passwd *pw = getpwuid(getuid());
+    return pw ? pw->pw_dir : NULL;
+#endif
+}
+
+static const char *get_xdg_config_base(void)
+{
+#ifdef _WIN32
+    const char *appdata = getenv("APPDATA");
+    return appdata;
+#else
+    return getenv("XDG_CONFIG_HOME");
+#endif
+}
+
+static const char *get_xdg_state_base(void)
+{
+#ifdef _WIN32
+    const char *local = getenv("LOCALAPPDATA");
+    return local;
+#else
+    return getenv("XDG_STATE_HOME");
+#endif
 }
 
 char *get_config_path(void)
 {
-        char *config_path = malloc(PATH_MAX);
-        if (!config_path)
-                return NULL;
+    char *out = malloc(PATH_MAX);
+    if (!out) return NULL;
 
-        const char *xdg_config = getenv("XDG_CONFIG_HOME");
+    const char *base = get_xdg_config_base();
+    const char *home = get_home_path();
 
-        if (xdg_config) {
-                snprintf(config_path, PATH_MAX, "%s/kew", xdg_config);
-        } else {
-                const char *home = get_home_path();
-                if (home) {
-#ifdef __APPLE__
-                        snprintf(config_path, PATH_MAX,
-                                 "%s/Library/Preferences/kew", home);
+    if (base) {
+#ifdef _WIN32
+        snprintf(out, PATH_MAX, "%s\\kew", base);
 #else
-                        snprintf(config_path, PATH_MAX, "%s/.config/kew",
-                                 home);
+        snprintf(out, PATH_MAX, "%s/kew", base);
 #endif
-                } else {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw) {
+    } else if (home) {
 #ifdef __APPLE__
-                                snprintf(config_path, PATH_MAX,
-                                         "%s/Library/Preferences/kew",
-                                         pw->pw_dir);
+        snprintf(out, PATH_MAX, "%s/Library/Preferences/kew", home);
+#elif _WIN32
+        snprintf(out, PATH_MAX, "%s\\kew", home);
 #else
-                                snprintf(config_path, PATH_MAX,
-                                         "%s/.config/kew", pw->pw_dir);
+        snprintf(out, PATH_MAX, "%s/.config/kew", home);
 #endif
-                        } else {
-                                free(config_path);
-                                return NULL;
-                        }
-                }
-        }
+    } else {
+        free(out);
+        return NULL;
+    }
 
-        return config_path;
+    return out;
 }
 
 char *get_prefs_path(void)
 {
-        char *prefs_path = malloc(PATH_MAX);
-        if (!prefs_path)
-                return NULL;
+    char *out = malloc(PATH_MAX);
+    if (!out) return NULL;
 
-        const char *xdg_state = getenv("XDG_STATE_HOME");
+    const char *base = get_xdg_state_base();
+    const char *home = get_home_path();
 
-        if (xdg_state) {
-                snprintf(prefs_path, PATH_MAX, "%s", xdg_state);
-        } else {
-                const char *home = get_home_path();
-                if (home) {
+    if (base) {
+        snprintf(out, PATH_MAX, "%s", base);
+    } else if (home) {
 #ifdef __APPLE__
-                        snprintf(prefs_path, PATH_MAX, "%s/Library/Application Support", home);
+        snprintf(out, PATH_MAX, "%s/Library/Application Support", home);
+#elif _WIN32
+        snprintf(out, PATH_MAX, "%s\\AppData\\Local", home);
 #else
-                        snprintf(prefs_path, PATH_MAX, "%s/.local/state", home);
+        snprintf(out, PATH_MAX, "%s/.local/state", home);
 #endif
-                } else {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw) {
-#ifdef __APPLE__
-                                snprintf(prefs_path, PATH_MAX, "%s/Library/Application Support", pw->pw_dir);
-#else
-                                snprintf(prefs_path, PATH_MAX, "%s/.local/state", pw->pw_dir);
-#endif
-                        } else {
-                                free(prefs_path);
-                                return NULL;
-                        }
-                }
-        }
+    } else {
+        free(out);
+        return NULL;
+    }
 
-        return prefs_path;
+    return out;
 }
-
 bool is_valid_filename(const char *filename)
 {
         // Check for path traversal patterns

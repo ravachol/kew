@@ -20,7 +20,7 @@
 #include <libintl.h>
 #include <miniaudio.h>
 #include <stdatomic.h>
-#include <sys/ioctl.h>
+
 #include <sys/param.h>
 
 #define _(STRING) gettext(STRING)

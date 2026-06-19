@@ -39,7 +39,7 @@ void handleGoToSong(void);
  * This function checks if the next song in the playlist should be updated and
  * performs the necessary updates to the playback state.
  */
-void update_next_song_if_needed(void);
+void preload_next_song(void);
 
 /**
  * @brief Enqueues a single song entry into the playlist.
