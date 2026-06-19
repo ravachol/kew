@@ -23,6 +23,7 @@
 #define TB_IMPL
 #include "termbox2_input.h"
 
+#include "common_ui.h"
 #include "control_ui.h"
 #include "queue_ui.h"
 #include "render_ui.h"
@@ -259,7 +260,7 @@ enum MsgType get_mouse_last_row_event(int mouse_x_on_last_row, const char *foote
                         wc = (unsigned char)*footer_text;
                 }
 
-                int w = wcwidth(wc); // number of terminal columns this char takes
+                int w = mk_wcwidth(wc); // number of terminal columns this char takes
                 if (w < 0)
                         w = 0;
 

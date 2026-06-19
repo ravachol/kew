@@ -18,8 +18,6 @@
 #include "utils/term.h"
 #include "utils/utils.h"
 
-#include <pwd.h>
-
 void remove_arg_element(char *argv[], int index, int *argc)
 {
         if (index < 0 || index >= *argc) {

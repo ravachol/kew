@@ -55,15 +55,15 @@ kew, which handles setting non-blocking mode itself.
 #include <wchar.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
 #include <io.h>
+#include <synchapi.h>
+#include <windows.h>
+#include <winsock2.h>
 #else
-#include <termios.h>
-#include <sys/select.h>
 #include <sys/ioctl.h> /* ioctl */
+#include <sys/select.h>
+#include <termios.h>
 #endif
-
 
 #define TB_PATH_MAX PATH_MAX
 
@@ -811,7 +811,11 @@ struct tb_global_t {
         struct bytebuf_t out;
         struct cellbuf_t back;
         struct cellbuf_t front;
+#ifdef _WIN32
+        DWORD orig_tios[2];
+#else
         struct termios orig_tios;
+#endif
         int has_orig_tios;
         int last_errno;
         int initialized;
@@ -1910,7 +1914,55 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c)
 // Core event reading
 // -----------------------------------------------------------------------------
 
-static int wait_event(struct tb_event *event, int timeout_ms)
+#ifdef _WIN32
+
+static int win_wait_event(struct tb_event *event, int timeout_ms)
+{
+        INPUT_RECORD buf[128];
+        DWORD nread;
+
+        memset(event, 0, sizeof(*event));
+
+        HANDLE h = global.rfd;
+
+        DWORD wait = (timeout_ms < 0) ? INFINITE : (DWORD)timeout_ms;
+
+        DWORD w = WaitForSingleObject(h, wait);
+        if (w == WAIT_TIMEOUT)
+                return TB_ERR_NO_EVENT;
+
+        if (w != WAIT_OBJECT_0)
+                return TB_ERR_POLL;
+
+        if (!ReadConsoleInputA(h, buf, 128, &nread))
+                return TB_ERR_READ;
+
+        for (DWORD i = 0; i < nread; i++) {
+
+                if (buf[i].EventType == KEY_EVENT &&
+                    buf[i].Event.KeyEvent.bKeyDown) {
+
+                        char c = buf[i].Event.KeyEvent.uChar.AsciiChar;
+
+                        if (c != 0)
+                                bytebuf_nputs(&global.in, &c, 1);
+                }
+
+                if (buf[i].EventType == WINDOW_BUFFER_SIZE_EVENT) {
+                        update_term_size();
+                        event->type = TB_EVENT_RESIZE;
+                        event->w = global.width;
+                        event->h = global.height;
+                        return TB_OK;
+                }
+        }
+
+        return extract_event(event);
+}
+
+#else
+
+static int posix_wait_event(struct tb_event *event, int timeout_ms)
 {
         int rv;
         char buf[TB_OPT_READ_BUF];
@@ -1969,6 +2021,16 @@ static int wait_event(struct tb_event *event, int timeout_ms)
                 if (timeout_ms >= 0)
                         return TB_ERR_NO_EVENT;
         }
+}
+#endif
+
+static int wait_event(struct tb_event *event, int timeout_ms)
+{
+#ifdef _WIN32
+        return win_wait_event(event, timeout_ms);
+#else
+        return posix_wait_event(event, timeout_ms);
+#endif
 }
 
 static int extract_event(struct tb_event *event)
@@ -2214,7 +2276,30 @@ static int init_cap_trie(void)
         return TB_OK;
 }
 
-static int update_term_size(void)
+#ifdef _WIN32
+
+static int win_update_term_size(void)
+{
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+        HANDLE h = global.wfd;
+        if (!h || h == INVALID_HANDLE_VALUE)
+                return TB_ERR_RESIZE_IOCTL;
+
+        if (!GetConsoleScreenBufferInfo(h, &csbi)) {
+                global.last_errno = GetLastError();
+                return TB_ERR_RESIZE_IOCTL;
+        }
+
+        global.width  = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        global.height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+        return TB_OK;
+}
+
+#else
+
+static int posix_update_term_size(void)
 {
         int rv, ioctl_errno;
 
@@ -2238,6 +2323,17 @@ static int update_term_size(void)
 
         global.last_errno = ioctl_errno;
         return TB_ERR_RESIZE_IOCTL;
+}
+
+#endif
+
+static int update_term_size(void)
+{
+#ifdef _WIN32
+        return win_update_term_size();
+#else
+        return posix_update_term_size();
+#endif
 }
 
 static int update_term_size_via_esc(void)
