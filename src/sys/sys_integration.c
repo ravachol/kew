@@ -27,7 +27,7 @@
 #include "gio/gio.h"
 #include "math.h"
 #include <stdio.h>
-#include <sys/wait.h>
+
 
 static GDBusConnection *connection = NULL;
 static GMainContext *global_main_context = NULL;
