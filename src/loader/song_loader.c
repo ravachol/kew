@@ -227,7 +227,7 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
                                 continue; // path too long
                         }
 
-                        if (realpath(file_path, resolved_path) == NULL) {
+                        if (path_realpath(file_path, resolved_path) == NULL) {
                                 continue;
                         }
 
@@ -261,7 +261,7 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
                                 continue;
                         }
 
-                        if (realpath(file_path, resolved_path) == NULL) {
+                        if (path_realpath(file_path, resolved_path) == NULL) {
                                 continue;
                         }
 
@@ -318,7 +318,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 }
 
                 // Resolve the real path
-                if (realpath(file_path, resolved_path) == NULL) {
+                if (path_realpath(file_path, resolved_path) == NULL) {
                         // Could not resolve, skip
                         continue;
                 }

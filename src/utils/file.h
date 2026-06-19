@@ -194,4 +194,6 @@ int is_in_temp_dir(const char *path);
  */
 int exists_file(const char *fname);
 
+char *path_realpath(const char *path, char *out);
+
 #endif

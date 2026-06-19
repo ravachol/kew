@@ -448,3 +448,13 @@ void generate_temp_file_path(char *file_path,
         file_path[0] = '\0';
     }
 }
+
+char *path_realpath(const char *path, char *out)
+{
+#if defined(_WIN32)
+        return _fullpath(out, path, _MAX_PATH);
+#else
+        return realpath(path, out);
+#endif
+}
+
