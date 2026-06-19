@@ -282,10 +282,9 @@ time_t get_modification_time(struct stat *path_stat)
 
 void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
 {
-        UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)
-            arg; // Cast `arg` back to the structure pointer
-        char *path = args->path;
+        UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)arg;
 
+        char *path = args->path;
         AppState *state = args->state;
         UISettings *ui = &(state->settings);
 
@@ -295,16 +294,18 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
                 if (args->path)
                         free(args->path);
                 free(args);
-                pthread_exit(NULL);
+                return NULL;
         }
 
         if (get_modification_time(&path_stat) > ui->last_time_app_ran &&
             ui->last_time_app_ran > 0) {
+
                 update_library(path, args->wait_until_complete);
+
                 if (args->path)
                         free(args->path);
                 free(args);
-                pthread_exit(NULL);
+                return NULL;
         }
 
         DIR *dir = opendir(path);
@@ -312,10 +313,12 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
                 perror("opendir");
                 if (args->path)
                         free(args->path);
-                pthread_exit(NULL);
+                free(args);
+                return NULL;
         }
 
         struct dirent *entry;
+
         while ((entry = readdir(dir)) != NULL) {
 
                 if (strcmp(entry->d_name, ".") == 0 ||
@@ -324,18 +327,17 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
                 }
 
                 char full_path[1024];
-                snprintf(full_path, sizeof(full_path), "%s/%s", path,
-                         entry->d_name);
+                snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
 
-                if (stat(full_path, &path_stat) == -1) {
+                if (stat(full_path, &path_stat) == -1)
                         continue;
-                }
 
                 if (S_ISDIR(path_stat.st_mode)) {
 
                         if (get_modification_time(&path_stat) >
                                 ui->last_time_app_ran &&
                             ui->last_time_app_ran > 0) {
+
                                 update_library(path, args->wait_until_complete);
                                 break;
                         }
@@ -348,7 +350,7 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
                 free(args->path);
         free(args);
 
-        pthread_exit(NULL);
+        return NULL;
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes
@@ -459,7 +461,7 @@ void create_library(Model *model, bool set_enqueued_status)
 
         if (model->library != NULL) {
                 char lib_real[PATH_MAX];
-                if (realpath(model->library->full_path, lib_real) != NULL &&
+                if (path_realpath(model->library->full_path, lib_real) != NULL &&
                     strcmp(lib_real, model->library->full_path) != 0)
                         set_library_real_path_if_diff(lib_real);
                 else
