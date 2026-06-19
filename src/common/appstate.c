@@ -10,10 +10,8 @@
 #include "utils/utils.h"
 
 /* Include after chafa.h for G_OS_WIN32 */
-#ifdef G_OS_WIN32
-#ifdef HAVE_WINDOWS_H
+#ifdef _WIN32
 #include <windows.h>
-#endif
 #include <io.h>
 #else
 #include <sys/ioctl.h> /* ioctl */
@@ -76,7 +74,7 @@ void get_tty_size(TermSize *term_size_out)
 
         term_size.width_cells = term_size.height_cells = term_size.width_pixels = term_size.height_pixels = -1;
 
-#ifdef G_OS_WIN32
+#ifdef _WIN32
         {
                 HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
                 CONSOLE_SCREEN_BUFFER_INFO csb_info;
@@ -122,7 +120,7 @@ void get_tty_size(TermSize *term_size_out)
 
 void tty_init(void)
 {
-#ifdef G_OS_WIN32
+#ifdef _WIN32
         {
                 HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
 

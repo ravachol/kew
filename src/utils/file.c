@@ -17,15 +17,12 @@
 #include <dirent.h>
 #include <glib.h>
 #include <libgen.h>
-#include <pwd.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 #include <time.h>
 #include <unistd.h>
-
 
 #ifdef _WIN32
 #include <windows.h>
@@ -35,6 +32,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <pwd.h>
 #endif
 
 
