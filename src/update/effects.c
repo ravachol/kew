@@ -23,6 +23,15 @@
 
 #include "utils/term.h"
 
+#ifdef G_OS_WIN32
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#include <io.h>
+#else
+#include <sys/ioctl.h> /* ioctl */
+#endif
+
 // kew uses the Model-View-Update pattern.
 //
 // How Model-View-Update is supposed to work:
@@ -60,37 +69,67 @@ void ui_resize(Model *model)
         set_dirty(DIRTY_ALL);
 }
 
+static int get_terminal_size(struct winsize *ws)
+{
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    if (h == INVALID_HANDLE_VALUE ||
+        !GetConsoleScreenBufferInfo(h, &csbi)) {
+        return -1;
+    }
+
+    ws->ws_col = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    ws->ws_row = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    return 0;
+
+#else
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, ws) == -1)
+        return -1;
+    return 0;
+#endif
+}
+
 bool resize_if_needed(void)
 {
-        Model *model = get_model();
-        UIState *uis = &(model->state.ui);
+    Model *model = get_model();
+    UIState *uis = &model->state.ui;
 
-        bool resized = false;
+    bool resized = false;
+    uis->resizeFlag = 0;
 
-        uis->resizeFlag = 0;
+    struct winsize ws;
 
-        struct winsize ws;
-        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != -1) {
-                if (ws.ws_col != model->state.ui.windowSize.ws_col || ws.ws_row != model->state.ui.windowSize.ws_row) {
-                        uis->resizeFlag = 1;
-                        model->state.ui.windowSize = ws;
-                }
+    /* Get terminal size (platform independent) */
+    if (get_terminal_size(&ws) == 0) {
 
-                // Fallback for non-interactive environments (like Homebrew tests)
-                ws.ws_row = 24; // default terminal height
-                ws.ws_col = 80; // default terminal width
+        /* fallback ONLY if invalid result */
+        if (ws.ws_col == 0 || ws.ws_row == 0) {
+            ws.ws_col = 80;
+            ws.ws_row = 24;
         }
 
-        if (uis->resizeFlag) {
-                resize(uis);
-                get_term_size(&model->term_w, &model->term_h);
-                get_tty_size(&model->term_size);
-                ui_resize(model);
+        /* detect resize */
+        if (ws.ws_col != model->term_w ||
+            ws.ws_row != model->term_h) {
 
-                resized = true;
+            uis->resizeFlag = 1;
+            model->term_w = ws.ws_col;
+            model->term_h = ws.ws_row;
         }
+    }
 
-        return resized;
+    if (uis->resizeFlag) {
+        resize(uis);
+        get_term_size(&model->term_w, &model->term_h);
+        get_tty_size(&model->term_size);
+        ui_resize(model);
+
+        resized = true;
+    }
+
+    return resized;
 }
 
 void run_tick_commands(Model *model)

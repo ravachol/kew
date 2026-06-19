@@ -26,6 +26,18 @@
 #include "utils/utils.h"
 #include <stdbool.h>
 
+typedef enum {
+    LOAD_OK,
+    LOAD_BAD_FILE
+} SongLoadResult;
+
+typedef enum {
+    PLAYBACK_EVENT_EOF,
+    PLAYBACK_EVENT_METADATA_SWITCH,
+    PLAYBACK_EVENT_LOAD_SUCCESS,
+    PLAYBACK_EVENT_LOAD_FAILED
+} PlaybackEvent;
+
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
 {
         PlaybackState *ps = get_playback_state();
@@ -43,16 +55,6 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
                 ps->songHasErrors = true;
 }
 
-void load_first_song(Node *song)
-{
-        if (song == NULL)
-                return;
-
-        uninit_device();
-
-        load_song(song, true, false);
-}
-
 void load_next_song(bool replace_next_song)
 {
         PlaybackState *ps = get_playback_state();
@@ -68,7 +70,8 @@ void load_next_song(bool replace_next_song)
 
 int load_first(Node *song)
 {
-        load_first_song(song);
+        uninit_device();
+        load_song(song, true, false);
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
 
@@ -76,7 +79,7 @@ int load_first(Node *song)
                 ps->songHasErrors = false;
                 ps->loadedNextSong = false;
                 current = current->next;
-                load_first_song(current);
+                load_song(song, true, false);
         }
 
         if (ps->songHasErrors) {
@@ -143,7 +146,7 @@ void determine_song_and_notify(void)
                 get_playback_state()->notifySwitch = true;
 }
 
-void update_next_song_if_needed(void)
+void preload_next_song(void)
 {
         load_next_song(true);
         determine_song_and_notify();
@@ -282,7 +285,7 @@ void check_and_load_next_song(double seconds)
         } else if (get_current_song() != NULL &&
                    (ps->nextSongNeedsRebuilding || get_next_song() == NULL) &&
                    !ps->songLoading) {
-                update_next_song_if_needed();
+                preload_next_song();
         }
 }
 

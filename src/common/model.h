@@ -20,7 +20,7 @@
 #include <miniaudio.h>
 #include <stdatomic.h>
 #include <stdio.h>
-#include <sys/ioctl.h>
+
 #include <sys/param.h>
 
 extern sound_system_t *sound_sys;
@@ -444,8 +444,6 @@ typedef struct
         bool startFromTop;
         int lastNotifiedId;
         bool noPlaylist;
-
-        struct winsize windowSize;
 
         bool showLyricsPage;
 

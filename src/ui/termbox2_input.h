@@ -48,7 +48,6 @@ kew, which handles setting non-blocking mode itself.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -56,6 +55,15 @@ kew, which handles setting non-blocking mode itself.
 #include <termios.h>
 #include <unistd.h>
 #include <wchar.h>
+
+#ifdef G_OS_WIN32
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#include <io.h>
+#else
+#include <sys/ioctl.h> /* ioctl */
+#endif
 
 #define TB_PATH_MAX PATH_MAX
 
