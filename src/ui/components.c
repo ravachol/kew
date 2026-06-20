@@ -2707,18 +2707,18 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_PREV, false),
                   get_binding_string(MSG_NEXT, false));
         HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
-        HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
         HELP_LINE(_(" · Volume: %s and %s"),
                   get_binding_string(MSG_VOLUME_UP, false),
                   get_binding_string(MSG_VOLUME_DOWN, false));
         HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
         HELP_LINE(_(" · Cycle Repeat: %s (repeat/repeat list/off)"),
                   get_binding_string(MSG_TOGGLEREPEAT, false));
-        HELP_LINE(_(" · Clear List: %s"), get_binding_string(MSG_CLEARPLAYLIST, false));
-        HELP_LINE(_(" · Delete from playlist: %s"), get_binding_string(MSG_REMOVE, true));
+        HELP_LINE(_(" · Clear Playlist: %s"), get_binding_string(MSG_CLEARPLAYLIST, false));
+        HELP_LINE(_(" · Delete from Playlist: %s"), get_binding_string(MSG_REMOVE, true));
         HELP_LINE(_(" · Scroll: %s, %s"),
                   get_binding_string(MSG_PREV_PAGE, false),
                   get_binding_string(MSG_NEXT_PAGE, false));
+        HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
 
         // Change view line
         if (row < region.row + region.height) {
