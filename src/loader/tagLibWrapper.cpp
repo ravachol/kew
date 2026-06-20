@@ -7,8 +7,6 @@
  * Exposes a C-compatible API for integration with the main C codebase.
  */
 
-#include "lyrics.h"
-
 #include <algorithm>
 #include <cctype>
 #include <complex.h>
@@ -19,8 +17,12 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <ogg/ogg.h>
 #include <string>
+#include <vector>
+
+#include "lyrics.h"
+
+#include <ogg/ogg.h>
 #include <taglib/apefooter.h>
 #include <taglib/apeitem.h>
 #include <taglib/apetag.h>
@@ -39,7 +41,6 @@
 #include <taglib/vorbisfile.h>
 #include <taglib/wavfile.h>
 #include <taglib/xiphcomment.h>
-#include <vector>
 
 #if defined(__linux__)
 #include <opus/opusfile.h>
