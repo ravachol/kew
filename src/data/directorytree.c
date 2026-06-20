@@ -7,7 +7,9 @@
  * library. Used by library and playlist modules to index songs efficiently.
  */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include "directorytree.h"
 
@@ -564,6 +566,60 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
         return num_entries;
 }
 
+#ifdef _WIN32
+#include <windows.h>
+
+static int read_directory(const char *path, FileSystemEntry *parent)
+{
+    WIN32_FIND_DATAA fd;
+    HANDLE hFind;
+
+    char pattern[MAX_PATH];
+    snprintf(pattern, sizeof(pattern), "%s\\*", path);
+
+    // dynamic list (replacement for scandir)
+    struct dirent **entries = NULL;
+    int capacity = 64;
+    int count = 0;
+
+    entries = malloc(sizeof(struct dirent*) * capacity);
+    if (!entries)
+        return 0;
+
+    hFind = FindFirstFileA(pattern, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        free(entries);
+        return 0;
+    }
+
+    do {
+        if (strcmp(fd.cFileName, ".") == 0 ||
+            strcmp(fd.cFileName, "..") == 0)
+            continue;
+
+        struct dirent *e = malloc(sizeof(struct dirent));
+        if (!e)
+            continue;
+
+        strncpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
+        e->d_name[sizeof(e->d_name) - 1] = '\0';
+
+        if (count >= capacity) {
+            capacity *= 2;
+            entries = realloc(entries, sizeof(struct dirent*) * capacity);
+        }
+
+        entries[count++] = e;
+
+    } while (FindNextFileA(hFind, &fd));
+
+    FindClose(hFind);
+
+    // IMPORTANT: reuse your existing comparator
+    qsort(entries, count, sizeof(struct dirent*), compare_lib_entries_reversed);
+
+#else
+
 int read_directory(const char *path, FileSystemEntry *parent)
 {
         struct dirent **entries;
@@ -642,6 +698,8 @@ int read_directory(const char *path, FileSystemEntry *parent)
 
         return num_entries;
 }
+
+#endif
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
 {
