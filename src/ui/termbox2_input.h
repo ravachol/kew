@@ -1570,6 +1570,40 @@ int tb_init(void)
         return tb_init_file("/dev/tty");
 }
 
+#ifdef _WIN32
+
+int tb_init_file(const char *path)
+{
+    (void)path; // unused on Windows
+
+    if (global.initialized)
+        return TB_ERR_INIT_ALREADY;
+
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    if (hIn == INVALID_HANDLE_VALUE) {
+        global.last_errno = GetLastError();
+        return TB_ERR_INIT_OPEN;
+    }
+
+    DWORD mode;
+    if (!GetConsoleMode(hIn, &mode)) {
+        // Not a real console (maybe redirected input)
+        global.last_errno = GetLastError();
+        return TB_ERR_INIT_OPEN;
+    }
+
+    global.ttyfd_open = 0;
+
+    // Store handle instead of fd (recommended)
+    global.hin = hIn;
+
+    global.input_mode &= TB_INPUT_ESC;
+
+    return tb_init_win_handle(hIn);
+}
+
+#else
+
 int tb_init_file(const char *path)
 {
         if (global.initialized)
@@ -1592,6 +1626,8 @@ int tb_init_file(const char *path)
 
         return tb_init_fd(ttyfd);
 }
+
+#endif
 
 int tb_shutdown(void)
 {
@@ -1918,60 +1954,72 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c)
 
 static int win_wait_event(struct tb_event *event, int timeout_ms)
 {
-        char buf[128];
-        int rv;
+    DWORD mode;
+    HANDLE hIn;
+    DWORD wait;
+    INPUT_RECORD rec;
+    DWORD nread;
 
-        memset(event, 0, sizeof(*event));
+    memset(event, 0, sizeof(*event));
 
-        // Try buffered events first
+    // First try buffered events (your existing parser)
+    int rv = extract_event(event);
+    if (rv == TB_OK)
+        return TB_OK;
+
+    hIn = GetStdHandle(STD_INPUT_HANDLE);
+    if (hIn == INVALID_HANDLE_VALUE)
+        return TB_ERR_POLL;
+
+    // Optional: ensure we can receive key events
+    GetConsoleMode(hIn, &mode);
+
+    for (;;) {
+
+        DWORD timeout = (timeout_ms < 0)
+                        ? INFINITE
+                        : (DWORD)timeout_ms;
+
+        wait = WaitForSingleObject(hIn, timeout);
+
+        if (wait == WAIT_TIMEOUT)
+            return TB_ERR_NO_EVENT;
+
+        if (wait == WAIT_FAILED) {
+            global.last_errno = GetLastError();
+            return TB_ERR_POLL;
+        }
+
+        // Read console input events
+        if (!ReadConsoleInputA(hIn, &rec, 1, &nread)) {
+            global.last_errno = GetLastError();
+            return TB_ERR_READ;
+        }
+
+        if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown) {
+
+            // Convert key event into your internal buffer format
+            // (this depends on your extract_event() design)
+
+            char buf[16];
+            int len = 0;
+
+            // Simple ASCII fallback
+            if (rec.Event.KeyEvent.uChar.AsciiChar) {
+                buf[len++] = rec.Event.KeyEvent.uChar.AsciiChar;
+            }
+
+            if (len > 0)
+                bytebuf_nputs(&global.in, buf, len);
+        }
+
         rv = extract_event(event);
         if (rv == TB_OK)
-                return TB_OK;
+            return TB_OK;
 
-        fd_set fds;
-        struct timeval tv;
-        struct timeval *ptv = NULL;
-
-        if (timeout_ms >= 0) {
-                tv.tv_sec = timeout_ms / 1000;
-                tv.tv_usec = (timeout_ms % 1000) * 1000;
-                ptv = &tv;
-        }
-
-        while (1) {
-                FD_ZERO(&fds);
-                FD_SET(global.rfd, &fds);
-
-                int sel = select(global.rfd + 1, &fds, NULL, NULL, ptv);
-
-                if (sel < 0) {
-                        if (errno == EINTR)
-                                continue;
-                        global.last_errno = errno;
-                        return TB_ERR_POLL;
-                }
-
-                if (sel == 0)
-                        return TB_ERR_NO_EVENT;
-
-                if (FD_ISSET(global.rfd, &fds)) {
-                        ssize_t n = read(global.rfd, buf, sizeof(buf));
-                        if (n < 0) {
-                                global.last_errno = errno;
-                                return TB_ERR_READ;
-                        }
-
-                        if (n > 0)
-                                bytebuf_nputs(&global.in, buf, n);
-                }
-
-                rv = extract_event(event);
-                if (rv == TB_OK)
-                        return TB_OK;
-
-                if (timeout_ms >= 0)
-                        return TB_ERR_NO_EVENT;
-        }
+        if (timeout_ms >= 0)
+            return TB_ERR_NO_EVENT;
+    }
 }
 
 #else
