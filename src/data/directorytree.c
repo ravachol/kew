@@ -566,17 +566,18 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
         return num_entries;
 }
 
+
+
 #ifdef _WIN32
 #include <windows.h>
 
 static int dirent_qsort_cmp_rev(const void *a, const void *b)
 {
-        const struct dirent *const *da = a;
-        const struct dirent *const *db = b;
+    const struct dirent *da = *(const struct dirent * const *)a;
+    const struct dirent *db = *(const struct dirent * const *)b;
 
-        return -compare_lib_entries(
-            (const struct dirent **)da,
-            (const struct dirent **)db);
+    return -compare_lib_entries((const struct dirent **)&da,
+                                (const struct dirent **)&db);
 }
 
 static int read_directory(const char *path, FileSystemEntry *parent)
@@ -627,6 +628,61 @@ static int read_directory(const char *path, FileSystemEntry *parent)
         FindClose(hFind);
 
         qsort(entries, count, sizeof(struct dirent *), dirent_qsort_cmp_rev);
+
+        regex_t regex;
+        regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED | REG_ICASE);
+
+        int num_entries = 0;
+
+        for (int i = 0; i < count; i++) {
+                struct dirent *entry = entries[i];
+
+                if (!entry)
+                        continue;
+
+                if (entry->d_name[0] != '.' &&
+                    strcmp(entry->d_name, ".") != 0 &&
+                    strcmp(entry->d_name, "..") != 0) {
+
+                        char child_path[PATH_MAX];
+                        snprintf(child_path, sizeof(child_path), "%s\\%s", path, entry->d_name);
+
+                        struct stat st;
+                        if (stat(child_path, &st) == -1)
+                                continue;
+
+                        int is_dir = !S_ISREG(st.st_mode);
+
+                        char exto[100];
+                        extract_extension(entry->d_name, sizeof(exto) - 1, exto);
+
+                        int is_audio = match_regex(&regex, exto);
+
+                        if (is_audio == 0 || is_dir) {
+
+                                FileSystemEntry *child =
+                                    create_entry(entry->d_name, is_dir, parent, st.st_mtime);
+
+                                if (child) {
+                                        set_full_path(child, path, entry->d_name);
+
+                                        if (child->full_path)
+                                                add_child(parent, child);
+
+                                        if (is_dir) {
+                                                num_entries++;
+                                                num_entries += read_directory(child_path, child);
+                                        }
+                                }
+                        }
+                }
+
+                free(entry);
+        }
+
+        free(entries);
+        regfree(&regex);
+        return num_entries;
 }
 
 #else
