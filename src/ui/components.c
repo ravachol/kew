@@ -2647,6 +2647,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         CellStyle text_style = cell_style_from_theme(ui->theme.text);
         CellStyle help_style = cell_style_from_theme(ui->theme.help);
         CellStyle link_style = cell_style_from_theme(ui->theme.link);
+        CellStyle header_style = cell_style_from_theme(ui->theme.header);
 
         int row = region.row;
         int col = region.col;
@@ -2656,21 +2657,19 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         char theme_line[512];
 
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
-                CellStyle color_style = cell_style_from_theme(ui->theme.link);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
                 draw_buffer_set_string(buf, row, c, _("Using "), text_style);
                 c += utf8_display_width(_("Using "));
-                draw_buffer_set_string(buf, row, c, _("One Color "), color_style);
+                draw_buffer_set_string(buf, row, c, _("One Color "), link_style);
                 c += utf8_display_width(_("One Color "));
                 draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
         } else if (ui->colorMode == COLOR_MODE_ALBUM) {
-                CellStyle color_style = cell_style_from_theme(ui->theme.link);
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
                 draw_buffer_set_string(buf, row, c, _("Using "), text_style);
                 c += utf8_display_width(_("Using "));
-                draw_buffer_set_string(buf, row, c, _("Colors "), color_style);
+                draw_buffer_set_string(buf, row, c, _("Colors "), link_style);
                 c += utf8_display_width(_("Colors "));
                 draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
         } else {
@@ -2699,14 +2698,13 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string_truncated(buf, row++, col, _line, max_width, help_style); \
         } while (0)
 
-        HELP_LINE(_(" Basic"));
+        draw_buffer_set_string_truncated(buf, row++, col, _(" Basic"), max_width, header_style); \
         HELP_LINE(_(" · Play/Pause: %s"), get_binding_string(MSG_PLAY_PAUSE, false));
         HELP_LINE(_(" · Enqueue/Dequeue: %s"), get_binding_string(MSG_ENQUEUE, false));
         HELP_LINE(_(" · Immediate Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
         HELP_LINE(_(" · Switch tracks: %s and %s"),
                   get_binding_string(MSG_PREV, false),
                   get_binding_string(MSG_NEXT, false));
-        HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
         HELP_LINE(_(" · Volume: %s and %s"),
                   get_binding_string(MSG_VOLUME_UP, false),
                   get_binding_string(MSG_VOLUME_DOWN, false));
@@ -2718,6 +2716,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Scroll: %s, %s"),
                   get_binding_string(MSG_PREV_PAGE, false),
                   get_binding_string(MSG_NEXT_PAGE, false));
+        HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
         HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
 
         // Change view line
@@ -2734,7 +2733,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string_truncated(buf, row++, col, view_line, max_width, help_style);
         }
         HELP_LINE(" ");
-        HELP_LINE(_(" Advanced"));
+        draw_buffer_set_string_truncated(buf, row ++, col, _(" Advanced"), max_width, header_style);
         HELP_LINE(_(" · Toggle Lyrics Page: %s"),
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Seek: %s and %s"),
