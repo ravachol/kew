@@ -571,13 +571,15 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
 #ifdef _WIN32
 #include <windows.h>
 
-static int dirent_qsort_cmp_rev(const void *a, const void *b)
+static int dirent_qsort_cmp(const void *a, const void *b)
 {
     const struct dirent *da = *(const struct dirent * const *)a;
     const struct dirent *db = *(const struct dirent * const *)b;
 
-    return -compare_lib_entries((const struct dirent **)&da,
-                                (const struct dirent **)&db);
+    const struct dirent *pa = da;
+    const struct dirent *pb = db;
+
+    return compare_lib_entries_reversed(&pa, &pb);
 }
 
 static int read_directory(const char *path, FileSystemEntry *parent)
