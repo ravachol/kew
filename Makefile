@@ -146,7 +146,7 @@ LDFLAGS += $(GC_SECTIONS_FLAG)
 CFLAGS = $(COMMONFLAGS)
 
 # Compiler flags for C++ code
-CXXFLAGS = $(COMMONFLAGS) -std=c++11
+CXXFLAGS = $(COMMONFLAGS) -std=gnu++17
 
 # Libraries
 LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(PKG_LDFLAGS)
