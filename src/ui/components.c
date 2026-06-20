@@ -2711,7 +2711,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_VOLUME_UP, false),
                   get_binding_string(MSG_VOLUME_DOWN, false));
         HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
-        HELP_LINE(_(" · Cycle Repeat: %s (repeat/repeat list/off)"),
+        HELP_LINE(_(" · Repeat: %s (repeat/repeat list/off)"),
                   get_binding_string(MSG_TOGGLEREPEAT, false));
         HELP_LINE(_(" · Clear Playlist: %s"), get_binding_string(MSG_CLEARPLAYLIST, false));
         HELP_LINE(_(" · Delete from Playlist: %s"), get_binding_string(MSG_REMOVE, true));
