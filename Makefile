@@ -132,7 +132,7 @@ ifneq ($(strip $(KEW_VERSION)),)
     COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
 endif
 
-COMMONFLAGS += -Wall -Wextra -Wpointer-arith
+COMMONFLAGS += -Wall -Wextra -Wpointer-arith -D__USE_MINGW_ANSI_STDIO=1
 
 GC_SECTIONS_FLAG :=
 
@@ -146,7 +146,7 @@ LDFLAGS += $(GC_SECTIONS_FLAG)
 CFLAGS = $(COMMONFLAGS)
 
 # Compiler flags for C++ code
-CXXFLAGS = $(COMMONFLAGS) -std=gnu++17
+CXXFLAGS = $(COMMONFLAGS) -std=gnu++20
 
 # Libraries
 LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(PKG_LDFLAGS)
