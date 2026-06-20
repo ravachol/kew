@@ -7,6 +7,7 @@
  * Exposes a C-compatible API for integration with the main C codebase.
  */
 
+#include <cstdlib>
 #include <algorithm>
 #include <cctype>
 #include <complex.h>
