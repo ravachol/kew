@@ -2699,24 +2699,26 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string_truncated(buf, row++, col, _line, max_width, help_style); \
         } while (0)
 
+        HELP_LINE(_(" Basic"));
         HELP_LINE(_(" · Play/Pause: %s"), get_binding_string(MSG_PLAY_PAUSE, false));
         HELP_LINE(_(" · Enqueue/Dequeue: %s"), get_binding_string(MSG_ENQUEUE, false));
-        HELP_LINE(_(" · Enqueue and Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
-        HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
+        HELP_LINE(_(" · Immediate Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
         HELP_LINE(_(" · Switch tracks: %s and %s"),
                   get_binding_string(MSG_PREV, false),
                   get_binding_string(MSG_NEXT, false));
+        HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
+        HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
         HELP_LINE(_(" · Volume: %s and %s"),
                   get_binding_string(MSG_VOLUME_UP, false),
                   get_binding_string(MSG_VOLUME_DOWN, false));
+        HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
+        HELP_LINE(_(" · Cycle Repeat: %s (repeat/repeat list/off)"),
+                  get_binding_string(MSG_TOGGLEREPEAT, false));
+        HELP_LINE(_(" · Clear List: %s"), get_binding_string(MSG_CLEARPLAYLIST, false));
+        HELP_LINE(_(" · Delete from playlist: %s"), get_binding_string(MSG_REMOVE, true));
         HELP_LINE(_(" · Scroll: %s, %s"),
                   get_binding_string(MSG_PREV_PAGE, false),
                   get_binding_string(MSG_NEXT_PAGE, false));
-        HELP_LINE(_(" · Clear List: %s"), get_binding_string(MSG_CLEARPLAYLIST, false));
-        HELP_LINE(_(" · Remove from playlist: %s"), get_binding_string(MSG_REMOVE, true));
-        HELP_LINE(_(" · Move songs: %s/%s"),
-                  get_binding_string(MSG_MOVESONGUP, true),
-                  get_binding_string(MSG_MOVESONGDOWN, true));
 
         // Change view line
         if (row < region.row + region.height) {
@@ -2731,33 +2733,31 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                          get_binding_string(MSG_SHOWHELP, true));
                 draw_buffer_set_string_truncated(buf, row++, col, view_line, max_width, help_style);
         }
-
-        HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
+        HELP_LINE(" ");
+        HELP_LINE(_(" Advanced"));
+        HELP_LINE(_(" · Toggle Lyrics Page: %s"),
+                  get_binding_string(MSG_SHOWLYRICSPAGE, false));
+        HELP_LINE(_(" · Seek: %s and %s"),
+                  get_binding_string(MSG_SEEKBACK, false),
+                  get_binding_string(MSG_SEEKFORWARD, false));
         HELP_LINE(_(" · Update Library: %s"), get_binding_string(MSG_UPDATELIBRARY, false));
         HELP_LINE(_(" · Sort Library: %s"), get_binding_string(MSG_SORTLIBRARY, true));
-
+        HELP_LINE(_(" · Move songs: %s/%s"),
+                  get_binding_string(MSG_MOVESONGUP, true),
+                  get_binding_string(MSG_MOVESONGDOWN, true));
         HELP_LINE(_(" · Cycle Color Mode: %s"),
                   get_binding_string(MSG_CYCLECOLORMODE, false));
         HELP_LINE(_(" · Cycle Themes: %s"), get_binding_string(MSG_CYCLETHEMES, false));
         HELP_LINE(_(" · Cycle Chroma Visualization: %s (requires Chroma)"),
                   get_binding_string(MSG_CYCLEVISUALIZATION, false));
-        HELP_LINE(_(" · Cycle Repeat: %s (repeat/repeat list/off)"),
-                  get_binding_string(MSG_TOGGLEREPEAT, false));
         HELP_LINE(_(" · Cycle Visualizer Mode: %s"), get_binding_string(MSG_CYCLEVISUALIZERMODE, false));
 
         HELP_LINE(_(" · Toggle ASCII Cover: %s (disables Chroma)"),
                   get_binding_string(MSG_TOGGLEASCII, false));
-        HELP_LINE(_(" · Toggle Lyrics Page: %s"),
-                  get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Toggle Notifications: %s"),
                   get_binding_string(MSG_TOGGLENOTIFICATIONS, false));
         HELP_LINE(_(" · Toggle Crossfade (experimental) On: %s"),
                   get_binding_string(MSG_TOGGLECROSSFADE, false));
-
-        HELP_LINE(_(" · Shuffle: %s"), get_binding_string(MSG_SHUFFLE, false));
-        HELP_LINE(_(" · Seek: %s and %s"),
-                  get_binding_string(MSG_SEEKBACK, false),
-                  get_binding_string(MSG_SEEKFORWARD, false));
 
         HELP_LINE(_(" · Crossfade (experimental): quick %s medium %s slow %s"),
                   get_binding_string(MSG_CROSSFADE_QUICK, false),
@@ -2766,14 +2766,12 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         HELP_LINE(_(" · Export Playlist: %s (named after the first song)"),
                   get_binding_string(MSG_EXPORTPLAYLIST, false));
-        HELP_LINE(_(" · Show Folders in Playlist: %s"),
-                  get_binding_string(MSG_TOGGLEFOLDERDISPLAY, false));
         HELP_LINE(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                   get_binding_string(MSG_ADDTOFAVORITESPLAYLIST, false));
 
 #undef HELP_LINE
 
-        row += 2;
+        row += 1;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
@@ -2788,7 +2786,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         draw_buffer_set_string(buf, row, col, _(" Please Donate: "), help_style);
         draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Please Donate: ")),
                                "https://ko-fi.com/ravachol", link_style);
-        row += 3;
+        row += 2;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
