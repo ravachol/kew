@@ -395,7 +395,7 @@ char *get_config_path(void)
     } else if (home) {
 #ifdef __APPLE__
         snprintf(out, PATH_MAX, "%s/Library/Preferences/kew", home);
-#elif _WIN32
+#elif defined(_WIN32)
         snprintf(out, PATH_MAX, "%s\\kew", home);
 #else
         snprintf(out, PATH_MAX, "%s/.config/kew", home);
