@@ -28,17 +28,18 @@ kew (/kjuː/) is a terminal music player.
  * Gapless playback.
  * Full color covers in sixel-capable terminals.
  * Spectrum visualizer.
- * Library explorer.
+ * Music library explorer.
  * Playlist editing (add, reorder, delete).
  * Search.
  * Lyrics support.
  * Desktop integration (both Linux and macOS).
+ * Import/export .m3u playlists.
  * Replay gain.
  * Themes based on album colors and popular themes.
  * Custom layouts.
  * Crossfade (experimental), both automatic and on demand.
- * Auto-Resume
- * Linux, FreeBSD, Android, macOS, Windows
+ * Auto-Resume.
+ * Linux, FreeBSD, Android, macOS, Windows and others.
 
  *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
 
