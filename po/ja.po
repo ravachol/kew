@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 20:44+0200\n"
+"POT-Creation-Date: 2026-06-20 20:50+0200\n"
 "PO-Revision-Date: 2025-11-05 15:05+0100\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -223,38 +223,38 @@ msgstr " · 停止：%s"
 
 #: src/ui/components.c:2710
 #, c-format
-msgid " · Quit: %s"
-msgstr " · 終了：%s"
-
-#: src/ui/components.c:2711
-#, c-format
 msgid " · Volume: %s and %s"
 msgstr " · ボリューム：%sと%s"
 
-#: src/ui/components.c:2714
+#: src/ui/components.c:2713
 #, c-format
 msgid " · Shuffle: %s"
 msgstr " · シャッフル再生：%s"
 
-#: src/ui/components.c:2715
+#: src/ui/components.c:2714
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr " · リピートモード：%s（繰り返し/リスト繰り返し/オフ）"
 
+#: src/ui/components.c:2716
+#, c-format
+msgid " · Clear Playlist: %s"
+msgstr " · リストをクリア: %s"
+
 #: src/ui/components.c:2717
 #, c-format
-msgid " · Clear List: %s"
-msgstr " · リストをクリア: %s"
+msgid " · Delete from Playlist: %s"
+msgstr " · プレイリストから削除: %s"
 
 #: src/ui/components.c:2718
 #, c-format
-msgid " · Delete from playlist: %s"
-msgstr " · プレイリストから削除: %s"
-
-#: src/ui/components.c:2719
-#, c-format
 msgid " · Scroll: %s, %s"
 msgstr " · スクロール: %s、%s"
+
+#: src/ui/components.c:2721
+#, c-format
+msgid " · Quit: %s"
+msgstr " · 終了：%s"
 
 #: src/ui/components.c:2727
 #, c-format
@@ -405,6 +405,4 @@ msgstr " [F2 プレイリスト|F3 ライブラリ|F4 トラック|F5 検索|F6 
 
 #, c-format
 #~ msgid " · Cycle Color Mode: %s (default theme, theme or cover colors)"
-#~ msgstr ""
-#~ " · サイクルカラーモード：%s"
-#~ ""
+#~ msgstr " · サイクルカラーモード：%s"
