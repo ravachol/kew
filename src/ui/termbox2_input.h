@@ -785,6 +785,10 @@ struct cap_trie_t {
 };
 
 struct tb_global_t {
+#ifdef _WIN32
+        HANDLE hin;
+        HANDLE hout;
+#endif
         int ttyfd;
         int rfd;
         int wfd;
@@ -1573,32 +1577,32 @@ int tb_init(void)
 
 int tb_init_file(const char *path)
 {
-    (void)path; // unused on Windows
+        (void)path; // unused on Windows
 
-    if (global.initialized)
-        return TB_ERR_INIT_ALREADY;
+        if (global.initialized)
+                return TB_ERR_INIT_ALREADY;
 
-    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-    if (hIn == INVALID_HANDLE_VALUE) {
-        global.last_errno = GetLastError();
-        return TB_ERR_INIT_OPEN;
-    }
+        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        if (hIn == INVALID_HANDLE_VALUE) {
+                global.last_errno = GetLastError();
+                return TB_ERR_INIT_OPEN;
+        }
 
-    DWORD mode;
-    if (!GetConsoleMode(hIn, &mode)) {
-        // Not a real console (maybe redirected input)
-        global.last_errno = GetLastError();
-        return TB_ERR_INIT_OPEN;
-    }
+        DWORD mode;
+        if (!GetConsoleMode(hIn, &mode)) {
+                // Not a real console (maybe redirected input)
+                global.last_errno = GetLastError();
+                return TB_ERR_INIT_OPEN;
+        }
 
-    global.ttyfd_open = 0;
+        global.ttyfd_open = 0;
 
-    // Store handle instead of fd (recommended)
-    global.hin = hIn;
+        // Store handle instead of fd (recommended)
+        global.hin = hIn;
 
-    global.input_mode &= TB_INPUT_ESC;
+        global.input_mode &= TB_INPUT_ESC;
 
-    return tb_init_win_handle(hIn);
+        return tb_init_win_handle(hIn);
 }
 
 #else
@@ -1645,20 +1649,45 @@ int tb_init_rwfd(int rfd, int wfd)
         int rv;
 
         tb_reset();
+
+#ifdef _WIN32
+        (void)rfd;
+        (void)wfd;
+
+        HANDLE hin = GetStdHandle(STD_INPUT_HANDLE);
+        HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        if (hin == INVALID_HANDLE_VALUE || hout == INVALID_HANDLE_VALUE) {
+                global.last_errno = GetLastError();
+                return TB_ERR_INIT_OPEN;
+        }
+
+        // Verify it's a real console (not redirected pipe/file)
+        DWORD mode;
+        if (!GetConsoleMode(hin, &mode)) {
+                global.last_errno = GetLastError();
+                return TB_ERR_INIT_OPEN;
+        }
+
+        global.hin = hin;
+        global.hout = hout;
+        global.ttyfd = -1; // IMPORTANT: disable fd-based path
+        global.rfd = -1;
+        global.wfd = -1;
+
+#else
         global.ttyfd = rfd == wfd && isatty(rfd) ? rfd : -1;
         global.rfd = rfd;
         global.wfd = wfd;
+#endif
 
         do {
-                // Skip termios setup; we manage raw/nonblocking mode ourselves
-                // if_err_break(rv, init_term_attrs());
+                if_err_break(rv, init_term_caps());
+                if_err_break(rv, init_cap_trie());
+                if_err_break(rv, update_term_size());
 
-                if_err_break(rv, init_term_caps()); // load key escape sequences
-                if_err_break(rv, init_cap_trie());  // map escape sequences
-                // Skip resize handler
-                // if_err_break(rv, init_resize_handler());
-                if_err_break(rv, update_term_size()); // still needed for mouse + resize
                 global.initialized = 1;
+
         } while (0);
 
         if (rv != TB_OK) {
@@ -1667,6 +1696,7 @@ int tb_init_rwfd(int rfd, int wfd)
 
         return rv;
 }
+
 int tb_get_input_fd(void)
 {
         return global.rfd;
@@ -1780,6 +1810,38 @@ static int tb_reset(void)
         return TB_OK;
 }
 
+#ifdef _WIN32
+
+static int bytebuf_flush(struct bytebuf_t *b, HANDLE hout)
+{
+    if (b->len <= 0) {
+        return TB_OK;
+    }
+
+    DWORD written = 0;
+
+    // Try console output first
+    if (!WriteConsoleA(hout, b->buf, (DWORD)b->len, &written, NULL)) {
+
+        // Fallback: pipes / redirected output
+        if (!WriteFile(hout, b->buf, (DWORD)b->len, &written, NULL)) {
+            global.last_errno = GetLastError();
+            return TB_ERR;
+        }
+    }
+
+    // We require full write (same behavior as your POSIX version)
+    if (written != b->len) {
+        global.last_errno = ERROR_WRITE_FAULT;
+        return TB_ERR;
+    }
+
+    b->len = 0;
+    return TB_OK;
+}
+
+#else
+
 static int bytebuf_flush(struct bytebuf_t *b, int fd)
 {
         if (b->len <= 0) {
@@ -1794,6 +1856,8 @@ static int bytebuf_flush(struct bytebuf_t *b, int fd)
         b->len = 0;
         return TB_OK;
 }
+
+#endif
 
 static int bytebuf_free(struct bytebuf_t *b)
 {
@@ -1953,72 +2017,72 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c)
 
 static int win_wait_event(struct tb_event *event, int timeout_ms)
 {
-    DWORD mode;
-    HANDLE hIn;
-    DWORD wait;
-    INPUT_RECORD rec;
-    DWORD nread;
+        DWORD mode;
+        HANDLE hIn;
+        DWORD wait;
+        INPUT_RECORD rec;
+        DWORD nread;
 
-    memset(event, 0, sizeof(*event));
+        memset(event, 0, sizeof(*event));
 
-    // First try buffered events (your existing parser)
-    int rv = extract_event(event);
-    if (rv == TB_OK)
-        return TB_OK;
-
-    hIn = GetStdHandle(STD_INPUT_HANDLE);
-    if (hIn == INVALID_HANDLE_VALUE)
-        return TB_ERR_POLL;
-
-    // Optional: ensure we can receive key events
-    GetConsoleMode(hIn, &mode);
-
-    for (;;) {
-
-        DWORD timeout = (timeout_ms < 0)
-                        ? INFINITE
-                        : (DWORD)timeout_ms;
-
-        wait = WaitForSingleObject(hIn, timeout);
-
-        if (wait == WAIT_TIMEOUT)
-            return TB_ERR_NO_EVENT;
-
-        if (wait == WAIT_FAILED) {
-            global.last_errno = GetLastError();
-            return TB_ERR_POLL;
-        }
-
-        // Read console input events
-        if (!ReadConsoleInputA(hIn, &rec, 1, &nread)) {
-            global.last_errno = GetLastError();
-            return TB_ERR_READ;
-        }
-
-        if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown) {
-
-            // Convert key event into your internal buffer format
-            // (this depends on your extract_event() design)
-
-            char buf[16];
-            int len = 0;
-
-            // Simple ASCII fallback
-            if (rec.Event.KeyEvent.uChar.AsciiChar) {
-                buf[len++] = rec.Event.KeyEvent.uChar.AsciiChar;
-            }
-
-            if (len > 0)
-                bytebuf_nputs(&global.in, buf, len);
-        }
-
-        rv = extract_event(event);
+        // First try buffered events (your existing parser)
+        int rv = extract_event(event);
         if (rv == TB_OK)
-            return TB_OK;
+                return TB_OK;
 
-        if (timeout_ms >= 0)
-            return TB_ERR_NO_EVENT;
-    }
+        hIn = GetStdHandle(STD_INPUT_HANDLE);
+        if (hIn == INVALID_HANDLE_VALUE)
+                return TB_ERR_POLL;
+
+        // Optional: ensure we can receive key events
+        GetConsoleMode(hIn, &mode);
+
+        for (;;) {
+
+                DWORD timeout = (timeout_ms < 0)
+                                    ? INFINITE
+                                    : (DWORD)timeout_ms;
+
+                wait = WaitForSingleObject(hIn, timeout);
+
+                if (wait == WAIT_TIMEOUT)
+                        return TB_ERR_NO_EVENT;
+
+                if (wait == WAIT_FAILED) {
+                        global.last_errno = GetLastError();
+                        return TB_ERR_POLL;
+                }
+
+                // Read console input events
+                if (!ReadConsoleInputA(hIn, &rec, 1, &nread)) {
+                        global.last_errno = GetLastError();
+                        return TB_ERR_READ;
+                }
+
+                if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown) {
+
+                        // Convert key event into your internal buffer format
+                        // (this depends on your extract_event() design)
+
+                        char buf[16];
+                        int len = 0;
+
+                        // Simple ASCII fallback
+                        if (rec.Event.KeyEvent.uChar.AsciiChar) {
+                                buf[len++] = rec.Event.KeyEvent.uChar.AsciiChar;
+                        }
+
+                        if (len > 0)
+                                bytebuf_nputs(&global.in, buf, len);
+                }
+
+                rv = extract_event(event);
+                if (rv == TB_OK)
+                        return TB_OK;
+
+                if (timeout_ms >= 0)
+                        return TB_ERR_NO_EVENT;
+        }
 }
 
 #else
@@ -2399,6 +2463,8 @@ static int update_term_size(void)
 #endif
 }
 
+#ifndef _WIN32
+
 static int update_term_size_via_esc(void)
 {
 #ifndef TB_RESIZE_FALLBACK_MS
@@ -2444,6 +2510,8 @@ static int update_term_size_via_esc(void)
         global.height = rh;
         return TB_OK;
 }
+
+#endif
 
 static int bytebuf_shift(struct bytebuf_t *b, size_t n)
 {
