@@ -152,7 +152,7 @@ CXXFLAGS = $(COMMONFLAGS) -std=gnu++20 -D_ISOC11_SOURCE
 LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(PKG_LDFLAGS)
 LIBS += -lstdc++
 
-LDFLAGS += -logg -lz
+LDFLAGS += -logg -lz -lgnurx -lws2_32
 
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE -fstack-clash-protection
