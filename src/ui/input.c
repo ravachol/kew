@@ -350,7 +350,19 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
 
                 if (delta_col >= 0 && delta_col <= (long long)progress_bar->length) {
                         double position = (double)delta_col / (double)progress_bar->length;
+
+                        Model *model = get_model();
+                        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+                        if (mutex_result != 0) {
+                                fprintf(stderr, "handle_mouse_event: Failed to lock switch mutex.\n");
+                                return TRUE;
+                        }
+
                         double duration = get_current_song_duration();
+
+                        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
                         dragged_position_seconds = duration * position;
                 }
         }
@@ -374,7 +386,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         if (!model->state.ui.link_clicked) {
                 char *link = url_at_pos(mouse_y - 1, mouse_x - 1);
 
-                 if (link) {
+                if (link) {
                         open_url(link);
 
                         Model *model = get_model();

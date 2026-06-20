@@ -483,9 +483,18 @@ UpdateResult update(Model *model, struct Msg *msg)
                 result.cmd.value = 1;
                 break;
 
+        case MSG_PLAY:
+                result.cmd.type = CMD_PLAY;
+                break;
+
         case MSG_PLAY_PAUSE:
                 set_dirty(DIRTY_FOOTER | DIRTY_TITLE);
                 result.cmd.type = CMD_TOGGLE_PAUSE;
+                break;
+
+        case MSG_PAUSE:
+                set_dirty(DIRTY_FOOTER | DIRTY_TITLE);
+                result.cmd.type = CMD_PAUSE;
                 break;
 
         case MSG_CYCLEVISUALIZERMODE:
