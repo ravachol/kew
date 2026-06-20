@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 20:44+0200\n"
+"POT-Creation-Date: 2026-06-20 20:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -220,38 +220,38 @@ msgstr " · 停止：%s"
 
 #: src/ui/components.c:2710
 #, c-format
-msgid " · Quit: %s"
-msgstr " · 退出：%s"
-
-#: src/ui/components.c:2711
-#, c-format
 msgid " · Volume: %s and %s"
 msgstr " · 体积：%s 和 %s"
 
-#: src/ui/components.c:2714
+#: src/ui/components.c:2713
 #, c-format
 msgid " · Shuffle: %s"
 msgstr " · 随机播放：%s"
 
-#: src/ui/components.c:2715
+#: src/ui/components.c:2714
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr " · 循环模式：%s（循环/循环列表/关闭）"
 
+#: src/ui/components.c:2716
+#, c-format
+msgid " · Clear Playlist: %s"
+msgstr " · 清除列表：%s"
+
 #: src/ui/components.c:2717
 #, c-format
-msgid " · Clear List: %s"
-msgstr " · 清除列表：%s"
+msgid " · Delete from Playlist: %s"
+msgstr " · 从播放列表中移除：%s"
 
 #: src/ui/components.c:2718
 #, c-format
-msgid " · Delete from playlist: %s"
-msgstr " · 从播放列表中移除：%s"
-
-#: src/ui/components.c:2719
-#, c-format
 msgid " · Scroll: %s, %s"
 msgstr " · 滚动：%s，%s"
+
+#: src/ui/components.c:2721
+#, c-format
+msgid " · Quit: %s"
+msgstr " · 退出：%s"
 
 #: src/ui/components.c:2727
 #, c-format
