@@ -84,7 +84,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <glib.h>
 #include <libintl.h>
 #include <locale.h>
-
+#include <pthread.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -371,6 +371,35 @@ static gboolean quit_on_signal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
+#ifdef _WIN32
+
+static BOOL WINAPI console_ctrl_handler(DWORD type)
+{
+    switch (type) {
+        case CTRL_C_EVENT:
+        case CTRL_CLOSE_EVENT:
+        case CTRL_BREAK_EVENT:
+            quit_on_signal(main_loop);
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
+#endif
+
+void install_signal_handlers(GMainLoop *loop)
+{
+#ifdef _WIN32
+    (void)loop;
+    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+#else
+    g_unix_signal_add(SIGINT, quit_on_signal, loop);
+    g_unix_signal_add(SIGHUP, quit_on_signal, loop);
+    g_unix_signal_add(SIGTERM, quit_on_signal, loop);
+#endif
+}
+
 /**
  * @brief Creates and runs the main event loop.
  *
@@ -383,9 +412,7 @@ void create_loop(void)
 
         GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
 
-        g_unix_signal_add(SIGINT, quit_on_signal, main_loop);
-        g_unix_signal_add(SIGHUP, quit_on_signal, main_loop);
-        g_unix_signal_add(SIGTERM, quit_on_signal, main_loop);
+        install_signal_handlers(main_loop);
 
         Model *model = get_model();
 
