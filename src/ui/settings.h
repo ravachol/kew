@@ -163,4 +163,6 @@ Layout *load_layout_from_config(const char *layout_name);
  */
 bool ensure_default_layouts(void);
 
+const char *get_system_data_dir(void);
+
 #endif

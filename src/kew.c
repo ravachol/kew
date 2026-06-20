@@ -919,7 +919,6 @@ int main(int argc, char *argv[])
         }
 
         enter_alternate_screen_buffer();
-
         register_singnal_handlers();
 
         if (model->settings.path[0] == '\0') {
