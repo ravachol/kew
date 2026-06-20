@@ -828,6 +828,8 @@ void force_terminal_restore(int sig)
         raise(sig);
 }
 
+#ifndef _WIN32
+
 void handle_sigtstp(int sig)
 {
         force_terminal_restore(sig);
@@ -845,6 +847,8 @@ void handle_sigcont(int sig)
         Model *model = get_model();
         model->state.ui.resumed = 1;
 }
+
+#endif
 
 void register_singnal_handlers(void)
 {

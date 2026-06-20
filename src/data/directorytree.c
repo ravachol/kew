@@ -482,6 +482,54 @@ int compare_lib_entries_reversed(const struct dirent **a, const struct dirent **
         return -result;
 }
 
+#ifdef _WIN32
+
+int dirent_qsort_cmp(const void *a, const void *b)
+{
+    const struct dirent *da = *(const struct dirent * const *)a;
+    const struct dirent *db = *(const struct dirent * const *)b;
+
+    char *name_a = string_to_upper(da->d_name);
+    char *name_b = string_to_upper(db->d_name);
+
+    // underscore rule
+    if (name_a[0] == '_' && name_b[0] != '_') {
+        free(name_a); free(name_b);
+        return 1;
+    }
+    if (name_a[0] != '_' && name_b[0] == '_') {
+        free(name_a); free(name_b);
+        return -1;
+    }
+
+    // m3u rule
+    bool is_m3u_a = is_m3u(da->d_name);
+    bool is_m3u_b = is_m3u(db->d_name);
+
+    if (is_m3u_a && !is_m3u_b) {
+        free(name_a); free(name_b);
+        return -1;
+    }
+    if (!is_m3u_a && is_m3u_b) {
+        free(name_a); free(name_b);
+        return 1;
+    }
+
+    int result = natural_compare(name_a, name_b);
+
+    free(name_a);
+    free(name_b);
+
+    return result;
+}
+
+int dirent_qsort_cmp_rev(const void *a, const void *b)
+{
+    return -dirent_qsort_cmp(a, b);
+}
+
+#endif
+
 int compare_entry_natural(const void *a, const void *b)
 {
         const FileSystemEntry *entry_a = *(const FileSystemEntry **)a;
@@ -571,7 +619,7 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
 #ifdef _WIN32
 #include <windows.h>
 
-static int dirent_qsort_cmp(const void *a, const void *b)
+int dirent_qsort_cmp(const void *a, const void *b)
 {
     const struct dirent *da = *(const struct dirent * const *)a;
     const struct dirent *db = *(const struct dirent * const *)b;

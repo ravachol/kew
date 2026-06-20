@@ -269,4 +269,11 @@ unsigned long count_music_files_in_directory(FileSystemEntry *directory);
  */
 unsigned long count_directories_in_directory(FileSystemEntry *directory);
 
+#ifdef _WIN32
+
+int dirent_qsort_cmp_rev(const void *a, const void *b);
+
+int dirent_qsort_cmp(const void *a, const void *b);
+#endif
+
 #endif
