@@ -23,6 +23,7 @@
 #include "utils/file.h"
 #include "utils/utils.h"
 
+#include <dirent.h>
 #include <glib.h>
 #include <limits.h>
 #include <stdint.h>
@@ -340,6 +341,193 @@ void exit_if_overflow(int counter)
         }
 }
 
+#ifdef _WIN32
+
+#include <windows.h>
+
+static int dirent_qsort_cmp(const void *a, const void *b)
+{
+    const struct dirent *da = *(const struct dirent **)a;
+    const struct dirent *db = *(const struct dirent **)b;
+
+    return compare_lib_entries(da, db);
+}
+
+void build_playlist_recursive(const char *directory_path,
+                              const char *allowed_extensions,
+                              PlayList *playlist)
+{
+    char expanded_path[PATH_MAX - KEW_NAME_MAX - 1];
+    expand_path(directory_path, expanded_path,
+                PATH_MAX - KEW_NAME_MAX - 1);
+
+    int res = is_directory(expanded_path);
+    Model *model = get_model();
+
+    int list_row_num = 0;
+
+    /* Case: not a directory → treat as single file */
+    if (res != 1 && res != -1 && directory_path != NULL) {
+        Node *node = NULL;
+
+        exit_if_overflow(node_id_counter);
+
+        int id = 0;
+        list_row_num = playlist->count + 1;
+
+        if (model->library)
+            id = mark_as_enqueued(model->library, expanded_path, list_row_num);
+
+        if (id == 0)
+            id = node_id_counter++;
+
+        create_node(&node, expanded_path, id);
+
+        if (add_to_list(playlist, node) == -1)
+            destroy_node(node);
+
+        return;
+    }
+
+    /* Windows directory iteration */
+    WIN32_FIND_DATAA fd;
+    HANDLE hFind;
+
+    char pattern[MAX_PATH];
+    snprintf(pattern, sizeof(pattern), "%s\\*", expanded_path);
+
+    struct dirent **entries = NULL;
+    int capacity = 64;
+    int num_entries = 0;
+
+    entries = malloc(sizeof(struct dirent *) * capacity);
+    if (!entries) {
+        return;
+    }
+
+    hFind = FindFirstFileA(pattern, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        free(entries);
+        printf(_("Failed to open directory: %s\n"), expanded_path);
+        return;
+    }
+
+    do {
+        if (strcmp(fd.cFileName, ".") == 0 ||
+            strcmp(fd.cFileName, "..") == 0)
+            continue;
+
+        struct dirent *e = malloc(sizeof(struct dirent));
+        if (!e)
+            continue;
+
+        strncpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
+        e->d_name[sizeof(e->d_name) - 1] = '\0';
+
+        if (num_entries >= capacity) {
+            capacity *= 2;
+            struct dirent **tmp =
+                realloc(entries, sizeof(struct dirent *) * capacity);
+            if (!tmp) {
+                free(e);
+                continue;
+            }
+            entries = tmp;
+        }
+
+        entries[num_entries++] = e;
+
+    } while (FindNextFileA(hFind, &fd));
+
+    FindClose(hFind);
+
+    /* sort using POSIX-compatible comparator */
+    qsort(entries, num_entries, sizeof(struct dirent *),
+          dirent_qsort_cmp);
+
+    regex_t regex;
+    int ret = regcomp(&regex, allowed_extensions,
+                      REG_EXTENDED | REG_ICASE);
+
+    if (ret != 0) {
+        printf(_("Failed to compile regular expression\n"));
+        goto cleanup;
+    }
+
+    char exto[100];
+
+    for (int i = 0; i < num_entries && playlist->count < MAX_FILES; i++) {
+
+        struct dirent *entry = entries[i];
+        if (!entry)
+            continue;
+
+        if (entry->d_name[0] == '.' ||
+            strcmp(entry->d_name, ".") == 0 ||
+            strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char file_path[PATH_MAX];
+        snprintf(file_path, sizeof(file_path), "%s/%s",
+                 expanded_path, entry->d_name);
+
+        if (is_directory(file_path) == 1) {
+
+            int song_count = playlist->count;
+            build_playlist_recursive(file_path,
+                                     allowed_extensions,
+                                     playlist);
+
+            if (playlist->count > song_count)
+                num_dirs++;
+
+        } else {
+            extract_extension(entry->d_name,
+                              sizeof(exto) - 1,
+                              exto);
+
+            if (match_regex(&regex, exto) == 0) {
+
+                snprintf(file_path, sizeof(file_path), "%s/%s",
+                         directory_path, entry->d_name);
+
+                Node *node = NULL;
+
+                exit_if_overflow(node_id_counter);
+
+                int id = 0;
+                list_row_num = playlist->count + 1;
+
+                if (model->library)
+                    id = mark_as_enqueued(model->library,
+                                          file_path,
+                                          list_row_num);
+
+                if (id == 0)
+                    id = node_id_counter++;
+
+                create_node(&node, file_path, id);
+
+                if (add_to_list(playlist, node) == -1)
+                    destroy_node(node);
+            }
+        }
+    }
+
+    regfree(&regex);
+
+cleanup:
+    for (int i = 0; i < num_entries; i++) {
+        free(entries[i]);
+    }
+    free(entries);
+
+    return;
+}
+
+#else
+
 void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions, PlayList *playlist)
 {
@@ -468,6 +656,8 @@ void build_playlist_recursive(const char *directory_path,
         closedir(dir);
         regfree(&regex);
 }
+
+#endif
 
 int join_playlist(PlayList *dest, PlayList *src)
 {
