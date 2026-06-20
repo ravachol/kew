@@ -22,7 +22,7 @@ kew (/kjuː/) is a terminal music player.
 
 ## Features
 
- * Generate custom playlists based on words from the artist, album or song name: 'kew nirvana'.
+ * Play auto-generated playlists based on words from the artist, album or song name: 'kew nirvana'.
  * Private and offline*.
  * Music without distractions or algorithmic manipulation.
  * Gapless playback.
