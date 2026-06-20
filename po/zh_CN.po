@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 20:50+0200\n"
+"POT-Creation-Date: 2026-06-20 20:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -230,7 +230,7 @@ msgstr " · 随机播放：%s"
 
 #: src/ui/components.c:2714
 #, c-format
-msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
+msgid " · Repeat: %s (repeat/repeat list/off)"
 msgstr " · 循环模式：%s（循环/循环列表/关闭）"
 
 #: src/ui/components.c:2716

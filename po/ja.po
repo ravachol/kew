@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 20:50+0200\n"
+"POT-Creation-Date: 2026-06-20 20:53+0200\n"
 "PO-Revision-Date: 2025-11-05 15:05+0100\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -233,7 +233,7 @@ msgstr " · シャッフル再生：%s"
 
 #: src/ui/components.c:2714
 #, c-format
-msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
+msgid " · Repeat: %s (repeat/repeat list/off)"
 msgstr " · リピートモード：%s（繰り返し/リスト繰り返し/オフ）"
 
 #: src/ui/components.c:2716
