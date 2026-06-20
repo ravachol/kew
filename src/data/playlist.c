@@ -345,17 +345,6 @@ void exit_if_overflow(int counter)
 
 #include <windows.h>
 
-static int dirent_qsort_cmp(const void *a, const void *b)
-{
-    const struct dirent *da =
-        *(const struct dirent * const *)a;
-
-    const struct dirent *db =
-        *(const struct dirent * const *)b;
-
-    return compare_lib_entries(da, db);
-}
-
 void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions,
                               PlayList *playlist)
