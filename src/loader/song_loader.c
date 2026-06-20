@@ -270,7 +270,11 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
                         }
 
                         struct stat link_stat;
+#ifdef _WIN32
                         if (stat(resolved_path, &link_stat) == 0) {
+#else
+                        if (lstat(resolved_path, &link_stat) == 0) {
+#endif
 #ifdef S_ISLNK
                                 if (S_ISLNK(link_stat.st_mode)) {
                                         continue; // skip symlink
@@ -325,7 +329,11 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 }
 
                 // Use lstat to avoid following symlinks
+#ifdef _WIN32
+                if (stat(resolved_path, &file_stats) == -1) {
+#else
                 if (lstat(resolved_path, &file_stats) == -1) {
+#endif
                         continue;
                 }
 #ifdef S_ISLNK
