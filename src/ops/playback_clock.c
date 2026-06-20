@@ -34,13 +34,13 @@ double get_elapsed_seconds(void)
 
 void timespec_add_ms(struct timespec *ts, long offset_ms)
 {
-    ts->tv_sec  += offset_ms / 1000;
-    ts->tv_nsec += (offset_ms % 1000) * 1000000L;
+        ts->tv_sec += offset_ms / 1000;
+        ts->tv_nsec += (offset_ms % 1000) * 1000000L;
 
-    if (ts->tv_nsec >= 1000000000L) {
-        ts->tv_sec += ts->tv_nsec / 1000000000L;
-        ts->tv_nsec %= 1000000000L;
-    }
+        if (ts->tv_nsec >= 1000000000L) {
+                ts->tv_sec += ts->tv_nsec / 1000000000L;
+                ts->tv_nsec %= 1000000000L;
+        }
 }
 
 void clock_add_offset(long offset_ms)
@@ -48,10 +48,11 @@ void clock_add_offset(long offset_ms)
         timespec_add_ms(&start_time, offset_ms);
 }
 
-void fprintf_timespec(const struct timespec *ts) {
-    fprintf(stderr, "tv_sec = %lld, tv_nsec = %ld\n",
-           (long long)ts->tv_sec,
-           ts->tv_nsec);
+void fprintf_timespec(const struct timespec *ts)
+{
+        fprintf(stderr, "tv_sec = %lld, tv_nsec = %ld\n",
+                (long long)ts->tv_sec,
+                ts->tv_nsec);
 }
 
 void clock_log_time(void)
@@ -137,6 +138,23 @@ bool set_position(gint64 new_position, double duration)
         } else {
                 return false;
         }
+}
+
+bool lock_and_set_position(gint64 new_position)
+{
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "lock_and_set_position: Failed to lock switch mutex.\n");
+        }
+
+        gint64 position_usec =
+            (gint64)(new_position * G_USEC_PER_SEC);
+
+        set_position(position_usec, get_current_song_duration());
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
 }
 
 bool seek_position(gint64 offset, double duration)

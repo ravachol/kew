@@ -12,6 +12,7 @@ enum MsgType {
         MSG_RESIZE,
         MSG_LOAD_WAITING_MUSIC,
         MSG_PLAY_PAUSE,
+        MSG_PAUSE,
         MSG_VOLUME_UP,
         MSG_VOLUME_DOWN,
         MSG_NEXT,
@@ -66,7 +67,8 @@ enum MsgType {
         MSG_CROSSFADE_QUICK,
         MSG_CROSSFADE_MEDIUM,
         MSG_CROSSFADE_SLOW,
-        MSG_TOGGLECROSSFADE
+        MSG_TOGGLECROSSFADE,
+        MSG_PLAY
 };
 
 typedef struct
