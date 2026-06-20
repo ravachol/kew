@@ -95,6 +95,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
+GMainLoop *main_loop;
+
 /**
  * @brief Runs the Model-View-Update Tick
  *
@@ -242,6 +244,9 @@ void kew_shutdown()
 
 int in_foreground(void)
 {
+#ifdef _WIN32
+        return true;
+#else
         pid_t my_pgrp = getpgrp();
         pid_t tty_pgrp = tcgetpgrp(STDIN_FILENO);
 
@@ -252,6 +257,7 @@ int in_foreground(void)
                 // Resumed via bg
                 return false;
         }
+#endif
 }
 
 
@@ -412,7 +418,7 @@ void create_loop(void)
 {
         update_last_input_time();
 
-        GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
+        main_loop = g_main_loop_new(NULL, FALSE);
 
         install_signal_handlers(main_loop);
 
@@ -565,9 +571,6 @@ void kew_init(bool set_library_enqueued_status)
 
         if (model->state.settings.discordRPCEnabled)
                 discord_rpc_init();
-
-        // This is to not stop Chroma when we can't keep up with it, instead just return an error
-        signal(SIGPIPE, SIG_IGN);
 
         // The (sometimes shuffled) sequence of songs that will be played
         start_playing(true);
@@ -843,6 +846,19 @@ void handle_sigcont(int sig)
         model->state.ui.resumed = 1;
 }
 
+void register_singnal_handlers(void)
+{
+        signal(SIGINT, force_terminal_restore);
+        signal(SIGSEGV, force_terminal_restore);
+        signal(SIGABRT, force_terminal_restore);
+
+#ifndef _WIN32
+        signal(SIGPIPE, SIG_IGN); // This is to not stop Chroma when we can't keep up with it, instead just return an error
+        signal(SIGTSTP, handle_sigtstp);
+        signal(SIGCONT, handle_sigcont);
+#endif
+}
+
 /**
  * @brief Main entry point of the application.
  *
@@ -900,11 +916,7 @@ int main(int argc, char *argv[])
 
         enter_alternate_screen_buffer();
 
-        signal(SIGINT, force_terminal_restore);
-        signal(SIGSEGV, force_terminal_restore);
-        signal(SIGABRT, force_terminal_restore);
-        signal(SIGTSTP, handle_sigtstp);
-        signal(SIGCONT, handle_sigcont);
+        register_singnal_handlers();
 
         if (model->settings.path[0] == '\0') {
                 set_music_path();
