@@ -477,7 +477,8 @@ SongData *load_song_data(char *file_path)
         songdata->avg_bit_rate = 0;
         songdata->lyrics = NULL;
         c_strcpy(songdata->file_path, file_path, sizeof(songdata->file_path));
-        songdata->lyrics = loadLyricsFromLRC(songdata->file_path);
+        load_meta_data(songdata); // loading two times meta_data may cause errors, but it is necessary to get the title for loading lyrics
+        songdata->lyrics = loadLyricsFromLRC(songdata->file_path,songdata);
         load_meta_data(songdata);
         load_color(songdata);
         load_kmeans_palette(songdata->cover, songdata->coverWidth, songdata->coverHeight, songdata->kmeans_palette);
