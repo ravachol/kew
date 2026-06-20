@@ -17,7 +17,6 @@
 #include "playlist_type.h"
 #include "directorytree.h"
 
-#include <pthread.h>
 #include <stdbool.h>
 
 #define MAX_FILES 50000

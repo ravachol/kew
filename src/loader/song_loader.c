@@ -21,7 +21,6 @@
 #include <dirent.h>
 #include <gio/gio.h>
 #include <glib.h>
-#include <pthread.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>

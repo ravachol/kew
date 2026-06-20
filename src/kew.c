@@ -80,7 +80,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include <fcntl.h>
 #include <gio/gio.h>
+#ifndef _WIN32
 #include <glib-unix.h>
+#endif
 #include <glib.h>
 #include <libintl.h>
 #include <locale.h>
