@@ -1551,7 +1551,9 @@ static int extract_esc_user(struct tb_event *event, int is_post);
 static int load_builtin_caps(void);
 static int init_cap_trie(void);
 static int update_term_size(void);
+#ifndef _WIN32
 static int update_term_size_via_esc(void);
+#endif
 static int extract_esc_mouse(struct tb_event *event);
 static int load_terminfo(void);
 static int load_terminfo_from_path(const char *path, const char *term);
