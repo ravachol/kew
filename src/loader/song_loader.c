@@ -271,9 +271,11 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
 
                         struct stat link_stat;
                         if (lstat(resolved_path, &link_stat) == 0) {
-                                if (S_ISLNK(link_stat.st_mode)) {
-                                        continue; // skip symlink
-                                }
+
+#ifdef S_ISLNK
+                                if (S_ISLNK(link_stat.st_mode))
+                                        continue;
+#endif
                                 if (S_ISDIR(link_stat.st_mode)) {
                                         result = choose_album_art(
                                             resolved_path, custom_file_name_arr,
@@ -327,10 +329,10 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                         continue;
                 }
 
-                if (S_ISLNK(file_stats.st_mode)) {
-                        // Ignore symlinks
+#ifdef S_ISLNK
+                if (S_ISLNK(link_stat.st_mode))
                         continue;
-                }
+#endif
 
                 if (S_ISREG(file_stats.st_mode)) {
                         // Validate extension
@@ -455,7 +457,6 @@ void load_meta_data(SongData *songdata)
 
 void asdf()
 {
-
 }
 
 SongData *load_song_data(char *file_path)
@@ -483,4 +484,3 @@ SongData *load_song_data(char *file_path)
 
         return songdata;
 }
-
