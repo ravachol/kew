@@ -87,7 +87,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <libintl.h>
 #include <locale.h>
 #include <pthread.h>
-#include <pwd.h>
+
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
