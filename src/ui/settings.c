@@ -152,10 +152,10 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
 
 static const KeyMap key_map[] = {
     // Arrow keys
-    {"Up", TB_KEY_ARROW_UP},
-    {"Down", TB_KEY_ARROW_DOWN},
-    {"Left", TB_KEY_ARROW_LEFT},
-    {"Right", TB_KEY_ARROW_RIGHT},
+    {"Up Arrow", TB_KEY_ARROW_UP},
+    {"Down Arrow", TB_KEY_ARROW_DOWN},
+    {"Left Arrow", TB_KEY_ARROW_LEFT},
+    {"Right Arrow", TB_KEY_ARROW_RIGHT},
 
     // Function keys
     {"F1", TB_KEY_F1},
