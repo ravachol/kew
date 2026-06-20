@@ -37,6 +37,10 @@
 #include <unistd.h>
 #include <wchar.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
 const char LAYOUT_FILE[] = "/layouts/current.layout";
@@ -2760,6 +2764,34 @@ Layout *load_layout_from_config(const char *layout_name)
         return layout;
 }
 
+const char *get_system_data_dir(void)
+{
+#ifdef _WIN32
+    // Get the directory where the executable lives, then go up to find share/
+    static char data_dir[PATH_MAX];
+    if (data_dir[0] != '\0')
+        return data_dir;
+
+    char exe_path[PATH_MAX];
+    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
+
+    // Convert backslashes to forward slashes
+    for (char *p = exe_path; *p; p++)
+        if (*p == '\\') *p = '/';
+
+    // exe is at <prefix>/bin/kew.exe, so go up two levels
+    char *bin = strrchr(exe_path, '/');
+    if (bin) *bin = '\0';
+    char *prefix = strrchr(exe_path, '/');
+    if (prefix) *prefix = '\0';
+
+    snprintf(data_dir, sizeof(data_dir), "%s/share/kew", exe_path);
+    return data_dir;
+#else
+    return PREFIX "/share/kew";
+#endif
+}
+
 static bool copy_layout_file(const char *src_name,
                              const char *dst_path)
 {
@@ -2770,7 +2802,8 @@ static bool copy_layout_file(const char *src_name,
 
         char src_path[PATH_MAX];
 
-        const char *system_layouts = PREFIX "/share/kew/layouts";
+        char system_layouts[PATH_MAX];
+        snprintf(system_layouts, sizeof(system_layouts), "%s/layouts", get_system_data_dir());
         DIR *dir = opendir(system_layouts);
         if (!dir) {
                 free(config_path);

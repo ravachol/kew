@@ -36,6 +36,8 @@ ifeq ($(origin USE_DBUS), undefined)
     USE_DBUS = 0
   else ifeq ($(IS_ANDROID),1)
     USE_DBUS = 0
+  else ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
+    USE_DBUS = 0
   else
     USE_DBUS = 1
   endif
@@ -152,7 +154,7 @@ CXXFLAGS = $(COMMONFLAGS) -std=gnu++20 -D_ISOC11_SOURCE
 LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(PKG_LDFLAGS)
 LIBS += -lstdc++
 
-LDFLAGS += -logg -lz -lgnurx -lws2_32
+LDFLAGS += -logg -lz
 
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE -fstack-clash-protection
@@ -170,6 +172,8 @@ else ifeq ($(UNAME_S), Darwin)
   ifeq ($(USE_MACOS_MEDIA), 1)
     LIBS += -framework MediaPlayer -framework AppKit
   endif
+else ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
+  LIBS += -lws2_32 -lgnurx
 endif
 
 # Conditionally add  USE_DBUS is enabled

@@ -13,6 +13,7 @@
 #include "common/common.h"
 
 #include "common/model.h"
+#include "ui/settings.h"
 #include "utils/file.h"
 #include "utils/utils.h"
 
@@ -26,6 +27,10 @@
 
 #ifndef PREFIX
 #define PREFIX "/usr/local" // Fallback if not set in the makefile
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
 #endif
 
 typedef struct
@@ -318,7 +323,8 @@ bool ensure_default_themes(void)
                 }
         }
 
-        const char *system_themes = PREFIX "/share/kew/themes";
+        char system_themes[PATH_MAX];
+        snprintf(system_themes, sizeof(system_themes), "%s/themes", get_system_data_dir());
         DIR *dir = opendir(system_themes);
         if (!dir) {
                 free(config_path);
@@ -329,7 +335,7 @@ bool ensure_default_themes(void)
         while ((entry = readdir(dir)) != NULL) {
                 // Only copy real files that look like themes
                 char full_path[PATH_MAX];
-                snprintf(full_path, sizeof(full_path), "%s/%s", system_themes, entry->d_name);
+                snprintf(full_path, sizeof(full_path), "%s/themes/%s", get_system_data_dir(), entry->d_name);
 
                 struct stat st;
                 if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode) &&
