@@ -7,11 +7,9 @@
  * when metadata or network access is unavailable.
  */
 
-#include "lyrics.h"
-
+#include <cstdlib>
 #include <algorithm>
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
 #include <ctype.h>
 #include <limits.h>
@@ -19,6 +17,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "lyrics.h"
+
 #include <taglib/fileref.h>
 #include <taglib/flacfile.h>
 #include <taglib/id3v2tag.h>
