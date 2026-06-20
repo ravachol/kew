@@ -8,6 +8,8 @@ typedef enum {
         CMD_CHANGE_VIEW,
         CMD_LOAD_WAITING_MUSIC,
         CMD_VIEW_ENQUEUE,
+        CMD_PLAY,
+        CMD_PAUSE,
         CMD_TOGGLE_PAUSE,
         CMD_TOGGLE_VISUALIZER,
         CMD_TOGGLE_REPEAT,

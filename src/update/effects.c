@@ -219,6 +219,14 @@ void run_command(UpdateResult result)
                 view_enqueue(result.cmd.value);
                 break;
 
+        case CMD_PLAY:
+                play();
+                break;
+
+        case CMD_PAUSE:
+                pause_song();
+                break;
+
         case CMD_TOGGLE_PAUSE:
                 toggle_pause();
                 break;

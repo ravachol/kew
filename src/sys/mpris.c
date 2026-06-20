@@ -10,8 +10,8 @@
 
 #include "common/appstate.h"
 #include "common/common.h"
-#include "common/model.h"
 #include "common/events.h"
+#include "common/model.h"
 
 #include "sys_integration.h"
 
@@ -143,7 +143,7 @@ static void handle_quit(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        quit();
+        dispatch_msg((struct Msg){.type = MSG_QUIT});
 }
 
 static gboolean get_identity(GDBusConnection *connection, const gchar *sender,
@@ -213,7 +213,7 @@ static void handle_next(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        switch_to_next_song();
+        dispatch_msg((struct Msg){.type = MSG_NEXT});
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -232,7 +232,7 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        switch_to_prev_song();
+        dispatch_msg((struct Msg){.type = MSG_PREV});
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -250,7 +250,7 @@ static void handle_pause(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        pause_song();
+        dispatch_msg((struct Msg){.type = MSG_PAUSE});
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -269,7 +269,7 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        ops_toggle_pause();
+        dispatch_msg((struct Msg){.type = MSG_PLAY_PAUSE});
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -288,7 +288,7 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         if (!is_stopped())
-                stop();
+                dispatch_msg((struct Msg){.type = MSG_STOP});
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -310,7 +310,7 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         if (get_current_song() == NULL)
                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
         else
-                play();
+                dispatch_msg((struct Msg){.type = MSG_PLAY});
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -328,9 +328,19 @@ static void handle_seek(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         gint64 offset;
+        gboolean success = false;
         g_variant_get(parameters, "(x)", &offset);
 
-        gboolean success = seek_position(offset, get_current_song_duration());
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "handle_seek: Failed to lock switch mutex.\n");
+        } else {
+                success = seek_position(offset, get_current_song_duration());
+
+                pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+        }
 
         if (success) {
                 g_dbus_method_invocation_return_value(invocation, NULL);
@@ -357,12 +367,24 @@ static void handle_set_position(GDBusConnection *connection,
 
         const gchar *track_id;
         gint64 new_position;
+        gboolean success = false;
 
         // - "o" is an object path (or track identifier)
         // - "x" is a 64-bit integer representing the position
         g_variant_get(parameters, "(&ox)", &track_id, &new_position);
 
-        gboolean success = set_position(new_position, get_current_song_duration());
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "handle_set_position: Failed to lock switch mutex.\n");
+                return;
+        } else {
+                double duration = get_current_song_duration();
+                success = set_position(new_position, duration);
+
+                pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+        }
 
         if (success) {
                 // If setting the position was successful, return success with
@@ -458,6 +480,14 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
 
         const gchar *status = "Stopped";
 
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "get_playback_status: Failed to lock switch mutex.\n");
+                return FALSE;
+        }
+
         if (is_paused()) {
                 status = "Paused";
         } else if (get_current_song() == NULL || is_stopped()) {
@@ -465,7 +495,11 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
         } else {
                 status = "Playing";
         }
+
         *value = g_variant_new_string(status);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
         return TRUE;
 }
 
@@ -536,6 +570,14 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "get_metadata: Failed to lock switch mutex.\n");
+                return FALSE;
+        }
+
         SongData *current_song_data = get_current_song_data();
 
         GVariantBuilder metadata_builder;
@@ -604,6 +646,9 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 
         GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
         *value = g_variant_ref_sink(metadata_variant);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
         return TRUE;
 }
 
@@ -702,6 +747,14 @@ static gboolean get_can_go_next(GDBusConnection *connection,
         (void)error;
         (void)user_data;
 
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "get_can_go_next: Failed to lock switch mutex.\n");
+                return FALSE;
+        }
+
         Node *current = get_current_song();
         PlayList *playlist = get_playlist();
 
@@ -711,6 +764,9 @@ static gboolean get_can_go_next(GDBusConnection *connection,
             (is_repeat_list_enabled() && playlist->head != NULL) ? TRUE : can_go_next;
 
         *value = g_variant_new_boolean(can_go_next);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
         return TRUE;
 }
 
@@ -728,12 +784,23 @@ get_can_go_previous(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "get_can_go_previous: Failed to lock switch mutex.\n");
+                return FALSE;
+        }
+
         Node *current = get_current_song();
 
         can_go_previous =
             (current == NULL || current->prev != NULL) ? TRUE : FALSE;
 
         *value = g_variant_new_boolean(can_go_previous);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
         return TRUE;
 }
 
@@ -752,6 +819,12 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "get_can_go_previous: Failed to lock switch mutex.\n");
+                return FALSE;
+        }
 
         if (get_current_song() == NULL && model->playlist->count == 0)
                 can_play = FALSE;
@@ -759,6 +832,9 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
                 can_play = TRUE;
 
         *value = g_variant_new_boolean(can_play);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
         return TRUE;
 }
 
@@ -776,12 +852,23 @@ static gboolean get_can_pause(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
+        Model *model = get_model();
+        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+        if (mutex_result != 0) {
+                fprintf(stderr, "get_can_pause: Failed to lock switch mutex.\n");
+                return FALSE;
+        }
+
         if (get_current_song() == NULL)
                 can_pause = FALSE;
         else
                 can_pause = TRUE;
 
         *value = g_variant_new_boolean(can_pause);
+
+        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
         return TRUE;
 }
 
@@ -951,7 +1038,22 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         gint64 new_position;
                         g_variant_get(value, "x", &new_position);
 
-                        return set_position(new_position, get_current_song_duration());
+                        bool result = false;
+
+                        Model *model = get_model();
+                        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
+
+                        if (mutex_result != 0) {
+                                fprintf(stderr, "set_property_callback: Failed to lock switch mutex.\n");
+                                return FALSE;
+                        }
+
+                        result = set_position(new_position, get_current_song_duration());
+
+                        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
+                        return result;
+
                 } else {
                         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED,
                                     "Setting property not supported");

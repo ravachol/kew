@@ -112,4 +112,6 @@ double get_elapsed_seconds(void);
  */
 double get_current_song_duration(void);
 
+bool lock_and_set_position(gint64 new_position);
+
 #endif
