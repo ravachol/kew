@@ -35,7 +35,7 @@ kew (/kjuː/) is a terminal music player.
  * Desktop integration (both Linux and macOS).
  * Import/export .m3u playlists.
  * Replay gain.
- * Themes based on album colors and popular themes.
+ * Themes based on album colors or popular themes.
  * Custom layouts.
  * Crossfade (experimental), both automatic and on demand.
  * Auto-Resume.
