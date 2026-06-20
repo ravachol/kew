@@ -7,6 +7,7 @@
 
 #include "songdatatype.h"
 
+#include <pthread.h>
 #include <stdbool.h>
 
 /**

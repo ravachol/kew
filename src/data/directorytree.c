@@ -569,58 +569,69 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
 #ifdef _WIN32
 #include <windows.h>
 
+static int dirent_qsort_cmp_rev(const void *a, const void *b)
+{
+        const struct dirent *const *da = a;
+        const struct dirent *const *db = b;
+
+        return -compare_lib_entries(
+            (const struct dirent **)da,
+            (const struct dirent **)db);
+}
+
 static int read_directory(const char *path, FileSystemEntry *parent)
 {
-    WIN32_FIND_DATAA fd;
-    HANDLE hFind;
+        (void)parent;
+        WIN32_FIND_DATAA fd;
+        HANDLE hFind;
 
-    char pattern[MAX_PATH];
-    snprintf(pattern, sizeof(pattern), "%s\\*", path);
+        char pattern[MAX_PATH];
+        snprintf(pattern, sizeof(pattern), "%s\\*", path);
 
-    // dynamic list (replacement for scandir)
-    struct dirent **entries = NULL;
-    int capacity = 64;
-    int count = 0;
+        // dynamic list (replacement for scandir)
+        struct dirent **entries = NULL;
+        int capacity = 64;
+        int count = 0;
 
-    entries = malloc(sizeof(struct dirent*) * capacity);
-    if (!entries)
-        return 0;
+        entries = malloc(sizeof(struct dirent *) * capacity);
+        if (!entries)
+                return 0;
 
-    hFind = FindFirstFileA(pattern, &fd);
-    if (hFind == INVALID_HANDLE_VALUE) {
-        free(entries);
-        return 0;
-    }
-
-    do {
-        if (strcmp(fd.cFileName, ".") == 0 ||
-            strcmp(fd.cFileName, "..") == 0)
-            continue;
-
-        struct dirent *e = malloc(sizeof(struct dirent));
-        if (!e)
-            continue;
-
-        strncpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
-        e->d_name[sizeof(e->d_name) - 1] = '\0';
-
-        if (count >= capacity) {
-            capacity *= 2;
-            entries = realloc(entries, sizeof(struct dirent*) * capacity);
+        hFind = FindFirstFileA(pattern, &fd);
+        if (hFind == INVALID_HANDLE_VALUE) {
+                free(entries);
+                return 0;
         }
 
-        entries[count++] = e;
+        do {
+                if (strcmp(fd.cFileName, ".") == 0 ||
+                    strcmp(fd.cFileName, "..") == 0)
+                        continue;
 
-    } while (FindNextFileA(hFind, &fd));
+                struct dirent *e = malloc(sizeof(struct dirent));
+                if (!e)
+                        continue;
 
-    FindClose(hFind);
+                strncpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
+                e->d_name[sizeof(e->d_name) - 1] = '\0';
 
-    // IMPORTANT: reuse your existing comparator
-    qsort(entries, count, sizeof(struct dirent*), compare_lib_entries_reversed);
+                if (count >= capacity) {
+                        capacity *= 2;
+                        entries = realloc(entries, sizeof(struct dirent *) * capacity);
+                }
+
+                entries[count++] = e;
+
+        } while (FindNextFileA(hFind, &fd));
+
+        FindClose(hFind);
+
+        qsort(entries, count, sizeof(struct dirent *), dirent_qsort_cmp_rev);
+}
 
 #else
 
-int read_directory(const char *path, FileSystemEntry *parent)
+static int read_directory(const char *path, FileSystemEntry *parent)
 {
         struct dirent **entries;
         int dir_entries =
@@ -834,8 +845,7 @@ FileSystemEntry *read_tree_from_binary(
                 n->is_directory = d->is_directory;
                 n->mtime = (time_t)d->mtime;
 
-                if (set_enqueued_status)
-                {
+                if (set_enqueued_status) {
                         n->is_enqueued = d->is_enqueued;
                 } else
                         n->is_enqueued = 0;
@@ -1211,35 +1221,35 @@ void sort_file_system_tree(FileSystemEntry *root,
         }
 }
 
-unsigned long count_directories_in_directory(FileSystemEntry *directory) {
-    unsigned long dir_count = 0;
-    FileSystemEntry* child = directory->children;
+unsigned long count_directories_in_directory(FileSystemEntry *directory)
+{
+        unsigned long dir_count = 0;
+        FileSystemEntry *child = directory->children;
 
-    while (child != NULL) {
-        if (child->is_directory && child->children != NULL) {
-            dir_count += count_directories_in_directory(child);
-            dir_count++;
+        while (child != NULL) {
+                if (child->is_directory && child->children != NULL) {
+                        dir_count += count_directories_in_directory(child);
+                        dir_count++;
+                }
+                child = child->next;
         }
-        child = child->next;
-    }
 
-    return dir_count;
+        return dir_count;
 }
 
-unsigned long count_music_files_in_directory(FileSystemEntry *directory) {
-    unsigned long file_count = 0;
-    FileSystemEntry* child = directory->children;
+unsigned long count_music_files_in_directory(FileSystemEntry *directory)
+{
+        unsigned long file_count = 0;
+        FileSystemEntry *child = directory->children;
 
-    while (child != NULL) {
-        if (child->is_directory && child->children != NULL) {
-            file_count += count_music_files_in_directory(child);
+        while (child != NULL) {
+                if (child->is_directory && child->children != NULL) {
+                        file_count += count_music_files_in_directory(child);
+                } else if (is_music_file(child->name)) {
+                        file_count++;
+                }
+                child = child->next;
         }
-        else if (is_music_file(child->name)) {
-            file_count++;
-        }
-        child = child->next;
-    }
 
-    return file_count;
+        return file_count;
 }
-

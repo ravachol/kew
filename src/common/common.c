@@ -8,7 +8,6 @@
 #include "common/appstate.h"
 #include "common/model.h"
 
-#include <pthread.h>
 #include <string.h>
 #include <signal.h>
 
