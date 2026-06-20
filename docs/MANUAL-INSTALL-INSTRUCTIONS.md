@@ -1,20 +1,5 @@
 ## Manually Installing kew
 
-kew dependencies are:
-
-* FFTW
-* Chafa
-* libopus
-* opusfile
-* libvorbis
-* TagLib
-* faad2 (optional)
-* libogg
-* pkg-config
-* glib2.0
-
-Install the necessary dependencies using your distro's package manager and then install kew. Below are some examples.
-
 <details>
 <summary>Debian/Ubuntu</summary>
 
@@ -151,16 +136,41 @@ sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvo
 </details>
 
 <details>
+<summary>Windows (MSYS), The simplest way</summary>
+
+Follow the instructions here:
+
+[WINDOWS-INSTRUCTIONS.md](WINDOWS-INSTRUCTIONS.md)
+
+</details>
+
+<details>
 <summary>Windows (WSL)</summary>
+
+Install through package manager:
 
 1) Install Windows Subsystem for Linux (WSL).
 
-2) Install kew using the instructions for Ubuntu.
+2) Run these commands:
 
-3) If you are running Windows 11, Pulseaudio should work out of the box, but if you are running Windows 10, use the instructions below for installing PulseAudio:
+```sh
+sudo apt update
+
+Install Kew:
+
+sudo apt install kew
+
+kew
+```
+
+Install from source:
+
+1) Install kew using the instructions for Ubuntu.
+
+2) If you are running Windows 11, Pulseaudio should work out of the box, but if you are running Windows 10, use the instructions below for installing PulseAudio:
 https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through_pulseaudio_solved/
 
-4) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
+3) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
 
 </details>
 

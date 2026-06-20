@@ -1,3 +1,6 @@
+## **Android Install**
+
+
 ### **Basic Installation Requirements :**
 
 To run kew on Android please install the following applications :
@@ -10,16 +13,23 @@ To run kew on Android please install the following applications :
 
   [![Download Termux-Api](https://img.shields.io/badge/Download-Termux--API-blue?style=for-the-badge&logo=android)](https://github.com/termux/termux-api/releases/download/v0.53.0/termux-api-app_v0.53.0+github.debug.apk) - click to download
 
+## **Installing through termux package manager**
+
+```sh
+pkg update
+pkg upgrade -y
+pkg install kew
+termux-setup-storage
+kew
+```
+If you instead want to install from source continue this guide, otherwise you are done.
+
 ### **Termux Setup:**
 
 1. **Update and install dependencies**
 ```sh
 pkg install tur-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg dbus termux-api
 ```
-
-2. **Make sure termux has sound:**
-
-On your phone, go to Settings -> Sound and Vibration -> Volume and make sure the level for Media is not 0.
 
 <details>
 <summary><b>Building Faad2 from source (needed to run .m4a files)</b></summary>
@@ -33,6 +43,10 @@ make install
 ```
 
 </details>
+
+2. **Make sure termux has sound:**
+
+On your phone, go to Settings -> Sound and Vibration -> Volume and make sure the level for Media is not 0.
 
 3. **Enable storage permissions**
 ```sh
