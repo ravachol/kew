@@ -507,12 +507,12 @@ void reset_resize_flag(int sig)
         resizeFlag = 0;
 }
 
+#endif
+
 sig_atomic_t get_resize_flag()
 {
         return resizeFlag;
 }
-
-#endif
 
 void init_resize(void)
 {
