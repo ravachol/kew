@@ -43,42 +43,45 @@ void init_macos_nowplaying(void)
         [commandCenter.playCommand addTargetWithHandler:
                                        ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                          (void)event;
-                                         play();
+                                         if (get_current_song() == NULL)
+                                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
+                                         else
+                                                 dispatch_msg((struct Msg){.type = MSG_PLAY});
                                          return MPRemoteCommandHandlerStatusSuccess;
                                        }];
 
         [commandCenter.pauseCommand addTargetWithHandler:
                                         ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                           (void)event;
-                                          pause_song();
+                                          dispatch_msg((struct Msg){.type = MSG_PAUSE});
                                           return MPRemoteCommandHandlerStatusSuccess;
                                         }];
 
         [commandCenter.togglePlayPauseCommand addTargetWithHandler:
                                                   ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                                     (void)event;
-                                                    ops_toggle_pause();
+                                                    dispatch_msg((struct Msg){.type = MSG_PLAY_PAUSE});
                                                     return MPRemoteCommandHandlerStatusSuccess;
                                                   }];
 
         [commandCenter.stopCommand addTargetWithHandler:
                                        ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                          (void)event;
-                                         stop();
+                                         dispatch_msg((struct Msg){.type = MSG_STOP});
                                          return MPRemoteCommandHandlerStatusSuccess;
                                        }];
 
         [commandCenter.nextTrackCommand addTargetWithHandler:
                                             ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                               (void)event;
-                                              switch_to_next_song();
+                                              dispatch_msg((struct Msg){.type = MSG_NEXT});
                                               return MPRemoteCommandHandlerStatusSuccess;
                                             }];
 
         [commandCenter.previousTrackCommand addTargetWithHandler:
                                                 ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                                   (void)event;
-                                                  switch_to_prev_song();
+                                                  dispatch_msg((struct Msg){.type = MSG_PREV});
                                                   return MPRemoteCommandHandlerStatusSuccess;
                                                 }];
 
@@ -86,9 +89,12 @@ void init_macos_nowplaying(void)
                                                          ^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
                                                            MPChangePlaybackPositionCommandEvent *positionEvent =
                                                                (MPChangePlaybackPositionCommandEvent *)event;
+
                                                            gint64 position_usec =
                                                                (gint64)(positionEvent.positionTime * G_USEC_PER_SEC);
-                                                           set_position(position_usec, get_current_song_duration());
+
+                                                           lock_and_set_position(position_usec);
+
                                                            return MPRemoteCommandHandlerStatusSuccess;
                                                          }];
 }
