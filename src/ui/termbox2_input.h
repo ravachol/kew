@@ -1561,7 +1561,7 @@ static int cellbuf_free(struct cellbuf_t *c);
 static int bytebuf_puts(struct bytebuf_t *b, const char *str);
 static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr);
 static int bytebuf_shift(struct bytebuf_t *b, size_t n);
-static int bytebuf_flush(struct bytebuf_t *b, int fd);
+static int bytebuf_flush(struct bytebuf_t *b);
 static int bytebuf_reserve(struct bytebuf_t *b, size_t sz);
 static int bytebuf_free(struct bytebuf_t *b);
 static const char *get_terminfo_string(int16_t str_offsets_pos,
@@ -1577,32 +1577,50 @@ int tb_init(void)
 
 int tb_init_file(const char *path)
 {
-        (void)path; // unused on Windows
+    (void)path;
 
-        if (global.initialized)
-                return TB_ERR_INIT_ALREADY;
+    if (global.initialized)
+        return TB_ERR_INIT_ALREADY;
 
-        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-        if (hIn == INVALID_HANDLE_VALUE) {
-                global.last_errno = GetLastError();
-                return TB_ERR_INIT_OPEN;
-        }
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-        DWORD mode;
-        if (!GetConsoleMode(hIn, &mode)) {
-                // Not a real console (maybe redirected input)
-                global.last_errno = GetLastError();
-                return TB_ERR_INIT_OPEN;
-        }
+    if (hIn == INVALID_HANDLE_VALUE || hOut == INVALID_HANDLE_VALUE) {
+        global.last_errno = GetLastError();
+        return TB_ERR_INIT_OPEN;
+    }
 
-        global.ttyfd_open = 0;
+    DWORD mode;
+    if (!GetConsoleMode(hIn, &mode)) {
+        global.last_errno = GetLastError();
+        return TB_ERR_INIT_OPEN;
+    }
 
-        // Store handle instead of fd (recommended)
-        global.hin = hIn;
+    global.hin = hIn;
+    global.hout = hOut;
 
-        global.input_mode &= TB_INPUT_ESC;
+    global.ttyfd = -1;
+    global.rfd = -1;
+    global.wfd = -1;
 
-        return tb_init_win_handle(hIn);
+    global.ttyfd_open = 0;
+    global.input_mode &= TB_INPUT_ESC;
+
+    int rv;
+
+    do {
+        if_err_break(rv, init_term_caps());
+        if_err_break(rv, init_cap_trie());
+        if_err_break(rv, update_term_size());
+
+        global.initialized = 1;
+    } while (0);
+
+    if (rv != TB_OK) {
+        tb_deinit();
+    }
+
+    return rv;
 }
 
 #else
@@ -1812,13 +1830,15 @@ static int tb_reset(void)
 
 #ifdef _WIN32
 
-static int bytebuf_flush(struct bytebuf_t *b, HANDLE hout)
+static int bytebuf_flush(struct bytebuf_t *b)
 {
     if (b->len <= 0) {
         return TB_OK;
     }
 
     DWORD written = 0;
+
+    HANDLE hout = global.hout;
 
     // Try console output first
     if (!WriteConsoleA(hout, b->buf, (DWORD)b->len, &written, NULL)) {
@@ -1842,11 +1862,14 @@ static int bytebuf_flush(struct bytebuf_t *b, HANDLE hout)
 
 #else
 
-static int bytebuf_flush(struct bytebuf_t *b, int fd)
+static int bytebuf_flush(struct bytebuf_t *b)
 {
         if (b->len <= 0) {
                 return TB_OK;
         }
+
+        int fd = global.wfd;
+
         ssize_t write_rv = write(fd, b->buf, b->len);
         if (write_rv < 0 || (size_t)write_rv != b->len) {
                 // Note, errno will be 0 on partial write
@@ -2361,7 +2384,7 @@ static int init_term_caps(void)
         bytebuf_puts(&global.out, "\033[?1002h"); // button tracking (press+release+drag)
         bytebuf_puts(&global.out, "\033[?1006h"); // SGR mode
         bytebuf_puts(&global.out, "\033[?1000l"); // turn OFF X10 (buggy on many terms)
-        bytebuf_flush(&global.out, global.wfd);
+        bytebuf_flush(&global.out);
 
         if (load_terminfo() == TB_OK) {
                 return parse_terminfo_caps();
