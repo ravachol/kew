@@ -87,11 +87,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <libintl.h>
 #include <locale.h>
 #include <pthread.h>
-
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
