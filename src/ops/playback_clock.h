@@ -103,15 +103,6 @@ bool flush_seek(void);
  */
 double get_elapsed_seconds(void);
 
-/**
- * @brief Get the duration of the currently playing track.
- *
- * Retrieves the total duration of the active track.
- *
- * @return Duration of the current track in seconds.
- */
-double get_current_song_duration(void);
-
 bool lock_and_set_position(gint64 new_position);
 
 #endif

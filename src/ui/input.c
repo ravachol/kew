@@ -352,16 +352,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                         double position = (double)delta_col / (double)progress_bar->length;
 
                         Model *model = get_model();
-                        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-                        if (mutex_result != 0) {
-                                fprintf(stderr, "handle_mouse_event: Failed to lock switch mutex.\n");
-                                return TRUE;
-                        }
-
-                        double duration = get_current_song_duration();
-
-                        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+                        double duration = model->song_duration;
 
                         dragged_position_seconds = duration * position;
                 }
@@ -412,7 +403,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                         dragging_progress_bar = true;
 
                         gint64 newPosUs = (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
-                        set_position(newPosUs, get_current_song_duration());
+                        set_position(newPosUs, model->song_duration);
 
                         event->type = MSG_SEEK;
 
