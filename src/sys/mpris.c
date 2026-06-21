@@ -331,15 +331,7 @@ static void handle_seek(GDBusConnection *connection, const gchar *sender,
         g_variant_get(parameters, "(x)", &offset);
 
         Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "handle_seek: Failed to lock switch mutex.\n");
-        } else {
-                success = seek_position(offset, get_current_song_duration());
-
-                pthread_mutex_unlock(&(model->playbackState.switch_mutex));
-        }
+        success = seek_position(offset, model->song_duration);
 
         if (success) {
                 g_dbus_method_invocation_return_value(invocation, NULL);
@@ -373,16 +365,7 @@ static void handle_set_position(GDBusConnection *connection,
         g_variant_get(parameters, "(&ox)", &track_id, &new_position);
 
         Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "handle_set_position: Failed to lock switch mutex.\n");
-        } else {
-                double duration = get_current_song_duration();
-                success = set_position(new_position, duration);
-
-                pthread_mutex_unlock(&(model->playbackState.switch_mutex));
-        }
+        success = set_position(new_position, model->song_duration);
 
         if (success) {
                 // If setting the position was successful, return success with
@@ -478,14 +461,6 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
 
         const gchar *status = "Stopped";
 
-        Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "get_playback_status: Failed to lock switch mutex.\n");
-                return FALSE;
-        }
-
         if (is_paused()) {
                 status = "Paused";
         } else if (get_current_song() == NULL || is_stopped()) {
@@ -495,8 +470,6 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
         }
 
         *value = g_variant_new_string(status);
-
-        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
 
         return TRUE;
 }
@@ -745,14 +718,6 @@ static gboolean get_can_go_next(GDBusConnection *connection,
         (void)error;
         (void)user_data;
 
-        Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "get_can_go_next: Failed to lock switch mutex.\n");
-                return FALSE;
-        }
-
         Node *current = get_current_song();
         PlayList *playlist = get_playlist();
 
@@ -762,8 +727,6 @@ static gboolean get_can_go_next(GDBusConnection *connection,
             (is_repeat_list_enabled() && playlist->head != NULL) ? TRUE : can_go_next;
 
         *value = g_variant_new_boolean(can_go_next);
-
-        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
 
         return TRUE;
 }
@@ -782,22 +745,12 @@ get_can_go_previous(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
-        Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "get_can_go_previous: Failed to lock switch mutex.\n");
-                return FALSE;
-        }
-
         Node *current = get_current_song();
 
         can_go_previous =
             (current == NULL || current->prev != NULL) ? TRUE : FALSE;
 
         *value = g_variant_new_boolean(can_go_previous);
-
-        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
 
         return TRUE;
 }
@@ -817,12 +770,6 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "get_can_go_previous: Failed to lock switch mutex.\n");
-                return FALSE;
-        }
 
         if (get_current_song() == NULL && model->playlist->count == 0)
                 can_play = FALSE;
@@ -830,8 +777,6 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
                 can_play = TRUE;
 
         *value = g_variant_new_boolean(can_play);
-
-        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
 
         return TRUE;
 }
@@ -850,22 +795,12 @@ static gboolean get_can_pause(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
-        Model *model = get_model();
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "get_can_pause: Failed to lock switch mutex.\n");
-                return FALSE;
-        }
-
         if (get_current_song() == NULL)
                 can_pause = FALSE;
         else
                 can_pause = TRUE;
 
         *value = g_variant_new_boolean(can_pause);
-
-        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
 
         return TRUE;
 }
@@ -1039,16 +974,7 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         bool result = false;
 
                         Model *model = get_model();
-                        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-                        if (mutex_result != 0) {
-                                fprintf(stderr, "set_property_callback: Failed to lock switch mutex.\n");
-                                return FALSE;
-                        }
-
-                        result = set_position(new_position, get_current_song_duration());
-
-                        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+                        result = set_position(new_position, model->song_duration);
 
                         return result;
 

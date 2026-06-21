@@ -140,28 +140,6 @@ bool set_position(gint64 new_position, double duration)
         }
 }
 
-bool lock_and_set_position(gint64 new_position)
-{
-        Model *model = get_model();
-        bool result = false;
-
-        int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
-
-        if (mutex_result != 0) {
-                fprintf(stderr, "lock_and_set_position: Failed to lock switch mutex.\n");
-                return false;
-        }
-
-        gint64 position_usec =
-            (gint64)(new_position * G_USEC_PER_SEC);
-
-        result = set_position(position_usec, get_current_song_duration());
-
-        pthread_mutex_unlock(&(model->playbackState.switch_mutex));
-
-        return result;
-}
-
 bool seek_position(gint64 offset, double duration)
 {
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED)
@@ -195,7 +173,7 @@ bool flush_seek(void)
 
                 sound_system_set_seek_elapsed(sound_system_get_seek_elapsed() + seek_accumulated_seconds);
                 seek_accumulated_seconds = 0.0;
-                double duration = get_current_song_duration();
+                double duration = model->song_duration;
                 calc_elapsed_time(duration);
                 float percentage = model->elapsed_seconds / (float)duration * 100.0;
 

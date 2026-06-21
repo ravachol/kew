@@ -113,15 +113,6 @@ int get_volume(void);
 void set_volume(int vol);
 
 /**
- * @brief Get the duration of the currently loaded song.
- *
- * Retrieves the duration from the active SongData structure.
- *
- * @return Duration of the current song in seconds, or 0.0 if unavailable.
- */
-double get_current_song_duration(void);
-
-/**
  * @brief Get the currently active SongData structure.
  *
  * Returns the validated SongData associated with the current playlist entry.

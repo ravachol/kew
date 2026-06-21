@@ -92,17 +92,6 @@ bool is_valid_song(SongData *song_data)
                song_data->metadata != NULL;
 }
 
-double get_current_song_duration(void)
-{
-        double duration = 0.0;
-        Model *model = get_model();
-
-        if (model->songdata != NULL)
-                duration = model->songdata->duration;
-
-        return duration;
-}
-
 int get_volume()
 {
         Model *model = get_model();
