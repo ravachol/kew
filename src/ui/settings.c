@@ -323,7 +323,7 @@ TBKeyBinding *get_key_bindings()
 static bool key_str_already_added(const char *buf, const char *token)
 {
         char temp[256];
-        strncpy(temp, buf, sizeof(temp) - 1);
+        c_strcpy(temp, buf, sizeof(temp) - 1);
         temp[sizeof(temp) - 1] = '\0';
 
         char *part = strtok(temp, " or ");
@@ -779,13 +779,13 @@ TBKeyBinding parse_binding(const char *binding_str,
         kb.args[0] = '\0';
 
         if (args_str && *args_str)
-                strncpy(kb.args, args_str, sizeof(kb.args) - 1);
+                c_strcpy(kb.args, args_str, sizeof(kb.args) - 1);
 
         if (!binding_str || !*binding_str)
                 return kb;
 
         char temp[64];
-        strncpy(temp, binding_str, sizeof(temp) - 1);
+        c_strcpy(temp, binding_str, sizeof(temp) - 1);
         temp[sizeof(temp) - 1] = '\0';
 
         char *p = temp;
@@ -1621,7 +1621,7 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         add_legacy_key_binding(MSG_SHOWHELP, pair->value);
                 } else if (strcmp(lowercase_key, "bind") == 0) {
                         char value_copy[256];
-                        strncpy(value_copy, pair->value, sizeof(value_copy));
+                        c_strcpy(value_copy, pair->value, sizeof(value_copy));
                         value_copy[sizeof(value_copy) - 1] = '\0';
                         char *s = value_copy;
 

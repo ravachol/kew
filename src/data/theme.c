@@ -49,11 +49,11 @@ int hex_to_pixel(const char *hex, PixelData *result)
 
         if (strlen(hex) == 6) {
                 char r[3], g[3], b[3];
-                strncpy(r, hex, 2);
+                c_strcpy(r, hex, 2);
                 r[2] = '\0';
-                strncpy(g, hex + 2, 2);
+                c_strcpy(g, hex + 2, 2);
                 g[2] = '\0';
-                strncpy(b, hex + 4, 2);
+                c_strcpy(b, hex + 4, 2);
                 b[2] = '\0';
 
                 (*result).r = (unsigned char)strtol(r, NULL, 16);
@@ -261,7 +261,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
 
                         if (strcmp(key, "name") == 0) {
                                 // Copy theme name safely
-                                strncpy(current_theme->theme_name, value,
+                                c_strcpy(current_theme->theme_name, value,
                                         sizeof(current_theme->theme_name) - 1);
                                 current_theme->theme_name
                                     [sizeof(current_theme->theme_name) - 1] =
@@ -271,7 +271,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                         }
                         if (strcmp(key, "author") == 0) {
                                 // Copy theme name safely
-                                strncpy(current_theme->theme_author, value,
+                                c_strcpy(current_theme->theme_author, value,
                                         sizeof(current_theme->theme_author) - 1);
                                 current_theme->theme_author
                                     [sizeof(current_theme->theme_author) - 1] =

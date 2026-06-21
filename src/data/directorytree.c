@@ -652,7 +652,7 @@ static int read_directory(const char *path, FileSystemEntry *parent)
                 if (!e)
                         continue;
 
-                strncpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
+                c_strcpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
                 e->d_name[sizeof(e->d_name) - 1] = '\0';
 
                 if (count >= capacity) {

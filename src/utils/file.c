@@ -72,7 +72,7 @@ void get_directory_from_path(const char *path, char *directory)
         char *dir = dirname(tmp);
 
         // Copy the result to the caller‑supplied buffer safely
-        strncpy(directory, dir, PATH_MAX - 1);
+        c_strcpy(directory, dir, PATH_MAX - 1);
         directory[PATH_MAX - 1] = '\0'; // Ensure null termination
 
         /// Ensure a trailing '/'
@@ -201,7 +201,7 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                         free(folded_name);
 
                         if (nameMatch && search_type != FileOnly && search_type != SearchPlayList) {
-                                strncpy(result, entry_path, PATH_MAX - 1);
+                                c_strcpy(result, entry_path, PATH_MAX - 1);
                                 result[PATH_MAX - 1] = '\0';
                                 found = true;
                                 break;
@@ -235,7 +235,7 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                         free(folded_name);
 
                         if (nameMatch) {
-                                strncpy(result, entry_path, PATH_MAX - 1);
+                                c_strcpy(result, entry_path, PATH_MAX - 1);
                                 result[PATH_MAX - 1] = '\0';
                                 found = true;
                                 break;
@@ -366,7 +366,7 @@ int is_in_temp_dir(const char *path)
                 tmp_dir = "/tmp";
 
         size_t len = strlen(tmp_dir);
-        strncpy(tmpdir_buf, tmp_dir, PATH_MAX);
+        c_strcpy(tmpdir_buf, tmp_dir, PATH_MAX);
         tmpdir_buf[PATH_MAX] = '\0';
 
         if (len == 0 || tmpdir_buf[len - 1] != '/') {
