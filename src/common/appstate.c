@@ -162,7 +162,6 @@ void init_model(void)
         model.library_updated = false;
 
         model.songdata_ok = false;
-
         model.volume = 50;
         model.is_paused = false;
         model.is_stopped = true;
@@ -198,6 +197,7 @@ void init_model(void)
         model.title_delay.active = false;
 
         model.elapsed_seconds = 0.0;
+        model.song_duration = 0.0;
 
         model.tick = 17;
 

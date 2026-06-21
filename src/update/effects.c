@@ -142,7 +142,7 @@ void run_tick_commands(Model *model)
 
         process_d_bus_events();
 
-        calc_elapsed_time(get_current_song_duration());
+        calc_elapsed_time(model->song_duration);
 
         PlaybackState *ps = &model->playbackState;
 

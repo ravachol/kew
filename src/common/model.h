@@ -754,6 +754,7 @@ typedef struct Model {
         SongData *songdata;
 
         double elapsed_seconds;
+        double song_duration;
 
         int volume;
 
