@@ -136,15 +136,6 @@ sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvo
 </details>
 
 <details>
-<summary>Windows (MSYS), The simplest way</summary>
-
-Follow the instructions here:
-
-[WINDOWS-INSTRUCTIONS.md](WINDOWS-INSTRUCTIONS.md)
-
-</details>
-
-<details>
 <summary>Windows (WSL)</summary>
 
 Install through package manager:
