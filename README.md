@@ -39,7 +39,7 @@ kew (/kjuː/) is a terminal music player.
  * Custom layouts.
  * Crossfade (experimental), both automatic and on demand.
  * Auto-Resume.
- * Linux, FreeBSD, Android, macOS, Windows and others.
+ * Linux, FreeBSD, Android, macOS and others.
 
  *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
 
