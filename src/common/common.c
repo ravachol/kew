@@ -9,7 +9,6 @@
 #include "common/model.h"
 #include "utils/utils.h"
 
-#include <string.h>
 #include <signal.h>
 
 #define ERROR_MESSAGE_LENGTH 256
