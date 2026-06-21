@@ -24,8 +24,8 @@
 #include "utils/term.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
 #else
 #include <sys/ioctl.h> /* ioctl */
 #endif
@@ -96,43 +96,43 @@ static int get_terminal_size(TermSize *ws)
 
 bool resize_if_needed(void)
 {
-    Model *model = get_model();
-    UIState *uis = &model->state.ui;
+        Model *model = get_model();
+        UIState *uis = &model->state.ui;
 
-    bool resized = false;
-    uis->resizeFlag = 0;
+        bool resized = false;
+        uis->resizeFlag = 0;
 
-    TermSize ws;
+        TermSize ws;
 
-    // Get terminal size (platform independent)
-    if (get_terminal_size(&ws) == 0) {
+        // Get terminal size (platform independent)
+        if (get_terminal_size(&ws) == 0) {
 
-        // Fallback ONLY if invalid result
-        if (ws.cols == 0 || ws.rows == 0) {
-            ws.cols = 80;
-            ws.rows = 24;
+                // Fallback ONLY if invalid result
+                if (ws.cols == 0 || ws.rows == 0) {
+                        ws.cols = 80;
+                        ws.rows = 24;
+                }
+
+                // Detect resize
+                if (ws.cols != model->term_w ||
+                    ws.rows != model->term_h) {
+
+                        uis->resizeFlag = 1;
+                        model->term_w = ws.cols;
+                        model->term_h = ws.rows;
+                }
         }
 
-        // Detect resize
-        if (ws.cols != model->term_w ||
-            ws.rows != model->term_h) {
+        if (uis->resizeFlag) {
+                resize(uis);
+                get_term_size(&model->term_w, &model->term_h);
+                get_tty_size(&model->term_size);
+                ui_resize(model);
 
-            uis->resizeFlag = 1;
-            model->term_w = ws.cols;
-            model->term_h = ws.rows;
+                resized = true;
         }
-    }
 
-    if (uis->resizeFlag) {
-        resize(uis);
-        get_term_size(&model->term_w, &model->term_h);
-        get_tty_size(&model->term_size);
-        ui_resize(model);
-
-        resized = true;
-    }
-
-    return resized;
+        return resized;
 }
 
 void run_tick_commands(Model *model)
@@ -155,20 +155,22 @@ void run_tick_commands(Model *model)
         if (ps->notifySwitch) {
                 ps->notifySwitch = false;
 
-                notify_mpris_switch(model->songdata);
+                if (model->songdata_ok && model->songdata) {
+                        notify_mpris_switch(model->songdata);
 
-                if (model->state.settings.discordRPCEnabled && model->songdata)
-                        notify_discord_update(model->songdata, model->elapsed_seconds, model->songdata->duration);
+                        if (model->state.settings.discordRPCEnabled)
+                                notify_discord_update(model->songdata, model->elapsed_seconds, model->songdata->duration);
+                }
         }
 
         if (ps->notifySeek) {
                 ps->notifySeek = false;
 
-                if (model->state.settings.discordRPCEnabled && model->songdata)
+                if (model->state.settings.discordRPCEnabled && model->songdata_ok && model->songdata)
                         notify_discord_update(model->songdata, model->elapsed_seconds, model->songdata->duration);
         }
 
-        if (model->state.settings.discordRPCEnabled && model->songdata) {
+        if (model->state.settings.discordRPCEnabled && model->songdata_ok && model->songdata) {
                 if (is_paused() && !model->last_paused_state) {
                         notify_discord_pause();
                 } else if (!is_paused() && model->last_paused_state) {
@@ -315,17 +317,16 @@ void run_command(UpdateResult result)
 
         case CMD_CROSSFADE: {
                 int fade_ms = model->state.settings.fade_medium_ms;
-                switch(result.cmd.value)
-                {
-                        case FADE_QUICK:
-                                fade_ms = model->state.settings.fade_quick_ms;
-                                break;
-                        case FADE_SLOW:
-                                fade_ms = model->state.settings.fade_slow_ms;
-                                break;
-                        default:
-                                fade_ms = model->state.settings.fade_medium_ms;
-                                break;
+                switch (result.cmd.value) {
+                case FADE_QUICK:
+                        fade_ms = model->state.settings.fade_quick_ms;
+                        break;
+                case FADE_SLOW:
+                        fade_ms = model->state.settings.fade_slow_ms;
+                        break;
+                default:
+                        fade_ms = model->state.settings.fade_medium_ms;
+                        break;
                 }
                 if (!crossfade(fade_ms, model->state.settings.fade_enter_song_ms))
                         set_error_message("Crossfade disabled. The next song is not loaded yet or is of a different type.");

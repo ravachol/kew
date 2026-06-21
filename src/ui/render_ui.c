@@ -309,7 +309,6 @@ void draw_buffer_clear(DrawBuffer *buf)
 
         for (int i = 0; i < total; i++) {
 
-
                 if (buf->cells[i].kind == CELL_IMAGE_ANCHOR && buf->cells[i].image) {
                         free_image_payload(buf->cells[i].image);
                         buf->cells[i].image = NULL;
@@ -781,7 +780,7 @@ int calc_indent_track_view(Model *model)
         int text_width = (ABSOLUTE_MIN_WIDTH > model->preferred_width) ? ABSOLUTE_MIN_WIDTH
                                                                        : model->preferred_width;
 
-        if (!model->songdata || !model->songdata->metadata)
+        if (!model->songdata_ok || !model->songdata || !model->songdata->metadata)
                 return get_indentation(text_width - 1) - 1;
 
         TagSettings *metadata = model->songdata->metadata;
@@ -916,7 +915,8 @@ int calc_indent_normal()
 
 void calc_indent(Model *model)
 {
-        if ((model->state.currentView == TRACK_VIEW && model->songdata == NULL) ||
+        if (!model->songdata_ok ||
+            (model->state.currentView == TRACK_VIEW && model->songdata == NULL) ||
             model->state.currentView != TRACK_VIEW) {
                 model->indent = calc_indent_normal();
         } else {
