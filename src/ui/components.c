@@ -1935,7 +1935,7 @@ ComponentMsg component_time_simple(const Model *model, k_Rect region, DrawBuffer
                 return (ComponentMsg){0};
 
         double elapsed_seconds = model->elapsed_seconds;
-        double total_seconds = get_current_song_duration();
+        double total_seconds = model->song_duration;
 
         char line[256];
         int pos = 0;
@@ -2001,7 +2001,7 @@ ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, Dr
                 return (ComponentMsg){0};
 
         double elapsed_seconds = model->elapsed_seconds;
-        double total_seconds = get_current_song_duration();
+        double total_seconds = model->song_duration;
         int vol = model->volume;
 
         char line[256];
@@ -2046,7 +2046,7 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
                 return (ComponentMsg){0};
 
         double elapsed_seconds = model->elapsed_seconds;
-        double total_seconds = get_current_song_duration();
+        double total_seconds = model->song_duration;
         int sample_rate = get_current_sample_rate();
         int avg_bit_rate = songdata ? songdata->avg_bit_rate : 0;
         int vol = model->volume;
