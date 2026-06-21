@@ -96,7 +96,7 @@ void init_macos_nowplaying(void)
                                                            gint64 position_usec =
                                                                (gint64)(positionEvent.positionTime * G_USEC_PER_SEC);
 
-                                                           lock_and_set_position(position_usec);
+                                                           set_position(position_usec);
 
                                                            return MPRemoteCommandHandlerStatusSuccess;
                                                          }];

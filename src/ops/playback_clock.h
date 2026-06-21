@@ -65,11 +65,10 @@ void add_to_accumulated_seconds(double value);
  * Has no effect if playback is paused or duration is zero.
  *
  * @param new_position Target position in microseconds.
- * @param duration Total duration of the current track in seconds.
  *
  * @return true if the position change was accepted, false otherwise.
  */
-bool set_position(gint64 new_position, double duration);
+bool set_position(gint64 new_position);
 
 /**
  * @brief Seek playback by a relative offset.
@@ -102,7 +101,5 @@ bool flush_seek(void);
  * @return Elapsed playback time in seconds.
  */
 double get_elapsed_seconds(void);
-
-bool lock_and_set_position(gint64 new_position);
 
 #endif
