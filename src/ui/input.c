@@ -1,3 +1,4 @@
+#include "utils/utils.h"
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
 #endif
@@ -79,7 +80,7 @@ struct Msg map_tb_key_to_event(struct tb_event *ev)
 
                 if (keyMatch && modsMatch) {
                         event.type = b->eventType;
-                        strncpy(event.args, b->args, sizeof(event.args));
+                        c_strcpy(event.args, b->args, sizeof(event.args));
                         event.args[sizeof(event.args) - 1] = '\0';
                         break;
                 }
