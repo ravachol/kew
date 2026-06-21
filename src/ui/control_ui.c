@@ -240,7 +240,7 @@ void cycle_themes(void)
         int current_index = -1;
         char current_filename[KEW_NAME_MAX];
 
-        strncpy(current_filename, ui->theme_name, sizeof(current_filename) - 1);
+        c_strcpy(current_filename, ui->theme_name, sizeof(current_filename) - 1);
         current_filename[sizeof(current_filename) - 1] = '\0';
 
         if (strlen(current_filename) + 6 < sizeof(current_filename))

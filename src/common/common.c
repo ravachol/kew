@@ -7,6 +7,7 @@
 #include "common.h"
 #include "common/appstate.h"
 #include "common/model.h"
+#include "utils/utils.h"
 
 #include <string.h>
 #include <signal.h>
@@ -29,7 +30,7 @@ void set_error_message(const char *message)
         if (message == NULL)
                 return;
 
-        strncpy(current_error_message, message, ERROR_MESSAGE_LENGTH - 1);
+        c_strcpy(current_error_message, message, ERROR_MESSAGE_LENGTH - 1);
         current_error_message[ERROR_MESSAGE_LENGTH - 1] = '\0';
         has_printed_error = false;
 
