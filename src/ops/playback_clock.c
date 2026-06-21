@@ -120,12 +120,14 @@ void calc_elapsed_time(double duration)
         }
 }
 
-bool set_position(gint64 new_position, double duration)
+bool set_position(gint64 new_position)
 {
+        Model *model = get_model();
+        double duration = model->song_duration;
+
         if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED)
                 return false;
 
-        Model *model = get_model();
         gint64 currentPositionMicroseconds =
             llround(model->elapsed_seconds * G_USEC_PER_SEC);
 

@@ -403,7 +403,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                         dragging_progress_bar = true;
 
                         gint64 newPosUs = (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
-                        set_position(newPosUs, model->song_duration);
+                        set_position(newPosUs);
 
                         event->type = MSG_SEEK;
 

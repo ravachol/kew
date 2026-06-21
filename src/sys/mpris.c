@@ -364,8 +364,7 @@ static void handle_set_position(GDBusConnection *connection,
         // - "x" is a 64-bit integer representing the position
         g_variant_get(parameters, "(&ox)", &track_id, &new_position);
 
-        Model *model = get_model();
-        success = set_position(new_position, model->song_duration);
+        success = set_position(new_position);
 
         if (success) {
                 // If setting the position was successful, return success with
@@ -973,9 +972,8 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
 
                         bool result = false;
 
-                        Model *model = get_model();
-                        result = set_position(new_position, model->song_duration);
-
+                        result = set_position(new_position);
+                        
                         return result;
 
                 } else {
