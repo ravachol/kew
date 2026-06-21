@@ -143,18 +143,23 @@ bool set_position(gint64 new_position, double duration)
 bool lock_and_set_position(gint64 new_position)
 {
         Model *model = get_model();
+        bool result = false;
+
         int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
 
         if (mutex_result != 0) {
                 fprintf(stderr, "lock_and_set_position: Failed to lock switch mutex.\n");
+                return false;
         }
 
         gint64 position_usec =
             (gint64)(new_position * G_USEC_PER_SEC);
 
-        set_position(position_usec, get_current_song_duration());
+        result = set_position(position_usec, get_current_song_duration());
 
         pthread_mutex_unlock(&(model->playbackState.switch_mutex));
+
+        return result;
 }
 
 bool seek_position(gint64 offset, double duration)
