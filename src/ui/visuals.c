@@ -471,7 +471,7 @@ void generate_all_visualizer_palettes(Model *model, int height)
 
         const unsigned char *cover = NULL;
         int cover_w = 0, cover_h = 0, cover_ch = 0;
-        if (model->songdata && model->songdata->cover) {
+        if (model->songdata_ok && model->songdata && model->songdata->cover) {
                 cover = model->songdata->cover;
                 cover_w = model->songdata->coverWidth;
                 cover_h = model->songdata->coverHeight;
@@ -926,7 +926,7 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
         const UISettings *ui = &model->state.settings;
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
-                color = model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
+                color = model->songdata_ok && model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
        } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 color = ui->color;
         } else if (ui->colorMode == COLOR_MODE_THEME &&

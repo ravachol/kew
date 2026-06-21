@@ -41,6 +41,9 @@ int get_num_progress_bars(void)
 
 void seek_forward(Model *model)
 {
+        if (!model->songdata_ok)
+                return;
+
         AppState *state = &model->state;
         Node *current = get_current_song();
         if (current == NULL)
@@ -72,6 +75,9 @@ void seek_forward(Model *model)
 
 void seek_back(Model *model)
 {
+        if (!model->songdata_ok)
+                return;
+
         AppState *state = &model->state;
         Node *current = get_current_song();
 

@@ -700,7 +700,7 @@ static void build_song_title(const Model *model, const UISettings *ui,
 {
         SongData *song_data = model->songdata;
 
-        if (!song_data || !song_data->metadata) {
+        if (!model->songdata_ok ||!song_data || !song_data->metadata) {
                 out[0] = '\0';
                 return;
         }
@@ -732,7 +732,7 @@ void now_playing(bool show_artist, const Model *model, k_Rect region, DrawBuffer
 {
         (void)dirty;
 
-        if (!model->songdata)
+        if (!model->songdata_ok || !model->songdata)
                 return;
 
         const UISettings *ui = &model->state.settings;
@@ -941,6 +941,9 @@ static int draw_cover_ascii(const TermSize *term_size, const char *path, int row
 
 ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
+        if(!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const AppState *state = &model->state;
         const SongData *songdata = model->songdata;
         const UISettings *ui = &state->settings;
@@ -1010,6 +1013,9 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
 {
         (void)dirty;
 
+        if(!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const AppState *state = &model->state;
         SongData *songdata = model->songdata;
 
@@ -1048,6 +1054,9 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 {
         (void)dirty;
 
+        if(!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const AppState *state = &model->state;
         SongData *songdata = model->songdata;
 
@@ -1081,6 +1090,9 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
 ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
+        if(!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const AppState *state = &model->state;
         SongData *songdata = model->songdata;
         const UISettings *ui = &state->settings;
@@ -1738,6 +1750,9 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 {
         (void)dirty;
 
+        if(!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const UISettings *ui = &model->state.settings;
         SongData *songdata = model->songdata;
 
@@ -1840,8 +1855,12 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
 
         int draw_col = region.col;
 
-        int elapsed_bars = calc_elapsed_bars(model->elapsed_seconds,
-                                             model->songdata ? model->songdata->duration : 0, region.width);
+        double duration = 0.0;
+
+        if(model->songdata_ok && model->songdata)
+                duration = model->songdata->duration;
+
+        int elapsed_bars = calc_elapsed_bars(model->elapsed_seconds, duration, region.width);
 
         CellStyle filled_style = cell_style_from_theme(ui->theme.progress_filled);
         CellStyle current_style = cell_style_from_theme(ui->theme.progress_elapsed);
@@ -1873,7 +1892,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
         }
 
         if ((empty.isAnsi &&
-             (!model->songdata || !model->songdata->cover)) ||
+             (!model->songdata_ok || !model->songdata || !model->songdata->cover)) ||
             (model->state.settings.colorMode == COLOR_MODE_DEFAULT)) {
 
                 // If it's missing a cover
@@ -2038,6 +2057,9 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
 {
         (void)dirty;
 
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const UISettings *ui = &model->state.settings;
         SongData *songdata = model->songdata;
 
@@ -2133,6 +2155,9 @@ ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, Dra
 {
         (void)dirty;
 
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+
         SongData *songdata = model->songdata;
         const UISettings *ui = &model->state.settings;
 
@@ -2150,6 +2175,10 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
 {
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
+
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+
         SongData *songdata = model->songdata;
 
         if (!songdata)
@@ -2296,6 +2325,9 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
 {
         (void)dirty;
 
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+
         const UISettings *ui = &model->state.settings;
         SongData *songdata = model->songdata;
 
@@ -2398,6 +2430,9 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
 
 ComponentMsg component_track_portrait_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+
         SongData *songdata = model->songdata;
 
         if (!songdata)
@@ -2426,6 +2461,9 @@ ComponentMsg component_track_portrait_lyrics(const Model *model, k_Rect region, 
 
 ComponentMsg component_track_landscape_lyrics(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+
         SongData *songdata = model->songdata;
 
         if (!songdata)
@@ -2506,6 +2544,9 @@ ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, D
 
 ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
+        if (!model->songdata_ok)
+                return (ComponentMsg){0};
+        
         SongData *songdata = model->songdata;
 
         if (!songdata)
