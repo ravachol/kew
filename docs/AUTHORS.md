@@ -45,6 +45,7 @@
 * Ruoyu Zhong @ZhongRuoyu <zhongruoyu@outlook.com>
 * Ryouji @soryu-ryouji <helloryouji@outlook.com>
 * Samuel @Samueru-sama
+* @toasteeeer
 * Vafone @vafone
 * Xplshn @xplshn
 * Zane Godden @mechatour

@@ -100,6 +100,8 @@ By @petoem. Suggested by @kewIT.
 
 - You can now access the lyrics page (press 'm') from any view. By @ravachol.
 
+- Lrc files don't need to be named exactly as the song file anymore. By @toasteeeer.
+
 #### Bug fixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
