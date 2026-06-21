@@ -377,7 +377,6 @@ static void handle_set_position(GDBusConnection *connection,
 
         if (mutex_result != 0) {
                 fprintf(stderr, "handle_set_position: Failed to lock switch mutex.\n");
-                return;
         } else {
                 double duration = get_current_song_duration();
                 success = set_position(new_position, duration);

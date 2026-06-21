@@ -19,6 +19,9 @@
 #include "ops/playback_state.h"
 #include "ops/playlist_ops.h"
 
+#include "common/events.h"
+#include "update/messages.h"
+
 void macos_process_events(void)
 {
         @autoreleasepool {
