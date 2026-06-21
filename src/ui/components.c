@@ -723,7 +723,7 @@ static void build_song_title(const Model *model, const UISettings *ui,
                 snprintf(out, out_size, "%s - %s",
                          song_data->metadata->artist, pretty_title);
         else {
-                strncpy(out, pretty_title, out_size - 1);
+                c_strcpy(out, pretty_title, out_size - 1);
                 out[out_size - 1] = '\0';
         }
 }

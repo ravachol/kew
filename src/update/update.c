@@ -75,7 +75,7 @@ void set_lyrics_line(Model *model)
         if (strcmp(model->state.ui.lyrics_line, prev_line) == 0)
                 return;
 
-        strncpy(prev_line, model->state.ui.lyrics_line, sizeof(prev_line) - 1);
+        c_strcpy(prev_line, model->state.ui.lyrics_line, sizeof(prev_line) - 1);
         prev_line[sizeof(prev_line) - 1] = '\0';
 }
 
