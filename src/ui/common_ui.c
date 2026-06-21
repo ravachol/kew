@@ -287,8 +287,8 @@ void apply_color(PixelData color)
  */
 
 struct interval {
-    uint32_t first;
-    uint32_t last;
+        uint32_t first;
+        uint32_t last;
 };
 
 // Auxiliary function for binary search in interval table
@@ -874,29 +874,35 @@ CellStyle cell_style_from_theme(ColorValue theme)
                         style.isAnsi = true;
                 } else {
                         Model *model = get_model();
-                        SongData *songdata = model->songdata;
 
-                        if (!songdata || !songdata->cover) {
+                        if (!model->songdata_ok) {
                                 style.fgAnsi = -1;
                                 style.isAnsi = true;
                         } else {
-                                switch (theme.ansiIndex) {
+                                SongData *songdata = model->songdata;
 
-                                case 101:
-                                        style.fg = model->state.settings.color;
-                                        break;
-                                case 102:
-                                        style.fg = songdata->kmeans_palette[0];
-                                        break;
-                                case 103:
-                                        style.fg = songdata->kmeans_palette[1];
-                                        break;
-                                case 104:
-                                        style.fg = songdata->kmeans_palette[2];
-                                        break;
-                                default:
-                                        style.fg = model->state.settings.color;
-                                        break;
+                                if (!songdata || !songdata->cover) {
+                                        style.fgAnsi = -1;
+                                        style.isAnsi = true;
+                                } else {
+                                        switch (theme.ansiIndex) {
+
+                                        case 101:
+                                                style.fg = model->state.settings.color;
+                                                break;
+                                        case 102:
+                                                style.fg = songdata->kmeans_palette[0];
+                                                break;
+                                        case 103:
+                                                style.fg = songdata->kmeans_palette[1];
+                                                break;
+                                        case 104:
+                                                style.fg = songdata->kmeans_palette[2];
+                                                break;
+                                        default:
+                                                style.fg = model->state.settings.color;
+                                                break;
+                                        }
                                 }
                         }
                 }
