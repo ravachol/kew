@@ -93,17 +93,19 @@ void c_usleep(int microseconds)
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-        if (dest && src && dest_size > 0) {
-                size_t src_length = strnlen(src, dest_size - 1);
-                if (src_length >= dest_size)
-                        src_length = dest_size - 1;
+    if (!dest || dest_size == 0)
+        return;
 
-                memcpy(dest, src, src_length);
+    if (!src) {
+        dest[0] = '\0';
+        return;
+    }
 
-                dest[src_length] = '\0';
-        } else if (dest && dest_size > 0) {
-                dest[0] = '\0';
-        }
+    size_t len = strnlen(src, dest_size - 1);
+
+
+    memcpy(dest, src, len);
+    dest[len] = '\0';
 }
 
 gint64 get_length_in_micro_sec(double duration)
