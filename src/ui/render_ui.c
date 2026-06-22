@@ -1203,6 +1203,7 @@ void render_ui(Model *model, RenderContext *ctx)
         if (model->dirty == DIRTY_ALL) {
                 memset(s_buf->dirty_rows, 0, s_buf->rows);
                 rebuild_layout(model);
+                ctx->render_often = false;
         }
 
         rendering = true;

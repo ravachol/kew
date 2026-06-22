@@ -456,6 +456,192 @@ void handle_cooldown(void)
         }
 }
 
+int read_input(char *seq, size_t seq_size)
+{
+        if (!seq || seq_size < 2)
+                return 0;
+
+        if (global.in.len == 0)
+                return 0;
+
+        int len = MIN(global.in.len, seq_size - 1);
+
+        memcpy(seq, global.in.buf, len);
+
+        memmove(global.in.buf,
+                global.in.buf + len,
+                global.in.len - len);
+
+        global.in.len -= len;
+
+        seq[len] = '\0';
+
+        return len;
+}
+
+#ifdef _WIN32
+
+// FIXME this should be one function that works on all platforms.
+// Duplicating this is a temporary measure (hopefully).
+// Btw, this function is the worst offender in the entire codebase.
+// It's a rest from the input handling before we hade decent things like termbox2.
+// It's only here because some things like multiple keypresses (100 for track 100) and some keys weren't working properly
+// through vanilla termbox2. But it should be redone.
+
+static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data)
+{
+        (void)source;
+        (void)cond;
+        (void)data;
+
+        bool cooldown2Elapsed = false;
+        int seq_length = 0;
+        char seq[MAX_SEQ_LEN];
+
+        if (is_cooldown_elapsed(COOLDOWN2_MS))
+                cooldown2Elapsed = true;
+
+        seq[0] = '\0';
+        Model *model = get_model();
+        // Drain all available input
+        while (1) {
+                if (model->state.ui.resumed_in_background)
+                        return FALSE;
+
+                if (global.in.len <= 0)
+                        break;
+
+                char tmp_seq[MAX_TMP_SEQ_LEN];
+                int len = read_input(tmp_seq, sizeof(tmp_seq));
+                if (len <= 0)
+                        break;
+
+                size_t seq_len = strnlen(seq, MAX_SEQ_LEN);
+                size_t remaining_space = MAX_SEQ_LEN - seq_len - 1;
+                if (remaining_space < (size_t)len)
+                        len = remaining_space;
+
+                memcpy(seq + seq_len, tmp_seq, len);
+                seq[seq_len + len] = '\0';
+                seq_length += len;
+        }
+
+        // If we got a sequence, convert to tb_event and handle
+        if (seq_length > 0) {
+                struct tb_event ev;
+                memset(&ev, 0, sizeof(ev));
+
+                // Feed the sequence into Termbox internal buffer
+                if (seq_length > 0) {
+                        bytebuf_nputs(&global.in, seq, seq_length); // feed entire sequence at once
+                }
+
+                struct tb_event last_ev;
+                memset(&last_ev, 0, sizeof(last_ev));
+                bool found_event = false;
+
+                struct Msg msg;
+                msg.type = MSG_NONE;
+                msg.args[0] = '\0';
+                msg.key[0] = '\0';
+
+                AppState *state = get_app_state();
+                if (state->currentView == SEARCH_VIEW) {
+                        // Process all characters in the buffer (e.g. IME commits
+                        // multiple characters at once)
+                        while (tb_peek_event(&ev, 0) == 0) {
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                if (!isMouseEvent) {
+                                        msg = handle_search_event(&ev, get_model());
+                                        if (msg.type == MSG_NONE)
+                                                msg = map_tb_key_to_event(&ev);
+                                }
+                        }
+                } else {
+
+                        // Extract all events in the buffer
+                        while (tb_peek_event(&ev, 0) == 0) {
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                if (isMouseEvent || map_tb_key_to_event(&ev).type != MSG_NONE) {
+                                        last_ev = ev;
+                                        found_event = true;
+                                }
+
+                                if (msg.type == MSG_SEEK) {
+                                        return TRUE;
+                                }
+                        }
+
+                        if (!found_event)
+                                return TRUE;
+
+                        // Process only the last event
+                        bool isMouseEvent = handle_mouse_event(&last_ev, &msg);
+                        if (!isMouseEvent) {
+
+                                msg = map_tb_key_to_event(&last_ev);
+                        }
+                }
+
+                if (isdigit(ev.ch) && msg.type == MSG_NONE) {
+
+                        if (digits_pressed_count == 0) {
+                                update_last_input_time();
+                        }
+
+                        if (digits_pressed_count < max_digits_pressed_count)
+                                digits_pressed[digits_pressed_count++] = ev.ch;
+                }
+
+                if (msg.type != MSG_NONE) {
+                        // Throttle scroll/seek/page events
+                        switch (msg.type) {
+                        case MSG_SCROLLUP:
+                        case MSG_SCROLLDOWN:
+                        case MSG_SEEKBACK:
+                        case MSG_SEEKFORWARD:
+                        case MSG_NEXT_PAGE:
+                        case MSG_PREV_PAGE:
+                        case MSG_NEXT:
+                        case MSG_PREV:
+                        case MSG_ENQUEUE:
+                        case MSG_ENQUEUEANDPLAY:
+                                if (should_throttle(&msg))
+                                        return TRUE;
+                                break;
+                        default:
+                                break;
+                        }
+
+                        // Handle seek/remove cooldown
+                        if (!cooldown2Elapsed &&
+                            (msg.type == MSG_REMOVE || msg.type == MSG_SEEKBACK ||
+                             msg.type == MSG_SEEKFORWARD))
+                                msg.type = MSG_NONE;
+                        else if (msg.type == MSG_REMOVE || msg.type == MSG_SEEKBACK ||
+                                 msg.type == MSG_SEEKFORWARD) {
+                                update_last_input_time();
+                        }
+
+                        // Forget Numbers
+                        if (msg.type != MSG_ENQUEUE &&
+                            msg.type != MSG_GOTOENDOFPLAYLIST && msg.type != MSG_NONE) {
+                                reset_digits_pressed();
+                        }
+
+                        dispatch_msg(msg);
+
+                        clear_error_message(); // Error messages are cleared when the user does something
+
+                        return TRUE;
+                }
+        }
+
+        return TRUE;
+}
+
+#else
+
 static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data)
 {
         (void)source;
@@ -611,6 +797,48 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
         return TRUE;
 }
 
+#endif
+
+#ifdef _WIN32
+
+static gboolean on_tb_input_idle(gpointer data)
+{
+        return on_tb_input(NULL, 0, data);
+}
+
+static DWORD WINAPI win_input_thread(void *arg)
+{
+        (void)arg;
+
+        while (1) {
+
+                INPUT_RECORD rec;
+                DWORD r;
+
+                if (!ReadConsoleInputA(global.hin, &rec, 1, &r))
+                        continue;
+
+                if (rec.EventType != KEY_EVENT || !rec.Event.KeyEvent.bKeyDown)
+                        continue;
+
+                char buf[64];
+
+                int len = encode_win_key_to_ansi(
+                    &rec.Event.KeyEvent,
+                    buf,
+                    sizeof(buf));
+
+                if (len > 0) {
+                        bytebuf_nputs(&global.in, buf, len);
+                        g_idle_add(on_tb_input_idle, NULL);
+                }
+        }
+
+        return 0;
+}
+
+#endif
+
 void init_input(void)
 {
         tb_init();
@@ -624,7 +852,13 @@ void init_input(void)
         int fd = tb_get_input_fd();
         GIOChannel *chan = g_io_channel_unix_new(fd);
         g_io_channel_set_encoding(chan, NULL, NULL); // binary
-        g_io_add_watch(chan, G_IO_IN, (GIOFunc)on_tb_input, NULL);
+
+#ifdef _WIN32
+        CreateThread(NULL, 0, win_input_thread, NULL, 0, NULL);
+#else
+        g_io_channel_set_encoding(chan, NULL, NULL);
+        g_io_add_watch(chan, G_IO_IN, on_tb_input, NULL);
+#endif
 }
 
 void shutdown_input(void)
