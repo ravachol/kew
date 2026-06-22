@@ -62,9 +62,11 @@ void process_d_bus_events(void)
 #ifdef USE_MACOS_MEDIA
         macos_process_events();
 #endif
-        while (g_main_context_pending(get_g_main_context())) {
-                g_main_context_iteration(get_g_main_context(), FALSE);
-        }
+
+        GMainContext *ctx = get_g_main_context();
+
+        // Process one batch of pending events
+        g_main_context_iteration(ctx, FALSE);
 }
 
 void resize(UIState *uis)
