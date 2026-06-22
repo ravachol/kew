@@ -19,7 +19,9 @@ cd kew
 
 mingw32-make -j
 
-mingw32-make install
+mingw32-make install PREFIX=/ucrt64
 
 kew
 ```
+
+The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can double-click on it to run it, but it works better if you first start c:\msys64\ucrt64.exe and run it from that terminal emulator.
