@@ -1579,50 +1579,50 @@ int tb_init(void)
 
 int tb_init_file(const char *path)
 {
-    (void)path;
+        (void)path;
 
-    if (global.initialized)
-        return TB_ERR_INIT_ALREADY;
+        if (global.initialized)
+                return TB_ERR_INIT_ALREADY;
 
-    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    if (hIn == INVALID_HANDLE_VALUE || hOut == INVALID_HANDLE_VALUE) {
-        global.last_errno = GetLastError();
-        return TB_ERR_INIT_OPEN;
-    }
+        if (hIn == INVALID_HANDLE_VALUE || hOut == INVALID_HANDLE_VALUE) {
+                global.last_errno = GetLastError();
+                return TB_ERR_INIT_OPEN;
+        }
 
-    DWORD mode;
-    if (!GetConsoleMode(hIn, &mode)) {
-        global.last_errno = GetLastError();
-        return TB_ERR_INIT_OPEN;
-    }
+        DWORD mode;
+        if (!GetConsoleMode(hIn, &mode)) {
+                global.last_errno = GetLastError();
+                return TB_ERR_INIT_OPEN;
+        }
 
-    global.hin = hIn;
-    global.hout = hOut;
+        global.hin = hIn;
+        global.hout = hOut;
 
-    global.ttyfd = -1;
-    global.rfd = -1;
-    global.wfd = -1;
+        global.ttyfd = -1;
+        global.rfd = -1;
+        global.wfd = -1;
 
-    global.ttyfd_open = 0;
-    global.input_mode &= TB_INPUT_ESC;
+        global.ttyfd_open = 0;
+        global.input_mode &= TB_INPUT_ESC;
 
-    int rv;
+        int rv;
 
-    do {
-        if_err_break(rv, init_term_caps());
-        if_err_break(rv, init_cap_trie());
-        if_err_break(rv, update_term_size());
+        do {
+                if_err_break(rv, init_term_caps());
+                if_err_break(rv, init_cap_trie());
+                if_err_break(rv, update_term_size());
 
-        global.initialized = 1;
-    } while (0);
+                global.initialized = 1;
+        } while (0);
 
-    if (rv != TB_OK) {
-        tb_deinit();
-    }
+        if (rv != TB_OK) {
+                tb_deinit();
+        }
 
-    return rv;
+        return rv;
 }
 
 #else
@@ -1732,9 +1732,15 @@ static int load_builtin_caps(void)
         int i, j;
         const char *term = getenv("TERM");
 
+#ifdef _WIN32
+        if (!term) {
+                term = "xterm-256color";
+        }
+#else
         if (!term) {
                 return TB_ERR_NO_TERM;
         }
+#endif
 
         // Check for exact TERM match
         for (i = 0; builtin_terms[i].name != NULL; i++) {
@@ -1834,32 +1840,32 @@ static int tb_reset(void)
 
 static int bytebuf_flush(struct bytebuf_t *b)
 {
-    if (b->len <= 0) {
-        return TB_OK;
-    }
-
-    DWORD written = 0;
-
-    HANDLE hout = global.hout;
-
-    // Try console output first
-    if (!WriteConsoleA(hout, b->buf, (DWORD)b->len, &written, NULL)) {
-
-        // Fallback: pipes / redirected output
-        if (!WriteFile(hout, b->buf, (DWORD)b->len, &written, NULL)) {
-            global.last_errno = GetLastError();
-            return TB_ERR;
+        if (b->len <= 0) {
+                return TB_OK;
         }
-    }
 
-    // We require full write (same behavior as your POSIX version)
-    if (written != b->len) {
-        global.last_errno = ERROR_WRITE_FAULT;
-        return TB_ERR;
-    }
+        DWORD written = 0;
 
-    b->len = 0;
-    return TB_OK;
+        HANDLE hout = global.hout;
+
+        // Try console output first
+        if (!WriteConsoleA(hout, b->buf, (DWORD)b->len, &written, NULL)) {
+
+                // Fallback: pipes / redirected output
+                if (!WriteFile(hout, b->buf, (DWORD)b->len, &written, NULL)) {
+                        global.last_errno = GetLastError();
+                        return TB_ERR;
+                }
+        }
+
+        // We require full write (same behavior as your POSIX version)
+        if (written != b->len) {
+                global.last_errno = ERROR_WRITE_FAULT;
+                return TB_ERR;
+        }
+
+        b->len = 0;
+        return TB_OK;
 }
 
 #else
@@ -2040,76 +2046,230 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c)
 
 #ifdef _WIN32
 
+static int fkey_code(int f)
+{
+        switch (f) {
+        case 1:
+                return 11;
+        case 2:
+                return 12;
+        case 3:
+                return 13;
+        case 4:
+                return 14;
+        case 5:
+                return 15;
+        case 6:
+                return 17;
+        case 7:
+                return 18;
+        case 8:
+                return 19;
+        case 9:
+                return 20;
+        case 10:
+                return 21;
+        case 11:
+                return 23;
+        case 12:
+                return 24;
+        default:
+                return 0;
+        }
+}
+
+static int encode_win_key_to_ansi(const KEY_EVENT_RECORD *k,
+                                  char *buf,
+                                  size_t bufsz)
+{
+        if (!k || bufsz == 0)
+                return 0;
+
+        DWORD vk = k->wVirtualKeyCode;
+        DWORD state = k->dwControlKeyState;
+
+        int len = 0;
+
+        // Printable Unicode input
+        if (k->uChar.UnicodeChar != 0) {
+
+                WCHAR wc = k->uChar.UnicodeChar;
+
+                len = WideCharToMultiByte(
+                    CP_UTF8, 0,
+                    &wc, 1,
+                    buf, (int)bufsz,
+                    NULL, NULL);
+
+                return len > 0 ? len : 0;
+        }
+
+        // Modifier helpers
+        int ctrl = (state & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+        int alt = (state & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+
+        // Ctrl+letter to single byte control codes
+        if (ctrl && vk >= 'A' && vk <= 'Z') {
+                buf[0] = (char)(vk - 'A' + 1);
+                return 1;
+        }
+
+// Alt+key to ESC prefix
+#define ALT_PREFIX()         \
+        do {                 \
+                buf[0] = 27; \
+                len = 1;     \
+        } while (0)
+
+        // Navigation keys (xterm)
+        switch (vk) {
+
+        case VK_LEFT:
+                memcpy(buf, "\x1b[D", 3);
+                return 3;
+        case VK_RIGHT:
+                memcpy(buf, "\x1b[C", 3);
+                return 3;
+        case VK_UP:
+                memcpy(buf, "\x1b[A", 3);
+                return 3;
+        case VK_DOWN:
+                memcpy(buf, "\x1b[B", 3);
+                return 3;
+
+        case VK_HOME:
+                memcpy(buf, "\x1b[H", 3);
+                return 3;
+        case VK_END:
+                memcpy(buf, "\x1b[F", 3);
+                return 3;
+
+        case VK_PRIOR:
+                memcpy(buf, "\x1b[5~", 4);
+                return 4;
+        case VK_NEXT:
+                memcpy(buf, "\x1b[6~", 4);
+                return 4;
+
+        case VK_DELETE:
+                memcpy(buf, "\x1b[3~", 4);
+                return 4;
+        case VK_INSERT:
+                memcpy(buf, "\x1b[2~", 4);
+                return 4;
+
+        case VK_BACK:
+                buf[0] = 0x7f; // ASCII DEL (preferred in terminals)
+                return 1;
+
+        // Enter
+        case VK_RETURN:
+                buf[0] = '\r';
+                return 1;
+
+        // Tab
+        case VK_TAB:
+                buf[0] = '\t';
+                return 1;
+
+        // Escape
+        case VK_ESCAPE:
+                buf[0] = 27;
+                return 1;
+
+        // Optional but sometimes useful
+        case VK_CANCEL:
+                buf[0] = 3; // Ctrl+C
+                return 1;
+
+        case VK_CLEAR:
+                memcpy(buf, "\x1b[Z", 3);
+                return 3;
+
+        // Function keys (F1–F12)
+        case VK_F1 ... VK_F12: {
+                int f = vk - VK_F1 + 1;
+                int code = fkey_code(f);
+
+                if (!code)
+                        return 0;
+
+                int mod = 0;
+                if (state & SHIFT_PRESSED)
+                        mod |= 1;
+                if (state & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED))
+                        mod |= 2;
+                if (state & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED))
+                        mod |= 4;
+
+                int xmod = 0;
+                switch (mod) {
+                case 0:
+                        xmod = 0;
+                        break;
+                case 1:
+                        xmod = 2;
+                        break;
+                case 2:
+                        xmod = 5;
+                        break;
+                case 3:
+                        xmod = 6;
+                        break;
+                case 4:
+                        xmod = 3;
+                        break;
+                case 5:
+                        xmod = 4;
+                        break;
+                case 6:
+                        xmod = 7;
+                        break;
+                case 7:
+                        xmod = 8;
+                        break;
+                }
+
+                if (xmod == 0)
+                        len = snprintf(buf, bufsz, "\x1b[%d~", code);
+                else
+                        len = snprintf(buf, bufsz, "\x1b[%d;%d~", code, xmod);
+
+                return len;
+        }
+        }
+
+        // Alt fallback
+        if (alt && k->uChar.UnicodeChar != 0) {
+                buf[0] = 27;
+                buf[1] = (char)k->uChar.UnicodeChar;
+                return 2;
+        }
+
+        return 0;
+}
+
 static int win_wait_event(struct tb_event *event, int timeout_ms)
 {
-        DWORD mode;
-        HANDLE hIn;
-        DWORD wait;
-        INPUT_RECORD rec;
-        DWORD nread;
-
         memset(event, 0, sizeof(*event));
 
-        // First try buffered events (your existing parser)
         int rv = extract_event(event);
         if (rv == TB_OK)
                 return TB_OK;
 
-        hIn = GetStdHandle(STD_INPUT_HANDLE);
-        if (hIn == INVALID_HANDLE_VALUE)
-                return TB_ERR_POLL;
+        if (timeout_ms == 0)
+                return TB_ERR_NO_EVENT;
 
-        // Optional: ensure we can receive key events
-        GetConsoleMode(hIn, &mode);
+        DWORD sleep_ms = (timeout_ms < 0) ? 10 : (DWORD)timeout_ms;
 
-        for (;;) {
+        Sleep(sleep_ms);
 
-                DWORD timeout = (timeout_ms < 0)
-                                    ? INFINITE
-                                    : (DWORD)timeout_ms;
+        rv = extract_event(event);
+        if (rv == TB_OK)
+                return TB_OK;
 
-                wait = WaitForSingleObject(hIn, timeout);
-
-                if (wait == WAIT_TIMEOUT)
-                        return TB_ERR_NO_EVENT;
-
-                if (wait == WAIT_FAILED) {
-                        global.last_errno = GetLastError();
-                        return TB_ERR_POLL;
-                }
-
-                // Read console input events
-                if (!ReadConsoleInputA(hIn, &rec, 1, &nread)) {
-                        global.last_errno = GetLastError();
-                        return TB_ERR_READ;
-                }
-
-                if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown) {
-
-                        // Convert key event into your internal buffer format
-                        // (this depends on your extract_event() design)
-
-                        char buf[16];
-                        int len = 0;
-
-                        // Simple ASCII fallback
-                        if (rec.Event.KeyEvent.uChar.AsciiChar) {
-                                buf[len++] = rec.Event.KeyEvent.uChar.AsciiChar;
-                        }
-
-                        if (len > 0)
-                                bytebuf_nputs(&global.in, buf, len);
-                }
-
-                rv = extract_event(event);
-                if (rv == TB_OK)
-                        return TB_OK;
-
-                if (timeout_ms >= 0)
-                        return TB_ERR_NO_EVENT;
-        }
+        return TB_ERR_NO_EVENT;
 }
-
 #else
 
 static int posix_wait_event(struct tb_event *event, int timeout_ms)
@@ -2432,10 +2592,8 @@ static int win_update_term_size(void)
 {
         CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-        int fd = global.wfd;
-
-        HANDLE h = (HANDLE)_get_osfhandle(fd);
-        if (h == INVALID_HANDLE_VALUE)
+        HANDLE h = global.hout;
+        if (h == INVALID_HANDLE_VALUE || h == NULL)
                 return TB_ERR_RESIZE_IOCTL;
 
         if (!GetConsoleScreenBufferInfo(h, &csbi))
