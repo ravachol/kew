@@ -32,7 +32,7 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 
 -The Spectrum Visualizer is too slow, disable by pressing v a few times.
 
--.m4a files don't work. I haven't tried all formats but mp3 work so flacs should work as well.
+-.m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
 -Chafa covers don't work, although chafa is installed and so on. So ASCII covers is the default in
 Windows.
