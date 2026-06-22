@@ -867,7 +867,12 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->allowNotifications, "1",
                  sizeof(settings->allowNotifications));
 #endif
+
+#ifdef _WIN32
+        c_strcpy(settings->coverAnsi, "1", sizeof(settings->coverAnsi));
+#else
         c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
+#endif
         c_strcpy(settings->coverStyle, "auto", sizeof(settings->coverStyle));
         c_strcpy(settings->quitAfterStopping, "0",
                  sizeof(settings->quitAfterStopping));
