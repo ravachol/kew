@@ -860,8 +860,13 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled));
         c_strcpy(settings->stripTrackNumbers, "1",
                  sizeof(settings->stripTrackNumbers));
+#ifdef _WIN32
+        c_strcpy(settings->allowNotifications, "0",
+                 sizeof(settings->allowNotifications));
+#else
         c_strcpy(settings->allowNotifications, "1",
                  sizeof(settings->allowNotifications));
+#endif
         c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
         c_strcpy(settings->coverStyle, "auto", sizeof(settings->coverStyle));
         c_strcpy(settings->quitAfterStopping, "0",
