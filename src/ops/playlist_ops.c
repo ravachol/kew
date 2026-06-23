@@ -28,6 +28,7 @@
 
 #include "sys/sys_integration.h"
 
+#include "ui/components.h"
 #include "utils/file.h"
 #include "utils/utils.h"
 
@@ -366,7 +367,6 @@ void switch_to_next_song(void)
                 return;
         }
 
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
         // Stop if there is no song or no next song
@@ -400,7 +400,7 @@ void switch_to_next_song(void)
         }
 
         if (is_shuffle_enabled())
-                state->ui.resetPlaylistDisplay = true;
+                component_playlist_helper_update_view_state(model);
 
         double total_pause_seconds = get_total_pause_seconds();
         double pause_seconds = get_total_pause_seconds();
@@ -590,9 +590,14 @@ void handle_remove(int chosen_row)
         Node *node = NULL;
 
         if (model->state.currentView == PLAYLIST_VIEW) {
+                Node *current = get_current_song();
                 node = find_selected_entry(unshuffled_playlist, chosen_row);
+                if (current && node && node->id == current->id)
+                        set_dirty(DIRTY_ALL);
+                else
+                        set_dirty(DIRTY_PLAYLIST);
+
                 remove_song(node);
-                set_dirty(DIRTY_PLAYLIST);
         } else {
                 Node *current = get_current_song();
                 if (current)
@@ -601,6 +606,7 @@ void handle_remove(int chosen_row)
                 if (is_paused() && current->id == node->id) {
                         switch_to_next_song();
                 }
+
                 remove_song(node);
 
                 Node *next = get_next_song();
