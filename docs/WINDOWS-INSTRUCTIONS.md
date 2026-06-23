@@ -47,3 +47,5 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 - Mouse support.
 
 - Alt+Enter for search maximizes the windoww.
+
+- Backspace doesn't always work.
