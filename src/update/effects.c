@@ -1,10 +1,12 @@
 #include "effects.h"
 
+#include "common/appstate.h"
 #include "common/common.h"
 
 #include "messages.h"
 
 #include "ui/chroma.h"
+#include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/queue_ui.h"
 #include "ui/render_ui.h"
@@ -269,10 +271,16 @@ void run_command(UpdateResult result)
 
         case CMD_NEXT:
                 switch_to_next_song();
+                model->songdata = get_current_song_data(model->songdata);
+                model->state.ui.resetPlaylistDisplay = true;
+                component_playlist_helper_update_view_state(model);
                 break;
 
         case CMD_PREV:
                 switch_to_prev_song();
+                model->songdata = get_current_song_data(model->songdata);
+                model->state.ui.resetPlaylistDisplay = true;
+                component_playlist_helper_update_view_state(model);
                 break;
 
         case CMD_SEEK_BACK:
@@ -306,12 +314,16 @@ void run_command(UpdateResult result)
         case CMD_REMOVE:
                 handle_remove(model->state.ui.chosen_row);
                 reset_list_after_dequeuing_playing_song();
+                model->state.ui.resetPlaylistDisplay = true;
+                component_playlist_helper_update_view_state(model);
+                model->songdata = get_current_song_data(model->songdata);
                 break;
 
         case CMD_CLEAR_PLAYLIST: {
-                AppState *state = get_app_state();
                 clear_playlist();
-                state->ui.resetPlaylistDisplay = true;
+                model->state.ui.resetPlaylistDisplay = true;
+                component_playlist_helper_update_view_state(model);
+                model->songdata = get_current_song_data(model->songdata);
                 break;
         }
 
