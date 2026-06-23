@@ -23,6 +23,7 @@
 
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
+#include "ui/components.h"
 #include "utils/utils.h"
 #include <stdbool.h>
 
