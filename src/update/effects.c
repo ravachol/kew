@@ -314,7 +314,6 @@ void run_command(UpdateResult result)
         case CMD_REMOVE:
                 handle_remove(model->state.ui.chosen_row);
                 reset_list_after_dequeuing_playing_song();
-                model->state.ui.resetPlaylistDisplay = true;
                 component_playlist_helper_update_view_state(model);
                 model->songdata = get_current_song_data(model->songdata);
                 break;
