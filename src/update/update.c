@@ -616,10 +616,12 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_ADDTOFAVORITESPLAYLIST:
                 result.cmd.type = CMD_ADD_TO_FAVORITES;
+                dispatch_msg((struct Msg){.type = MSG_UPDATELIBRARY});
                 break;
 
         case MSG_EXPORTPLAYLIST:
                 result.cmd.type = CMD_EXPORT_PLAYLIST;
+                dispatch_msg((struct Msg){.type = MSG_UPDATELIBRARY});
                 break;
 
         case MSG_UPDATELIBRARY:
