@@ -65,6 +65,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "update/messages.h"
 #include "update/update.h"
 
+#include "loader/song_loader.h"
+
 #include "ops/library_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
@@ -167,6 +169,8 @@ void player_tick(Model *model, RenderContext *ctx)
 void kew_shutdown()
 {
         Model *model = get_model();
+
+        unload_song_data(&model->songdata);
 
         shutdown_sound_system();
 
