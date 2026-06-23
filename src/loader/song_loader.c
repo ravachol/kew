@@ -468,6 +468,10 @@ SongData *song_data_clone(const SongData *src)
         if (!src)
                 return NULL;
 
+        LoaderData *loader_data = get_loader_data();
+
+        pthread_mutex_lock(&(loader_data->mutex));
+
         SongData *dst = calloc(1, sizeof(*dst));
         if (!dst)
                 return NULL;
@@ -546,9 +550,12 @@ SongData *song_data_clone(const SongData *src)
                 }
         }
 
+        pthread_mutex_unlock(&(loader_data->mutex));
+
         return dst;
 
 error:
+        pthread_mutex_unlock(&(loader_data->mutex));
         unload_song_data(&dst);
         return NULL;
 }
