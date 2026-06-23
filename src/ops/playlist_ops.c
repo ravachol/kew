@@ -108,6 +108,7 @@ void stop_and_clear_current_song(void)
         emit_playback_stopped();
         sound_system_clear_current_track(sound_sys);
         clear_current_song();
+        set_dirty(DIRTY_SONG);
 }
 
 void remove_currently_playing_song(void)

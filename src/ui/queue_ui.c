@@ -415,5 +415,7 @@ void view_enqueue(bool play_immediately)
                 emit_boolean_property_changed("can_go_next", couldGoNext);
         }
 
+        model->songdata = get_current_song_data(model->songdata);
+
         atomic_store(&enqueueing, false);
 }
