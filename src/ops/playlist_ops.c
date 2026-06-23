@@ -593,7 +593,10 @@ void handle_remove(int chosen_row)
                 Node *current = get_current_song();
                 node = find_selected_entry(unshuffled_playlist, chosen_row);
                 if (current && node && node->id == current->id)
+                {
+                        model->state.ui.resetPlaylistDisplay = true;
                         set_dirty(DIRTY_ALL);
+                }
                 else
                         set_dirty(DIRTY_PLAYLIST);
 
@@ -604,6 +607,7 @@ void handle_remove(int chosen_row)
                         node = find_selected_entry_by_id(unshuffled_playlist, current->id);
 
                 if (is_paused() && current->id == node->id) {
+                        model->state.ui.resetPlaylistDisplay = true;
                         switch_to_next_song();
                 }
 
