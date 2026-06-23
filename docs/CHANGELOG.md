@@ -102,6 +102,8 @@ By @petoem. Suggested by @kewIT.
 
 - Lrc files don't need to be named exactly as the song file anymore. By @toasteeeer.
 
+- Playlist position and total songs now appear on the time line in track view. By @ravachol. Suggested by @thedyze.
+
 #### Bug fixes
 
 - Regression bug: Songs that can't be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.
