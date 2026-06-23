@@ -463,9 +463,94 @@ void load_meta_data(SongData *songdata)
                        &(songdata->coverHeight));
 }
 
-void asdf()
+SongData *song_data_clone(const SongData *src)
 {
+        if (!src)
+                return NULL;
 
+        SongData *dst = calloc(1, sizeof(*dst));
+        if (!dst)
+                return NULL;
+
+        // Copy all value fields
+        *dst = *src;
+
+        // Clear owned pointers
+        dst->track_id = NULL;
+        dst->metadata = NULL;
+        dst->cover = NULL;
+        dst->lyrics = NULL;
+
+        // Track_id
+        if (src->track_id) {
+                dst->track_id = g_strdup(src->track_id);
+                if (!dst->track_id)
+                        goto error;
+        }
+
+        // Metadata
+        if (src->metadata) {
+                dst->metadata = malloc(sizeof(*dst->metadata));
+                if (!dst->metadata)
+                        goto error;
+
+                *dst->metadata = *src->metadata;
+        }
+
+        // Deep-copy cover bitmap (must be RGBA)
+        if (src->cover &&
+            src->coverWidth > 0 &&
+            src->coverHeight > 0) {
+
+                size_t cover_size =
+                        (size_t)src->coverWidth *
+                        (size_t)src->coverHeight * 4;
+
+                dst->cover = malloc(cover_size);
+                if (!dst->cover)
+                        goto error;
+
+                memcpy(dst->cover, src->cover, cover_size);
+        }
+
+        // Deep-copy lyrics
+        if (src->lyrics) {
+                dst->lyrics = calloc(1, sizeof(*dst->lyrics));
+                if (!dst->lyrics)
+                        goto error;
+
+                dst->lyrics->count = src->lyrics->count;
+                dst->lyrics->max_length = src->lyrics->max_length;
+                dst->lyrics->isTimed = src->lyrics->isTimed;
+
+                if (src->lyrics->count > 0) {
+                        dst->lyrics->lines =
+                                calloc(src->lyrics->count,
+                                       sizeof(*dst->lyrics->lines));
+
+                        if (!dst->lyrics->lines)
+                                goto error;
+
+                        for (size_t i = 0; i < src->lyrics->count; i++) {
+                                dst->lyrics->lines[i].timestamp =
+                                        src->lyrics->lines[i].timestamp;
+
+                                if (src->lyrics->lines[i].text) {
+                                        dst->lyrics->lines[i].text =
+                                                g_strdup(src->lyrics->lines[i].text);
+
+                                        if (!dst->lyrics->lines[i].text)
+                                                goto error;
+                                }
+                        }
+                }
+        }
+
+        return dst;
+
+error:
+        unload_song_data(&dst);
+        return NULL;
 }
 
 SongData *load_song_data(char *file_path)

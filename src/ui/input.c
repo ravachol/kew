@@ -296,7 +296,8 @@ enum MsgType get_mouse_last_row_event(int mouse_x_on_last_row, const char *foote
                 break;
         }
 
-        if (result == MSG_SHOWTRACK && get_current_song_data() == NULL) {
+        Model *model = get_model();
+        if (result == MSG_SHOWTRACK && model->songdata == NULL) {
                 result = MSG_SHOWLIBRARY;
         }
 
