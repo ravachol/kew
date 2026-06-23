@@ -2017,10 +2017,6 @@ ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, Dr
 
         const UISettings *ui = &model->state.settings;
 
-        int progress_width = 39;
-        if (region.width < progress_width)
-                return (ComponentMsg){0};
-
         double elapsed_seconds = model->elapsed_seconds;
         double total_seconds = model->song_duration;
         int vol = model->volume;
