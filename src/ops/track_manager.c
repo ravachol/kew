@@ -368,6 +368,8 @@ void handle_metadata_switch(void)
 
         reset_clock();
         clock_add_offset(-enter_song_at_ms);
+
+        component_playlist_helper_update_view_state(model);
 }
 
 void load_waiting_music(void)
