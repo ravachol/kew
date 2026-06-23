@@ -157,6 +157,8 @@ void run_tick_commands(Model *model)
         if (ps->notifySwitch) {
                 ps->notifySwitch = false;
 
+                component_playlist_helper_update_view_state(model);
+
                 if (model->songdata_ok && model->songdata) {
                         notify_mpris_switch(model->songdata);
 
