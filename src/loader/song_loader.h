@@ -106,6 +106,17 @@ void unload_song_data(SongData **songdata);
  */
 int song_loader_init(void);
 
+
+/**
+ * @brief Deep copies a songdata.
+ *
+ * @param src The songdata to be copied.
+ * @return The copy of src.
+ *
+ * @note This assumes that the cover is loaded using 4 byes (RGBA).
+ */
+SongData *song_data_clone(const SongData *src);
+
 /**
  * @brief Destroys the song loader module and releases allocated resources.
  *
