@@ -1805,6 +1805,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 char pretty_title[PATH_MAX + 1];
                 pretty_title[0] = '\0';
+
                 process_name(metadata->title, pretty_title, max_width, false, false);
 
                 int frame = model->title_delay.frame;
@@ -1826,15 +1827,14 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         }
 
                         memcpy(current_text, pretty_title, byte_pos);
+
                         current_text[byte_pos] = '\0';
 
                         snprintf(display, sizeof(display), "%s█", current_text);
 
-                        draw_buffer_set_string_truncated(buf, region.row, region.col,
-                                                         display, max_width, style);
+                        draw_buffer_set_string_truncated(buf, region.row, region.col, display, max_width, style);
                 } else {
-                        draw_buffer_set_string_truncated(buf, region.row, region.col,
-                                                         pretty_title, max_width, style);
+                        draw_buffer_set_string_truncated(buf, region.row, region.col, pretty_title, max_width, style);
                 }
         }
 
@@ -2546,7 +2546,7 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
 {
         if (!model->songdata_ok)
                 return (ComponentMsg){0};
-        
+
         SongData *songdata = model->songdata;
 
         if (!songdata)
