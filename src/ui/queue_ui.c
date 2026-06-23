@@ -22,6 +22,7 @@
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
 
+#include "ui/components.h"
 #include "utils/utils.h"
 #include <ctype.h>
 #include <stdbool.h>
@@ -364,7 +365,7 @@ void view_enqueue(bool play_immediately)
                 if (is_digits_pressed() == 0) {
                         playlist_play(playlist);
                 } else {
-                        state->ui.resetPlaylistDisplay = true;
+                        component_playlist_helper_update_view_state(model);
                         int song_number = get_number_from_string(get_digits_pressed());
                         reset_digits_pressed();
 
