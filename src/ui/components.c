@@ -1669,15 +1669,17 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
                          get_binding_string(MSG_CLEARPLAYLIST, true));
 
 #ifndef __APPLE__
-                snprintf(line2, sizeof(line2), _(" Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s."),
+                snprintf(line2, sizeof(line2), _(" Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s. Save:%s"),
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
-                         get_binding_string(MSG_MOVESONGDOWN, true));
+                         get_binding_string(MSG_MOVESONGDOWN, true),
+                         get_binding_string(MSG_EXPORTPLAYLIST, true));
 #else
-                snprintf(line2, sizeof(line2), _(" Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s."),
+                snprintf(line2, sizeof(line2), _(" Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"),
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
-                         get_binding_string(MSG_MOVESONGDOWN, true));
+                         get_binding_string(MSG_MOVESONGDOWN, true),
+                         get_binding_string(MSG_EXPORTPLAYLIST, true));
 #endif
 
                 draw_buffer_set_string(buf, row, col, line1, style);
