@@ -130,7 +130,7 @@ void determine_song_and_notify(void)
         SongData *current_song_data = NULL;
         bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
         Node *current = get_current_song();
-        current_song_data = get_current_song_data();
+        model->songdata = get_current_song_data(model->songdata);
 
         if (current_song_data && current) {
                 current->song.duration = current_song_data->duration;
@@ -139,8 +139,6 @@ void determine_song_and_notify(void)
         if (state->ui.lastNotifiedId != current->id) {
                 if (!isDeleted) {
                         notify_song_switch(current_song_data);
-
-                        set_dirty(DIRTY_ALL);
                 }
         } else
                 get_playback_state()->notifySwitch = true;
@@ -340,8 +338,6 @@ void handle_metadata_switch(void)
         } else {
                 model->state.ui.metadata_switched = true;
         }
-
-        set_dirty(DIRTY_ALL);
 
         Node *current = get_current_song();
 

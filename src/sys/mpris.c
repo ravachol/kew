@@ -548,7 +548,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                 return FALSE;
         }
 
-        SongData *current_song_data = get_current_song_data();
+        SongData *current_song_data = model->songdata;
 
         GVariantBuilder metadata_builder;
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
@@ -973,7 +973,7 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         bool result = false;
 
                         result = set_position(new_position);
-                        
+
                         return result;
 
                 } else {

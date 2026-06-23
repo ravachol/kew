@@ -117,10 +117,12 @@ void set_volume(int vol);
  *
  * Returns the validated SongData associated with the current playlist entry.
  * Ensures the data is not deleted and contains valid metadata.
+ * The previous_songdata is returned if the one fetched is the same, otherwise a deep copy is returned and the previous_songdata is freed.
  *
+ * @param previous_songdata The previous songdata
  * @return Pointer to the active SongData, or NULL if unavailable or invalid.
  */
-SongData *get_current_song_data(void);
+SongData *get_current_song_data(SongData *previous_songdata);
 
 int get_current_sample_rate(void);
 

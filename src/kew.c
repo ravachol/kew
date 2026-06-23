@@ -101,15 +101,30 @@ GMainLoop *main_loop;
  */
 void player_tick(Model *model, RenderContext *ctx)
 {
+        // Run MSG_TICK first so the songdata variable is set at the very start
+        // Otherwise we get stale pointers and used after free, because we are using an old songdata from a previous lock.
+        struct Msg msg = (struct Msg){.type = MSG_TICK};
+
+        // Update the model
+        UpdateResult res = update(model, &msg);
+
+        // Run commands
+        run_command(res);
+
         // Process all pending messages
         while (has_pending_msgs()) {
-                struct Msg msg = next_msg();
+                struct Msg msg = {0};
 
-                // Update the model
-                UpdateResult res = update(model, &msg);
+                bool has_msg = next_msg(&msg);
 
-                // Run commands
-                run_command(res);
+                if (has_msg)
+                {
+                        // Update the model
+                        UpdateResult res = update(model, &msg);
+
+                        // Run commands
+                        run_command(res);
+                }
         }
 
         if (can_refresh_player()) {
@@ -128,18 +143,19 @@ void player_tick(Model *model, RenderContext *ctx)
 
         // Process all side effects
         while (has_pending_msgs()) {
-                struct Msg msg = next_msg();
+                struct Msg msg = {0};
 
+                bool has_msg = next_msg(&msg);
+
+                if (has_msg)
+                {
                 // Update the model
                 UpdateResult res = update(model, &msg);
 
                 // Run commands
                 run_command(res);
+                }
         }
-
-        // Dispatch Tick msg last so the next update call sets the songdata variables at the very start
-        // Otherwise we get stale pointers and used after free, because we are using an old songdata from a previous lock.
-        dispatch_msg((struct Msg){.type = MSG_TICK});
 }
 
 /**
@@ -423,8 +439,6 @@ void create_loop(void)
         install_signal_handlers(main_loop);
 
         Model *model = get_model();
-
-        dispatch_msg((struct Msg){.type = MSG_TICK});
 
         g_timeout_add(model->tick, mainloop_callback, main_loop);
         g_main_loop_run(main_loop);

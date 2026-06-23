@@ -360,7 +360,7 @@ UpdateResult update(Model *model, struct Msg *msg)
         switch (msg->type) {
 
         case MSG_TICK:
-                model->songdata = get_current_song_data();
+                model->songdata = get_current_song_data(model->songdata);
 
                 model->songdata_ok = (model->songdata && model->songdata->metadata &&
                                       !model->songdata->hasErrors && (model->songdata->hasErrors < 1));
