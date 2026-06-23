@@ -775,6 +775,7 @@ void init_state(void)
         state->ui.footer_row = 0;
         state->ui.footer_col = 0;
 
+        state->ui.chosen_row = 0;
         state->ui.chosen_dir = NULL;
         state->ui.start_iter = 0;
         state->ui.previous_chosen_song = 0;

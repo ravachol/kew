@@ -2028,6 +2028,9 @@ ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, Dr
         char line[256];
         int pos = 0;
 
+        int count = model->playlist->count;
+        int current = model->state.ui.chosen_row + 1;
+
         // Time
         if (total_seconds >= 3600) {
                 int eh = (int)(elapsed_seconds / 3600);
@@ -2046,7 +2049,7 @@ ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, Dr
                 int tm = (int)(total_seconds / 60);
                 int ts = (int)total_seconds % 60;
 
-                pos += snprintf(line + pos, sizeof(line) - pos, "%d:%02d / %d:%02d Vol:%d%%", em, es, tm, ts, vol);
+                pos += snprintf(line + pos, sizeof(line) - pos, "%d:%02d / %d:%02d Vol:%d%% (%d/%d)", em, es, tm, ts, vol, current, count);
         }
 
         CellStyle style = cell_style_from_theme(ui->theme.trackview_time);
@@ -2078,6 +2081,9 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
         char line[256];
         int pos = 0;
 
+        int count = model->playlist->count;
+        int current = model->state.ui.chosen_row + 1;
+
         // Time
         if (total_seconds >= 3600) {
                 int eh = (int)(elapsed_seconds / 3600);
@@ -2089,8 +2095,8 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
                 int pct = (int)((elapsed_seconds / total_seconds) * 100);
 
                 pos += snprintf(line + pos, sizeof(line) - pos,
-                                "%02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
-                                eh, em, es, th, tm, ts, pct, vol);
+                                "%02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%% (%d/%d)",
+                                eh, em, es, th, tm, ts, pct, vol, current, count);
         } else {
                 int em = (int)(elapsed_seconds / 60);
                 int es = (int)elapsed_seconds % 60;
@@ -2101,8 +2107,8 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
                               : 0;
 
                 pos += snprintf(line + pos, sizeof(line) - pos,
-                                "%d:%02d / %d:%02d (%d%%) Vol:%d%%",
-                                em, es, tm, ts, pct, vol);
+                                "%d:%02d / %d:%02d (%d%%) Vol:%d%% (%d/%d)",
+                                em, es, tm, ts, pct, vol, current, count);
         }
 
         // Sample Rate
