@@ -915,8 +915,7 @@ int calc_indent_normal()
 
 void calc_indent(Model *model)
 {
-        if (!model->songdata_ok ||
-            (model->state.currentView == TRACK_VIEW && model->songdata == NULL) ||
+        if (!model->songdata_ok || !model->songdata ||
             model->state.currentView != TRACK_VIEW) {
                 model->indent = calc_indent_normal();
         } else {

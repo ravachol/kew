@@ -18,9 +18,9 @@ bool has_pending_msgs(void);
 
 /**
  * @brief returns the next message in the message queue
- *
- * @return msg
+ * @param msg The message
+ * @return True if there is a message.
  */
-struct Msg next_msg(void);
+bool next_msg(struct Msg *msg);
 
 void reset_msg_queue_pointers(void);

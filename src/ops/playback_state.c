@@ -13,6 +13,8 @@
 
 #include "sound/sound_facade.h"
 
+#include "loader/song_loader.h"
+
 int shuffle_enabled;
 
 bool is_shuffle_enabled(void)
@@ -86,10 +88,10 @@ bool is_current_song_deleted(void)
         return sound_system_is_current_song_deleted(sound_sys);
 }
 
-bool is_valid_song(SongData *song_data)
+bool is_valid_song(SongData *songdata)
 {
-        return song_data != NULL && song_data->hasErrors == false &&
-               song_data->metadata != NULL;
+        return songdata != NULL && songdata->hasErrors == false && songdata->magic == SONG_MAGIC &&
+               songdata->metadata != NULL;
 }
 
 int get_volume()
@@ -106,7 +108,7 @@ void set_volume(int vol)
         model->volume = sound_system_get_volume(sound_sys) * 100;
 }
 
-SongData *get_current_song_data(void)
+SongData *get_current_song_data(SongData *previous_songdata)
 {
         if (get_current_song() == NULL)
                 return NULL;
@@ -114,20 +116,28 @@ SongData *get_current_song_data(void)
         if (is_current_song_deleted())
                 return NULL;
 
-        SongData *song_data = NULL;
-
-        song_data = sound_system_get_current_song(sound_sys);
-
         bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
 
         if (isDeleted && !sound_system_no_song_loaded(sound_sys))
                 sound_system_switch_song_immediate(sound_sys);
-
         if (isDeleted)
                 return NULL;
+
+        SongData *song_data = NULL;
+        song_data = sound_system_get_current_song(sound_sys);
 
         if (!is_valid_song(song_data))
                 return NULL;
 
-        return song_data;
+        if (previous_songdata && strcmp(previous_songdata->track_id, song_data->track_id) == 0)
+                return previous_songdata;
+        else
+                unload_song_data(&previous_songdata);
+
+        set_dirty(DIRTY_ALL);
+
+        Model *model = get_model();
+        model->playbackState.notifySwitch = 1;
+
+        return song_data_clone(song_data);
 }

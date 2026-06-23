@@ -208,14 +208,13 @@ Lyrics *loadLyricsFromLRC(const char *path,SongData *songdata)
                 char *slash = strrchr(lrcPath, '/');
                 if (!slash || slash == lrcPath)
                         return nullptr;
-                
+
                 char curFolder[PATH_MAX];
                 if (snprintf(curFolder, slash - lrcPath + 1, "%s", lrcPath) >= PATH_MAX)
                         return nullptr;
 
                 file = fopen(findLRC(curFolder,corrTitle),"r");
                 if (!file){
-                        fprintf(stderr,"Failed to load lyrics: %s\n",lrcPath);
                         return nullptr;
                 }
         }
