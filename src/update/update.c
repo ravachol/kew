@@ -50,7 +50,6 @@
 // Threading
 // Anything non-deterministic or external
 
-
 size_t string_hash(const char *str)
 {
         if (str == NULL)
@@ -122,6 +121,12 @@ void view_changed(Model *model)
         model->state.ui.resetPlaylistDisplay = true;
         model->name_scroll.active = false;
         model->title_delay.active = false;
+
+        if (model->state.currentView == PLAYLIST_VIEW)
+                component_playlist_helper_update_view_state(model);
+
+        if (model->state.currentView == LIBRARY_VIEW)
+                component_library_helper_update_view_state(model);
 
         set_dirty(DIRTY_ALL);
 }
@@ -217,8 +222,8 @@ void scroll_next(Model *model)
 
                                 if (!(model->state.ui.current_lib_entry && model->state.ui.current_lib_entry->children &&
                                       model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
-                                        (model->state.ui.current_lib_entry->parent->parent && model->state.ui.current_lib_entry->parent->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
-                                (model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id && !model->state.ui.current_lib_entry->next))
+                                    (model->state.ui.current_lib_entry->parent->parent && model->state.ui.current_lib_entry->parent->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
+                                    (model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id && !model->state.ui.current_lib_entry->next))
                                         library_collapse_view(model, 1);
                         } else {
                                 library_collapse_view(model, 1);
@@ -466,11 +471,9 @@ UpdateResult update(Model *model, struct Msg *msg)
                 RenderContext *ctx = get_render_context();
                 model->state.ui.render_often = ctx->render_often;
                 model->state.ui.render_search = ctx->render_search;
-                if (model->state.ui.rendered)
-                {
+                if (model->state.ui.rendered) {
                         set_dirty(DIRTY_NONE);
-                }
-                else {
+                } else {
                         set_dirty(DIRTY_ALL);
                 }
                 result.cmd.type = CMD_RENDERED;
@@ -538,8 +541,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView != TRACK_VIEW) {
                         switch_view(TRACK_VIEW);
                         model->state.ui.showLyricsPage = true;
-                }
-                else {
+                } else {
                         model->state.ui.showLyricsPage = !model->state.ui.showLyricsPage;
                 }
                 set_dirty(DIRTY_ALL);
@@ -760,16 +762,14 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->progressBar.col = msg->region.col + 1;
                 model->progressBar.row = msg->region.row + 1;
                 model->progressBar.length = msg->region.width;
-                if (msg->footer_row != DISABLED_ROW)
-                {
+                if (msg->footer_row != DISABLED_ROW) {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
                 }
                 break;
 
         case MSG_FOOTER_ROW_SET:
-                if (msg->footer_row != DISABLED_ROW)
-                {
+                if (msg->footer_row != DISABLED_ROW) {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
                 }

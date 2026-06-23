@@ -114,6 +114,7 @@ void advance_title_delay_anim(Model *model)
         if (model->title_delay.active) {
 
                 model->title_delay.frame += 1;
+
                 if (model->title_delay.frame > model->title_delay.num_frames)
                         model->title_delay.active = false;
 
