@@ -101,8 +101,6 @@ GMainLoop *main_loop;
  */
 void player_tick(Model *model, RenderContext *ctx)
 {
-        dispatch_msg((struct Msg){.type = MSG_TICK});
-
         // Process all pending messages
         while (has_pending_msgs()) {
                 struct Msg msg = next_msg();
@@ -138,6 +136,10 @@ void player_tick(Model *model, RenderContext *ctx)
                 // Run commands
                 run_command(res);
         }
+
+        // Dispatch Tick msg last so the next update call sets the songdata variables at the very start
+        // Otherwise we get stale pointers and used after free, because we are using an old songdata from a previous lock.
+        dispatch_msg((struct Msg){.type = MSG_TICK});
 }
 
 /**
@@ -421,6 +423,8 @@ void create_loop(void)
         install_signal_handlers(main_loop);
 
         Model *model = get_model();
+
+        dispatch_msg((struct Msg){.type = MSG_TICK});
 
         g_timeout_add(model->tick, mainloop_callback, main_loop);
         g_main_loop_run(main_loop);
