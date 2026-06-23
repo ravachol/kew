@@ -963,7 +963,7 @@ int main(int argc, char *argv[])
                 kew_init(false);
                 play_all_albums();
                 run(true);
-        } else if (argc == 2 && strcmp(argv[1], ".") == 0 && model->favorites_playlist->count != 0) {
+        } else if (argc == 2 && strcmp(argv[1], ".") == 0) {
                 kew_init(false);
                 play_favorites_playlist();
                 run(true);
