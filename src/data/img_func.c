@@ -301,6 +301,13 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         detect_terminal(&term_info, &mode, &pixel_mode,
                         &passthrough, &symbol_map);
 
+#ifdef _WIN32
+        if (getenv("WT_SESSION")) {
+                pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
+                passthrough = CHAFA_PASSTHROUGH_NONE;
+        }
+#endif
+
         ChafaPixelMode forced_mode = style_to_pixel_mode(cover_style);
         if (forced_mode != (ChafaPixelMode)-1) {
                 pixel_mode = forced_mode;
