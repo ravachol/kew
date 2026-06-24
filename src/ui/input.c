@@ -569,12 +569,12 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                 }
 
                                 if (msg.type == MSG_SEEK) {
-                                        return TRUE;
+                                        return FALSE;
                                 }
                         }
 
                         if (!found_event)
-                                return TRUE;
+                                return FALSE;
 
                         // Process only the last event
                         bool isMouseEvent = handle_mouse_event(&last_ev, &msg);
@@ -608,7 +608,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         case MSG_ENQUEUE:
                         case MSG_ENQUEUEANDPLAY:
                                 if (should_throttle(&msg))
-                                        return TRUE;
+                                        return FALSE;
                                 break;
                         default:
                                 break;
@@ -634,11 +634,11 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
                         clear_error_message(); // Error messages are cleared when the user does something
 
-                        return TRUE;
+                        return FALSE;
                 }
         }
 
-        return TRUE;
+        return FALSE;
 }
 
 #else
@@ -804,9 +804,11 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
 static gboolean on_tb_input_idle(gpointer data)
 {
-        return on_tb_input(NULL, 0, data);
-}
+    on_tb_input(NULL, 0, data);
+    g_atomic_int_set(&idle_pending, 0);
 
+    return FALSE;
+}
 static DWORD WINAPI win_input_thread(void *arg)
 {
         (void)arg;
@@ -831,7 +833,10 @@ static DWORD WINAPI win_input_thread(void *arg)
 
                 if (len > 0) {
                         bytebuf_nputs(&global.in, buf, len);
-                        g_idle_add(on_tb_input_idle, NULL);
+                        static volatile int idle_pending = 0;
+
+                        if (g_atomic_int_compare_and_exchange(&idle_pending, 0, 1))
+                                g_idle_add(on_tb_input_idle, NULL);
                 }
         }
 
