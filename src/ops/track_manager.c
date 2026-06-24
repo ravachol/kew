@@ -23,8 +23,12 @@
 
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
+
+#include "ui/common_ui.h"
 #include "ui/components.h"
+
 #include "utils/utils.h"
+
 #include <stdbool.h>
 
 typedef enum {
@@ -153,7 +157,7 @@ void preload_next_song(void)
 
 void set_end_of_list_reached(void)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
         PlaybackState *ps = get_playback_state();
 
         ps->skipping = false;
@@ -177,7 +181,8 @@ void set_end_of_list_reached(void)
                 emit_metadata_changed("", "", "", "",
                                       "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                       NULL, 0);
-                state->currentView = LIBRARY_VIEW;
+                if (model->state.currentView == TRACK_VIEW)
+                        switch_view(LIBRARY_VIEW);
         }
 }
 
