@@ -802,6 +802,8 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
 #ifdef _WIN32
 
+static volatile int idle_pending = 0;
+
 static gboolean on_tb_input_idle(gpointer data)
 {
     on_tb_input(NULL, 0, data);
@@ -833,7 +835,6 @@ static DWORD WINAPI win_input_thread(void *arg)
 
                 if (len > 0) {
                         bytebuf_nputs(&global.in, buf, len);
-                        static volatile int idle_pending = 0;
 
                         if (g_atomic_int_compare_and_exchange(&idle_pending, 0, 1))
                                 g_idle_add(on_tb_input_idle, NULL);
