@@ -24,28 +24,52 @@ mingw32-make install PREFIX=/ucrt64
 kew
 ```
 
+## Add bash to windows terminal
+
+Add this under settings.json for your Windows Terminal (Go to settings, choose open JSON file at the bottom):
+
+After this part: "list": [
+
+Add:
+{
+    "guid": "{b9a6ba66-827d-5d7c-aefd-351fa17ef94d}",
+    "name": "kew UCRT64",
+    "commandline": "C:\\msys64\\usr\\bin\\bash.exe -li",
+    "startingDirectory": "C:\\msys64\\home\\YOUR USER NAME HERE",
+    "environment": {
+        "MSYSTEM": "UCRT64",
+        "CHERE_INVOKING": "1"
+    }
+},
+
+## Add a shortcut to your desktop
+
+Right click desktop, Choose new, shortcut
+
+Put this in the location:
+wt.exe -p "kew UCRT64" C:\msys64\usr\bin\bash.exe -li -c "kew"
+
+Use the .ico in the kew folder for the icon.
+
 The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can double-click on it to run it, but it works better if you first start c:\msys64\ucrt64.exe and run it from that terminal emulator. The Windows Terminal in Windows 11 also works.
 
 ## TODO, Things that don't yet work:
 
 -Animations (title animation, name scrolling and glimmering footer). Because they are too slow on windows.
 
--The Spectrum Visualizer is too slow, disable by pressing v a few times.
+-The Spectrum Visualizer is slow, disable by pressing v a few times.
 
 -.m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
--Chafa covers don't work (except Windows Terminal on win11), although chafa is installed and so on. So ASCII covers is the default in Windows.
 
 -Resizing sometimes crashes the app.
 
--Unicode characters are broken, sometimes files don't show up.
 
-- Laggy input.
-
-- Icons and progressbar not correct in Windows Terminal.
 
 - Mouse support.
 
-- Alt+Enter for search maximizes the windoww.
+- Alt+Enter for search maximizes the window in WT.
 
-- Backspace doesn't always work.
+- Chafa sixel covers are slow.
+
+- Music starts slow, takes a long time to get going.
