@@ -2025,7 +2025,7 @@ ComponentMsg component_time_simple_and_vol(const Model *model, k_Rect region, Dr
         int pos = 0;
 
         int count = model->playlist->count;
-        int current = model->state.ui.chosen_row + 1;
+        int current = model->state.ui.current_at_row + 1;
 
         // Time
         if (total_seconds >= 3600) {
@@ -2078,7 +2078,7 @@ ComponentMsg component_time(const Model *model, k_Rect region, DrawBuffer *buf, 
         int pos = 0;
 
         int count = model->playlist->count;
-        int current = model->state.ui.chosen_row + 1;
+        int current = model->state.ui.current_at_row + 1;
 
         // Time
         if (total_seconds >= 3600) {
