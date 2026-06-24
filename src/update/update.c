@@ -200,6 +200,8 @@ void switch_to_next_view(Model *model)
 
 void scroll_next(Model *model)
 {
+        model->name_scroll.active = false;
+
         // FIXME Rewrite all of this garbage
         PlayList *unshuffled_playlist = model->unshuffled_playlist;
 
@@ -247,6 +249,8 @@ void scroll_next(Model *model)
 
 void scroll_prev(Model *model)
 {
+        model->name_scroll.active = false;
+
         // FIXME Rewrite all of this garbage
         if (model->state.currentView == PLAYLIST_VIEW) {
 
@@ -285,6 +289,8 @@ void flip_next_page(Model *model)
         AppState *state = &model->state;
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
+        model->name_scroll.active = false;
+
         if (state->currentView == LIBRARY_VIEW) {
 
                 model->state.ui.chosen_lib_row += model->state.ui.max_lib_rows - 1;
@@ -318,6 +324,8 @@ void flip_next_page(Model *model)
 
 void flip_prev_page(Model *model)
 {
+        model->name_scroll.active = false;
+
         if (model->state.currentView == LIBRARY_VIEW) {
 
                 model->state.ui.chosen_lib_row -= model->state.ui.max_lib_rows;
