@@ -2260,7 +2260,7 @@ static int win_wait_event(struct tb_event *event, int timeout_ms)
         if (timeout_ms == 0)
                 return TB_ERR_NO_EVENT;
 
-        DWORD sleep_ms = (timeout_ms < 0) ? 10 : (DWORD)timeout_ms;
+        DWORD sleep_ms = (timeout_ms < 0) ? 0 : (DWORD)timeout_ms;
 
         Sleep(sleep_ms);
 
