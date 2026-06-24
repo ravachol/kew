@@ -567,10 +567,12 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_SCROLLDOWN:
                 scroll_next(model);
+                component_library_helper_update_view_state(model);
                 break;
 
         case MSG_SCROLLUP:
                 scroll_prev(model);
+                component_library_helper_update_view_state(model);
                 break;
 
         case MSG_VOLUME_UP:
@@ -633,10 +635,12 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_NEXT_PAGE:
                 flip_next_page(model);
+                component_library_helper_update_view_state(model);
                 break;
 
         case MSG_PREV_PAGE:
                 flip_prev_page(model);
+                component_library_helper_update_view_state(model);
                 break;
         case MSG_REMOVE:
                 result.cmd.type = CMD_REMOVE;
