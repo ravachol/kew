@@ -317,4 +317,8 @@ void free_link_payload(LinkPayload *link);
 
 int mk_wcwidth(uint32_t ucs);
 
+void view_changed(Model *model);
+
+void switch_view(ViewState view_to_show);
+
 #endif

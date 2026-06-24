@@ -113,39 +113,6 @@ int parse_volume_arg(const char *arg_str)
         return atoi(buf);
 }
 
-void view_changed(Model *model)
-{
-        if (!model->songdata_ok && model->state.currentView == TRACK_VIEW) {
-                model->state.currentView = LIBRARY_VIEW;
-        }
-        model->state.ui.resetPlaylistDisplay = true;
-        model->name_scroll.active = false;
-        model->title_delay.active = false;
-
-        if (model->state.currentView == PLAYLIST_VIEW)
-                component_playlist_helper_update_view_state(model);
-
-        if (model->state.currentView == LIBRARY_VIEW)
-                component_library_helper_update_view_state(model);
-
-        set_dirty(DIRTY_ALL);
-}
-
-void switch_view(ViewState view_to_show)
-{
-        Model *model = get_model();
-
-        model->state.last_view = model->state.currentView;
-
-        if (model->state.currentView == view_to_show) {
-                model->state.currentView = TRACK_VIEW;
-        } else {
-                model->state.currentView = view_to_show;
-        }
-
-        view_changed(model);
-}
-
 void switch_to_prev_view(Model *model)
 {
         AppState *state = get_app_state();
