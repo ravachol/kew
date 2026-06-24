@@ -32,8 +32,6 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 
 - Animations (title animation, name scrolling and glimmering footer). Because they are too slow on windows.
 
-- The Spectrum Visualizer is too slow, disable by pressing v a few times.
-
 - .m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
 - Chafa covers don't work (except Windows Terminal on win11), although chafa is installed and so on. So ASCII covers is the default in Windows.
@@ -42,12 +40,6 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 
 - Unicode characters are broken, sometimes files don't show up.
 
-- Laggy input.
-
-- Icons and progressbar not correct in Windows Terminal.
-
 - Mouse support.
 
-- Alt+Enter for search maximizes the windoww.
-
-- Backspace doesn't always work.
+- Alt+Enter for search maximizes the window in WT.
