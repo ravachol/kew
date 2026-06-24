@@ -24,21 +24,23 @@ mingw32-make install PREFIX=/ucrt64
 kew
 ```
 
+## Location of the executable
+
 The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can double-click on it to run it, but it works better if you first start c:\msys64\ucrt64.exe and run it from that terminal emulator. The Windows Terminal in Windows 11 also works.
 
 ## TODO, Things that don't yet work:
 
--Animations (title animation, name scrolling and glimmering footer). Because they are too slow on windows.
+- Animations (title animation, name scrolling and glimmering footer). Because they are too slow on windows.
 
--The Spectrum Visualizer is too slow, disable by pressing v a few times.
+- The Spectrum Visualizer is too slow, disable by pressing v a few times.
 
--.m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
+- .m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
--Chafa covers don't work (except Windows Terminal on win11), although chafa is installed and so on. So ASCII covers is the default in Windows.
+- Chafa covers don't work (except Windows Terminal on win11), although chafa is installed and so on. So ASCII covers is the default in Windows.
 
--Resizing sometimes crashes the app.
+- Resizing sometimes crashes the app.
 
--Unicode characters are broken, sometimes files don't show up.
+- Unicode characters are broken, sometimes files don't show up.
 
 - Laggy input.
 
