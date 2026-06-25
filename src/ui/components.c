@@ -45,12 +45,12 @@ void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
                 return;
         }
 
-        if (strnlen(node->song.file_path, PATH_MAX) >= PATH_MAX) {
+        if (strnlen(node->song.file_path, KEW_PATH_MAX) >= KEW_PATH_MAX) {
                 buffer[0] = '\0';
                 return;
         }
 
-        char file_path[PATH_MAX];
+        char file_path[KEW_PATH_MAX];
         c_strcpy(file_path, node->song.file_path, sizeof(file_path));
 
         char *last_slash = strrchr(file_path, '/');
@@ -737,7 +737,7 @@ void now_playing(bool show_artist, const Model *model, k_Rect region, DrawBuffer
 
         const UISettings *ui = &model->state.settings;
 
-        char title[PATH_MAX + 1];
+        char title[KEW_PATH_MAX + 1];
 
         build_song_title(model, ui, title, sizeof(title), true, show_artist);
 
@@ -746,7 +746,7 @@ void now_playing(bool show_artist, const Model *model, k_Rect region, DrawBuffer
         draw_buffer_set_string_truncated(buf, region.row, region.col, "", region.width, cell_style_plain());
 
         if (title[0] != '\0') {
-                char processed[PATH_MAX + 1] = {0};
+                char processed[KEW_PATH_MAX + 1] = {0};
                 process_name(title, processed, region.width, false, false);
                 draw_buffer_set_string_truncated(buf, region.row, region.col, processed, region.width, style);
         }
@@ -1805,7 +1805,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 CellStyle style = cell_style_from_theme(ui->theme.trackview_title);
 
-                char pretty_title[PATH_MAX + 1];
+                char pretty_title[KEW_PATH_MAX + 1];
                 pretty_title[0] = '\0';
 
                 process_name(metadata->title, pretty_title, max_width, false, false);
@@ -1815,8 +1815,8 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                 // Title delay animation
                 if (model->title_delay.active && frame <= width) {
-                        char display[PATH_MAX + 4];
-                        char current_text[PATH_MAX + 1];
+                        char display[KEW_PATH_MAX + 4];
+                        char current_text[KEW_PATH_MAX + 1];
                         const char *p = pretty_title;
                         int byte_pos = 0;
 
@@ -3070,7 +3070,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                                                             model->search_results[i].entry->full_path) == 0;
 
                 // Build display name
-                char name[PATH_MAX];
+                char name[KEW_PATH_MAX];
                 name[0] = '\0';
 
                 char tmp[1024];

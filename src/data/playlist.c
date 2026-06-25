@@ -349,17 +349,20 @@ void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions,
                               PlayList *playlist)
 {
-    char expanded_path[PATH_MAX - KEW_NAME_MAX - 1];
-    expand_path(directory_path, expanded_path,
-                PATH_MAX - KEW_NAME_MAX - 1);
+    char expanded_path[KEW_PATH_MAX - KEW_NAME_MAX - 1];
+
+    expand_path(directory_path,
+                expanded_path,
+                KEW_PATH_MAX - KEW_NAME_MAX - 1);
 
     int res = is_directory(expanded_path);
     Model *model = get_model();
 
     int list_row_num = 0;
 
-    /* Case: not a directory → treat as single file */
+    // Case: not a directory → treat as single file
     if (res != 1 && res != -1 && directory_path != NULL) {
+
         Node *node = NULL;
 
         exit_if_overflow(node_id_counter);
@@ -368,7 +371,9 @@ void build_playlist_recursive(const char *directory_path,
         list_row_num = playlist->count + 1;
 
         if (model->library)
-            id = mark_as_enqueued(model->library, expanded_path, list_row_num);
+            id = mark_as_enqueued(model->library,
+                                  expanded_path,
+                                  list_row_num);
 
         if (id == 0)
             id = node_id_counter++;
@@ -381,92 +386,138 @@ void build_playlist_recursive(const char *directory_path,
         return;
     }
 
-    /* Windows directory iteration */
-    WIN32_FIND_DATAA fd;
-    HANDLE hFind;
+    // Convert UTF-8 directory path to UTF-16 for Win32 APIs
+    wchar_t wexpanded_path[KEW_PATH_MAX];
+    wchar_t pattern[KEW_PATH_MAX];
 
-    char pattern[MAX_PATH];
-    snprintf(pattern, sizeof(pattern), "%s\\*", expanded_path);
+    MultiByteToWideChar(CP_UTF8,
+                        0,
+                        expanded_path,
+                        -1,
+                        wexpanded_path,
+                        KEW_PATH_MAX);
+
+    swprintf(pattern,
+             KEW_PATH_MAX,
+             L"%ls\\*",
+             wexpanded_path);
+
+    WIN32_FIND_DATAW fd;
+    HANDLE hFind;
 
     struct dirent **entries = NULL;
     int capacity = 64;
     int num_entries = 0;
 
     entries = malloc(sizeof(struct dirent *) * capacity);
-    if (!entries) {
-        return;
-    }
 
-    hFind = FindFirstFileA(pattern, &fd);
+    if (!entries)
+        return;
+
+    hFind = FindFirstFileW(pattern, &fd);
+
     if (hFind == INVALID_HANDLE_VALUE) {
+
         free(entries);
-        printf(_("Failed to open directory: %s\n"), expanded_path);
+
+        printf(_("Failed to open directory: %s\n"),
+               expanded_path);
+
         return;
     }
 
     do {
-        if (strcmp(fd.cFileName, ".") == 0 ||
-            strcmp(fd.cFileName, "..") == 0)
+
+        if (wcscmp(fd.cFileName, L".") == 0 ||
+            wcscmp(fd.cFileName, L"..") == 0)
             continue;
 
         struct dirent *e = malloc(sizeof(struct dirent));
+
         if (!e)
             continue;
 
-        c_strcpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
+        // Convert filename to UTF-8
+        WideCharToMultiByte(CP_UTF8,
+                            0,
+                            fd.cFileName,
+                            -1,
+                            e->d_name,
+                            sizeof(e->d_name),
+                            NULL,
+                            NULL);
+
         e->d_name[sizeof(e->d_name) - 1] = '\0';
 
         if (num_entries >= capacity) {
+
             capacity *= 2;
+
             struct dirent **tmp =
-                realloc(entries, sizeof(struct dirent *) * capacity);
+                realloc(entries,
+                        sizeof(struct dirent *) * capacity);
+
             if (!tmp) {
                 free(e);
                 continue;
             }
+
             entries = tmp;
         }
 
         entries[num_entries++] = e;
 
-    } while (FindNextFileA(hFind, &fd));
+    } while (FindNextFileW(hFind, &fd));
 
     FindClose(hFind);
 
-    /* sort using POSIX-compatible comparator */
-    qsort(entries, num_entries, sizeof(struct dirent *),
+    // Sort filenames
+    qsort(entries,
+          num_entries,
+          sizeof(struct dirent *),
           dirent_qsort_cmp);
 
     regex_t regex;
-    int ret = regcomp(&regex, allowed_extensions,
+
+    int ret = regcomp(&regex,
+                      allowed_extensions,
                       REG_EXTENDED | REG_ICASE);
 
     if (ret != 0) {
+
         printf(_("Failed to compile regular expression\n"));
+
         goto cleanup;
     }
 
     char exto[100];
 
-    for (int i = 0; i < num_entries && playlist->count < MAX_FILES; i++) {
+    for (int i = 0;
+         i < num_entries && playlist->count < MAX_FILES;
+         i++) {
 
         struct dirent *entry = entries[i];
+
         if (!entry)
             continue;
 
         if (entry->d_name[0] == '.' ||
             strcmp(entry->d_name, ".") == 0 ||
-            strcmp(entry->d_name, "..") == 0) {
+            strcmp(entry->d_name, "..") == 0)
             continue;
-        }
 
-        char file_path[PATH_MAX];
-        snprintf(file_path, sizeof(file_path), "%s/%s",
-                 expanded_path, entry->d_name);
+        char file_path[KEW_PATH_MAX];
+
+        snprintf(file_path,
+                 sizeof(file_path),
+                 "%s/%s",
+                 expanded_path,
+                 entry->d_name);
 
         if (is_directory(file_path) == 1) {
 
             int song_count = playlist->count;
+
             build_playlist_recursive(file_path,
                                      allowed_extensions,
                                      playlist);
@@ -475,14 +526,18 @@ void build_playlist_recursive(const char *directory_path,
                 num_dirs++;
 
         } else {
+
             extract_extension(entry->d_name,
                               sizeof(exto) - 1,
                               exto);
 
             if (match_regex(&regex, exto) == 0) {
 
-                snprintf(file_path, sizeof(file_path), "%s/%s",
-                         directory_path, entry->d_name);
+                snprintf(file_path,
+                         sizeof(file_path),
+                         "%s/%s",
+                         directory_path,
+                         entry->d_name);
 
                 Node *node = NULL;
 
@@ -499,7 +554,9 @@ void build_playlist_recursive(const char *directory_path,
                 if (id == 0)
                     id = node_id_counter++;
 
-                create_node(&node, file_path, id);
+                create_node(&node,
+                            file_path,
+                            id);
 
                 if (add_to_list(playlist, node) == -1)
                     destroy_node(node);
@@ -510,12 +567,11 @@ void build_playlist_recursive(const char *directory_path,
     regfree(&regex);
 
 cleanup:
-    for (int i = 0; i < num_entries; i++) {
-        free(entries[i]);
-    }
-    free(entries);
 
-    return;
+    for (int i = 0; i < num_entries; i++)
+        free(entries[i]);
+
+    free(entries);
 }
 
 #else
@@ -523,8 +579,8 @@ cleanup:
 void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions, PlayList *playlist)
 {
-        char expanded_path[PATH_MAX - KEW_NAME_MAX - 1];
-        expand_path(directory_path, expanded_path, PATH_MAX - KEW_NAME_MAX - 1);
+        char expanded_path[KEW_PATH_MAX - KEW_NAME_MAX - 1];
+        expand_path(directory_path, expanded_path, KEW_PATH_MAX - KEW_NAME_MAX - 1);
 
         int res = is_directory(expanded_path);
 
@@ -588,14 +644,14 @@ void build_playlist_recursive(const char *directory_path,
                         continue;
                 }
 
-                char file_path[PATH_MAX];
+                char file_path[KEW_PATH_MAX];
                 snprintf(file_path, sizeof(file_path), "%s/%s", expanded_path,
                          entry->d_name);
 
                 size_t pathLen = strnlen(expanded_path, sizeof(expanded_path));
                 size_t nameLen = strnlen(entry->d_name, KEW_NAME_MAX);
 
-                if (pathLen + 1 + nameLen >= PATH_MAX) {
+                if (pathLen + 1 + nameLen >= KEW_PATH_MAX) {
                         fprintf(stderr, "Path too long: %s/%s\n", expanded_path, entry->d_name);
                         continue;
                 }
@@ -697,8 +753,8 @@ Node *read_m3u_file(const char *filepath, PlayList *playlist)
         gchar **lines;
         Node *first_in_list = NULL;
 
-        char filename[PATH_MAX];
-        expand_path(filepath, filename, PATH_MAX);
+        char filename[KEW_PATH_MAX];
+        expand_path(filepath, filename, KEW_PATH_MAX);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
                 g_clear_error(&error);
@@ -781,8 +837,8 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
         int search_type_index = 1;
         PlayList partial_playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
-        char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path, PATH_MAX);
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(path, expanded_path, KEW_PATH_MAX);
 
         if (strcmp(argv[1], "all") == 0) {
                 search_type = ReturnAllSongs;
@@ -843,13 +899,13 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
                 char *token = strtok(search, delimiter);
 
                 while (token != NULL) {
-                        char buf[PATH_MAX] = {0};
+                        char buf[KEW_PATH_MAX] = {0};
                         if (strncmp(token, "song", 4) == 0) {
                                 memmove(token, token + 4,
-                                        strnlen(token + 4, PATH_MAX) + 1);
+                                        strnlen(token + 4, KEW_PATH_MAX) + 1);
                                 search_type = FileOnly;
                         }
-                        trim(token, PATH_MAX);
+                        trim(token, KEW_PATH_MAX);
                         char *searching = g_utf8_casefold(token, -1);
 
                         if (walker(expanded_path, searching, buf, allowed_extensions,
@@ -895,7 +951,7 @@ void generate_m3_u_filename(const char *base_path, const char *file_path,
         const char *dot = strrchr(base_name, '.');
         if (dot == NULL) {
                 // No '.' found, copy the base name and append ".m3u"
-                if (base_path[strnlen(base_path, PATH_MAX) - 1] == '/') {
+                if (base_path[strnlen(base_path, KEW_PATH_MAX) - 1] == '/') {
                         snprintf(m3u_filename, size, "%s%s.m3u", base_path, base_name);
                 } else {
                         snprintf(m3u_filename, size, "%s/%s.m3u", base_path, base_name);
@@ -903,7 +959,7 @@ void generate_m3_u_filename(const char *base_path, const char *file_path,
         } else {
                 // Copy the base name up to the dot and append ".m3u"
                 size_t baseNameLen = dot - base_name;
-                if (base_path[strnlen(base_path, PATH_MAX) - 1] == '/') {
+                if (base_path[strnlen(base_path, KEW_PATH_MAX) - 1] == '/') {
                         snprintf(m3u_filename, size, "%s%.*s.m3u", base_path,
                                  (int)baseNameLen, base_name);
                 } else {
@@ -931,12 +987,12 @@ void write_m3u_file(const char *filename, const PlayList *playlist)
 void load_playlist(const char *directory, const char *playlist_name,
                    PlayList **playlist)
 {
-        char playlist_path[PATH_MAX];
+        char playlist_path[KEW_PATH_MAX];
 
         if (!directory || !playlist_name || !playlist)
                 return;
 
-        size_t len = strnlen(directory, PATH_MAX);
+        size_t len = strnlen(directory, KEW_PATH_MAX);
         if (len == 0)
                 return;
 
@@ -955,8 +1011,8 @@ void load_playlist(const char *directory, const char *playlist_name,
 
 void load_favorites_playlist(const char *directory, PlayList **favorites_playlist)
 {
-        char expanded_path[PATH_MAX];
-        expand_path(directory, expanded_path, PATH_MAX);
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(directory, expanded_path, KEW_PATH_MAX);
         load_playlist(expanded_path, favorites_playlist_name, favorites_playlist);
 }
 
@@ -1023,7 +1079,7 @@ void save_named_playlist(const char *directory, const char *playlist_name,
                 return;
         }
 
-        char playlist_path[PATH_MAX];
+        char playlist_path[KEW_PATH_MAX];
 
         int length =
             snprintf(playlist_path, sizeof(playlist_path), "%s", directory);
@@ -1048,8 +1104,8 @@ void save_named_playlist(const char *directory, const char *playlist_name,
 
 void save_favorites_playlist(const char *directory, PlayList *favorites_playlist)
 {
-        char expanded_path[PATH_MAX];
-        expand_path(directory, expanded_path, PATH_MAX);
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(directory, expanded_path, KEW_PATH_MAX);
 
         if (favorites_playlist != NULL && favorites_playlist->count > 0) {
                 save_named_playlist(expanded_path, favorites_playlist_name,
@@ -1063,8 +1119,8 @@ void save_playlist(const char *path, const PlayList *playlist)
                 return;
         }
 
-        char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path, PATH_MAX);
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(path, expanded_path, KEW_PATH_MAX);
 
         if (playlist->head == NULL || playlist->head->song.file_path == NULL)
                 return;
@@ -1074,9 +1130,9 @@ void save_playlist(const char *path, const PlayList *playlist)
 
 void export_current_playlist(const char *path, const PlayList *playlist)
 {
-        char m3u_filename[PATH_MAX];
-        char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path, PATH_MAX);
+        char m3u_filename[KEW_PATH_MAX];
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(path, expanded_path, KEW_PATH_MAX);
 
         if (path == NULL || playlist->head == NULL)
                 return;

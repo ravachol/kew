@@ -21,7 +21,7 @@
 
 bool is_valid_filepath(const char *path)
 {
-        if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
+        if (path == NULL || *path == '\0' || strnlen(path, KEW_PATH_MAX) >= PATH_MAX)
                 return false;
 
         struct stat st;

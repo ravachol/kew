@@ -8,6 +8,8 @@
 #ifndef SONGDATATYPE_H
 #define SONGDATATYPE_H
 
+#include "common/path_max.h"
+
 #include "utils/img_utils.h"
 #include <gio/gio.h>
 #include <stdbool.h>
@@ -50,8 +52,8 @@ typedef struct
 {
         int magic;
         gchar *track_id;
-        char file_path[PATH_MAX];
-        char cover_art_path[PATH_MAX];
+        char file_path[KEW_PATH_MAX];
+        char cover_art_path[KEW_PATH_MAX];
 
         int red;
         int green;
