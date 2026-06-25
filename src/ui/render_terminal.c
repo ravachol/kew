@@ -33,34 +33,64 @@ void emit_image(ImagePayload *image,
                 int term_width_cells,
                 int corrected_width)
 {
-        if (!image || !image->data)
-                return;
+    if (!image || !image->data)
+        return;
 
-        if (centered)
-                col = ((term_width_cells - corrected_width) / 2) + 1;
+    if (centered)
+        col = ((term_width_cells - corrected_width) / 2) + 1;
 
-        const char *p = (const char *)image->data;
-        int current_row = row + 1;
+    const char *src = (const char *)image->data;
 
-        while (*p) {
-                const char *line_start = p;
+    // Allocate generously:
+    // original image size +
+    // up to ~32 chars of cursor sequence per line.
+    //
+    size_t src_len = strlen(src);
 
-                // Find end of line
-                while (*p && *p != '\n')
-                        p++;
+    size_t line_count = 1;
+    for (const char *p = src; *p; ++p)
+        if (*p == '\n')
+            line_count++;
 
-                size_t line_len = p - line_start;
+    size_t out_cap = src_len + (line_count * 32) + 1;
+    char *out = malloc(out_cap);
 
-                // Move cursor
-                printf("\033[%d;%dH", current_row++, col + 1);
+    if (!out)
+        return;
 
-                // Print line without requiring temporary allocation
-                fwrite(line_start, 1, line_len, stdout);
+    char *dst = out;
+    int current_row = row + 1;
 
-                // Skip newline if present
-                if (*p == '\n')
-                        p++;
-        }
+    const char *p = src;
+
+    // Build the entire string, with indentations
+    while (*p) {
+        const char *line_start = p;
+
+        while (*p && *p != '\n')
+            p++;
+
+        size_t line_len = (size_t)(p - line_start);
+
+        int n = sprintf(dst,
+                        "\033[%d;%dH",
+                        current_row++,
+                        col + 1);
+
+        dst += n;
+
+        memcpy(dst, line_start, line_len);
+        dst += line_len;
+
+        if (*p == '\n')
+            p++;
+    }
+
+    // Write it all at once
+    fwrite(out, 1, (size_t)(dst - out), stdout);
+    fflush(stdout);
+
+    free(out);
 }
 
 static inline void safe_putchar(int c)
