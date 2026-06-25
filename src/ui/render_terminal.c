@@ -39,58 +39,13 @@ void emit_image(ImagePayload *image,
     if (centered)
         col = ((term_width_cells - corrected_width) / 2) + 1;
 
-    const char *src = (const char *)image->data;
+    /* Move cursor ONCE */
+    printf("\033[%d;%dH", row + 1, col + 1);
 
-    // Allocate generously:
-    // original image size +
-    // up to ~32 chars of cursor sequence per line.
-    //
-    size_t src_len = strlen(src);
+    /* Write whole Sixel stream */
+    fwrite(image->data, 1, image->data_len, stdout);
 
-    size_t line_count = 1;
-    for (const char *p = src; *p; ++p)
-        if (*p == '\n')
-            line_count++;
-
-    size_t out_cap = src_len + (line_count * 32) + 1;
-    char *out = malloc(out_cap);
-
-    if (!out)
-        return;
-
-    char *dst = out;
-    int current_row = row + 1;
-
-    const char *p = src;
-
-    // Build the entire string, with indentations
-    while (*p) {
-        const char *line_start = p;
-
-        while (*p && *p != '\n')
-            p++;
-
-        size_t line_len = (size_t)(p - line_start);
-
-        int n = sprintf(dst,
-                        "\033[%d;%dH",
-                        current_row++,
-                        col + 1);
-
-        dst += n;
-
-        memcpy(dst, line_start, line_len);
-        dst += line_len;
-
-        if (*p == '\n')
-            p++;
-    }
-
-    // Write it all at once
-    fwrite(out, 1, (size_t)(dst - out), stdout);
     fflush(stdout);
-
-    free(out);
 }
 
 static inline void safe_putchar(int c)
