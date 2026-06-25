@@ -655,12 +655,12 @@ void init_default_state(void)
  */
 static bool handle_play_command_playlist(int *argc, char **argv)
 {
-        char de_expanded[PATH_MAX];
+        char de_expanded[KEW_PATH_MAX];
         // Working with multiple files
         //validate all paths
 
         for (int i = 2; i < *argc; i++) {
-                if ((expand_path(argv[i], de_expanded, PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
+                if ((expand_path(argv[i], de_expanded, KEW_PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
                         return false;
                 }
         }
@@ -930,8 +930,8 @@ int main(int argc, char *argv[])
         bool run_for_play_command_with_playlist = false;
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
-                char de_expanded[PATH_MAX];
-                collapse_path(argv[2], de_expanded, PATH_MAX);
+                char de_expanded[KEW_PATH_MAX];
+                collapse_path(argv[2], de_expanded, KEW_PATH_MAX);
                 c_strcpy(model->settings.path, de_expanded, sizeof(model->settings.path));
                 set_path(model->settings.path);
                 exit(0);

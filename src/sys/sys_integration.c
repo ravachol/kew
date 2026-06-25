@@ -316,7 +316,7 @@ void delete_pid_file()
 #ifdef _WIN32
         return;
 #else
-        char pidfile_path[PATH_MAX];
+        char pidfile_path[KEW_PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
@@ -338,7 +338,7 @@ pid_t read_pid_file()
 #ifdef _WIN32
         return 0;
 #else
-        char pidfile_path[PATH_MAX];
+        char pidfile_path[KEW_PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
@@ -368,7 +368,7 @@ void create_pid_file()
 #ifdef _WIN32
         return;
 #else
-        char pidfile_path[PATH_MAX];
+        char pidfile_path[KEW_PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,

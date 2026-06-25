@@ -424,14 +424,14 @@ static ConfigEntry *config_head = NULL;
 
 char *get_settings_file_path(const char *dir, const char *filename)
 {
-        char *filepath = malloc(PATH_MAX);
+        char *filepath = malloc(KEW_PATH_MAX);
         if (!filepath) {
                 perror("malloc");
                 quit();
         }
 
-        int written = snprintf(filepath, PATH_MAX, "%s/%s", dir, filename);
-        if (written < 0 || written >= PATH_MAX) {
+        int written = snprintf(filepath, KEW_PATH_MAX, "%s/%s", dir, filename);
+        if (written < 0 || written >= KEW_PATH_MAX) {
                 fprintf(stderr, "Error: filepath truncated.\n");
                 free(filepath);
                 quit();
@@ -1721,7 +1721,7 @@ const char *get_default_music_folder(void)
 {
         const char *home = get_home_path();
         if (home != NULL) {
-                static char music_path[PATH_MAX];
+                static char music_path[KEW_PATH_MAX];
                 snprintf(music_path, sizeof(music_path), "%s/Music", home);
                 return music_path;
         } else {
@@ -1731,10 +1731,10 @@ const char *get_default_music_folder(void)
 
 int get_music_library_path(char *path)
 {
-        char expanded_path[PATH_MAX];
+        char expanded_path[KEW_PATH_MAX];
 
         if (path[0] != '\0' && path[0] != '\r') {
-                if (expand_path(path, expanded_path, PATH_MAX) >= 0) {
+                if (expand_path(path, expanded_path, KEW_PATH_MAX) >= 0) {
                         c_strcpy(path, expanded_path, sizeof(expanded_path));
                 }
         }
@@ -2778,11 +2778,11 @@ const char *get_system_data_dir(void)
 {
 #ifdef _WIN32
     // Get the directory where the executable lives, then go up to find share/
-    static char data_dir[PATH_MAX];
+    static char data_dir[KEW_PATH_MAX];
     if (data_dir[0] != '\0')
         return data_dir;
 
-    char exe_path[PATH_MAX];
+    char exe_path[KEW_PATH_MAX];
     GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
 
     // Convert backslashes to forward slashes
@@ -2810,9 +2810,9 @@ static bool copy_layout_file(const char *src_name,
         if (!config_path)
                 return false;
 
-        char src_path[PATH_MAX];
+        char src_path[KEW_PATH_MAX];
 
-        char system_layouts[PATH_MAX];
+        char system_layouts[KEW_PATH_MAX];
         snprintf(system_layouts, sizeof(system_layouts), "%s/layouts", get_system_data_dir());
         DIR *dir = opendir(system_layouts);
         if (!dir) {
@@ -2841,8 +2841,8 @@ static bool ensure_layout_file(const char *config_path,
 {
         struct stat st;
 
-        char layout_path[PATH_MAX];
-        char backup_path[PATH_MAX];
+        char layout_path[KEW_PATH_MAX];
+        char backup_path[KEW_PATH_MAX];
 
         if (snprintf(layout_path, sizeof(layout_path),
                      "%s/%s",
@@ -2905,7 +2905,7 @@ bool ensure_default_layouts(void)
         if (!config_path)
                 return false;
 
-        char layouts_path[PATH_MAX];
+        char layouts_path[KEW_PATH_MAX];
         if (snprintf(layouts_path, sizeof(layouts_path), "%s/layouts", config_path) >= (int)sizeof(layouts_path)) {
                 free(config_path);
                 return false;

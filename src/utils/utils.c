@@ -119,7 +119,7 @@ char *string_to_lower(const char *str)
                 return NULL;
         }
 
-        size_t length = strnlen(str, PATH_MAX);
+        size_t length = strnlen(str, KEW_PATH_MAX);
 
         return g_utf8_strdown(str, length);
 }
@@ -130,7 +130,7 @@ char *string_to_upper(const char *str)
                 return NULL;
         }
 
-        size_t length = strnlen(str, PATH_MAX);
+        size_t length = strnlen(str, KEW_PATH_MAX);
 
         return g_utf8_strup(str, length);
 }
@@ -221,7 +221,7 @@ void extract_extension(const char *filename, size_t ext_size, char *ext)
                 return;
         }
 
-        size_t length = strnlen(filename, PATH_MAX);
+        size_t length = strnlen(filename, KEW_PATH_MAX);
 
         // Find the last '.' character in the filename
         const char *dot = NULL;
@@ -280,8 +280,8 @@ void extract_extension(const char *filename, size_t ext_size, char *ext)
 
 int path_ends_with(const char *str, const char *suffix)
 {
-        size_t length = strnlen(str, PATH_MAX);
-        size_t suffixLength = strnlen(suffix, PATH_MAX);
+        size_t length = strnlen(str, KEW_PATH_MAX);
+        size_t suffixLength = strnlen(suffix, KEW_PATH_MAX);
 
         if (suffixLength > length) {
                 return 0;
@@ -293,8 +293,8 @@ int path_ends_with(const char *str, const char *suffix)
 
 int path_starts_with(const char *str, const char *prefix)
 {
-        size_t length = strnlen(str, PATH_MAX);
-        size_t prefixLength = strnlen(prefix, PATH_MAX);
+        size_t length = strnlen(str, KEW_PATH_MAX);
+        size_t prefixLength = strnlen(prefix, KEW_PATH_MAX);
 
         if (prefixLength > length) {
                 return 0;
@@ -382,7 +382,7 @@ static const char *get_xdg_state_base(void)
 
 char *get_config_path(void)
 {
-    char *out = malloc(PATH_MAX);
+    char *out = malloc(KEW_PATH_MAX);
     if (!out) return NULL;
 
     const char *base = get_xdg_config_base();
@@ -390,17 +390,17 @@ char *get_config_path(void)
 
     if (base) {
 #ifdef _WIN32
-        snprintf(out, PATH_MAX, "%s\\kew", base);
+        snprintf(out, KEW_PATH_MAX, "%s\\kew", base);
 #else
-        snprintf(out, PATH_MAX, "%s/kew", base);
+        snprintf(out, KEW_PATH_MAX, "%s/kew", base);
 #endif
     } else if (home) {
 #ifdef __APPLE__
-        snprintf(out, PATH_MAX, "%s/Library/Preferences/kew", home);
+        snprintf(out, KEW_PATH_MAX, "%s/Library/Preferences/kew", home);
 #elif defined(_WIN32)
-        snprintf(out, PATH_MAX, "%s\\kew", home);
+        snprintf(out, KEW_PATH_MAX, "%s\\kew", home);
 #else
-        snprintf(out, PATH_MAX, "%s/.config/kew", home);
+        snprintf(out, KEW_PATH_MAX, "%s/.config/kew", home);
 #endif
     } else {
         free(out);
@@ -412,21 +412,21 @@ char *get_config_path(void)
 
 char *get_prefs_path(void)
 {
-    char *out = malloc(PATH_MAX);
+    char *out = malloc(KEW_PATH_MAX);
     if (!out) return NULL;
 
     const char *base = get_xdg_state_base();
     const char *home = get_home_path();
 
     if (base) {
-        snprintf(out, PATH_MAX, "%s", base);
+        snprintf(out, KEW_PATH_MAX, "%s", base);
     } else if (home) {
 #ifdef __APPLE__
-        snprintf(out, PATH_MAX, "%s/Library/Application Support", home);
+        snprintf(out, KEW_PATH_MAX, "%s/Library/Application Support", home);
 #elif _WIN32
-        snprintf(out, PATH_MAX, "%s\\AppData\\Local", home);
+        snprintf(out, KEW_PATH_MAX, "%s\\AppData\\Local", home);
 #else
-        snprintf(out, PATH_MAX, "%s/.local/state", home);
+        snprintf(out, KEW_PATH_MAX, "%s/.local/state", home);
 #endif
     } else {
         free(out);
@@ -471,12 +471,12 @@ char *get_file_path(const char *filename)
                 return NULL;
         }
 
-        size_t configdir_length = strnlen(configdir, PATH_MAX);
-        size_t filename_length = strnlen(filename, PATH_MAX);
+        size_t configdir_length = strnlen(configdir, KEW_PATH_MAX);
+        size_t filename_length = strnlen(filename, KEW_PATH_MAX);
 
         size_t filepath_length = configdir_length + 1 + filename_length + 1;
 
-        if (filepath_length > PATH_MAX) {
+        if (filepath_length > KEW_PATH_MAX) {
                 free(configdir);
                 return NULL;
         }

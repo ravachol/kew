@@ -166,7 +166,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
         FILE *file = fopen(path, "r");
         if (!file) {
                 fprintf(stderr, "Failed to open theme file.\n");
-                char line[PATH_MAX + 100];
+                char line[KEW_PATH_MAX + 100];
                 snprintf(line, sizeof(line), "Failed to open theme file: %s", filename);
                 set_error_message(line);
                 return 0;
@@ -308,7 +308,7 @@ bool ensure_default_themes(void)
         if (!config_path)
                 return false;
 
-        char themes_path[PATH_MAX];
+        char themes_path[KEW_PATH_MAX];
         if (snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path) >= (int)sizeof(themes_path)) {
                 free(config_path);
                 return false;
@@ -323,7 +323,7 @@ bool ensure_default_themes(void)
                 }
         }
 
-        char system_themes[PATH_MAX];
+        char system_themes[KEW_PATH_MAX];
         snprintf(system_themes, sizeof(system_themes), "%s/themes", get_system_data_dir());
         DIR *dir = opendir(system_themes);
         if (!dir) {
@@ -334,7 +334,7 @@ bool ensure_default_themes(void)
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
                 // Only copy real files that look like themes
-                char full_path[PATH_MAX];
+                char full_path[KEW_PATH_MAX];
                 snprintf(full_path, sizeof(full_path), "%s/themes/%s", get_system_data_dir(), entry->d_name);
 
                 struct stat st;
@@ -342,7 +342,7 @@ bool ensure_default_themes(void)
                     (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md")))
                 {
 
-                        char src[PATH_MAX], dst[PATH_MAX], bak[PATH_MAX];
+                        char src[KEW_PATH_MAX], dst[KEW_PATH_MAX], bak[KEW_PATH_MAX];
 
                         if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))
                                 continue;

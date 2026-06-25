@@ -207,8 +207,8 @@ void *update_library_thread(void *arg)
         char *path = args->path;
         int tmp_directory_tree_entries = 0;
 
-        char expanded_path[PATH_MAX];
-        expand_path(path, expanded_path, PATH_MAX);
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(path, expanded_path, KEW_PATH_MAX);
 
         FileSystemEntry *tmp =
             create_directory_tree(expanded_path, &tmp_directory_tree_entries);
@@ -366,8 +366,8 @@ void update_library_if_changed_detected(bool wait_until_complete)
         }
 
         AppSettings *settings = get_app_settings();
-        char expanded[PATH_MAX];
-        expand_path(settings->path, expanded, PATH_MAX);
+        char expanded[KEW_PATH_MAX];
+        expand_path(settings->path, expanded, KEW_PATH_MAX);
 
         args->path = strdup(expanded);
         if (args->path == NULL) {
@@ -411,9 +411,9 @@ void create_library(Model *model, bool set_enqueued_status)
         AppState *state = get_app_state();
         FileSystemEntry *library = NULL;
 
-        char expanded[PATH_MAX];
+        char expanded[KEW_PATH_MAX];
 
-        expand_path(settings->path, expanded, PATH_MAX);
+        expand_path(settings->path, expanded, KEW_PATH_MAX);
 
         char *lib_path = get_library_file_path();
 
@@ -438,9 +438,9 @@ void create_library(Model *model, bool set_enqueued_status)
 
         if (model->library == NULL || model->library->children == NULL || library_path_changed) {
 
-                char expanded[PATH_MAX];
+                char expanded[KEW_PATH_MAX];
 
-                expand_path(settings->path, expanded, PATH_MAX);
+                expand_path(settings->path, expanded, KEW_PATH_MAX);
 
                 FileSystemEntry *tmp = create_directory_tree(expanded, &(state->ui.numDirectoryTreeEntries));
 
@@ -452,15 +452,15 @@ void create_library(Model *model, bool set_enqueued_status)
         }
 
         if (model->library == NULL || model->library->children == NULL) {
-                char message[PATH_MAX + 64];
+                char message[KEW_PATH_MAX + 64];
 
-                snprintf(message, PATH_MAX + 64, "No music found at %s.", settings->path);
+                snprintf(message, KEW_PATH_MAX + 64, "No music found at %s.", settings->path);
 
                 set_error_message(message);
         }
 
         if (model->library != NULL) {
-                char lib_real[PATH_MAX];
+                char lib_real[KEW_PATH_MAX];
                 if (path_realpath(model->library->full_path, lib_real) != NULL &&
                     strcmp(lib_real, model->library->full_path) != 0)
                         set_library_real_path_if_diff(lib_real);
@@ -501,7 +501,8 @@ void enqueue_song(FileSystemEntry *child)
                 // Our number has to be one larger than that number.
                 FileSystemEntry *library = get_library();
                 FileSystemEntry *prev_entry = find_corresponding_entry(library, node->prev->song.file_path);
-                child->is_enqueued = prev_entry->is_enqueued + 1;
+                if (prev_entry)
+                        child->is_enqueued = prev_entry->is_enqueued + 1;
         }
 
         child->parent->is_enqueued = 1;
@@ -768,8 +769,8 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
         GError *error = NULL;
         gchar *contents;
 
-        char filename[PATH_MAX];
-        expand_path(filepath, filename, PATH_MAX);
+        char filename[KEW_PATH_MAX];
+        expand_path(filepath, filename, KEW_PATH_MAX);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
                 g_clear_error(&error);
@@ -868,8 +869,8 @@ void dequeue_m3u(const char *filepath, FileSystemEntry *library)
         GError *error = NULL;
         gchar *contents;
 
-        char filename[PATH_MAX];
-        expand_path(filepath, filename, PATH_MAX);
+        char filename[KEW_PATH_MAX];
+        expand_path(filepath, filename, KEW_PATH_MAX);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
                 g_clear_error(&error);
