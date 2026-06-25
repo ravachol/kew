@@ -209,8 +209,8 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
 
         struct dirent *entry;
         struct stat file_stat;
-        char file_path[PATH_MAX];
-        char resolved_path[PATH_MAX];
+        char file_path[KEW_PATH_MAX];
+        char resolved_path[KEW_PATH_MAX];
         char *result = NULL;
 
         for (int i = 0; i < size && !result; i++) {
@@ -305,8 +305,8 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
 
         struct dirent *entry;
         struct stat file_stats;
-        char file_path[PATH_MAX];
-        char resolved_path[PATH_MAX];
+        char file_path[KEW_PATH_MAX];
+        char resolved_path[KEW_PATH_MAX];
 
         while ((entry = readdir(directory)) != NULL) {
                 // Skip "." and ".."
@@ -405,7 +405,7 @@ int load_color(SongData *songdata)
 
 void load_meta_data(SongData *songdata)
 {
-        char path[PATH_MAX];
+        char path[KEW_PATH_MAX];
 
         songdata->metadata = malloc(sizeof(TagSettings));
         if (songdata->metadata == NULL) {
@@ -415,7 +415,7 @@ void load_meta_data(SongData *songdata)
         songdata->metadata->replaygainTrack = 0.0;
         songdata->metadata->replaygainAlbum = 0.0;
 
-        generate_temp_file_path(songdata->cover_art_path, PATH_MAX, "cover", ".jpg");
+        generate_temp_file_path(songdata->cover_art_path, KEW_PATH_MAX, "cover", ".jpg");
 
         int res = extractTags(songdata->file_path, songdata->metadata,
                               &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics));
