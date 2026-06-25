@@ -390,8 +390,8 @@ typedef struct
         PixelData kewColorRGB;       /**< Primary application accent RGB color. */
 
         int chromaPreset; /**< Preset index for chroma-based coloring. */
-        char chromaPath[PATH_MAX];
-        char chromaDevice[PATH_MAX];
+        char chromaPath[KEW_PATH_MAX];
+        char chromaDevice[KEW_PATH_MAX];
         bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
         bool visualizations_instead_of_cover; /**< Show visualizer instead of album cover. */
 
@@ -539,7 +539,7 @@ typedef struct
  */
 typedef struct
 {
-        char path[PATH_MAX];
+        char path[KEW_PATH_MAX];
         char theme[KEW_NAME_MAX];
         char ansiTheme[KEW_NAME_MAX];
         char colorMode[6];
@@ -665,8 +665,8 @@ typedef struct
         char showLyricsPage[6];
         char stripTrackNumbers[2];
         char chromaPreset[6];
-        char chromaPath[PATH_MAX];
-        char chromaDevice[PATH_MAX];
+        char chromaPath[KEW_PATH_MAX];
+        char chromaDevice[KEW_PATH_MAX];
         char showFoldersInPlaylist[2];
         char fade_enter_song_ms[12];
         char fade_quick[6];

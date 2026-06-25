@@ -1317,7 +1317,7 @@ void *song_data_reader_thread(void *arg)
 
         pthread_mutex_lock(&(loader_data->mutex));
 
-        char filepath[PATH_MAX];
+        char filepath[KEW_PATH_MAX];
         c_strcpy(filepath, loader_data->file_path, sizeof(filepath));
 
         SongData *songdata = exists_file(filepath) >= 0 ? load_song_data(filepath) : NULL;

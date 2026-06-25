@@ -58,7 +58,7 @@ void get_directory_from_path(const char *path, char *directory)
         if (!path || !directory)
                 return;
 
-        size_t len = strnlen(path, PATH_MAX);
+        size_t len = strnlen(path, KEW_PATH_MAX);
 
         char *tmp = malloc(len + 1);
         if (!tmp) {
@@ -72,14 +72,14 @@ void get_directory_from_path(const char *path, char *directory)
         char *dir = dirname(tmp);
 
         // Copy the result to the caller‑supplied buffer safely
-        c_strcpy(directory, dir, PATH_MAX - 1);
-        directory[PATH_MAX - 1] = '\0'; // Ensure null termination
+        c_strcpy(directory, dir, KEW_PATH_MAX - 1);
+        directory[KEW_PATH_MAX - 1] = '\0'; // Ensure null termination
 
         /// Ensure a trailing '/'
-        size_t dlen = strnlen(directory, PATH_MAX);
+        size_t dlen = strnlen(directory, KEW_PATH_MAX);
 
         if (dlen > 0 && directory[dlen - 1] != '/' &&
-            dlen + 1 < PATH_MAX) {
+            dlen + 1 < KEW_PATH_MAX) {
                 directory[dlen] = '/';
                 directory[dlen + 1] = '\0';
         }
@@ -116,9 +116,9 @@ int is_directory(const char *path)
 
 int directory_exists(const char *path)
 {
-        char expanded[PATH_MAX];
+        char expanded[KEW_PATH_MAX];
 
-        expand_path(path, expanded, PATH_MAX);
+        expand_path(path, expanded, KEW_PATH_MAX);
 
         DIR *dir = opendir(expanded);
 
@@ -177,7 +177,7 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                         continue;
 
                 // Build full path for entry
-                char entry_path[PATH_MAX];
+                char entry_path[KEW_PATH_MAX];
                 if (snprintf(entry_path, sizeof(entry_path), "%s/%s", start_path, entry->d_name) >= (int)sizeof(entry_path)) {
                         fprintf(stderr, "Path too long: %s/%s\n", start_path, entry->d_name);
                         continue;
@@ -196,13 +196,13 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
                         bool nameMatch = exact_search
                                              ? (strcasecmp(folded_name, low_case_searching) == 0)
-                                             : (c_strcasestr(folded_name, low_case_searching, PATH_MAX) != NULL);
+                                             : (c_strcasestr(folded_name, low_case_searching, KEW_PATH_MAX) != NULL);
 
                         free(folded_name);
 
                         if (nameMatch && search_type != FileOnly && search_type != SearchPlayList) {
-                                c_strcpy(result, entry_path, PATH_MAX - 1);
-                                result[PATH_MAX - 1] = '\0';
+                                c_strcpy(result, entry_path, KEW_PATH_MAX - 1);
+                                result[KEW_PATH_MAX - 1] = '\0';
                                 found = true;
                                 break;
                         }
@@ -230,13 +230,13 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
                         bool nameMatch = exact_search
                                              ? (strcasecmp(folded_name, low_case_searching) == 0)
-                                             : (c_strcasestr(folded_name, low_case_searching, PATH_MAX) != NULL);
+                                             : (c_strcasestr(folded_name, low_case_searching, KEW_PATH_MAX) != NULL);
 
                         free(folded_name);
 
                         if (nameMatch) {
-                                c_strcpy(result, entry_path, PATH_MAX - 1);
-                                result[PATH_MAX - 1] = '\0';
+                                c_strcpy(result, entry_path, KEW_PATH_MAX - 1);
+                                result[KEW_PATH_MAX - 1] = '\0';
                                 found = true;
                                 break;
                         }
@@ -360,14 +360,14 @@ int delete_file(const char *file_path)
 int is_in_temp_dir(const char *path)
 {
         const char *tmp_dir = getenv("TMPDIR");
-        static char tmpdir_buf[PATH_MAX + 2];
+        static char tmpdir_buf[KEW_PATH_MAX + 2];
 
-        if (tmp_dir == NULL || strnlen(tmp_dir, PATH_MAX) >= PATH_MAX)
+        if (tmp_dir == NULL || strnlen(tmp_dir, KEW_PATH_MAX) >= KEW_PATH_MAX)
                 tmp_dir = "/tmp";
 
         size_t len = strlen(tmp_dir);
-        c_strcpy(tmpdir_buf, tmp_dir, PATH_MAX);
-        tmpdir_buf[PATH_MAX] = '\0';
+        c_strcpy(tmpdir_buf, tmp_dir, KEW_PATH_MAX);
+        tmpdir_buf[KEW_PATH_MAX] = '\0';
 
         if (len == 0 || tmpdir_buf[len - 1] != '/') {
                 tmpdir_buf[len] = '/';

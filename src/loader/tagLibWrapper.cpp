@@ -63,6 +63,38 @@ const uint32_t MAX_REASONABLE_SIZE = 100 * 1024 * 1024; // 100MB limit
 #define HAVE_COMPLEXPROPERTIES 0
 #endif
 
+#ifdef _WIN32
+
+#include <windows.h>
+#include <winnls.h>
+
+static std::wstring utf8ToWide(const char *s)
+{
+    int size = MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        s,
+        -1,
+        nullptr,
+        0);
+
+    if (size <= 0)
+        return {};
+
+    std::wstring result(size - 1, L'\0');
+
+    MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        s,
+        -1,
+        result.data(),
+        size);
+
+    return result;
+}
+#endif
+
 std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 {
         const size_t MAX_DECODED_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -288,13 +320,12 @@ void parseFlacPictureBlock(const std::vector<unsigned char> &data,
 
 #if HAVE_COMPLEXPROPERTIES
 
-bool extractCoverArtFromOgg(const std::string &audioFilePath,
+bool extractCoverArtFromOgg(TagLib::FileRef f,
                             const std::string &outputFileName)
 {
-        TagLib::FileRef f(audioFilePath.c_str(), true);
         if (!f.file() || !f.file()->isOpen()) {
                 std::cerr
-                    << "Error: Could not open file: " << audioFilePath
+                    << "Error: Could not open file"
                     << std::endl;
                 return false;
         }
@@ -334,14 +365,16 @@ bool extractCoverArtFromOgg(const std::string &audioFilePath,
 
 #else
 
-bool extractCoverArtFromOgg(const std::string &audioFilePath,
+bool extractCoverArtFromOgg(TagLib::FileRef file,
                             const std::string &outputFileName)
 {
-        TagLib::File *file = nullptr;
         TagLib::Tag *tag = nullptr;
 
+TagLib::Vorbis::File *file =
+     dynamic_cast<TagLib::Vorbis::File *>(f.file());
+
         // Try to open as Ogg Vorbis
-        file = new TagLib::Vorbis::File(audioFilePath.c_str());
+
         if (!file->isValid()) {
                 delete file;
                 // Try to open as Opus
@@ -574,15 +607,18 @@ bool extractCoverArtFromOggVideo(const std::string &audioFilePath,
         return false;
 }
 
-bool extractCoverArtFromMp3(const std::string &inputFile,
+bool extractCoverArtFromMp3(TagLib::FileRef f,
                             const std::string &coverFilePath)
 {
-        TagLib::MPEG::File file(inputFile.c_str());
-        if (!file.isValid()) {
+
+TagLib::MPEG::File *file =
+     dynamic_cast<TagLib::MPEG::File *>(f.file());
+
+        if (!file->isValid()) {
                 return false;
         }
 
-        const TagLib::ID3v2::Tag *id3v2tag = file.ID3v2Tag();
+        const TagLib::ID3v2::Tag *id3v2tag = file->ID3v2Tag();
         if (id3v2tag) {
                 // Collect all attached picture frames
                 TagLib::ID3v2::FrameList frames;
@@ -647,14 +683,15 @@ bool extractCoverArtFromMp3(const std::string &inputFile,
         return true; // Success
 }
 
-bool extractCoverArtFromFlac(const std::string &inputFile,
+bool extractCoverArtFromFlac(TagLib::FileRef f,
                              const std::string &coverFilePath)
 {
-        TagLib::FLAC::File file(inputFile.c_str());
+TagLib::FLAC::File *file =
+     dynamic_cast<TagLib::FLAC::File *>(f.file());
 
-        if (file.pictureList().size() > 0) {
+        if (file->pictureList().size() > 0) {
                 const TagLib::FLAC::Picture *picture =
-                    file.pictureList().front();
+                    file->pictureList().front();
                 if (picture) {
                         FILE *coverFile =
                             fopen(coverFilePath.c_str(), "wb");
@@ -673,15 +710,17 @@ bool extractCoverArtFromFlac(const std::string &inputFile,
         return false;
 }
 
-bool extractCoverArtFromWav(const std::string &inputFile,
+bool extractCoverArtFromWav(TagLib::FileRef f,
                             const std::string &coverFilePath)
 {
-        TagLib::RIFF::WAV::File file(inputFile.c_str());
-        if (!file.isValid()) {
+
+TagLib::RIFF::WAV::File *file =
+     dynamic_cast<TagLib::RIFF::WAV::File *>(f.file());
+        if (!file->isValid()) {
                 return false;
         }
 
-        const TagLib::ID3v2::Tag *id3v2tag = file.ID3v2Tag();
+        const TagLib::ID3v2::Tag *id3v2tag = file->ID3v2Tag();
         if (id3v2tag) {
                 // Collect all attached picture frames
                 TagLib::ID3v2::FrameList frames;
@@ -899,16 +938,18 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
         return false;
 }
 
-bool extractCoverArtFromMp4(const std::string &inputFile,
+bool extractCoverArtFromMp4(TagLib::FileRef f,
                             const std::string &coverFilePath)
 {
-        TagLib::MP4::File file(inputFile.c_str());
 
-        if (!file.isValid()) {
+TagLib::MP4::File *file =
+     dynamic_cast<TagLib::MP4::File *>(f.file());
+
+        if (!file->isValid()) {
                 return false;
         }
 
-        const TagLib::MP4::Item coverItem = file.tag()->item("covr");
+        const TagLib::MP4::Item coverItem = file->tag()->item("covr");
 
         if (coverItem.isValid()) {
                 TagLib::MP4::CoverArtList coverArtList =
@@ -1355,7 +1396,14 @@ static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
 }
 
 void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
+
+#ifdef _WIN32
+    std::wstring wpath = utf8ToWide(filepath);
+    TagLib::FileRef file(wpath.c_str());
+#else
     TagLib::FileRef file(filepath);
+#endif
+
     if (file.isNull() || !file.file()) {
             fprintf(stderr,
                     "FileRef is null or file could not be opened: "
@@ -1408,8 +1456,13 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
         tag_settings->replaygainTrack = 0.0;
         tag_settings->replaygainAlbum = 0.0;
 
-        // Use TagLib's FileRef for generic file parsing.
-        TagLib::FileRef f(input_file);
+#ifdef _WIN32
+    std::wstring wpath = utf8ToWide(input_file);
+    TagLib::FileRef f(wpath.c_str());
+#else
+    TagLib::FileRef f(input_file);
+#endif
+
         if (f.isNull() || !f.file()) {
                 fprintf(stderr,
                         "FileRef is null or file could not be opened: "
@@ -1607,20 +1660,20 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
 
         if (extension == "mp3") {
                 coverArtExtracted =
-                    extractCoverArtFromMp3(input_file, coverFilePath);
+                    extractCoverArtFromMp3(f, coverFilePath);
         } else if (extension == "flac") {
                 coverArtExtracted =
-                    extractCoverArtFromFlac(input_file, coverFilePath);
+                    extractCoverArtFromFlac(f, coverFilePath);
         } else if (extension == "m4a" || extension == "aac") {
                 coverArtExtracted =
-                    extractCoverArtFromMp4(input_file, coverFilePath);
+                    extractCoverArtFromMp4(f, coverFilePath);
         }
         if (extension == "opus") {
                 coverArtExtracted =
                     extractCoverArtFromOpus(input_file, coverFilePath);
         } else if (extension == "ogg") {
                 coverArtExtracted =
-                    extractCoverArtFromOgg(input_file, coverFilePath);
+                    extractCoverArtFromOgg(f, coverFilePath);
 
                 if (!coverArtExtracted) {
                         coverArtExtracted = extractCoverArtFromOggVideo(
@@ -1628,7 +1681,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                 }
         } else if (extension == "wav" || extension == "aiff") {
                 coverArtExtracted =
-                    extractCoverArtFromWav(input_file, coverFilePath);
+                    extractCoverArtFromWav(f, coverFilePath);
         }
 
         if (coverArtExtracted) {

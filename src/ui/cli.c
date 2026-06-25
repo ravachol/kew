@@ -120,9 +120,9 @@ void set_music_path(void)
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
             "Zene", "Muzică", "เพลง", "מוזיקה"};
 
-        char path[PATH_MAX];
+        char path[KEW_PATH_MAX];
         int found = -1;
-        char choice[PATH_MAX];
+        char choice[KEW_PATH_MAX];
 
         AppSettings *settings = get_app_settings();
         for (size_t i = 0;
