@@ -33,19 +33,23 @@ void emit_image(ImagePayload *image,
                 int term_width_cells,
                 int corrected_width)
 {
-    if (!image || !image->data)
-        return;
+        if (!image || !image->data)
+                return;
 
-    if (centered)
-        col = ((term_width_cells - corrected_width) / 2) + 1;
+        if (centered)
+                col = ((term_width_cells - corrected_width) / 2) + 1;
 
-    /* Move cursor ONCE */
-    printf("\033[%d;%dH", row + 1, col + 1);
+        char buf[64];
+        int len = snprintf(buf, sizeof(buf),
+                           "\033[%d;%dH",
+                           row + 1, col + 1);
+        // Move cursor into position
+        fwrite(buf, 1, len, stdout);
 
-    /* Write whole Sixel stream */
-    fwrite(image->data, 1, image->data_len, stdout);
+        // Write the image at once
+        fwrite(image->data, 1, image->data_len, stdout);
 
-    fflush(stdout);
+        fflush(stdout);
 }
 
 static inline void safe_putchar(int c)
@@ -297,8 +301,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
                                 }
                         }
 
-                        if (cell->kind == CELL_LINK)
-                        {
+                        if (cell->kind == CELL_LINK) {
                                 cursor_move(row, col);
 
                                 emit_style_diff(cell, &style);
