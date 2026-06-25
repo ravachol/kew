@@ -429,10 +429,12 @@ void generate_temp_file_path(char *file_path,
     create_directory(user_dir);
 
     /* random string */
-    char rnd[7];
-    for (int i = 0; i < 6; i++)
-        rnd[i] = 'a' + (rand() % 26);
-    rnd[6] = '\0';
+char rnd[7];
+
+for (int i = 0; i < 6; i++)
+    rnd[i] = 'a' + g_random_int_range(0, 26);
+
+rnd[6] = '\0';
 
     /* final path */
 #ifdef _WIN32
