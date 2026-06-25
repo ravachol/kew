@@ -365,12 +365,12 @@ bool extractCoverArtFromOgg(TagLib::FileRef f,
 
 #else
 
-bool extractCoverArtFromOgg(TagLib::FileRef file,
+bool extractCoverArtFromOgg(TagLib::FileRef f,
                             const std::string &outputFileName)
 {
         TagLib::Tag *tag = nullptr;
 
-        TagLib::Vorbis::File *file =
+        TagLib::File *file =
             dynamic_cast<TagLib::Vorbis::File *>(f.file());
 
         // Try to open as Ogg Vorbis
@@ -379,7 +379,8 @@ bool extractCoverArtFromOgg(TagLib::FileRef file,
                 delete file;
                 // Try to open as Opus
                 file =
-                    new TagLib::Ogg::Opus::File(audioFilePath.c_str());
+                    dynamic_cast<TagLib::Ogg::Opus::File *>(f.file());;
+
                 if (!file->isValid()) {
                         delete file;
                         std::cerr << "Error: File not found or not a "
