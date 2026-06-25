@@ -7,13 +7,13 @@
  * Exposes a C-compatible API for integration with the main C codebase.
  */
 
-#include <cstdlib>
 #include <algorithm>
 #include <cctype>
 #include <complex.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -70,28 +70,28 @@ const uint32_t MAX_REASONABLE_SIZE = 100 * 1024 * 1024; // 100MB limit
 
 static std::wstring utf8ToWide(const char *s)
 {
-    int size = MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        s,
-        -1,
-        nullptr,
-        0);
+        int size = MultiByteToWideChar(
+            CP_UTF8,
+            0,
+            s,
+            -1,
+            nullptr,
+            0);
 
-    if (size <= 0)
-        return {};
+        if (size <= 0)
+                return {};
 
-    std::wstring result(size - 1, L'\0');
+        std::wstring result(size - 1, L'\0');
 
-    MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        s,
-        -1,
-        result.data(),
-        size);
+        MultiByteToWideChar(
+            CP_UTF8,
+            0,
+            s,
+            -1,
+            result.data(),
+            size);
 
-    return result;
+        return result;
 }
 #endif
 
@@ -370,8 +370,8 @@ bool extractCoverArtFromOgg(TagLib::FileRef file,
 {
         TagLib::Tag *tag = nullptr;
 
-TagLib::Vorbis::File *file =
-     dynamic_cast<TagLib::Vorbis::File *>(f.file());
+        TagLib::Vorbis::File *file =
+            dynamic_cast<TagLib::Vorbis::File *>(f.file());
 
         // Try to open as Ogg Vorbis
 
@@ -611,8 +611,8 @@ bool extractCoverArtFromMp3(TagLib::FileRef f,
                             const std::string &coverFilePath)
 {
 
-TagLib::MPEG::File *file =
-     dynamic_cast<TagLib::MPEG::File *>(f.file());
+        TagLib::MPEG::File *file =
+            dynamic_cast<TagLib::MPEG::File *>(f.file());
 
         if (!file->isValid()) {
                 return false;
@@ -686,8 +686,8 @@ TagLib::MPEG::File *file =
 bool extractCoverArtFromFlac(TagLib::FileRef f,
                              const std::string &coverFilePath)
 {
-TagLib::FLAC::File *file =
-     dynamic_cast<TagLib::FLAC::File *>(f.file());
+        TagLib::FLAC::File *file =
+            dynamic_cast<TagLib::FLAC::File *>(f.file());
 
         if (file->pictureList().size() > 0) {
                 const TagLib::FLAC::Picture *picture =
@@ -714,8 +714,8 @@ bool extractCoverArtFromWav(TagLib::FileRef f,
                             const std::string &coverFilePath)
 {
 
-TagLib::RIFF::WAV::File *file =
-     dynamic_cast<TagLib::RIFF::WAV::File *>(f.file());
+        TagLib::RIFF::WAV::File *file =
+            dynamic_cast<TagLib::RIFF::WAV::File *>(f.file());
         if (!file->isValid()) {
                 return false;
         }
@@ -942,8 +942,8 @@ bool extractCoverArtFromMp4(TagLib::FileRef f,
                             const std::string &coverFilePath)
 {
 
-TagLib::MP4::File *file =
-     dynamic_cast<TagLib::MP4::File *>(f.file());
+        TagLib::MP4::File *file =
+            dynamic_cast<TagLib::MP4::File *>(f.file());
 
         if (!file->isValid()) {
                 return false;
@@ -1395,56 +1395,63 @@ static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
         return true;
 }
 
-void getTrackInfo(const char *filepath, uint32_t* track, uint32_t* disc) {
+void getTrackInfo(const char *filepath, uint32_t *track, uint32_t *disc)
+{
 
 #ifdef _WIN32
-    std::wstring wpath = utf8ToWide(filepath);
-    TagLib::FileRef file(wpath.c_str());
+        std::wstring wpath = utf8ToWide(filepath);
+        TagLib::FileRef file(wpath.c_str());
 #else
-    TagLib::FileRef file(filepath);
+        TagLib::FileRef file(filepath);
 #endif
 
-    if (file.isNull() || !file.file()) {
-            fprintf(stderr,
-                    "FileRef is null or file could not be opened: "
-                    "'%s'\n",
-                    filepath);
+        if (file.isNull() || !file.file()) {
+                fprintf(stderr,
+                        "FileRef is null or file could not be opened: "
+                        "'%s'\n",
+                        filepath);
 
-            return;
-    }
+                return;
+        }
 
-    const TagLib::Tag *tag = file.tag();
-    if (!tag) {
-            fprintf(stderr, "Tag is null for file '%s'\n",
-                    filepath);
-            return;
-    }
+        const TagLib::Tag *tag = file.tag();
+        if (!tag) {
+                fprintf(stderr, "Tag is null for file '%s'\n",
+                        filepath);
+                return;
+        }
 
-    uint32_t trackNumber = tag->track();
+        uint32_t trackNumber = tag->track();
 
-    if (track != NULL) *track = trackNumber;
-    if (disc == NULL) return;
+        if (track != NULL)
+                *track = trackNumber;
+        if (disc == NULL)
+                return;
 
-    auto mpeg = dynamic_cast<TagLib::MPEG::File *>(file.file());
-    if (mpeg == NULL || !mpeg->isValid()) return;
+        auto mpeg = dynamic_cast<TagLib::MPEG::File *>(file.file());
+        if (mpeg == NULL || !mpeg->isValid())
+                return;
 
-    auto mpegTag = mpeg->ID3v2Tag();
-    if (!mpegTag) return;
+        auto mpegTag = mpeg->ID3v2Tag();
+        if (!mpegTag)
+                return;
 
-    TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
+        TagLib::ID3v2::FrameList discNumber = mpegTag->frameListMap()["TPOS"];
 
-    if (discNumber.isEmpty()) return;
+        if (discNumber.isEmpty())
+                return;
 
-    auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
-    if (!frame) return;
+        auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(discNumber.front());
+        if (!frame)
+                return;
 
-    TagLib::String str = frame->toString();
-    std::string raw = str.to8Bit(true);
-    char *delimiter;
-    uint32_t disc_number = strtoul(raw.c_str(), &delimiter, 10);
-    *disc = disc_number;
+        TagLib::String str = frame->toString();
+        std::string raw = str.to8Bit(true);
+        char *delimiter;
+        uint32_t disc_number = strtoul(raw.c_str(), &delimiter, 10);
+        *disc = disc_number;
 
-    return;
+        return;
 }
 
 int extractTags(const char *input_file, TagSettings *tag_settings,
@@ -1457,10 +1464,10 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
         tag_settings->replaygainAlbum = 0.0;
 
 #ifdef _WIN32
-    std::wstring wpath = utf8ToWide(input_file);
-    TagLib::FileRef f(wpath.c_str());
+        std::wstring wpath = utf8ToWide(input_file);
+        TagLib::FileRef f(wpath.c_str());
 #else
-    TagLib::FileRef f(input_file);
+        TagLib::FileRef f(input_file);
 #endif
 
         if (f.isNull() || !f.file()) {
