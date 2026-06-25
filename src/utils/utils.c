@@ -51,13 +51,6 @@ int get_random_number(int min, int max)
 
 int get_random_number(int min, int max)
 {
-        static int seeded = 0;
-        if (!seeded) {
-                srand(time(
-                    NULL));
-                seeded = 1;
-        }
-
         return min +
                (rand() % (max - min + 1));
 }
