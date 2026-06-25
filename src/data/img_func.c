@@ -620,8 +620,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 if (!printable)
                         return;
 
-                g_string_append_c(printable, '\0');
+                img->data_len = printable->len;
                 img->data = (uint8_t *)g_string_free(printable, FALSE);
-                img->data_len = strlen((char *)img->data);
         }
 }
