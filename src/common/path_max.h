@@ -11,6 +11,8 @@
 #define KEW_PATH_MAX 1024
 #else
 #define KEW_PATH_MAX 4096
+#else
+#define KEW_PATH_MAX PATH_MAX
 #endif
 #endif
 #endif
