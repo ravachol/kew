@@ -3,6 +3,7 @@
 #ifdef _WIN32
 #define KEW_PATH_MAX 32768
 #else
+
 #ifndef PATH_MAX
 // Internal application path buffer size.
 // This is not the Windows MAX_PATH limit.
@@ -11,10 +12,12 @@
 #define KEW_PATH_MAX 1024
 #else
 #define KEW_PATH_MAX 4096
+#endif
+
 #else
 #define KEW_PATH_MAX PATH_MAX
 #endif
-#endif
+
 #endif
 
 
