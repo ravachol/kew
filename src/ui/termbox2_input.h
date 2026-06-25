@@ -64,7 +64,7 @@ kew, which handles setting non-blocking mode itself.
 #include <termios.h>
 #endif
 
-#define TB_PATH_MAX PATH_MAX
+#define TB_PATH_MAX KEW_PATH_MAX
 
 #ifdef __cplusplus
 extern "C" {

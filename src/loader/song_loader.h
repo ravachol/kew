@@ -7,6 +7,8 @@
 
 #include "songdatatype.h"
 
+#include "common/path_max.h"
+
 #include <pthread.h>
 #include <stdbool.h>
 
@@ -15,7 +17,7 @@
  */
 typedef struct
 {
-        char file_path[PATH_MAX];
+        char file_path[KEW_PATH_MAX];
 
         bool loadInSlotA;
         bool loadingFirstDecoder;

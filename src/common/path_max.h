@@ -1,10 +1,18 @@
 #include <limits.h>
 
+#ifdef _WIN32
+#define KEW_PATH_MAX 32768
+#else
 #ifndef PATH_MAX
-  // If PATH_MAX is not defined, define it based on the platform. On macOS, PATH_MAX is typically 1024, while on Linux it's often 4096.
-  #ifdef __APPLE__
-    #define PATH_MAX 1024
-   #else
-    #define PATH_MAX 4096
-  #endif
+// Internal application path buffer size.
+// This is not the Windows MAX_PATH limit.
+// Windows Unicode APIs can handle paths longer than 260 characters.
+#if defined(__APPLE__)
+#define KEW_PATH_MAX 1024
+#else
+#define KEW_PATH_MAX 4096
 #endif
+#endif
+#endif
+
+
