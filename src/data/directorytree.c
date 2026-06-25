@@ -320,7 +320,7 @@ void set_full_path(FileSystemEntry *entry,
     if (needed > KEW_PATH_MAX) {
 
         fprintf(stderr,
-                "Path too long, needed: %d, KEW_PATH_MAX: %d, rejecting.\n", needed, KEW_PATH_MAX);
+                "Path too long, rejecting.\n");
 
         return;
     }
