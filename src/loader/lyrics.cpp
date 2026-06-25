@@ -153,7 +153,7 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
 //helper function findLRC that find wether current folder have a .lrc file match the word
 static char *findLRC(const char *folder, const char *word)
 {
-        static char result[PATH_MAX];
+        static char result[KEW_PATH_MAX];
         DIR *d = opendir(folder);
 
         if (!d)
@@ -182,7 +182,7 @@ static char *findLRC(const char *folder, const char *word)
 
 Lyrics *loadLyricsFromLRC(const char *path,SongData *songdata)
 {
-        char lrcPath[PATH_MAX];
+        char lrcPath[KEW_PATH_MAX];
         if (snprintf(lrcPath, sizeof(lrcPath), "%s", path) >= (int)sizeof(lrcPath))
                 return nullptr;
 
@@ -209,8 +209,8 @@ Lyrics *loadLyricsFromLRC(const char *path,SongData *songdata)
                 if (!slash || slash == lrcPath)
                         return nullptr;
 
-                char curFolder[PATH_MAX];
-                if (snprintf(curFolder, slash - lrcPath + 1, "%s", lrcPath) >= PATH_MAX)
+                char curFolder[KEW_PATH_MAX];
+                if (snprintf(curFolder, slash - lrcPath + 1, "%s", lrcPath) >= KEW_PATH_MAX)
                         return nullptr;
 
                 file = fopen(findLRC(curFolder,corrTitle),"r");

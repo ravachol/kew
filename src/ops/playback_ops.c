@@ -129,7 +129,7 @@ bool is_valid_audio_node(Node *node)
         if (node->id < 0)
                 return false;
         if (!node->song.file_path ||
-            strnlen(node->song.file_path, PATH_MAX) == 0)
+            strnlen(node->song.file_path, KEW_PATH_MAX) == 0)
                 return false;
 
         return true;

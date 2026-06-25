@@ -214,7 +214,7 @@ void cycle_themes(void)
         if (!config_path)
                 return;
 
-        char themes_path[PATH_MAX];
+        char themes_path[KEW_PATH_MAX];
         snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path);
 
         DIR *dir = opendir(themes_path);
@@ -474,7 +474,7 @@ int load_theme(const char *theme_name,
         }
 
         // Build full themes directory path: configDir + "/themes"
-        char themes_dir[PATH_MAX];
+        char themes_dir[KEW_PATH_MAX];
         if (snprintf(themes_dir, sizeof(themes_dir), "%s/themes", config_path) >=
             (int)sizeof(themes_dir)) {
                 fprintf(stderr, "Themes path is too long\n");

@@ -32,7 +32,7 @@
 #define FSDB_MAGIC 0x46534442 // "FSDB"
 
 static int last_used_id = 0;
-static uint32_t DB_VERSION = 3;
+static uint32_t DB_VERSION = 4;
 
 // Header for the DB
 typedef struct {
@@ -247,8 +247,8 @@ int is_valid_entry_name(const char *name)
         if (name == NULL)
                 return 0;
 
-        size_t len = strnlen(name, PATH_MAX + 1);
-        if (len > KEW_NAME_MAX || len > PATH_MAX)
+        size_t len = strnlen(name, KEW_PATH_MAX + 1);
+        if (len > KEW_NAME_MAX || len > KEW_PATH_MAX)
                 return 0;
 
         if (len == 0)
@@ -275,65 +275,96 @@ int is_valid_entry_name(const char *name)
         return 1;
 }
 
-void set_full_path(FileSystemEntry *entry, const char *parent_path,
+void set_full_path(FileSystemEntry *entry,
+                   const char *parent_path,
                    const char *entry_name)
 {
-        if (entry == NULL || parent_path == NULL || entry_name == NULL)
-                return;
+    if (entry == NULL ||
+        parent_path == NULL ||
+        entry_name == NULL)
+        return;
 
-        if (!is_valid_entry_name(entry_name)) {
-                return;
-        }
+    entry->full_path = NULL;
 
-        size_t parentLen = strnlen(parent_path, PATH_MAX + 1);
-        size_t nameLen = strnlen(entry_name, PATH_MAX + 1);
+    if (!is_valid_entry_name(entry_name))
+        return;
 
-        if (parentLen > PATH_MAX || nameLen > PATH_MAX) {
-                fprintf(
-                    stderr,
-                    "Parent or entry name too long or not null-terminated.\n");
+    size_t parentLen = strnlen(parent_path, KEW_PATH_MAX + 1);
+    size_t nameLen   = strnlen(entry_name, KEW_PATH_MAX + 1);
 
-                return;
-        }
+    if (parentLen > KEW_PATH_MAX || nameLen > KEW_PATH_MAX) {
 
-        if (parentLen > 0 && parent_path[parentLen - 1] == '/')
-                parentLen--; // Normalize parent path (remove trailing slash)
+        fprintf(stderr,
+                "Parent or entry name too long or not null-terminated.\n");
 
-        size_t needed = parentLen + 1 + nameLen + 1; // slash + null
+        return;
+    }
 
-        if (needed > PATH_MAX) {
-                fprintf(stderr, "Path too long, rejecting.\n");
+#ifdef _WIN32
+    const char sep = '\\';
+#else
+    const char sep = '/';
+#endif
 
-                return;
-        }
+    // Remove trailing separator
 
-        entry->full_path = malloc(needed);
+    while (parentLen > 0 &&
+           (parent_path[parentLen - 1] == '/' ||
+            parent_path[parentLen - 1] == '\\'))
+    {
+        parentLen--;
+    }
 
-        if (entry->full_path == NULL)
-                return;
+    size_t needed = parentLen + 1 + nameLen + 1;
 
-        if (nameLen == 0)
-                snprintf(entry->full_path, needed, "%s", parent_path);
-        else
+    if (needed > KEW_PATH_MAX) {
 
-                snprintf(entry->full_path, needed, "%.*s/%s", (int)parentLen, parent_path,
-                         entry_name);
+        fprintf(stderr,
+                "Path too long, needed: %d, KEW_PATH_MAX: %d, rejecting.\n", needed, KEW_PATH_MAX);
 
-        entry->full_path[needed - 1] = '\0'; // Explicit null-termination
+        return;
+    }
 
-        // Post-check for directory traversal patterns
-        if (strstr(entry->full_path, "/../") != NULL ||
-            strstr(entry->full_path, "/..") ==
-                entry->full_path + strlen(entry->full_path) - 3 ||
-            strncmp(entry->full_path, "../", 3) == 0) {
-                fprintf(stderr,
-                        "Path traversal attempt detected in full_path: '%s'\n",
-                        entry->full_path);
-                free(entry->full_path);
-                entry->full_path = NULL;
+    entry->full_path = malloc(needed);
 
-                return;
-        }
+    if (entry->full_path == NULL)
+        return;
+
+    if (nameLen == 0) {
+
+        snprintf(entry->full_path,
+                 needed,
+                 "%.*s",
+                 (int)parentLen,
+                 parent_path);
+
+    } else {
+
+        snprintf(entry->full_path,
+                 needed,
+                 "%.*s%c%s",
+                 (int)parentLen,
+                 parent_path,
+                 sep,
+                 entry_name);
+    }
+
+    entry->full_path[needed - 1] = '\0';
+
+    // Detect traversal on both Unix and Windows
+
+    if (strstr(entry->full_path, "/../")  ||
+        strstr(entry->full_path, "\\..\\") ||
+        strstr(entry->full_path, "/..\\")  ||
+        strstr(entry->full_path, "\\../"))
+    {
+        fprintf(stderr,
+                "Path traversal attempt detected in full_path: '%s'\n",
+                entry->full_path);
+
+        free(entry->full_path);
+        entry->full_path = NULL;
+    }
 }
 
 void free_tree(FileSystemEntry *root)
@@ -619,109 +650,106 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
 #ifdef _WIN32
 #include <windows.h>
 
+#include <windows.h>
+#include <wchar.h>
+#include <sys/stat.h>
+
 static int read_directory(const char *path, FileSystemEntry *parent)
 {
-        (void)parent;
-        WIN32_FIND_DATAA fd;
-        HANDLE hFind;
+    wchar_t wpath[KEW_PATH_MAX];
+    wchar_t pattern[KEW_PATH_MAX];
 
-        char pattern[MAX_PATH];
-        snprintf(pattern, sizeof(pattern), "%s\\*", path);
+    MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        path,
+        -1,
+        wpath,
+        KEW_PATH_MAX);
 
-        // dynamic list (replacement for scandir)
-        struct dirent **entries = NULL;
-        int capacity = 64;
-        int count = 0;
+    swprintf(pattern, KEW_PATH_MAX, L"%ls\\*", wpath);
 
-        entries = malloc(sizeof(struct dirent *) * capacity);
-        if (!entries)
-                return 0;
+    WIN32_FIND_DATAW fd;
+    HANDLE hFind = FindFirstFileW(pattern, &fd);
 
-        hFind = FindFirstFileA(pattern, &fd);
-        if (hFind == INVALID_HANDLE_VALUE) {
-                free(entries);
-                return 0;
+    if (hFind == INVALID_HANDLE_VALUE)
+        return 0;
+
+    regex_t regex;
+    regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED | REG_ICASE);
+
+    int num_entries = 0;
+
+    do {
+        if (wcscmp(fd.cFileName, L".") == 0 ||
+            wcscmp(fd.cFileName, L"..") == 0)
+            continue;
+
+        // Convert filename to UTF-8
+        char utf8_name[KEW_PATH_MAX];
+
+        WideCharToMultiByte(
+            CP_UTF8,
+            0,
+            fd.cFileName,
+            -1,
+            utf8_name,
+            sizeof(utf8_name),
+            NULL,
+            NULL);
+
+        // Build full wide path
+        wchar_t child_wpath[KEW_PATH_MAX];
+
+        swprintf(
+            child_wpath,
+            KEW_PATH_MAX,
+            L"%ls\\%ls",
+            wpath,
+            fd.cFileName);
+
+        struct _stat st;
+        if (_wstat(child_wpath, &st) == -1)
+            continue;
+
+        int is_dir = (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+        char exto[100];
+        extract_extension(utf8_name, sizeof(exto) - 1, exto);
+
+        int is_audio = match_regex(&regex, exto);
+
+        if (is_audio == 0 || is_dir) {
+
+            FileSystemEntry *child =
+                create_entry(
+                    utf8_name,
+                    is_dir,
+                    parent,
+                    st.st_mtime);
+
+            if (child) {
+
+                set_full_path(child, path, utf8_name);
+
+                if (child->full_path)
+                    add_child(parent, child);
+
+                if (is_dir) {
+                    num_entries++;
+                    num_entries += read_directory(
+                        child->full_path,
+                        child);
+                }
+            }
         }
 
-        do {
-                if (strcmp(fd.cFileName, ".") == 0 ||
-                    strcmp(fd.cFileName, "..") == 0)
-                        continue;
+    } while (FindNextFileW(hFind, &fd));
 
-                struct dirent *e = malloc(sizeof(struct dirent));
-                if (!e)
-                        continue;
+    FindClose(hFind);
+    regfree(&regex);
 
-                c_strcpy(e->d_name, fd.cFileName, sizeof(e->d_name) - 1);
-                e->d_name[sizeof(e->d_name) - 1] = '\0';
-
-                if (count >= capacity) {
-                        capacity *= 2;
-                        entries = realloc(entries, sizeof(struct dirent *) * capacity);
-                }
-
-                entries[count++] = e;
-
-        } while (FindNextFileA(hFind, &fd));
-
-        FindClose(hFind);
-
-        qsort(entries, count, sizeof(struct dirent *), dirent_qsort_cmp_rev);
-
-        regex_t regex;
-        regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED | REG_ICASE);
-
-        int num_entries = 0;
-
-        for (int i = 0; i < count; i++) {
-                struct dirent *entry = entries[i];
-
-                if (!entry)
-                        continue;
-
-                if (entry->d_name[0] != '.' &&
-                    strcmp(entry->d_name, ".") != 0 &&
-                    strcmp(entry->d_name, "..") != 0) {
-
-                        char child_path[PATH_MAX];
-                        snprintf(child_path, sizeof(child_path), "%s\\%s", path, entry->d_name);
-
-                        struct stat st;
-                        if (stat(child_path, &st) == -1)
-                                continue;
-
-                        int is_dir = !S_ISREG(st.st_mode);
-
-                        char exto[100];
-                        extract_extension(entry->d_name, sizeof(exto) - 1, exto);
-
-                        int is_audio = match_regex(&regex, exto);
-
-                        if (is_audio == 0 || is_dir) {
-
-                                FileSystemEntry *child =
-                                    create_entry(entry->d_name, is_dir, parent, st.st_mtime);
-
-                                if (child) {
-                                        set_full_path(child, path, entry->d_name);
-
-                                        if (child->full_path)
-                                                add_child(parent, child);
-
-                                        if (is_dir) {
-                                                num_entries++;
-                                                num_entries += read_directory(child_path, child);
-                                        }
-                                }
-                        }
-                }
-
-                free(entry);
-        }
-
-        free(entries);
-        regfree(&regex);
-        return num_entries;
+    return num_entries;
 }
 
 #else
@@ -751,7 +779,7 @@ static int read_directory(const char *path, FileSystemEntry *parent)
                 if (entry->d_name[0] != '.' &&
                     strcmp(entry->d_name, ".") != 0 &&
                     strcmp(entry->d_name, "..") != 0) {
-                        char child_path[PATH_MAX];
+                        char child_path[KEW_PATH_MAX];
                         snprintf(child_path, sizeof(child_path), "%s/%s", path,
                                  entry->d_name);
 

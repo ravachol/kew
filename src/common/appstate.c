@@ -30,7 +30,7 @@ Model model;
 
 static const char LIBRARY_FILE[] = "library.dat";
 
-static char library_real_path_if_diff[PATH_MAX] = {0};
+static char library_real_path_if_diff[KEW_PATH_MAX] = {0};
 
 double pause_seconds = 0.0;
 

@@ -40,7 +40,7 @@ void add_to_cache(Cache *cache, const char *file_path)
                 return;
         }
 
-        if (strnlen(file_path, PATH_MAX + 1) >= PATH_MAX) {
+        if (strnlen(file_path, KEW_PATH_MAX + 1) >= KEW_PATH_MAX) {
                 fprintf(stderr, "File path too long.\n");
                 return;
         }
