@@ -28,10 +28,12 @@ kew
 
 The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can double-click on it to run it, but it works better if you first start c:\msys64\ucrt64.exe and run it from that terminal emulator. The Windows Terminal in Windows 11 also works.
 
+## Things that are different
+
+Imeddiate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
+
 ## TODO, Things that don't yet work:
 
 - .m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
 - Mouse support.
-
-- Alt+Enter for search maximizes the window in WT.
