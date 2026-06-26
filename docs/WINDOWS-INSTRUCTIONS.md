@@ -24,13 +24,44 @@ mingw32-make install PREFIX=/ucrt64
 kew
 ```
 
+## Windows Terminal profile
+
+Add this to your Windows Terminal. Choose Settings, then at the bottom "Open JSON file".
+
+Add this in the part under profiles -> lists:
+
+```
+{
+    "name": "bash",
+    "commandline": "C:\\msys64\\usr\\bin\\bash.exe --login",
+    "startingDirectory": "C:\\msys64\\home\\YOUR_USERNAME",
+    "environment": {
+        "CHERE_INVOKING": "1",
+        "MSYSTEM": "UCRT64"
+    }
+},
+```
+
+## Add a shortcut to your desktop
+
+Right click desktop, Choose new, shortcut
+
+Put this in the location:
+wt.exe -p "kew UCRT64" C:\msys64\usr\bin\bash.exe -li -c "kew"
+
+Use the .ico in the kew folder for the icon.
+
 ## Location of the executable
 
 The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can double-click on it to run it, but it works better if you first start c:\msys64\ucrt64.exe and run it from that terminal emulator. The Windows Terminal in Windows 11 also works.
 
+## Location of settings
+
+Settings will likely be in c:\users\YOUR_USERNAME\AppData\Roaming\kew.
+
 ## Things that are different
 
-Imeddiate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
+Immediate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
 
 ## TODO, Things that don't yet work:
 
