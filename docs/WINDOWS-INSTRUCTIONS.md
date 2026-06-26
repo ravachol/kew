@@ -26,15 +26,21 @@ kew
 
 ## Windows Terminal profile
 
+Add this to your Windows Terminal. Choose Settings, then at the bottom "Open JSON file".
+
+Add this in the part under profiles -> lists:
+
+```
 {
-    "name": "kew UCRT64",
-    "commandline": "C:\\msys64\\usr\\bin\\bash.exe --login /home/victor/start-ucrt64.sh",
-    "startingDirectory": "C:\\msys64\\home\\victor",
+    "name": "bash",
+    "commandline": "C:\\msys64\\usr\\bin\\bash.exe --login",
+    "startingDirectory": "C:\\msys64\\home\\YOUR_USERNAME",
     "environment": {
         "CHERE_INVOKING": "1",
         "MSYSTEM": "UCRT64"
     }
 },
+```
 
 ## Add a shortcut to your desktop
 
@@ -55,7 +61,7 @@ Settings will likely be in c:\users\YOUR_USERNAME\AppData\Roaming\kew.
 
 ## Things that are different
 
-Imediate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
+Immediate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
 
 ## TODO, Things that don't yet work:
 
