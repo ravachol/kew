@@ -59,8 +59,6 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 
 - Animations (title animation, name scrolling and glimmering footer). Because they are too slow on windows.
 
-- The Spectrum Visualizer is slow, disable by pressing v a few times.
-
 - .m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
 - Resizing sometimes crashes the app.
@@ -69,6 +67,3 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 
 - Alt+Enter for search maximizes the window in WT.
 
-- Chafa sixel covers are slow.
-
-- Music starts slow, takes a long time to get going.
