@@ -315,17 +315,6 @@ void flip_prev_page(Model *model)
         }
 }
 
-void toggle_folder_display(void)
-{
-        AppState *state = get_app_state();
-        AppSettings *settings = get_app_settings();
-        state->settings.showFoldersInPlaylist = !state->settings.showFoldersInPlaylist;
-        c_strcpy(settings->showFoldersInPlaylist,
-                 state->settings.showFoldersInPlaylist ? "1" : "0",
-                 sizeof(settings->showFoldersInPlaylist));
-        set_dirty(DIRTY_ALL);
-}
-
 UpdateResult update(Model *model, struct Msg *msg)
 {
         UpdateResult result;
@@ -756,10 +745,6 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_START_TITLE_ANIM:
                 start_title_delay(model);
-                break;
-
-        case MSG_TOGGLEFOLDERDISPLAY:
-                toggle_folder_display();
                 break;
 
         case MSG_LYRICS_UPDATED:
