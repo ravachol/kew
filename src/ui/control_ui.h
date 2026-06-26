@@ -110,11 +110,6 @@ void toggle_pause(void);
 void toggle_notifications(void);
 
 /**
- * @brief Toggles the folder display mode in the playlist view.
- */
-void toggle_folder_display(void);
-
-/**
  * @brief Determines whether the player needs to be refreshed.
  *
  * This function checks if the player should be refreshed based on various
