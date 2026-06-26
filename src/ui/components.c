@@ -3060,7 +3060,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                         current_search_entry = model->search_results[i].entry;
 
                 int depth = determine_depth(model->search_results[i].entry);
-                int extra_indent = calc_indentation(depth);
+                int extra_indent = depth;
                 int name_width = max_name_width - extra_indent;
                 if (name_width < 0)
                         name_width = 0;

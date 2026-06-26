@@ -12,7 +12,7 @@
 #include "common/events.h"
 #include "common/model.h"
 
-#define NUM_DEFAULT_KEY_BINDINGS 56
+#define NUM_DEFAULT_KEY_BINDINGS 57
 
 extern size_t keybinding_count;
 
