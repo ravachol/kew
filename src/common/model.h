@@ -397,8 +397,6 @@ typedef struct
 
         PixelData footer_color;
 
-        bool showFoldersInPlaylist;           /**< Group playlist tracks by folder. */
-
         double currentSongSeconds;
         int currentSongId;
         int auto_resume;
@@ -667,7 +665,6 @@ typedef struct
         char chromaPreset[6];
         char chromaPath[KEW_PATH_MAX];
         char chromaDevice[KEW_PATH_MAX];
-        char showFoldersInPlaylist[2];
         char fade_enter_song_ms[12];
         char fade_quick[6];
         char fade_medium[6];
