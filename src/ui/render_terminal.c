@@ -33,64 +33,23 @@ void emit_image(ImagePayload *image,
                 int term_width_cells,
                 int corrected_width)
 {
-    if (!image || !image->data)
-        return;
+        if (!image || !image->data)
+                return;
 
-    if (centered)
-        col = ((term_width_cells - corrected_width) / 2) + 1;
+        if (centered)
+                col = ((term_width_cells - corrected_width) / 2) + 1;
 
-    const char *src = (const char *)image->data;
+        char buf[64];
+        int len = snprintf(buf, sizeof(buf),
+                           "\033[%d;%dH",
+                           row + 1, col + 1);
+        // Move cursor into position
+        fwrite(buf, 1, len, stdout);
 
-    // Allocate generously:
-    // original image size +
-    // up to ~32 chars of cursor sequence per line.
-    //
-    size_t src_len = strlen(src);
+        // Write the image at once
+        fwrite(image->data, 1, image->data_len, stdout);
 
-    size_t line_count = 1;
-    for (const char *p = src; *p; ++p)
-        if (*p == '\n')
-            line_count++;
-
-    size_t out_cap = src_len + (line_count * 32) + 1;
-    char *out = malloc(out_cap);
-
-    if (!out)
-        return;
-
-    char *dst = out;
-    int current_row = row + 1;
-
-    const char *p = src;
-
-    // Build the entire string, with indentations
-    while (*p) {
-        const char *line_start = p;
-
-        while (*p && *p != '\n')
-            p++;
-
-        size_t line_len = (size_t)(p - line_start);
-
-        int n = sprintf(dst,
-                        "\033[%d;%dH",
-                        current_row++,
-                        col + 1);
-
-        dst += n;
-
-        memcpy(dst, line_start, line_len);
-        dst += line_len;
-
-        if (*p == '\n')
-            p++;
-    }
-
-    // Write it all at once
-    fwrite(out, 1, (size_t)(dst - out), stdout);
-    fflush(stdout);
-
-    free(out);
+        fflush(stdout);
 }
 
 static inline void safe_putchar(int c)
@@ -342,8 +301,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
                                 }
                         }
 
-                        if (cell->kind == CELL_LINK)
-                        {
+                        if (cell->kind == CELL_LINK) {
                                 cursor_move(row, col);
 
                                 emit_style_diff(cell, &style);
