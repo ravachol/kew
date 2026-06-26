@@ -266,6 +266,9 @@ void sort_search_results(void)
 
         calculate_group_distances();
 
+        if (!model->search_results)
+                return;
+
         qsort(model->search_results, model->state.ui.search_results_count, sizeof(SearchResult), compare_results);
 }
 
