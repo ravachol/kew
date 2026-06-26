@@ -399,6 +399,8 @@ void view_enqueue(bool play_immediately)
                 }
 
                 set_dirty(DIRTY_LIBRARY | DIRTY_SEARCH);
+
+                component_library_helper_update_view_state(model);
         }
 
         if (!first_enqueued_node && entry && entry->is_enqueued)
