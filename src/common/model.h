@@ -521,6 +521,7 @@ typedef struct
         UISettings settings;
 
         pthread_mutex_t library_mutex;
+        pthread_mutex_t drawbuffer_mutex;
 } AppState;
 
 /**
