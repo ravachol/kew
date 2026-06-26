@@ -119,8 +119,7 @@ void player_tick(Model *model, RenderContext *ctx)
 
                 bool has_msg = next_msg(&msg);
 
-                if (has_msg)
-                {
+                if (has_msg) {
                         // Update the model
                         UpdateResult res = update(model, &msg);
 
@@ -149,13 +148,12 @@ void player_tick(Model *model, RenderContext *ctx)
 
                 bool has_msg = next_msg(&msg);
 
-                if (has_msg)
-                {
-                // Update the model
-                UpdateResult res = update(model, &msg);
+                if (has_msg) {
+                        // Update the model
+                        UpdateResult res = update(model, &msg);
 
-                // Run commands
-                run_command(res);
+                        // Run commands
+                        run_command(res);
                 }
         }
 }
@@ -280,7 +278,6 @@ int in_foreground(void)
 #endif
 }
 
-
 void reinitialize()
 {
         set_nonblocking_mode();
@@ -338,8 +335,7 @@ gboolean mainloop_callback(gpointer data)
                 model->state.ui.rendered = false;
         }
 
-        if (model->state.ui.resumed_in_background)
-        {
+        if (model->state.ui.resumed_in_background) {
                 if (in_foreground()) {
                         model->state.ui.resumed_in_background = false;
                         reinitialize();
@@ -403,15 +399,15 @@ static gboolean quit_on_signal(gpointer user_data)
 
 static BOOL WINAPI console_ctrl_handler(DWORD type)
 {
-    switch (type) {
+        switch (type) {
         case CTRL_C_EVENT:
         case CTRL_CLOSE_EVENT:
         case CTRL_BREAK_EVENT:
-            quit_on_signal(main_loop);
-            return TRUE;
+                quit_on_signal(main_loop);
+                return TRUE;
         default:
-            return FALSE;
-    }
+                return FALSE;
+        }
 }
 
 #endif
@@ -419,12 +415,12 @@ static BOOL WINAPI console_ctrl_handler(DWORD type)
 void install_signal_handlers(GMainLoop *loop)
 {
 #ifdef _WIN32
-    (void)loop;
-    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+        (void)loop;
+        SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
 #else
-    g_unix_signal_add(SIGINT, quit_on_signal, loop);
-    g_unix_signal_add(SIGHUP, quit_on_signal, loop);
-    g_unix_signal_add(SIGTERM, quit_on_signal, loop);
+        g_unix_signal_add(SIGINT, quit_on_signal, loop);
+        g_unix_signal_add(SIGHUP, quit_on_signal, loop);
+        g_unix_signal_add(SIGTERM, quit_on_signal, loop);
 #endif
 }
 
@@ -578,6 +574,14 @@ void kew_init(bool set_library_enqueued_status)
 {
         Model *model = get_model();
         set_nonblocking_mode();
+
+#ifdef _WIN32
+        // Fix all the problems with slow windows rendering - thanks Hans Petter Jansson
+        setmode(fileno(stdin), O_BINARY);
+        setmode(fileno(stdout), O_BINARY);
+        setvbuf(stdout, NULL, _IOFBF, 32768);
+#endif
+
         disable_terminal_line_input();
 
         init_resize();
