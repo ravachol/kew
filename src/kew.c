@@ -220,6 +220,7 @@ void kew_shutdown()
 
         pthread_mutex_destroy(&(model->playbackState.switch_mutex));
         pthread_mutex_destroy(&(model->state.library_mutex));
+        pthread_mutex_destroy(&(model->state.drawbuffer_mutex));
 
 #ifdef USE_DBUS
         cleanup_notifications();

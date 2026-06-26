@@ -203,6 +203,7 @@ void init_model(void)
 
         pthread_mutex_init(&(model.playbackState.switch_mutex), NULL);
         pthread_mutex_init(&(model.state.library_mutex), NULL);
+        pthread_mutex_init(&(model.state.drawbuffer_mutex), NULL);
 
         create_playlist(&model.playlist);
         create_playlist(&model.unshuffled_playlist);

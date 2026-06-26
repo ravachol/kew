@@ -301,6 +301,9 @@ static inline Cell cell_blank(void)
 
 void draw_buffer_clear(DrawBuffer *buf)
 {
+        Model *model = get_model();
+
+        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
 
         Cell blank = cell_blank();
         blank.style = cell_style_plain();
@@ -323,6 +326,8 @@ void draw_buffer_clear(DrawBuffer *buf)
         for (int i = 0; i < total; i++) {
                 buf->cells[i] = blank;
         }
+
+        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 }
 
 void layout_offset(Layout *layout, int dx, int dy)
