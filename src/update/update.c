@@ -345,11 +345,9 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->songdata_ok = (model->songdata && model->songdata->metadata &&
                                       !model->songdata->hasErrors && (model->songdata->hasErrors < 1));
 
-#ifndef _WIN32
                 advance_title_delay_anim(model);
                 advance_name_scroll_anim(model);
                 advance_glimmer_anim(model);
-#endif
 
                 if (model->songdata_ok)
                         model->song_duration = model->songdata->duration;
@@ -757,9 +755,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_START_TITLE_ANIM:
-#ifndef _WIN32
                 start_title_delay(model);
-#endif
                 break;
 
         case MSG_TOGGLEFOLDERDISPLAY:
