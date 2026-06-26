@@ -68,3 +68,9 @@ Immediate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
 - .m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
 
 - Mouse support.
+
+- Unicode support for arguments to kew.
+
+- Music takes awhile to start.
+
+- Input lag.
