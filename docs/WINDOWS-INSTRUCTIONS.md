@@ -30,15 +30,7 @@ The kew executable will likely be in c:\msys64\ucrt64\bin\kew.exe. You can doubl
 
 ## TODO, Things that don't yet work:
 
-- Animations (title animation, name scrolling and glimmering footer). Because they are too slow on windows.
-
 - .m4a files don't work. I haven't tried all formats but mp3s work so flacs should work as well.
-
-- Chafa covers don't work (except Windows Terminal on win11), although chafa is installed and so on. So ASCII covers is the default in Windows.
-
-- Resizing sometimes crashes the app.
-
-- Unicode characters are broken, sometimes files don't show up.
 
 - Mouse support.
 
