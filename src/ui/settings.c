@@ -104,7 +104,11 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {TB_KEY_ENTER, 0, 0, MSG_ENQUEUE, ""},
     {0, 'g', TB_MOD_SHIFT, MSG_ENQUEUE, ""},
     {TB_KEY_BACKSPACE, 0, 0, MSG_CLEARPLAYLIST, ""},
+
+    {TB_KEY_CTRL_G, 0, TB_MOD_CTRL, MSG_ENQUEUEANDPLAY, ""},
+
     {TB_KEY_ENTER, 0, TB_MOD_ALT, MSG_ENQUEUEANDPLAY, ""},
+
 
     // Hard navigation / arrows
     {TB_KEY_ARROW_LEFT, 0, 0, MSG_PREV, ""},
@@ -170,6 +174,7 @@ static const KeyMap key_map[] = {
     {"F10", TB_KEY_F10},
     {"F11", TB_KEY_F11},
     {"F12", TB_KEY_F12},
+    {"g", TB_KEY_CTRL_G},
 
     // Navigation / editing
     {"Insert", TB_KEY_INSERT},
@@ -252,7 +257,7 @@ const char *get_key_name(int key)
                 return buf;
         }
 
-        return "?";
+        return "";
 }
 
 const char *get_modifier_string(uint8_t mods)
@@ -358,7 +363,7 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
                 if (key_bindings[i].eventType != event)
                         continue;
 
-                const char *key_part = "?";
+                const char *key_part = "";
 
                 if (key_bindings[i].key != 0)
                         key_part = get_key_name(key_bindings[i].key);
