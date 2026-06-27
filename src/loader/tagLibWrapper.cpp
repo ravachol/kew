@@ -370,13 +370,13 @@ bool extractCoverArtFromOgg(TagLib::FileRef *f,
 
 #else
 
-bool extractCoverArtFromOgg(TagLib::FileRef f,
+bool extractCoverArtFromOgg(TagLib::FileRef *f,
                             const std::string &outputFileName)
 {
         TagLib::Tag *tag = nullptr;
 
         TagLib::File *file =
-            dynamic_cast<TagLib::Vorbis::File *>(f.file());
+            dynamic_cast<TagLib::Vorbis::File *>(f->file());
 
         // Try to open as Ogg Vorbis
 
