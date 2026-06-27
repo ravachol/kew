@@ -81,9 +81,9 @@ static std::wstring utf8ToWide(const char *s)
         if (size <= 0)
                 return {};
 
-        std::wstring result(size - 1, L'\0');
+        std::wstring result(size, L'\0');
 
-        MultiByteToWideChar(
+        int written = MultiByteToWideChar(
             CP_UTF8,
             0,
             s,
@@ -91,8 +91,13 @@ static std::wstring utf8ToWide(const char *s)
             result.data(),
             size);
 
+        if (written == 0)
+                return {};
+
+        result.pop_back(); // remove terminating null
         return result;
 }
+
 #endif
 
 std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
@@ -379,7 +384,8 @@ bool extractCoverArtFromOgg(TagLib::FileRef f,
                 delete file;
                 // Try to open as Opus
                 file =
-                    dynamic_cast<TagLib::Ogg::Opus::File *>(f.file());;
+                    dynamic_cast<TagLib::Ogg::Opus::File *>(f.file());
+                ;
 
                 if (!file->isValid()) {
                         delete file;
@@ -621,10 +627,11 @@ bool extractCoverArtFromMp3(TagLib::FileRef f,
 
         const TagLib::ID3v2::Tag *id3v2tag = file->ID3v2Tag();
         if (id3v2tag) {
-                // Collect all attached picture frames
-                TagLib::ID3v2::FrameList frames;
-                frames.append(id3v2tag->frameListMap()["APIC"]);
-                frames.append(id3v2tag->frameListMap()["PIC"]);
+                TagLib::ID3v2::FrameList frames =
+                    id3v2tag->frameList("APIC");
+
+                if (frames.isEmpty())
+                        frames = id3v2tag->frameList("PIC");
 
                 if (!frames.isEmpty()) {
                         for (auto it = frames.begin();
@@ -723,10 +730,11 @@ bool extractCoverArtFromWav(TagLib::FileRef f,
 
         const TagLib::ID3v2::Tag *id3v2tag = file->ID3v2Tag();
         if (id3v2tag) {
-                // Collect all attached picture frames
-                TagLib::ID3v2::FrameList frames;
-                frames.append(id3v2tag->frameListMap()["APIC"]);
-                frames.append(id3v2tag->frameListMap()["PIC"]);
+                TagLib::ID3v2::FrameList frames =
+                    id3v2tag->frameList("APIC");
+
+                if (frames.isEmpty())
+                        frames = id3v2tag->frameList("PIC");
 
                 if (!frames.isEmpty()) {
                         for (auto it = frames.begin();
