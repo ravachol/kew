@@ -384,7 +384,7 @@ bool extractCoverArtFromOgg(TagLib::FileRef *f,
                 delete file;
                 // Try to open as Opus
                 file =
-                    dynamic_cast<TagLib::Ogg::Opus::File *>(f.file());
+                    dynamic_cast<TagLib::Ogg::Opus::File *>(f->file());
                 ;
 
                 if (!file->isValid()) {
