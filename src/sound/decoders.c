@@ -110,29 +110,29 @@ static ma_result webm_get_data_format_wrapper(ma_data_source *p_data_source, ma_
 
 /* Get cursor wrappers */
 
-static ma_result ma_decoder_get_cursor_in_pcm_frames_wrapper(ma_data_source *p_data_source, long long *p_cursor)
+static ma_result ma_decoder_get_cursor_in_pcm_frames_wrapper(void *p_data_source, long long *p_cursor)
 {
         return ma_data_source_get_cursor_in_pcm_frames((ma_decoder *)p_data_source, (ma_uint64 *)p_cursor);
 }
 
-static ma_result ma_libvorbis_get_cursor_in_pcm_frames_wrapper(ma_data_source *p_data_source, long long *p_cursor)
+static ma_result ma_libvorbis_get_cursor_in_pcm_frames_wrapper(void *p_data_source, long long *p_cursor)
 {
         return ma_libvorbis_get_cursor_in_pcm_frames((ma_libvorbis *)p_data_source, (ma_uint64 *)p_cursor);
 }
 
-static ma_result ma_libopus_get_cursor_in_pcm_frames_wrapper(ma_data_source *p_data_source, long long *p_cursor)
+static ma_result ma_libopus_get_cursor_in_pcm_frames_wrapper(void *p_data_source, long long *p_cursor)
 {
         return ma_libopus_get_cursor_in_pcm_frames((ma_libopus *)p_data_source, (ma_uint64 *)p_cursor);
 }
 
 #ifdef USE_FAAD
-static ma_result m4a_get_cursor_in_pcm_frames_wrapper(ma_data_source *p_data_source, long long *p_cursor)
+static ma_result m4a_get_cursor_in_pcm_frames_wrapper(void *p_data_source, long long *p_cursor)
 {
         return m4a_decoder_get_cursor_in_pcm_frames((ma_m4a *)p_data_source, (ma_uint64 *)p_cursor);
 }
 #endif
 
-static ma_result ma_webm_get_cursor_in_pcm_frames_wrapper(ma_data_source *p_data_source, long long *p_cursor)
+static ma_result ma_webm_get_cursor_in_pcm_frames_wrapper(void *p_data_source, long long *p_cursor)
 {
         return ma_webm_get_cursor_in_pcm_frames((ma_webm *)p_data_source, (ma_uint64 *)p_cursor);
 }

@@ -660,7 +660,7 @@ int get_year(const char *date_string)
 
 int calc_elapsed_bars(double elapsed_seconds, double duration, int num_progress_bars)
 {
-        if (elapsed_seconds == 0)
+        if (elapsed_seconds == 0 || duration == 0)
                 return 0;
 
         return (int)((elapsed_seconds / duration) * num_progress_bars);
