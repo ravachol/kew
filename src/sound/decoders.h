@@ -18,7 +18,7 @@
 #include <stdbool.h>
 
 typedef void (*uninit_func)(void *decoder);
-typedef int (*init_func)(const char *filepath, const ma_decoding_backend_config *config, void *decoder);
+typedef ma_result (*init_func)(const char *filepath, const ma_decoding_backend_config *config, void *decoder);
 typedef void (*setup_func)(void *decoder, void *firstDecoder);
 typedef void (*ma_data_callback_proc)(
     ma_device *,
@@ -41,7 +41,7 @@ typedef ma_result (*decoder_seek_func)(
     long long frameIndex,
     ma_seek_origin origin);
 
-typedef int (*get_cursor_func)(
+typedef ma_result (*get_cursor_func)(
     void *p_data_source,
     long long *p_cursor);
 
