@@ -325,17 +325,17 @@ void parseFlacPictureBlock(const std::vector<unsigned char> &data,
 
 #if HAVE_COMPLEXPROPERTIES
 
-bool extractCoverArtFromOgg(TagLib::FileRef f,
+bool extractCoverArtFromOgg(TagLib::FileRef *f,
                             const std::string &outputFileName)
 {
-        if (!f.file() || !f.file()->isOpen()) {
+        if (!f->file() || !f->file()->isOpen()) {
                 std::cerr
                     << "Error: Could not open file"
                     << std::endl;
                 return false;
         }
 
-        auto pictures = f.file()->complexProperties("PICTURE");
+        auto pictures = f->file()->complexProperties("PICTURE");
         if (pictures.isEmpty()) {
                 std::cerr << "No cover art found in the file (via "
                              "complexProperties).\n";
@@ -614,14 +614,13 @@ bool extractCoverArtFromOggVideo(const std::string &audioFilePath,
         return false;
 }
 
-bool extractCoverArtFromMp3(TagLib::FileRef f,
+bool extractCoverArtFromMp3(TagLib::FileRef *f,
                             const std::string &coverFilePath)
 {
-
         TagLib::MPEG::File *file =
-            dynamic_cast<TagLib::MPEG::File *>(f.file());
+            dynamic_cast<TagLib::MPEG::File *>(f->file());
 
-        if (!file->isValid()) {
+        if (!file || !file->isValid()) {
                 return false;
         }
 
@@ -691,11 +690,11 @@ bool extractCoverArtFromMp3(TagLib::FileRef f,
         return true; // Success
 }
 
-bool extractCoverArtFromFlac(TagLib::FileRef f,
+bool extractCoverArtFromFlac(TagLib::FileRef *f,
                              const std::string &coverFilePath)
 {
         TagLib::FLAC::File *file =
-            dynamic_cast<TagLib::FLAC::File *>(f.file());
+            dynamic_cast<TagLib::FLAC::File *>(f->file());
 
         if (file->pictureList().size() > 0) {
                 const TagLib::FLAC::Picture *picture =
@@ -718,12 +717,12 @@ bool extractCoverArtFromFlac(TagLib::FileRef f,
         return false;
 }
 
-bool extractCoverArtFromWav(TagLib::FileRef f,
+bool extractCoverArtFromWav(TagLib::FileRef *f,
                             const std::string &coverFilePath)
 {
 
         TagLib::RIFF::WAV::File *file =
-            dynamic_cast<TagLib::RIFF::WAV::File *>(f.file());
+            dynamic_cast<TagLib::RIFF::WAV::File *>(f->file());
         if (!file->isValid()) {
                 return false;
         }
@@ -947,12 +946,12 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
         return false;
 }
 
-bool extractCoverArtFromMp4(TagLib::FileRef f,
+bool extractCoverArtFromMp4(TagLib::FileRef *f,
                             const std::string &coverFilePath)
 {
 
         TagLib::MP4::File *file =
-            dynamic_cast<TagLib::MP4::File *>(f.file());
+            dynamic_cast<TagLib::MP4::File *>(f->file());
 
         if (!file->isValid()) {
                 return false;
@@ -1676,20 +1675,20 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
 
         if (extension == "mp3") {
                 coverArtExtracted =
-                    extractCoverArtFromMp3(f, coverFilePath);
+                    extractCoverArtFromMp3(&f, coverFilePath);
         } else if (extension == "flac") {
                 coverArtExtracted =
-                    extractCoverArtFromFlac(f, coverFilePath);
+                    extractCoverArtFromFlac(&f, coverFilePath);
         } else if (extension == "m4a" || extension == "aac") {
                 coverArtExtracted =
-                    extractCoverArtFromMp4(f, coverFilePath);
+                    extractCoverArtFromMp4(&f, coverFilePath);
         }
         if (extension == "opus") {
                 coverArtExtracted =
                     extractCoverArtFromOpus(input_file, coverFilePath);
         } else if (extension == "ogg") {
                 coverArtExtracted =
-                    extractCoverArtFromOgg(f, coverFilePath);
+                    extractCoverArtFromOgg(&f, coverFilePath);
 
                 if (!coverArtExtracted) {
                         coverArtExtracted = extractCoverArtFromOggVideo(
@@ -1697,7 +1696,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                 }
         } else if (extension == "wav" || extension == "aiff") {
                 coverArtExtracted =
-                    extractCoverArtFromWav(f, coverFilePath);
+                    extractCoverArtFromWav(&f, coverFilePath);
         }
 
         if (coverArtExtracted) {
