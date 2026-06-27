@@ -317,15 +317,15 @@ void set_decode_thread_priority(pthread_t thread)
 
 #include <windows.h>
 
-    (void)thread;
+        (void)thread;
 
-    HANDLE hThread = GetCurrentThread();
+        HANDLE hThread = GetCurrentThread();
 
-    // Similar to "above normal" / responsive decoding thread
-    if (!SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL)) {
-        // fallback: try normal priority
-        SetThreadPriority(hThread, THREAD_PRIORITY_NORMAL);
-    }
+        // Similar to "above normal" / responsive decoding thread
+        if (!SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL)) {
+                // fallback: try normal priority
+                SetThreadPriority(hThread, THREAD_PRIORITY_NORMAL);
+        }
 #endif
 }
 
@@ -410,9 +410,10 @@ void perform_crossfade(sound_system_t *sound, void *decoder, void *next_decoder,
 
                 for (ma_uint64 i = 0; i < frames_read; i++) {
 
-                        float t =
-                            (float)(sound->fade_current_frame + i) /
-                            (float)sound->fade_total_frames;
+                        float t = (float)(sound->fade_current_frame + i) /
+                                  (float)sound->fade_total_frames;
+
+                        t = powf(t, 0.7f);
 
                         if (t > 1.0f)
                                 t = 1.0f;
