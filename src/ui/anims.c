@@ -29,6 +29,9 @@ void start_title_delay(Model *model)
         if (model->is_paused || model->is_stopped)
                 return;
 
+        if (!model->songdata_ok || !model->songdata)
+                return;
+
         model->title_delay.active = true;
         model->title_delay.frame = -1;
         model->title_delay.num_frames = strnlen(model->songdata->metadata->title, sizeof(model->songdata->metadata->title));
