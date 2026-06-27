@@ -18,7 +18,7 @@
 #include <stdbool.h>
 
 typedef void (*uninit_func)(void *decoder);
-typedef int (*init_func)(const char *filepath, ma_decoding_backend_config *config, void *decoder);
+typedef int (*init_func)(const char *filepath, const ma_decoding_backend_config *config, void *decoder);
 typedef void (*setup_func)(void *decoder, void *firstDecoder);
 typedef void (*ma_data_callback_proc)(
     ma_device *,
