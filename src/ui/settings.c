@@ -101,7 +101,6 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 'g', 0, MSG_MOVESONGDOWN, ""},
 
     {TB_KEY_ENTER, 0, 0, MSG_ENQUEUE, ""},
-    {0, 'g', TB_MOD_SHIFT, MSG_ENQUEUE, ""},
     {TB_KEY_BACKSPACE, 0, 0, MSG_CLEARPLAYLIST, ""},
 
     {TB_KEY_CTRL_G, 0, TB_MOD_CTRL, MSG_ENQUEUEANDPLAY, ""},
