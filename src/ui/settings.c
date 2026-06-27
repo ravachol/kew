@@ -929,9 +929,9 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->titleColor, "6", sizeof(settings->titleColor));
         c_strcpy(settings->enqueued_color, "6", sizeof(settings->enqueued_color));
         c_strcpy(settings->fade_enter_song_ms, "0", sizeof(settings->fade_enter_song_ms));
-        c_strcpy(settings->fade_quick_ms, "1000", sizeof(settings->fade_quick_ms));
-        c_strcpy(settings->fade_medium_ms, "3000", sizeof(settings->fade_medium_ms));
-        c_strcpy(settings->fade_slow_ms, "8000", sizeof(settings->fade_slow_ms));
+        c_strcpy(settings->fade_quick_ms, "3000", sizeof(settings->fade_quick_ms));
+        c_strcpy(settings->fade_medium_ms, "5000", sizeof(settings->fade_medium_ms));
+        c_strcpy(settings->fade_slow_ms, "10000", sizeof(settings->fade_slow_ms));
 
         memcpy(settings->ansiTheme, "default", 8);
 }
