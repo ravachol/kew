@@ -42,7 +42,7 @@ typedef ma_result (*decoder_seek_func)(
     ma_seek_origin origin);
 
 typedef int (*get_cursor_func)(
-    ma_data_source *p_data_source,
+    void *p_data_source,
     long long *p_cursor);
 
 typedef int (*create_audio_device_func)(
