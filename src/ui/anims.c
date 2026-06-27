@@ -18,7 +18,7 @@ void start_glimmer(Model *model)
 
         model->glimmer.num_frames = strnlen(text, sizeof(text)) + 1; // one extra frame that displays the cursor
 
-        set_dirty(DIRTY_FOOTER);
+        set_dirty(DIRTY_FOOTER | DIRTY_VISUALIZER);
 }
 
 void start_title_delay(Model *model)
@@ -88,7 +88,7 @@ void advance_name_scroll_anim(Model *model)
         }
 
         if (model->name_scroll.active)
-                set_dirty(DIRTY_PLAYLIST | DIRTY_LIBRARY | DIRTY_SEARCH);
+                set_dirty(DIRTY_PLAYLIST | DIRTY_LIBRARY | DIRTY_SEARCH | DIRTY_VISUALIZER);
 }
 
 void advance_glimmer_anim(Model *model)
@@ -102,7 +102,7 @@ void advance_glimmer_anim(Model *model)
                 if (model->glimmer.frame > model->glimmer.num_frames)
                         model->glimmer.active = false;
 
-                set_dirty(DIRTY_FOOTER);
+                set_dirty(DIRTY_FOOTER | DIRTY_VISUALIZER);
         }
 
         if (!model->glimmer.active && random_number == 808 && !model->state.settings.hideGlimmeringText)
@@ -118,6 +118,6 @@ void advance_title_delay_anim(Model *model)
                 if (model->title_delay.frame > model->title_delay.num_frames)
                         model->title_delay.active = false;
 
-                set_dirty(DIRTY_TITLE);
+                set_dirty(DIRTY_TITLE | DIRTY_VISUALIZER);
         }
 }
