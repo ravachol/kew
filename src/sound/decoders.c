@@ -58,27 +58,27 @@ static ma_result init_ma_decoder_wrapper(
 }
 
 static ma_result init_vorbis_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                                     ma_libvorbis *decoder)
+                                     void *decoder)
 {
         return ma_libvorbis_init_file(pFilePath, p_config, NULL, decoder);
 }
 
 static ma_result init_opus_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                                   ma_libopus *decoder)
+                                   void *decoder)
 {
         return ma_libopus_init_file(pFilePath, p_config, NULL, decoder);
 }
 
 #ifdef USE_FAAD
 static ma_result init_m4a_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                                  ma_m4a *pM4a)
+                                  void *pM4a)
 {
         return m4a_decoder_init_file(pFilePath, p_config, NULL, pM4a);
 }
 #endif
 
 static ma_result init_webm_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                                   ma_webm *decoder)
+                                   void *decoder)
 {
         return ma_webm_init_file(pFilePath, p_config, NULL, decoder);
 }
@@ -136,14 +136,14 @@ static ma_result ma_libopus_get_cursor_in_pcm_frames_wrapper(
 
 #ifdef USE_FAAD
 static ma_result m4a_get_cursor_in_pcm_frames_wrapper(void *pDecoder,
-                                                      long long int *p_cursor)
+                                                      long long *p_cursor)
 {
         return m4a_decoder_get_cursor_in_pcm_frames((ma_m4a *)pDecoder,
                                                     (ma_uint64 *)p_cursor);
 }
 #endif
 
-static ma_result ma_webm_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *p_cursor)
+static ma_result ma_webm_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long *p_cursor)
 {
         return ma_webm_get_cursor_in_pcm_frames((ma_webm *)pDecoder,
                                                 (ma_uint64 *)p_cursor);
