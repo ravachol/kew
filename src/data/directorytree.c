@@ -279,92 +279,88 @@ void set_full_path(FileSystemEntry *entry,
                    const char *parent_path,
                    const char *entry_name)
 {
-    if (entry == NULL ||
-        parent_path == NULL ||
-        entry_name == NULL)
-        return;
+        if (entry == NULL ||
+            parent_path == NULL ||
+            entry_name == NULL)
+                return;
 
-    entry->full_path = NULL;
+        entry->full_path = NULL;
 
-    if (!is_valid_entry_name(entry_name))
-        return;
+        if (!is_valid_entry_name(entry_name))
+                return;
 
-    size_t parentLen = strnlen(parent_path, KEW_PATH_MAX + 1);
-    size_t nameLen   = strnlen(entry_name, KEW_PATH_MAX + 1);
+        size_t parentLen = strnlen(parent_path, KEW_PATH_MAX + 1);
+        size_t nameLen = strnlen(entry_name, KEW_PATH_MAX + 1);
 
-    if (parentLen > KEW_PATH_MAX || nameLen > KEW_PATH_MAX) {
+        if (parentLen > KEW_PATH_MAX || nameLen > KEW_PATH_MAX) {
 
-        fprintf(stderr,
-                "Parent or entry name too long or not null-terminated.\n");
+                fprintf(stderr,
+                        "Parent or entry name too long or not null-terminated.\n");
 
-        return;
-    }
+                return;
+        }
 
 #ifdef _WIN32
-    const char sep = '\\';
+        const char sep = '\\';
 #else
-    const char sep = '/';
+        const char sep = '/';
 #endif
 
-    // Remove trailing separator
+        // Remove trailing separator
 
-    while (parentLen > 0 &&
-           (parent_path[parentLen - 1] == '/' ||
-            parent_path[parentLen - 1] == '\\'))
-    {
-        parentLen--;
-    }
+        while (parentLen > 0 &&
+               (parent_path[parentLen - 1] == '/' ||
+                parent_path[parentLen - 1] == '\\')) {
+                parentLen--;
+        }
 
-    size_t needed = parentLen + 1 + nameLen + 1;
+        size_t needed = parentLen + 1 + nameLen + 1;
 
-    if (needed > KEW_PATH_MAX) {
+        if (needed > KEW_PATH_MAX) {
 
-        fprintf(stderr,
-                "Path too long, rejecting.\n");
+                fprintf(stderr,
+                        "Path too long, rejecting.\n");
 
-        return;
-    }
+                return;
+        }
 
-    entry->full_path = malloc(needed);
+        entry->full_path = malloc(needed);
 
-    if (entry->full_path == NULL)
-        return;
+        if (entry->full_path == NULL)
+                return;
 
-    if (nameLen == 0) {
+        if (nameLen == 0) {
 
-        snprintf(entry->full_path,
-                 needed,
-                 "%.*s",
-                 (int)parentLen,
-                 parent_path);
+                snprintf(entry->full_path,
+                         KEW_PATH_MAX,
+                         "%s",
+                         parent_path);
 
-    } else {
+        } else {
 
-        snprintf(entry->full_path,
-                 needed,
-                 "%.*s%c%s",
-                 (int)parentLen,
-                 parent_path,
-                 sep,
-                 entry_name);
-    }
+                snprintf(entry->full_path,
+                         needed,
+                         "%s%c%s",
+                         parent_path,
+                         sep,
+                         entry_name);
+        }
 
-    entry->full_path[needed - 1] = '\0';
+        entry->full_path[needed - 1] = '\0';
 
-    // Detect traversal on both Unix and Windows
+        // Detect traversal on both Unix and Windows
 
-    if (strstr(entry->full_path, "/../")  ||
-        strstr(entry->full_path, "\\..\\") ||
-        strstr(entry->full_path, "/..\\")  ||
-        strstr(entry->full_path, "\\../"))
-    {
-        fprintf(stderr,
-                "Path traversal attempt detected in full_path: '%s'\n",
-                entry->full_path);
+        if (strstr(entry->full_path, "/../") ||
+            strstr(entry->full_path, "\\..\\") ||
+            strstr(entry->full_path, "/..\\") ||
+            strstr(entry->full_path, "\\../")) {
+                fprintf(stderr,
+                        "Path traversal attempt detected in full_path: '%s'\n",
+                        entry->full_path);
 
-        free(entry->full_path);
-        entry->full_path = NULL;
-    }
+                free(entry->full_path);
+                entry->full_path = NULL;
+        }
 }
 
 void free_tree(FileSystemEntry *root)
@@ -517,46 +513,50 @@ int compare_lib_entries_reversed(const struct dirent **a, const struct dirent **
 
 int dirent_qsort_cmp(const void *a, const void *b)
 {
-    const struct dirent *da = *(const struct dirent * const *)a;
-    const struct dirent *db = *(const struct dirent * const *)b;
+        const struct dirent *da = *(const struct dirent *const *)a;
+        const struct dirent *db = *(const struct dirent *const *)b;
 
-    char *name_a = string_to_upper(da->d_name);
-    char *name_b = string_to_upper(db->d_name);
+        char *name_a = string_to_upper(da->d_name);
+        char *name_b = string_to_upper(db->d_name);
 
-    // underscore rule
-    if (name_a[0] == '_' && name_b[0] != '_') {
-        free(name_a); free(name_b);
-        return 1;
-    }
-    if (name_a[0] != '_' && name_b[0] == '_') {
-        free(name_a); free(name_b);
-        return -1;
-    }
+        // underscore rule
+        if (name_a[0] == '_' && name_b[0] != '_') {
+                free(name_a);
+                free(name_b);
+                return 1;
+        }
+        if (name_a[0] != '_' && name_b[0] == '_') {
+                free(name_a);
+                free(name_b);
+                return -1;
+        }
 
-    // m3u rule
-    bool is_m3u_a = is_m3u(da->d_name);
-    bool is_m3u_b = is_m3u(db->d_name);
+        // m3u rule
+        bool is_m3u_a = is_m3u(da->d_name);
+        bool is_m3u_b = is_m3u(db->d_name);
 
-    if (is_m3u_a && !is_m3u_b) {
-        free(name_a); free(name_b);
-        return -1;
-    }
-    if (!is_m3u_a && is_m3u_b) {
-        free(name_a); free(name_b);
-        return 1;
-    }
+        if (is_m3u_a && !is_m3u_b) {
+                free(name_a);
+                free(name_b);
+                return -1;
+        }
+        if (!is_m3u_a && is_m3u_b) {
+                free(name_a);
+                free(name_b);
+                return 1;
+        }
 
-    int result = natural_compare(name_a, name_b);
+        int result = natural_compare(name_a, name_b);
 
-    free(name_a);
-    free(name_b);
+        free(name_a);
+        free(name_b);
 
-    return result;
+        return result;
 }
 
 int dirent_qsort_cmp_rev(const void *a, const void *b)
 {
-    return -dirent_qsort_cmp(a, b);
+        return -dirent_qsort_cmp(a, b);
 }
 
 #endif
@@ -645,111 +645,108 @@ int remove_empty_directories(FileSystemEntry *node, int depth)
         return num_entries;
 }
 
-
-
 #ifdef _WIN32
-#include <windows.h>
 
-#include <windows.h>
-#include <wchar.h>
 #include <sys/stat.h>
+#include <wchar.h>
+#include <windows.h>
 
 static int read_directory(const char *path, FileSystemEntry *parent)
 {
-    wchar_t wpath[KEW_PATH_MAX];
-    wchar_t pattern[KEW_PATH_MAX];
+        wchar_t wpath[KEW_PATH_MAX];
+        wchar_t pattern[KEW_PATH_MAX];
 
-    MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        path,
-        -1,
-        wpath,
-        KEW_PATH_MAX);
-
-    swprintf(pattern, KEW_PATH_MAX, L"%ls\\*", wpath);
-
-    WIN32_FIND_DATAW fd;
-    HANDLE hFind = FindFirstFileW(pattern, &fd);
-
-    if (hFind == INVALID_HANDLE_VALUE)
-        return 0;
-
-    regex_t regex;
-    regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED | REG_ICASE);
-
-    int num_entries = 0;
-
-    do {
-        if (wcscmp(fd.cFileName, L".") == 0 ||
-            wcscmp(fd.cFileName, L"..") == 0)
-            continue;
-
-        // Convert filename to UTF-8
-        char utf8_name[KEW_PATH_MAX];
-
-        WideCharToMultiByte(
+        MultiByteToWideChar(
             CP_UTF8,
             0,
-            fd.cFileName,
+            path,
             -1,
-            utf8_name,
-            sizeof(utf8_name),
-            NULL,
-            NULL);
-
-        // Build full wide path
-        wchar_t child_wpath[KEW_PATH_MAX];
-
-        swprintf(
-            child_wpath,
-            KEW_PATH_MAX,
-            L"%ls\\%ls",
             wpath,
-            fd.cFileName);
+            KEW_PATH_MAX);
 
-        struct _stat st;
-        if (_wstat(child_wpath, &st) == -1)
-            continue;
+        swprintf(pattern, KEW_PATH_MAX, L"%ls\\*", wpath);
 
-        int is_dir = (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        WIN32_FIND_DATAW fd;
+        HANDLE hFind = FindFirstFileW(pattern, &fd);
 
-        char exto[100];
-        extract_extension(utf8_name, sizeof(exto) - 1, exto);
+        if (hFind == INVALID_HANDLE_VALUE)
+                return 0;
 
-        int is_audio = match_regex(&regex, exto);
+        regex_t regex;
+        regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED | REG_ICASE);
 
-        if (is_audio == 0 || is_dir) {
+        int num_entries = 0;
 
-            FileSystemEntry *child =
-                create_entry(
+        do {
+                if (wcscmp(fd.cFileName, L".") == 0 ||
+                    wcscmp(fd.cFileName, L"..") == 0)
+                        continue;
+
+                // Convert filename to UTF-8
+                char utf8_name[KEW_PATH_MAX];
+
+                WideCharToMultiByte(
+                    CP_UTF8,
+                    0,
+                    fd.cFileName,
+                    -1,
                     utf8_name,
-                    is_dir,
-                    parent,
-                    st.st_mtime);
+                    sizeof(utf8_name),
+                    NULL,
+                    NULL);
 
-            if (child) {
+                // Build full wide path
+                wchar_t child_wpath[KEW_PATH_MAX];
 
-                set_full_path(child, path, utf8_name);
+                swprintf(
+                    child_wpath,
+                    KEW_PATH_MAX,
+                    L"%ls\\%ls",
+                    wpath,
+                    fd.cFileName);
 
-                if (child->full_path)
-                    add_child(parent, child);
+                struct _stat st;
+                if (_wstat(child_wpath, &st) == -1)
+                        continue;
 
-                if (is_dir) {
-                    num_entries++;
-                    num_entries += read_directory(
-                        child->full_path,
-                        child);
+                int is_dir = (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+                char exto[100];
+                extract_extension(utf8_name, sizeof(exto) - 1, exto);
+
+                int is_audio = match_regex(&regex, exto);
+
+                if (is_audio == 0 || is_dir) {
+
+                        FileSystemEntry *child =
+                            create_entry(
+                                utf8_name,
+                                is_dir,
+                                parent,
+                                st.st_mtime);
+
+                        if (child) {
+
+                                set_full_path(child, path, utf8_name);
+
+                                if (child->full_path)
+                                        add_child(parent, child);
+
+                                if (is_dir) {
+                                        num_entries++;
+                                        num_entries += read_directory(
+                                            child->full_path,
+                                            child);
+                                }
+                        }
                 }
-            }
-        }
 
-    } while (FindNextFileW(hFind, &fd));
+        } while (FindNextFileW(hFind, &fd));
 
-    FindClose(hFind);
-    regfree(&regex);
+        FindClose(hFind);
+        regfree(&regex);
 
-    return num_entries;
+        return num_entries;
 }
 
 #else

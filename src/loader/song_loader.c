@@ -293,6 +293,106 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
         return result;
 }
 
+#ifdef _WIN32
+#include <windows.h>
+
+char *find_largest_image_file(const char *directory_path, char *largest_image_file,
+                              off_t *largest_file_size)
+{
+    // Convert directory path (UTF-8) to wide
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, directory_path, -1, NULL, 0);
+    if (wlen <= 0) return largest_image_file;
+
+    wchar_t *wdir = (wchar_t *)malloc(wlen * sizeof(wchar_t));
+    if (!wdir) return largest_image_file;
+    MultiByteToWideChar(CP_UTF8, 0, directory_path, -1, wdir, wlen);
+
+    // Normalize separators to backslash
+    for (int i = 0; wdir[i]; i++)
+        if (wdir[i] == L'/') wdir[i] = L'\\';
+
+    // Build "dir\*" pattern
+    size_t dirlen = wcslen(wdir);
+    int need_sep = (dirlen == 0 || wdir[dirlen - 1] != L'\\') ? 1 : 0;
+    wchar_t *pattern = (wchar_t *)malloc((dirlen + need_sep + 2) * sizeof(wchar_t));
+    if (!pattern) { free(wdir); return largest_image_file; }
+    wcscpy(pattern, wdir);
+    if (need_sep) wcscat(pattern, L"\\");
+    wcscat(pattern, L"*");
+
+    // Base path with guaranteed trailing backslash (reuse or rebuild)
+    wchar_t *wbase = (wchar_t *)malloc((dirlen + 2) * sizeof(wchar_t));
+    if (!wbase) { free(wdir); free(pattern); return largest_image_file; }
+    wcscpy(wbase, wdir);
+    if (need_sep) wcscat(wbase, L"\\");
+    free(wdir);
+
+fprintf(stderr, "pattern: [%ls]\n", pattern);
+
+    WIN32_FIND_DATAW ffd;
+    HANDLE hFind = FindFirstFileW(pattern, &ffd);
+    free(pattern);
+
+    if (hFind == INVALID_HANDLE_VALUE) {
+        free(wbase);
+        return largest_image_file;
+    }
+
+    do {
+        const wchar_t *ext2 = wcsrchr(ffd.cFileName, L'.');
+
+        if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
+            continue;
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            continue;
+
+        // Check extension
+        const wchar_t *ext = wcsrchr(ffd.cFileName, L'.');
+        if (!ext) continue;
+        if (_wcsicmp(ext, L".jpg")  != 0 &&
+            _wcsicmp(ext, L".jpeg") != 0 &&
+            _wcsicmp(ext, L".png")  != 0 &&
+            _wcsicmp(ext, L".gif")  != 0)
+            continue;
+
+        // File size from FIND_DATA (avoids a stat call)
+        LARGE_INTEGER sz;
+        sz.HighPart = ffd.nFileSizeHigh;
+        sz.LowPart  = ffd.nFileSizeLow;
+        off_t file_size = (off_t)sz.QuadPart;
+
+        const off_t MAX_FILE_SIZE = 100 * 1024 * 1024;
+        if (file_size <= 0 || file_size > MAX_FILE_SIZE) continue;
+
+        if (file_size > *largest_file_size) {
+            *largest_file_size = file_size;
+
+            size_t baselen = wcslen(wbase);
+            size_t namelen = wcslen(ffd.cFileName);
+            wchar_t *wfull = (wchar_t *)malloc((baselen + namelen + 1) * sizeof(wchar_t));
+            if (!wfull) break;
+            wcscpy(wfull, wbase);
+            wcscat(wfull, ffd.cFileName);
+
+            int u8len = WideCharToMultiByte(CP_UTF8, 0, wfull, -1, NULL, 0, NULL, NULL);
+            if (u8len > 0) {
+                char *tmp = (char *)malloc(u8len);
+                if (tmp) {
+                    WideCharToMultiByte(CP_UTF8, 0, wfull, -1, tmp, u8len, NULL, NULL);
+                    free(largest_image_file);
+                    largest_image_file = tmp;
+                }
+            }
+            free(wfull);
+        }
+
+    } while (FindNextFileW(hFind, &ffd));
+
+    FindClose(hFind);
+    free(wbase);
+    return largest_image_file;
+}
+#else
 char *find_largest_image_file(const char *directory_path, char *largest_image_file,
                               off_t *largest_file_size)
 {
@@ -329,11 +429,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 }
 
                 // Use lstat to avoid following symlinks
-#ifdef _WIN32
-                if (stat(resolved_path, &file_stats) == -1) {
-#else
                 if (lstat(resolved_path, &file_stats) == -1) {
-#endif
                         continue;
                 }
 #ifdef S_ISLNK
@@ -387,6 +483,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
         closedir(directory);
         return largest_image_file;
 }
+#endif
 
 gchar *generate_track_id(void)
 {
