@@ -249,7 +249,7 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
         deviceConfig.periodSizeInMilliseconds = 20;
         deviceConfig.periods = 2;
 #else
-        deviceConfig.periodSizeInMilliseconds = 20;
+        deviceConfig.periodSizeInMilliseconds = 200;
         deviceConfig.periods = 3;
 #endif
 
