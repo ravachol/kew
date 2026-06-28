@@ -98,7 +98,7 @@ ifeq ($(origin USE_FAAD), undefined)
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
         endif
   endif
-  
+
 endif
 
 LOCAL_INC = \
@@ -181,6 +181,8 @@ else ifeq ($(UNAME_S), Darwin)
   endif
 else ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
   LIBS += -lws2_32 -lgnurx
+  WIN_MANIFEST_OBJ = manifest.res
+  WINDRES = windres
 endif
 
 # Conditionally add  USE_DBUS is enabled
@@ -265,7 +267,7 @@ ifeq ($(USE_MACOS_MEDIA), 1)
 endif
 
 # All objects together
-OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(MACOS_MEDIA_OBJ)
+OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(MACOS_MEDIA_OBJ) $(WIN_MANIFEST_OBJ)
 
 # Create object directories
 $(OBJDIR):
@@ -295,6 +297,9 @@ $(WRAPPER_OBJ): $(WRAPPER_SRC) Makefile | $(OBJDIR)
 $(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
+
+$(WIN_MANIFEST_OBJ): src/ui/manifest.rc src/ui/ms-utf8.xml
+	$(WINDRES) src/ui/manifest.rc -O coff -o $@
 
 # Link all objects safely together using C++ linker
 kew: $(OBJS) $(WRAPPER_OBJ) Makefile
