@@ -132,16 +132,14 @@ void tty_init(void)
                 saved_console_output_cp = GetConsoleOutputCP();
                 saved_console_input_cp = GetConsoleCP();
 
-                /* Enable ANSI escape sequence parsing etc. on MS Windows command prompt */
-
+                // Enable ANSI escape sequence parsing etc. on MS Windows command prompt
                 if (chd != INVALID_HANDLE_VALUE) {
                         if (!SetConsoleMode(chd,
                                             ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN))
                                 win32_stdout_is_file = TRUE;
                 }
 
-                /* Set UTF-8 code page I/O */
-
+                // Set UTF-8 code page I/O
                 SetConsoleOutputCP(65001);
                 SetConsoleCP(65001);
         }
