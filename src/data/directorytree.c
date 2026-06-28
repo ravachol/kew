@@ -841,6 +841,8 @@ FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
         *num_entries = read_directory(start_path, root);
         *num_entries -= remove_empty_directories(root, 0);
 
+        sort_file_system_tree(root, compare_folders_by_age_files_alphabetically);
+
         return root;
 }
 
