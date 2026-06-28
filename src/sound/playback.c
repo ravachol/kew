@@ -245,8 +245,13 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
         deviceConfig.sampleRate = sound->sample_rate;
         deviceConfig.dataCallback = data_callback;
         deviceConfig.pUserData = pUserData;
-        deviceConfig.periodSizeInMilliseconds = 200;
-        deviceConfig.periods = 4;
+#ifdef _WIN32
+        deviceConfig.periodSizeInMilliseconds = 20;
+        deviceConfig.periods = 2;
+#else
+        deviceConfig.periodSizeInMilliseconds = 20;
+        deviceConfig.periods = 3;
+#endif
 
         sound_s->sample_rate = sound->sample_rate;
         sound_s->format = sound->format;
