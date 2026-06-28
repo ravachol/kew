@@ -1,7 +1,5 @@
 ## **Windows Install**
 
-IMPORTANT! This is experimental and not production ready. It's available mainly for other devs in case they want to help out or check it out.
-
 1. Download a fresh installer from https://www.msys2.org and install it
 
 2. Open the MSYS2 UCRT64 terminal (important — not MinGW64, not the base MSYS2).
@@ -63,8 +61,6 @@ Settings will likely be in c:\users\YOUR_USERNAME\AppData\Roaming\kew.
 
 Immediate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
 
-## TODO, Things that don't yet work:
+## TODO & Things that don't yet work:
 
-
-
-- Music takes awhile until it's audible. This also seems to make crossfades less noticeable.
+- Installer
