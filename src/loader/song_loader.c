@@ -327,8 +327,6 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
     if (need_sep) wcscat(wbase, L"\\");
     free(wdir);
 
-fprintf(stderr, "pattern: [%ls]\n", pattern);
-
     WIN32_FIND_DATAW ffd;
     HANDLE hFind = FindFirstFileW(pattern, &ffd);
     free(pattern);
@@ -339,8 +337,6 @@ fprintf(stderr, "pattern: [%ls]\n", pattern);
     }
 
     do {
-        const wchar_t *ext2 = wcsrchr(ffd.cFileName, L'.');
-
         if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
             continue;
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
