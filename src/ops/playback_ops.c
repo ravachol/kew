@@ -120,6 +120,10 @@ void play(void)
                 set_total_pause_seconds(0);
                 prepare_if_skipped_silent();
         }
+
+        Model *model = get_model();
+        model->is_paused = is_paused();
+        model->is_stopped = is_stopped();
 }
 
 bool is_valid_audio_node(Node *node)
@@ -230,6 +234,10 @@ void stop(void)
                 skip_to_begginning_of_song();
                 emit_playback_stopped();
         }
+
+        Model *model = get_model();
+        model->is_paused = is_paused();
+        model->is_stopped = is_stopped();
 }
 
 void ops_toggle_pause(void)
@@ -268,6 +276,9 @@ void ops_toggle_pause(void)
 
                 set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
         }
+
+        Model *model = get_model();
+        model->is_paused = is_paused();
 }
 
 void seek(int seconds)

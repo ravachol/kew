@@ -788,6 +788,7 @@ struct tb_global_t {
 #ifdef _WIN32
         HANDLE hin;
         HANDLE hout;
+        DWORD original_mode;
 #endif
         int ttyfd;
         int rfd;
