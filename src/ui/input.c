@@ -806,14 +806,17 @@ static volatile int idle_pending = 0;
 
 static gboolean on_tb_input_idle(gpointer data)
 {
-    on_tb_input(NULL, 0, data);
-    g_atomic_int_set(&idle_pending, 0);
+        on_tb_input(NULL, 0, data);
+        g_atomic_int_set(&idle_pending, 0);
 
-    return FALSE;
+        return FALSE;
 }
+
 static DWORD WINAPI win_input_thread(void *arg)
 {
         (void)arg;
+
+        DWORD prev_buttons;
 
         while (1) {
 
@@ -823,27 +826,131 @@ static DWORD WINAPI win_input_thread(void *arg)
                 if (!ReadConsoleInputA(global.hin, &rec, 1, &r))
                         continue;
 
-                if (rec.EventType != KEY_EVENT || !rec.Event.KeyEvent.bKeyDown)
-                        continue;
+                switch (rec.EventType) {
 
-                char buf[64];
+                case MOUSE_EVENT: {
+                        MOUSE_EVENT_RECORD *m = &rec.Event.MouseEvent;
 
-                int len = encode_win_key_to_ansi(
-                    &rec.Event.KeyEvent,
-                    buf,
-                    sizeof(buf));
+                        DWORD buttons = m->dwButtonState;
+                        DWORD changed = buttons ^ prev_buttons;
 
-                if (len > 0) {
-                        bytebuf_nputs(&global.in, buf, len);
+                        DWORD f = m->dwEventFlags;
 
-                        if (g_atomic_int_compare_and_exchange(&idle_pending, 0, 1))
-                                g_idle_add(on_tb_input_idle, NULL);
+                        // Ignore pure movement with no buttons
+                        if (f == MOUSE_MOVED && buttons == 0)
+                                break;
+
+                        COORD p = m->dwMousePosition;
+
+                        int x = p.X + 1;
+                        int y = p.Y + 1;
+
+                        int b = 0;
+                        int len = 0;
+                        char buf[64];
+
+                        // Left
+                        if (changed & FROM_LEFT_1ST_BUTTON_PRESSED) {
+                                b = 0;
+                                if (buttons & FROM_LEFT_1ST_BUTTON_PRESSED) {
+                                        // press
+                                        len = snprintf(buf, sizeof(buf),
+                                                       "\x1b[<%d;%d;%dM", b, x, y);
+                                } else {
+                                        // release
+                                        len = snprintf(buf, sizeof(buf),
+                                                       "\x1b[<%d;%d;%dm", b, x, y);
+                                }
+                        }
+
+                        // Right
+                        else if (changed & RIGHTMOST_BUTTON_PRESSED) {
+                                b = 2;
+                                if (buttons & RIGHTMOST_BUTTON_PRESSED) {
+                                        len = snprintf(buf, sizeof(buf),
+                                                       "\x1b[<%d;%d;%dM", b, x, y);
+                                } else {
+                                        len = snprintf(buf, sizeof(buf),
+                                                       "\x1b[<%d;%d;%dm", b, x, y);
+                                }
+                        }
+
+                        // Middle
+                        else if (changed & FROM_LEFT_2ND_BUTTON_PRESSED) {
+                                b = 1;
+                                if (buttons & FROM_LEFT_2ND_BUTTON_PRESSED) {
+                                        len = snprintf(buf, sizeof(buf),
+                                                       "\x1b[<%d;%d;%dM", b, x, y);
+                                } else {
+                                        len = snprintf(buf, sizeof(buf),
+                                                       "\x1b[<%d;%d;%dm", b, x, y);
+                                }
+                        }
+
+                        // Drag
+                        else if (f == MOUSE_MOVED && buttons) {
+                                if (buttons & FROM_LEFT_1ST_BUTTON_PRESSED)
+                                        b = 0;
+                                else if (buttons & RIGHTMOST_BUTTON_PRESSED)
+                                        b = 2;
+                                else if (buttons & FROM_LEFT_2ND_BUTTON_PRESSED)
+                                        b = 1;
+
+                                len = snprintf(buf, sizeof(buf),
+                                               "\x1b[<%d;%d;%dM", b, x, y);
+                        }
+
+                        // Wheel
+                        else if (f == MOUSE_WHEELED) {
+                                short delta = (short)HIWORD(m->dwButtonState);
+
+                                int wb = (delta > 0) ? 64 : 65;
+
+                                len = snprintf(buf, sizeof(buf),
+                                               "\x1b[<%d;%d;%dM", wb, x, y);
+                        }
+
+                        prev_buttons = buttons;
+
+                        if (len > 0) {
+                                bytebuf_nputs(&global.in, buf, len);
+
+                                if (g_atomic_int_compare_and_exchange(&idle_pending, 0, 1))
+                                        g_idle_add(on_tb_input_idle, NULL);
+                        }
+
+                        break;
+                }
+
+                case KEY_EVENT: {
+
+                        if (!rec.Event.KeyEvent.bKeyDown)
+                                continue;
+
+                        char buf[64];
+
+                        int len = encode_win_key_to_ansi(
+                            &rec.Event.KeyEvent,
+                            buf,
+                            sizeof(buf));
+
+                        if (len > 0) {
+                                bytebuf_nputs(&global.in, buf, len);
+
+                                if (g_atomic_int_compare_and_exchange(&idle_pending, 0, 1))
+                                        g_idle_add(on_tb_input_idle, NULL);
+                        }
+
+                        break;
+                }
+
+                default:
+                        break;
                 }
         }
 
         return 0;
 }
-
 #endif
 
 void init_input(void)
@@ -861,7 +968,39 @@ void init_input(void)
         g_io_channel_set_encoding(chan, NULL, NULL); // binary
 
 #ifdef _WIN32
+
+        void restore_console(void)
+        {
+                if (global.hin)
+                        SetConsoleMode(global.hin, global.original_mode);
+        }
+
+        BOOL WINAPI ctrl_handler(DWORD type)
+        {
+                switch (type) {
+                case CTRL_C_EVENT:
+                case CTRL_BREAK_EVENT:
+                case CTRL_CLOSE_EVENT:
+                case CTRL_SHUTDOWN_EVENT:
+                        restore_console();
+                        return FALSE; // Let process exit normally
+                }
+                return FALSE;
+        }
+
+        DWORD mode;
+        GetConsoleMode(global.hin, &mode);
+
+        global.original_mode = mode;
+
+        mode &= ~ENABLE_QUICK_EDIT_MODE; // Disable QuickEdit
+        mode |= ENABLE_EXTENDED_FLAGS;   // Required
+        mode |= ENABLE_MOUSE_INPUT;
+
+        SetConsoleMode(global.hin, mode);
+        SetConsoleCtrlHandler(ctrl_handler, TRUE);
         CreateThread(NULL, 0, win_input_thread, NULL, 0, NULL);
+
 #else
         g_io_channel_set_encoding(chan, NULL, NULL);
         g_io_add_watch(chan, G_IO_IN, on_tb_input, NULL);
@@ -870,5 +1009,9 @@ void init_input(void)
 
 void shutdown_input(void)
 {
+#ifdef _WIN32
+        SetConsoleMode(global.hin, global.original_mode);
+#endif
+
         tb_shutdown();
 }
