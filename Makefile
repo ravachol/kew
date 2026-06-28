@@ -67,10 +67,20 @@ endif
 # Default USE_FAAD to auto-detect if not set by user
 ifeq ($(origin USE_FAAD), undefined)
 
-  # Check if we're in Termux environment
-  ifneq ($(wildcard /data/data/com.termux/files/usr),)
-    # Termux environment - check common installation paths
-    USE_FAAD = $(shell [ -f "$(PREFIX)/lib/libfaad.so" ] || \
+  # Try pkg-config first
+  ifneq ($(shell command -v $(PKG_CONFIG) 2>/dev/null),)
+    ifeq ($(shell $(PKG_CONFIG) --exists faad2 2>/dev/null && echo 1),1)
+      USE_FAAD := 1
+      FAAD_CFLAGS := $(shell $(PKG_CONFIG) --cflags faad2)
+      FAAD_LIBS   := $(shell $(PKG_CONFIG) --libs faad2)
+    endif
+  endif
+
+  ifeq ($(USE_FAAD),0)
+        # Check if we're in Termux environment
+        ifneq ($(wildcard /data/data/com.termux/files/usr),)
+                # Termux environment - check common installation paths
+                USE_FAAD = $(shell [ -f "$(PREFIX)/lib/libfaad.so" ] || \
                        [ -f "$(PREFIX)/lib/libfaad2.so" ] || \
                        [ -f "$(PREFIX)/local/lib/libfaad.so" ] || \
                        [ -f "$(PREFIX)/local/lib/libfaad2.so" ] || \
@@ -79,19 +89,16 @@ ifeq ($(origin USE_FAAD), undefined)
                        [ -f "/data/data/com.termux/files/usr/lib/libfaad2.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
-  else
-    # Non-Android build - try pkg-config first
-    USE_FAAD = $(shell $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
-
-    ifeq ($(USE_FAAD), 0)
-        # If pkg-config fails, try to find libfaad dynamically in common paths
-        USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/lib64/libfaad.so ] || [ -f /usr/lib64/libfaad2.so ] || \
+        else
+                # Try to find libfaad dynamically in common paths
+                USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/lib64/libfaad.so ] || [ -f /usr/lib64/libfaad2.so ] || \
                         [ -f /usr/bin/faad ] || [ -f /usr/local/lib/libfaad.so ] || \
                         [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
                         [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
-    endif
+        endif
   endif
+  
 endif
 
 LOCAL_INC = \
