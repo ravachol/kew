@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.1.0
+## kew 4.1.0
 
 kew 4.1 adds custom layouts, auto-resume, crossfade, an improved visualizer.
 
