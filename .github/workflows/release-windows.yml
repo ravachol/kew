@@ -68,11 +68,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          else
-            echo "version=dev-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          fi
+          echo "version=$(git describe --tags --dirty --always)" >> "$GITHUB_OUTPUT"
 
       - name: Create zip
         shell: pwsh
