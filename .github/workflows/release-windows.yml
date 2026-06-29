@@ -2,7 +2,7 @@ name: Release Windows
 
 on:
   release:
-    types: [published]
+    types: [created, published]
   workflow_dispatch:
 
 jobs:
