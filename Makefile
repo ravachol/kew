@@ -331,11 +331,11 @@ ifeq ($(UNAME_S),Darwin)
 	@true
 else
 	# Install desktop shortcut
-	install -Dm644 kew.desktop \
+	install -Dm644 shortcut/kew.desktop \
 		"$(DESTDIR)$(PREFIX)/share/applications/kew.desktop"
 
 	# Install desktop icon
-	install -Dm644 kew.png \
+	install -Dm644 shortcut/kew.png \
 		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 endif
 
