@@ -308,82 +308,82 @@ kew: $(OBJS) $(WRAPPER_OBJ) $(WIN_MANIFEST_OBJ) Makefile
 .PHONY: install
 install: all
 	# Create directories
-	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	mkdir -p $(DESTDIR)$(THEMEDIR)
-	mkdir -p $(DESTDIR)$(LAYOUTDIR)
-	mkdir -p $(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES
-	mkdir -p $(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES
+	mkdir -p "$(DESTDIR)$(MAN_DIR)/man1"
+	mkdir -p "$(DESTDIR)$(PREFIX)/bin"
+	mkdir -p "$(DESTDIR)$(THEMEDIR)"
+	mkdir -p "$(DESTDIR)$(LAYOUTDIR)"
+	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES"
+	mkdir -p "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES"
 
 	# Install binary and man page
-	install -m 0755 kew $(DESTDIR)$(PREFIX)/bin/kew
-	install -m 0644 docs/kew.1 $(DESTDIR)$(MAN_DIR)/man1/kew.1
+	install -m 0755 kew "$(DESTDIR)$(PREFIX)/bin/kew"
+	install -m 0644 docs/kew.1 "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
 
 	# Install Chinese translation
 	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
-	$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo
+		"$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo"
 
 	# Install Japanese translation
 	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
-	$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
+		"$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
 
 ifeq ($(UNAME_S),Darwin)
 	@true
 else
-        # Install desktop shortcut
+	# Install desktop shortcut
 	install -Dm644 kew.desktop \
-	$(DESTDIR)$(PREFIX)/share/applications/kew.desktop
+		"$(DESTDIR)$(PREFIX)/share/applications/kew.desktop"
 
-        # Install desktop icon
+	# Install desktop icon
 	install -Dm644 kew.png \
-	$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png
+		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 endif
 
-	@if [ -d $(THEMESRCDIR) ]; then \
-	        for theme in $(THEMESRCDIR)/*.theme; do \
+	@if [ -d "$(THEMESRCDIR)" ]; then \
+		for theme in "$(THEMESRCDIR)"/*.theme; do \
 			if [ -f "$$theme" ]; then \
-				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+				install -m 0644 "$$theme" "$(DESTDIR)$(THEMEDIR)/"; \
 			fi; \
 		done; \
-		for theme in $(THEMESRCDIR)/*.txt; do \
+		for theme in "$(THEMESRCDIR)"/*.txt; do \
 			if [ -f "$$theme" ]; then \
-				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+				install -m 0644 "$$theme" "$(DESTDIR)$(THEMEDIR)/"; \
 			fi; \
 		done; \
-		for theme in $(THEMESRCDIR)/*.md; do \
+		for theme in "$(THEMESRCDIR)"/*.md; do \
 			if [ -f "$$theme" ]; then \
-				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+				install -m 0644 "$$theme" "$(DESTDIR)$(THEMEDIR)/"; \
 			fi; \
 		done; \
 	fi
 
-	@if [ -d $(LAYOUTSRCDIR) ]; then \
-	        for layout in $(LAYOUTSRCDIR)/*.layout; do \
+	@if [ -d "$(LAYOUTSRCDIR)" ]; then \
+		for layout in "$(LAYOUTSRCDIR)"/*.layout; do \
 			if [ -f "$$layout" ]; then \
-				install -m 0644 "$$layout" $(DESTDIR)$(LAYOUTDIR)/; \
+				install -m 0644 "$$layout" "$(DESTDIR)$(LAYOUTDIR)/"; \
 			fi; \
 		done; \
-		for layout in $(LAYOUTSRCDIR)/*.md; do \
+		for layout in "$(LAYOUTSRCDIR)"/*.md; do \
 			if [ -f "$$layout" ]; then \
-				install -m 0644 "$$layout" $(DESTDIR)$(LAYOUTDIR)/; \
+				install -m 0644 "$$layout" "$(DESTDIR)$(LAYOUTDIR)/"; \
 			fi; \
 		done; \
 	fi
 
 	@if [ "$$(uname)" = "Linux" ]; then \
 		if command -v setcap >/dev/null 2>&1; then \
-			setcap cap_sys_nice+ep $(DESTDIR)$(PREFIX)/bin/kew; \
+			setcap cap_sys_nice+ep "$(DESTDIR)$(PREFIX)/bin/kew"; \
 		fi; \
 	fi
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/kew
-	rm -f $(DESTDIR)$(MAN_DIR)/man1/kew.1
-	rm -rf $(DESTDIR)$(THEMEDIR)
-	rm -rf $(DESTDIR)$(LAYOUTDIR)
-	rm -f $(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
-	rm -f $(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo
+	rm -f "$(DESTDIR)$(PREFIX)/bin/kew"
+	rm -f "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
+	rm -rf "$(DESTDIR)$(THEMEDIR)"
+	rm -rf "$(DESTDIR)$(LAYOUTDIR)"
+	rm -f "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
+	rm -f "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo"
 
 .PHONY: clean
 clean:
