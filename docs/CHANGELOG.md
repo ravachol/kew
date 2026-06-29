@@ -2,7 +2,9 @@
 
 ## 4.1.0
 
-kew 4.1 adds custom layouts, auto-resume, crossfade and more visualizer modes.
+kew 4.1 adds custom layouts, auto-resume, crossfade, an improved visualizer.
+
+kew is also available on Windows now.
 
 The sound system was rewritten in v4.0 and in this version the UI system has been rewritten using the MVU pattern. There are still smaller areas that need improvement, but most of the app is now in a much better shape.
 
@@ -10,7 +12,7 @@ The sound system was rewritten in v4.0 and in this version the UI system has bee
 
 ### Layouts
 
-It's now possible to change how kew looks. It's as minimal as possible, the syntax for layouts is very simple and the files are small. More info in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/develop/layouts/LAYOUTS-HOWTO.md).
+It's now possible to change how kew looks. It's as minimal as possible, the syntax for layouts is very simple and the files are small. More info in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md).
 
 By @ravachol.
 
@@ -30,15 +32,15 @@ By @ravachol.
 
   New settings:
 
-  alwaysCrossfade=0
+  alwaysCrossfade
 
-  fadeEnterSongMs=0 // Tells kew to start fading x milliseconds into the next song.
+  fadeEnterSongMs // Tells kew to start fading x milliseconds into the next song.
 
-  fadeQuickMs=1000
+  fadeQuickMs
 
-  fadeMediumMs=3000
+  fadeMediumMs
 
-  fadeSlowMs=8000
+  fadeSlowMs
 
   By @ravachol.
 
@@ -54,7 +56,7 @@ By @ravachol. Suggested by @thbemme.
 
 "Party Mode" is the default option. Cycle by pressing 'v'.
 
-  Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning.
+  Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant, 5=lum vibrant, 6=binning, 7=off.
 
 By @emptyhead41.
 
@@ -133,7 +135,7 @@ By @petoem. Suggested by @kewIT.
 
 #### Sponsors
 
-Thank you to new sponsors @LTEder, @Lee, @rick and @enzawin for their generous contributions!
+Thank you to new sponsors @LTEder, @Lee, @rick, @Supporter, @tezoatlipoca and @enzawin for their generous contributions!
 
 You can sponsor kew here:
 

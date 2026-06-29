@@ -1,3 +1,7 @@
+##
+
+These are manual instructions, the exe should be included in a zip on releases from kew 4.1 onward.
+
 ## **Windows Install**
 
 1. Download a fresh installer from https://www.msys2.org and install it
@@ -60,7 +64,3 @@ Settings will likely be in c:\users\YOUR_USERNAME\AppData\Roaming\kew.
 ## Things that are different
 
 Immediate play (Enqueue and play) is Ctrl+g instead of Ctrl+Enter.
-
-## TODO & Things that don't yet work:
-
-- Installer
