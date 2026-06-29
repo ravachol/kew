@@ -69,8 +69,7 @@ jobs:
       - name: Get version
         id: version
         shell: bash
-        run: |
-          echo "version=$(git describe --tags --dirty --always)" >> "$GITHUB_OUTPUT"
+        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Create zip
         shell: pwsh
