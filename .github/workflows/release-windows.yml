@@ -58,10 +58,10 @@ jobs:
       - name: Bundle docs
         shell: msys2 {0}
         run: |
-          cp "docs/0-README WINDOWS.txt" kew-dist/
-          cp docs/LICENSE                kew-dist/
+          cp docs/0-README_WINDOWS.txt kew-dist/
           cp docs/PRIVACY_POLICY.md      kew-dist/
           cp docs/TERMS.md               kew-dist/
+          cp LICENSE                     kew-dist/
           cp README.md                   kew-dist/
 
       - name: Get version
