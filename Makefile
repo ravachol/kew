@@ -298,11 +298,11 @@ $(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
-$(WIN_MANIFEST_OBJ): src/ui/manifest.rc src/ui/ms-utf8.xml
+$(WIN_MANIFEST_OBJ): src/ui/manifest.rc src/ui/ms-utf8.xml kew.ico
 	$(WINDRES) src/ui/manifest.rc -O coff -o $@
 
 # Link all objects safely together using C++ linker
-kew: $(OBJS) $(WRAPPER_OBJ) Makefile
+kew: $(OBJS) $(WRAPPER_OBJ) $(WIN_MANIFEST_OBJ) Makefile
 	$(CXX) -o kew $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
 
 .PHONY: install

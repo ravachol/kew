@@ -816,7 +816,7 @@ static DWORD WINAPI win_input_thread(void *arg)
 {
         (void)arg;
 
-        DWORD prev_buttons;
+        DWORD prev_buttons = 0;
 
         while (1) {
 
