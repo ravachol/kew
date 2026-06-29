@@ -59,8 +59,8 @@ jobs:
         shell: msys2 {0}
         run: |
           cp docs/0-README_WINDOWS.txt kew-dist/
-          cp docs/PRIVACY_POLICY.md      kew-dist/
-          cp docs/TERMS.md               kew-dist/
+          cp PRIVACY_POLICY.md           kew-dist/
+          cp TERMS.md                    kew-dist/
           cp LICENSE                     kew-dist/
           cp README.md                   kew-dist/
 
