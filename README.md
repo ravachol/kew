@@ -176,12 +176,16 @@ However, if discordRPC is enabled and discord is running, data about what you ar
 
 To ensure the best privacy, two settings have to be set as following in the settings file kewrc:
 
+```bash
 allowNotifications=0
 discordRPCEnabled=0
+```
 
 in kewstaterc, make sure this is set:
 
+```bash
 allowNotifications=0
+```
 
 kewstaterc tracks in-app choices so if you press 'n' for toggling notifications, the value will change.
 
