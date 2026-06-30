@@ -314,6 +314,8 @@ install: all
 	mkdir -p "$(DESTDIR)$(LAYOUTDIR)"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES"
+        mkdir -p "$(DESTDIR)$(PREFIX)/share/applications"
+        mkdir -p "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps"
 
 	# Install binary and man page
 	install -m 0755 kew "$(DESTDIR)$(PREFIX)/bin/kew"
@@ -331,11 +333,11 @@ ifeq ($(UNAME_S),Darwin)
 	@true
 else
 	# Install desktop shortcut
-	install -Dm644 shortcut/kew.desktop \
+	install -m644 shortcut/kew.desktop \
 		"$(DESTDIR)$(PREFIX)/share/applications/kew.desktop"
 
 	# Install desktop icon
-	install -Dm644 shortcut/kew.png \
+	install -m644 shortcut/kew.png \
 		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 endif
 
