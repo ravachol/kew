@@ -900,7 +900,7 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->saveRepeatShuffleSettings));
         c_strcpy(settings->trackTitleAsWindowTitle, "1",
                  sizeof(settings->trackTitleAsWindowTitle));
-        c_strcpy(settings->discordRPCEnabled, "1",
+        c_strcpy(settings->discordRPCEnabled, "0",
                  sizeof(settings->discordRPCEnabled));
         c_strcpy(settings->visualizer_mode, "3",
                  sizeof(settings->visualizer_mode));
