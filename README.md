@@ -197,6 +197,9 @@ To force notifications to be always off, compile with:
 make USE_DBUS=0 -j
 ```
 
+To erase traces of your kew listening, you also need to delete the library.dat file in ~/.config/kew.
+
+
 ## Layouts
 
 It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](layouts/LAYOUTS-HOWTO.md)
