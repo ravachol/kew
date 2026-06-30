@@ -194,7 +194,7 @@ Notifications means desktop notifications (MPRIS/DBUS) which is local, but is br
 To force notifications to be always off, compile with:
 
 ```bash
-make USE_DBUS=0 -j.
+make USE_DBUS=0 -j
 ```
 
 ## Layouts
