@@ -18,20 +18,19 @@
 #include <unistd.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
+#include <winsock2.h>
 #else
-#include <termios.h>
 #include <pwd.h>
 #include <sys/ioctl.h> /* ioctl */
 #include <sys/select.h>
+#include <termios.h>
 
 static struct termios orig_termios;
 #endif
 
 static const int MAX_TERMINAL_ROWS = 9999;
-
 
 TermSize term_size;
 
@@ -132,35 +131,35 @@ static int win_saved = 0;
 
 void save_terminal_mode(void)
 {
-    hStdin = GetStdHandle(STD_INPUT_HANDLE);
-    if (hStdin == INVALID_HANDLE_VALUE)
-        return;
+        hStdin = GetStdHandle(STD_INPUT_HANDLE);
+        if (hStdin == INVALID_HANDLE_VALUE)
+                return;
 
-    GetConsoleMode(hStdin, &orig_mode);
-    win_saved = 1;
+        GetConsoleMode(hStdin, &orig_mode);
+        win_saved = 1;
 }
 
 void set_nonblocking_mode(void)
 {
-    DWORD mode = orig_mode;
+        DWORD mode = orig_mode;
 
-    // disable line buffering + echo
-    mode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+        // disable line buffering + echo
+        mode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
 
-    // allow ctrl-c processing (optional)
-    mode |= ENABLE_PROCESSED_INPUT;
+        // allow ctrl-c processing (optional)
+        mode |= ENABLE_PROCESSED_INPUT;
 
-    hStdin = GetStdHandle(STD_INPUT_HANDLE);
-    if (hStdin == INVALID_HANDLE_VALUE)
-        return;
+        hStdin = GetStdHandle(STD_INPUT_HANDLE);
+        if (hStdin == INVALID_HANDLE_VALUE)
+                return;
 
-    SetConsoleMode(hStdin, mode);
+        SetConsoleMode(hStdin, mode);
 }
 
 void restore_terminal_mode(void)
 {
-    if (win_saved)
-        SetConsoleMode(hStdin, orig_mode);
+        if (win_saved)
+                SetConsoleMode(hStdin, orig_mode);
 }
 
 #else
@@ -169,31 +168,60 @@ void restore_terminal_mode(void)
 
 static struct termios orig_termios;
 static int termios_saved = 0;
+static int tty_fd = -1;
+
+static int get_tty_fd(void)
+{
+    int fd = STDIN_FILENO;
+
+    if (!isatty(fd)) {
+        fd = open("/dev/tty", O_RDWR);
+    }
+
+    return fd;
+}
 
 void save_terminal_mode(void)
 {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    termios_saved = 1;
+    tty_fd = get_tty_fd();
+    if (tty_fd == -1)
+        return;
+
+    if (tcgetattr(tty_fd, &orig_termios) == 0)
+        termios_saved = 1;
+    else
+        termios_saved = 0;
 }
 
 void set_nonblocking_mode(void)
 {
-    struct termios ttystate;
+        struct termios ttystate;
 
-    ttystate = orig_termios;
-    ttystate.c_lflag &= ~(ICANON | ECHO);
+        ttystate = orig_termios;
+        ttystate.c_lflag &= ~(ICANON | ECHO);
 
-    ttystate.c_cc[VMIN] = 0;
-    ttystate.c_cc[VTIME] = 0;
+        ttystate.c_cc[VMIN] = 0;
+        ttystate.c_cc[VTIME] = 0;
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
-    tcflush(STDIN_FILENO, TCIFLUSH);
+        tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+        tcflush(STDIN_FILENO, TCIFLUSH);
 }
 
 void restore_terminal_mode(void)
 {
-    if (termios_saved)
-        tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+    if (!termios_saved)
+        return;
+
+    if (tty_fd == -1)
+        return;
+
+    tcsetattr(tty_fd, TCSANOW, &orig_termios);
+
+    if (tty_fd != STDIN_FILENO)
+        close(tty_fd);
+
+    tty_fd = -1;
+    termios_saved = 0;
 }
 #endif
 

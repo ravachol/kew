@@ -235,11 +235,11 @@ void kew_shutdown()
                 perror("freopen error");
         }
 
-        disable_terminal_mouse_buttons();
-
         printf("\n");
         show_cursor();
         exit_alternate_screen_buffer();
+
+        disable_terminal_mouse_buttons();
         restore_terminal_mode();
         restore_terminal_window_title();
 
