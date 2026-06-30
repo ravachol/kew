@@ -172,7 +172,7 @@ We very much welcome contributions, and will help if guidance is needed. Please 
 
 kew itself does not have telemetry, it does not collect data and send to kew servers, it does not access the internet.
 
-However, if discordRPC is enabled and discord is running, data about what you are listening to will end up on discord servers.
+However, if Discord RPC is enabled and Discord is running, data about what you are listening to will end up on Discord servers.
 
 To ensure the best privacy, two settings have to be set as following in the settings file kewrc:
 
