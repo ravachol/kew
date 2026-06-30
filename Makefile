@@ -314,8 +314,8 @@ install: all
 	mkdir -p "$(DESTDIR)$(LAYOUTDIR)"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES"
-        mkdir -p "$(DESTDIR)$(PREFIX)/share/applications"
-        mkdir -p "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps"
+	mkdir -p "$(DESTDIR)$(PREFIX)/share/applications"
+	mkdir -p "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps"
 
 	# Install binary and man page
 	install -m 0755 kew "$(DESTDIR)$(PREFIX)/bin/kew"
