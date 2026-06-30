@@ -313,4 +313,7 @@ int str_calculate_display_width(const char *str);
  */
 void str_truncate_display_width(const char *str, char *dst, int max_width);
 
+// FIXME document
+void save_terminal_mode();
+
 #endif
