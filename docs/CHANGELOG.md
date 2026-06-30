@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.1.2
+
+Fixes issue with installing on FreeBSD.
+
 ## kew 4.1.1
 
 Fixes issue that affected homebrew tests.
