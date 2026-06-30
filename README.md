@@ -41,7 +41,7 @@ kew (/kjuː/) is a terminal music player.
  * Auto-Resume.
  * Linux, FreeBSD, Android, macOS, Windows and others.
 
- *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
+ *kew can display your listening status in Discord, but this is opt-in since v4.1.3.
 
  ## ⚠️ This repository has moved to Codeberg!
 Active development and issue tracking now happens at [Codeberg](https://codeberg.org/ravachol/kew).
@@ -167,6 +167,31 @@ kew path "/home/joe/Musik/" (changes the path)
 ## Contributing
 
 We very much welcome contributions, and will help if guidance is needed. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) first though and also [DEVELOPERS.md](docs/DEVELOPERS.md). It's important to discuss with the maintainer before doing a lot of work, or it might end up being rejected or having to be redone unnecessarily.
+
+## How to make sure kew is offline and private
+
+kew itself does not have telemetry, it does not collect data and send to kew servers, it does not access the internet.
+
+However, if discordRPC is enabled and discord is running, data about what you are listening to will end up on discord servers.
+
+To ensure the best privacy, two settings have to be set as following in the settings file kewrc:
+
+allowNotifications=0
+discordRPCEnabled=0
+
+in kewstaterc, make sure this is set:
+
+allowNotifications=0
+
+kewstaterc tracks in-app choices so if you press 'n' for toggling notifications, the value will change.
+
+Notifications means desktop notifications (MPRIS/DBUS) which is local, but is broadcast to other apps on your machine that are listening. It's generally not logged unless an app on your machine that is listening logs it.
+
+To force notifications to be always off, compile with:
+
+```bash
+make USE_DBUS=0 -j.
+```
 
 ## Layouts
 

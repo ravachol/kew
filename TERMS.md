@@ -16,7 +16,7 @@ This license allows you to:
 
 ## 2. Usage
 
-- kew is intended as a fully offline music player.
+- kew is intended as a fully offline music player, but supports discord integration where your listening data is sent by Discord to discord servers.
 - All user data (library database, settings) remains **local** on your device.
 - Sharing data via **Discord Rich Presence** or **MPRIS** is optional and under your control.
 

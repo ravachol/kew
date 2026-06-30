@@ -4,14 +4,14 @@
 
 [![Privacy](https://img.shields.io/badge/privacy-offline%20first-brightgreen)](#)
 
-**kew** is a fully offline music player. Your privacy is important to us. This Privacy Policy explains how kew handles your data and what information, if any, is shared externally.
+**kew** is a fully offline music player by itself, but can transmit listening data through discord integration if it is enabled. Your privacy is important to us. This Privacy Policy explains how kew handles your data and what information, if any, is shared externally.
 
 ---
 
 ## 1. Data Storage
 
 - All user data, including library database and settings, is stored **locally** on your device in a binary database file.
-- kew does **not** transmit any personal data over the Internet.
+- kew by itself does **not** transmit any personal data over the Internet, but can transmit listening data through discord integration if it is enabled and discord is running.
 - No data is collected or shared externally by default.
 
 ---
@@ -27,7 +27,10 @@
 
 ## 3. Data Sharing and Privacy
 
-- All activity in kew remains **local** unless MPRIS or Discord RPC is on. Both are on by default, and need to be disabled in the settings.
+- All activity in kew remains **local** unless MPRIS or Discord RPC is on. MPRIS which broadcasts to other apps on your system, is on by default, and Discord RPC is opt-in.
+
+There is a section in the README.md on how to disable both in the settings.
+
 - kew does **not** collect, track, or share your listening habits, playlists, or any other personal data.
 
 ---
@@ -39,10 +42,6 @@ You have full control over integrations:
 - You can **disable Discord Rich Presence** at any time in the settings.
 - You can **disable MPRIS integration** at any time.
 - When these integrations are disabled, no activity data leaves your device through kew.
-
-By using kew, you acknowledge and agree that:
-
-- Your data remains stored on your device.
 - Any sharing of activity is fully controlled by you through MPRIS or Discord RPC settings.
 - kew developers have **no access** to your personal data or usage activity.
 
@@ -55,4 +54,4 @@ By using kew, you acknowledge and agree that:
 
 ---
 
-**Summary:** kew is **completely offline** and respects your privacy. Your data stays on your device unless supported integrations are enabled.
+**Summary:** kew by itself is **completely offline** but has the option of Discord and MPRIS integration. kew respects your privacy. Your data stays on your device unless supported integrations are enabled.
