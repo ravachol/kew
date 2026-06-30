@@ -32,7 +32,7 @@ Add this in the part under profiles -> lists:
 
 ```
 {
-    "name": "bash",
+    "name": "kew UCRT64",
     "commandline": "C:\\msys64\\usr\\bin\\bash.exe --login",
     "startingDirectory": "C:\\msys64\\home\\YOUR_USERNAME",
     "environment": {
