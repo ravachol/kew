@@ -164,7 +164,7 @@ cd kew
 Then run:
 
 ```bash
-make -j4
+make -j
 ```
 
 ```bash
