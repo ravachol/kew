@@ -60,7 +60,7 @@ sudo dnf install faad2-devel faad2
 
 [Install kew manually](#install-kew)/[Build an RPM package](FEDORA-RPM-INSTRUCTIONS.md)
 
-##### OpenSUSE
+#### OpenSUSE
 
 Install dependencies:
 
@@ -107,7 +107,7 @@ sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc mak
 [Install kew](#install-kew)
 
 
-## Alpine Linux
+#### Alpine Linux
 
 Install dependencies:
 
