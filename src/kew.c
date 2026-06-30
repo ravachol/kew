@@ -35,7 +35,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #endif
 
 #ifndef KEW_VERSION
-#define KEW_VERSION "4.1.2"
+#define KEW_VERSION "4.1.3"
 #endif
 
 #include "common/appstate.h"
@@ -235,8 +235,7 @@ void kew_shutdown()
                 perror("freopen error");
         }
 
-        if (model->state.settings.mouseEnabled)
-                disable_terminal_mouse_buttons();
+        disable_terminal_mouse_buttons();
 
         printf("\n");
         show_cursor();
@@ -574,6 +573,7 @@ void init_logging(Model *model)
 void kew_init(bool set_library_enqueued_status)
 {
         Model *model = get_model();
+        save_terminal_mode();
         set_nonblocking_mode();
 
 #ifdef _WIN32

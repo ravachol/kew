@@ -130,7 +130,7 @@ static DWORD orig_mode;
 static HANDLE hStdin;
 static int win_saved = 0;
 
-void set_nonblocking_mode(void)
+void save_terminal_mode(void)
 {
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE)
@@ -138,7 +138,10 @@ void set_nonblocking_mode(void)
 
     GetConsoleMode(hStdin, &orig_mode);
     win_saved = 1;
+}
 
+void set_nonblocking_mode(void)
+{
     DWORD mode = orig_mode;
 
     // disable line buffering + echo
@@ -146,6 +149,10 @@ void set_nonblocking_mode(void)
 
     // allow ctrl-c processing (optional)
     mode |= ENABLE_PROCESSED_INPUT;
+
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    if (hStdin == INVALID_HANDLE_VALUE)
+        return;
 
     SetConsoleMode(hStdin, mode);
 }
@@ -163,12 +170,15 @@ void restore_terminal_mode(void)
 static struct termios orig_termios;
 static int termios_saved = 0;
 
+void save_terminal_mode(void)
+{
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    termios_saved = 1;
+}
+
 void set_nonblocking_mode(void)
 {
     struct termios ttystate;
-
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    termios_saved = 1;
 
     ttystate = orig_termios;
     ttystate.c_lflag &= ~(ICANON | ECHO);
