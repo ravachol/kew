@@ -24,6 +24,8 @@ mingw32-make install PREFIX=/ucrt64
 kew
 ```
 
+4. Install the latest Windows Terminal (that supports images): https://learn.microsoft.com/en-us/windows/terminal/install.
+
 ## Windows Terminal profile
 
 Add this to your Windows Terminal. Choose Settings, then at the bottom "Open JSON file".
