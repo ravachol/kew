@@ -107,7 +107,7 @@ sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc mak
 [Install kew](#install-kew)
 
 
-##Alpine Linux
+## Alpine Linux
 
 Install dependencies:
 
@@ -150,7 +150,7 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 
 3) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
 
-#### Install kew {
+#### Install kew {#install-kew}
 
 Download the latest release (recommended) or, if you are feeling adventurous, clone from the latest in main:
 
