@@ -1,7 +1,5 @@
 ##
 
-These are manual instructions, the exe should be included in a zip on releases from kew 4.1 onward.
-
 ## **Windows Install**
 
 1. Download a fresh installer from https://www.msys2.org and install it
