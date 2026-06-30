@@ -197,7 +197,7 @@ To force notifications to be always off, compile with:
 make USE_DBUS=0 -j
 ```
 
-To erase traces of your kew listening, you also need to delete the library.dat file in ~/.config/kew.
+To erase traces of your kew listening after uninstall, you need to delete the library.dat file in ~/.config/kew.
 
 
 ## Layouts
