@@ -1,7 +1,6 @@
 ## Manually Installing kew
 
-<details>
-<summary>Debian/Ubuntu</summary>
+#### Debian/Ubuntu
 
 Install dependencies:
 
@@ -10,10 +9,8 @@ sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev 
 ```
 
 [Install kew](#install-kew)
-</details>
 
-<details>
-<summary>Arch Linux</summary>
+#### Arch Linux
 
 Install dependencies:
 
@@ -22,18 +19,14 @@ sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make 
 ```
 
 [Install kew](#install-kew)
-</details>
 
-<details>
-<summary>Android</summary>
+#### Android
 
 Follow the instructions here:
 
 [ANDROID-INSTRUCTIONS.md](ANDROID-INSTRUCTIONS.md)
-</details>
 
-<details>
-<summary>macOS</summary>
+#### macOS
 
 Install git:
 
@@ -51,10 +44,8 @@ Notes for mac users:
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
 [Install kew](#install-kew)
-</details>
 
-<details>
-<summary>Fedora</summary>
+#### Fedora
 
 Install dependencies:
 
@@ -68,10 +59,8 @@ sudo dnf install faad2-devel faad2
 ```
 
 [Install kew manually](#install-kew)/[Build an RPM package](FEDORA-RPM-INSTRUCTIONS.md)
-</details>
 
-<details>
-<summary>OpenSUSE</summary>
+##### OpenSUSE
 
 Install dependencies:
 
@@ -80,10 +69,8 @@ sudo zypper install -y pkgconf taglib fftw3-devel opusfile-devel libvorbis-devel
 ```
 
 [Install kew](#install-kew)
-</details>
 
-<details>
-<summary>CentOS/Red Hat</summary>
+#### CentOS/Red Hat
 
 Install dependencies:
 
@@ -108,10 +95,8 @@ sudo dnf install faad2-devel
 ```
 
 [Install kew manually](#install-kew)/[Build an RPM package](FEDORA-RPM-INSTRUCTIONS.md)
-</details>
 
-<details>
-<summary>Void Linux</summary>
+#### Void Linux
 
 Install dependencies:
 
@@ -120,10 +105,9 @@ sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc mak
 ```
 
 [Install kew](#install-kew)
-</details>
 
-<details>
-<summary>Alpine Linux</summary>
+
+##Alpine Linux
 
 Install dependencies:
 
@@ -133,20 +117,13 @@ sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvo
 
 [Install kew](#install-kew)
 
-</details>
-
-</details>
-
-<details>
-<summary>Windows (MSYS), NOTE: Experimental and not production ready</summary>
+#### Windows (MSYS), The preferred way for windows
 
 Follow the instructions here:
 
 [WINDOWS-INSTRUCTIONS.md](WINDOWS-INSTRUCTIONS.md)
 
-
-<details>
-<summary>Windows (WSL)</summary>
+#### Windows (WSL)
 
 Install through package manager:
 
@@ -173,9 +150,7 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 
 3) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
 
-</details>
-
-#### Install kew
+#### Install kew {
 
 Download the latest release (recommended) or, if you are feeling adventurous, clone from the latest in main:
 
