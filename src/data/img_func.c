@@ -519,7 +519,9 @@ void free_image_payload(ImagePayload *img)
         if (!img)
                 return;
 
-        free(img->data);
+        if (img->data)
+                free(img->data);
+
         free(img);
 }
 
@@ -564,8 +566,16 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         Cell *anchor = &buf->cells[row * buf->cols + col];
 
-        if (anchor->image)
+        Model *model = get_model();
+        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
+
+        if (anchor->image && anchor->kind == CELL_IMAGE_ANCHOR)
+        {
                 free_image_payload(anchor->image);
+                anchor->image = NULL;
+        }
+        
+        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 
         // Store the encoded blob in an ImagePayload and place it in the buffer.
         // The terminal backend emits it verbatim at commit time — same as sixels.
