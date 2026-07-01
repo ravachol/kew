@@ -43,8 +43,8 @@ Source: "stage\bin\kew.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\docs\*"; DestDir: "{app}\docs"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{group}\kew"; Filename: "{app}\kew.cmd"
-Name: "{commondesktop}\kew"; Filename: "{app}\kew.cmd"; Tasks: desktopicon
+Name: "{group}\kew"; Filename: "{app}\kew.cmd"; IconFilename: "{app}\kew.ico"
+Name: "{commondesktop}\kew"; Filename: "{app}\kew.cmd"; IconFilename: "{app}\kew.ico"; Tasks: desktopicon
 
 [Tasks]
 Name: desktopicon; Description: "Create desktop icon"; GroupDescription: "Additional icons:"
