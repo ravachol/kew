@@ -53,7 +53,6 @@ jobs:
         run: |
           rm -rf stage
           mkdir -p stage
-
           mingw32-make install DESTDIR=stage PREFIX=
 
       # -------------------------
@@ -103,15 +102,7 @@ jobs:
           choco install innosetup --yes
 
       # -------------------------
-      # COPY kew.cmd
-      # -------------------------
-      - name: Stage Windows launcher
-        shell: msys2 {0}
-        run: |
-          cp kew.cmd stage/bin/
-
-      # -------------------------
-      # BUILD INSTALLER (VERSION INJECTED)
+      # BUILD INSTALLER
       # -------------------------
       - name: Build installer
         shell: pwsh
@@ -120,9 +111,8 @@ jobs:
 
           iscc /DMyAppVersion=$version installer.iss
 
-
           if (!(Test-Path "Output\kew-setup.exe")) {
-            Write-Error "Installer not found in Output\kew-setup.exe"
+            Write-Error "Installer not found"
             exit 1
           }
 
@@ -134,18 +124,10 @@ jobs:
         run: |
           $version = "${{ steps.version.outputs.version }}"
 
-          $src = "Output\kew-setup.exe"
-          $dst = "kew-$version-setup.exe"
-
-          if (!(Test-Path $src)) {
-            Write-Error "Missing installer: $src"
-            exit 1
-          }
-
-          Copy-Item $src $dst
+          Copy-Item "Output\kew-setup.exe" "kew-$version-setup.exe"
 
       # -------------------------
-      # ARTIFACT (CI TEST)
+      # ARTIFACT (CI ONLY)
       # -------------------------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -156,12 +138,13 @@ jobs:
           retention-days: 7
 
       # -------------------------
-      # GITHUB RELEASE
+      # RELEASE (SAFE OLD LOGIC RESTORED)
       # -------------------------
       - name: Create GitHub Release
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}
+          tag_name: ${{ github.event.release.tag_name }}
           overwrite_files: true
           files: |
             kew-*.exe
