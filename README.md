@@ -18,7 +18,7 @@
 <br>
 <br>
 
-kew (/kjuː/) is a terminal music player.
+kew (/kjuː/ - variant of cue) is a terminal music player.
 
 ## Features
 
