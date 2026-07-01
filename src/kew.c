@@ -529,6 +529,38 @@ void run(bool start_playing)
         create_loop();
 }
 
+#ifdef _WIN32
+
+const char *get_system_locale_dir(void)
+{
+    static char locale_dir[KEW_PATH_MAX];
+
+    if (locale_dir[0] != '\0')
+        return locale_dir;
+
+    char exe_path[KEW_PATH_MAX];
+    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
+
+    // Normalize backslashes
+    for (char *p = exe_path; *p; p++)
+        if (*p == '\\') *p = '/';
+
+    // exe is at <install-root>/bin/kew.exe
+    // strip "/kew.exe"
+    char *bin = strrchr(exe_path, '/');
+    if (bin) *bin = '\0';
+
+    // strip "/bin"
+    char *last = strrchr(exe_path, '/');
+    if (last) *last = '\0';
+
+    snprintf(locale_dir, sizeof(locale_dir), "%s/share/locale", exe_path);
+
+    return locale_dir;
+}
+
+#endif
+
 /**
  * @brief Initializes the locale settings for the application.
  *
@@ -538,8 +570,12 @@ void init_locale(void)
 {
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
+#ifdef _WIN32
+    bindtextdomain("kew", get_system_locale_dir());
+#else
+    bindtextdomain("kew", LOCALEDIR);
+#endif
 
-        bindtextdomain("kew", LOCALEDIR);
         textdomain("kew");
 }
 
