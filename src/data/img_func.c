@@ -21,8 +21,8 @@
 
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef _WIN32
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
 #else
 #include <sys/ioctl.h> /* ioctl */
 #endif
@@ -302,10 +302,10 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
                         &passthrough, &symbol_map);
 
 #ifdef _WIN32
-        if (getenv("WT_SESSION") || getenv("KEW_SIXEL")) {
-                pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
-                passthrough = CHAFA_PASSTHROUGH_NONE;
-        }
+
+        pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
+        passthrough = CHAFA_PASSTHROUGH_NONE;
+
 #endif
 
         ChafaPixelMode forced_mode = style_to_pixel_mode(cover_style);
