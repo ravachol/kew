@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## kew 4.1.4
+
+Added proper installer for Windows.
+
+## kew 4.1.3
+
+Change discord integration to opt-in/off by default, byt popular request.
+
 ## kew 4.1.2
 
 Fixes issue with installing on FreeBSD.
