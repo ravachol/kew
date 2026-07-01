@@ -97,6 +97,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 GMainLoop *main_loop;
 
+static struct timespec last_resize_time = {0};
+
+const int COOLDOWN_RESIZE_MS = 200;
+
+void update_last_resize_time(void)
+{
+        clock_gettime(CLOCK_MONOTONIC, &last_resize_time);
+}
+
+bool is_resize_cooldown_elapsed(int milli_seconds)
+{
+        struct timespec current_time;
+        clock_gettime(CLOCK_MONOTONIC, &current_time);
+        double elapsed_milliseconds =
+            (current_time.tv_sec - last_resize_time.tv_sec) * 1000.0 +
+            (current_time.tv_nsec - last_resize_time.tv_nsec) / 1000000.0;
+
+        return elapsed_milliseconds >= milli_seconds;
+}
+
 /**
  * @brief Runs the Model-View-Update Tick
  *
@@ -130,12 +150,17 @@ void player_tick(Model *model, RenderContext *ctx)
 
         if (can_refresh_player()) {
 
-                if (!resize_if_needed()) {
-                        // Render the UI
-                        render_ui(model, ctx);
+                if (is_resize_cooldown_elapsed(COOLDOWN_RESIZE_MS)) // Don't re-render too often while resizing
+                {
+                        if (!resize_if_needed()) {
 
-                        // Notify system that a frame was rendered
-                        dispatch_msg((struct Msg){.type = MSG_RENDERED});
+                                render_ui(model, ctx); // Render the UI
+
+                                // Notify system that a frame was rendered
+                                dispatch_msg((struct Msg){.type = MSG_RENDERED});
+                        } else {
+                                update_last_resize_time();
+                        }
                 }
         }
 
@@ -533,30 +558,33 @@ void run(bool start_playing)
 
 const char *get_system_locale_dir(void)
 {
-    static char locale_dir[KEW_PATH_MAX];
+        static char locale_dir[KEW_PATH_MAX];
 
-    if (locale_dir[0] != '\0')
+        if (locale_dir[0] != '\0')
+                return locale_dir;
+
+        char exe_path[KEW_PATH_MAX];
+        GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
+
+        // Normalize backslashes
+        for (char *p = exe_path; *p; p++)
+                if (*p == '\\')
+                        *p = '/';
+
+        // exe is at <install-root>/bin/kew.exe
+        // strip "/kew.exe"
+        char *bin = strrchr(exe_path, '/');
+        if (bin)
+                *bin = '\0';
+
+        // strip "/bin"
+        char *last = strrchr(exe_path, '/');
+        if (last)
+                *last = '\0';
+
+        snprintf(locale_dir, sizeof(locale_dir), "%s/share/locale", exe_path);
+
         return locale_dir;
-
-    char exe_path[KEW_PATH_MAX];
-    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
-
-    // Normalize backslashes
-    for (char *p = exe_path; *p; p++)
-        if (*p == '\\') *p = '/';
-
-    // exe is at <install-root>/bin/kew.exe
-    // strip "/kew.exe"
-    char *bin = strrchr(exe_path, '/');
-    if (bin) *bin = '\0';
-
-    // strip "/bin"
-    char *last = strrchr(exe_path, '/');
-    if (last) *last = '\0';
-
-    snprintf(locale_dir, sizeof(locale_dir), "%s/share/locale", exe_path);
-
-    return locale_dir;
 }
 
 #endif
@@ -571,9 +599,9 @@ void init_locale(void)
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
 #ifdef _WIN32
-    bindtextdomain("kew", get_system_locale_dir());
+        bindtextdomain("kew", get_system_locale_dir());
 #else
-    bindtextdomain("kew", LOCALEDIR);
+        bindtextdomain("kew", LOCALEDIR);
 #endif
 
         textdomain("kew");
