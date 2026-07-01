@@ -121,6 +121,12 @@ jobs:
 
           iscc /DMyAppVersion=$version installer.iss
 
+
+          if (!(Test-Path "Output\kew-setup.exe")) {
+            Write-Error "Installer not found in Output\kew-setup.exe"
+            exit 1
+          }
+
       # -------------------------
       # RENAME INSTALLER
       # -------------------------
@@ -129,9 +135,15 @@ jobs:
         run: |
           $version = "${{ steps.version.outputs.version }}"
 
-          Rename-Item `
-            "Output\kew-setup.exe" `
-            "kew-$version-setup.exe"
+          $src = "Output\kew-setup.exe"
+          $dst = "kew-$version-setup.exe"
+
+          if (!(Test-Path $src)) {
+            Write-Error "Missing installer: $src"
+            exit 1
+          }
+
+          Copy-Item $src $dst
 
       # -------------------------
       # ARTIFACT (CI TEST)
@@ -142,7 +154,7 @@ jobs:
           name: kew-windows-x64
           path: |
             kew-*.zip
-            kew-*-setup.exe
+            kew-*.exe
           retention-days: 7
 
       # -------------------------
@@ -152,7 +164,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}
+          overwrite_files: true
           files: |
             kew-*.zip
-            kew-*-setup.exe
+            kew-*.exe
           generate_release_notes: true
