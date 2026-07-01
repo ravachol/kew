@@ -1,4 +1,4 @@
-name: Release Windows
+name: Release Windows Manual
 
 on:
   workflow_dispatch:
