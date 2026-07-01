@@ -103,6 +103,14 @@ jobs:
           choco install innosetup --yes
 
       # -------------------------
+      # COPY kew.cmd
+      # -------------------------
+      - name: Stage Windows launcher
+        shell: msys2 {0}
+        run: |
+          cp kew.cmd stage/bin/
+
+      # -------------------------
       # BUILD INSTALLER (VERSION INJECTED)
       # -------------------------
       - name: Build installer
