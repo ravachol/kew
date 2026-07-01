@@ -2,6 +2,13 @@
 
 ## **Windows Install**
 
+If you just want the installer, it's attached to every release. Just download the setup file here:
+https://github.com/ravachol/kew/releases/latest
+
+
+If you want to compile it yourself, follow the instructions below:
+
+
 1. Download a fresh installer from https://www.msys2.org and install it
 
 2. Open the MSYS2 UCRT64 terminal (important — not MinGW64, not the base MSYS2).
