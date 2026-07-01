@@ -23,12 +23,12 @@
 #include <time.h>
 
 #ifdef _WIN32
-#include <windows.h>
-#include <shlobj.h>
 #include <io.h>
+#include <shlobj.h>
+#include <windows.h>
 #else
-#include <unistd.h>
 #include <pwd.h>
+#include <unistd.h>
 #endif
 
 struct timespec timer_start;
@@ -86,19 +86,18 @@ void c_usleep(int microseconds)
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-    if (!dest || dest_size == 0)
-        return;
+        if (!dest || dest_size == 0)
+                return;
 
-    if (!src) {
-        dest[0] = '\0';
-        return;
-    }
+        if (!src) {
+                dest[0] = '\0';
+                return;
+        }
 
-    size_t len = strnlen(src, dest_size - 1);
+        size_t len = strnlen(src, dest_size - 1);
 
-
-    memcpy(dest, src, len);
-    dest[len] = '\0';
+        memcpy(dest, src, len);
+        dest[len] = '\0';
 }
 
 gint64 get_length_in_micro_sec(double duration)
@@ -336,97 +335,101 @@ void trim(char *str, size_t max_len)
 const char *get_home_path(void)
 {
 #ifdef _WIN32
-    const char *home = getenv("USERPROFILE");
-    if (home) return home;
+        const char *home = getenv("USERPROFILE");
+        if (home)
+                return home;
 
-    static char path[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))) {
-        return path;
-    }
-    return NULL;
+        static char path[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))) {
+                return path;
+        }
+        return NULL;
 #else
-    const char *home = getenv("HOME");
-    if (home) return home;
+        const char *home = getenv("HOME");
+        if (home)
+                return home;
 
-    struct passwd *pw = getpwuid(getuid());
-    return pw ? pw->pw_dir : NULL;
+        struct passwd *pw = getpwuid(getuid());
+        return pw ? pw->pw_dir : NULL;
 #endif
 }
 
 static const char *get_xdg_config_base(void)
 {
 #ifdef _WIN32
-    const char *appdata = getenv("APPDATA");
-    return appdata;
+        const char *appdata = getenv("APPDATA");
+        return appdata;
 #else
-    return getenv("XDG_CONFIG_HOME");
+        return getenv("XDG_CONFIG_HOME");
 #endif
 }
 
 static const char *get_xdg_state_base(void)
 {
 #ifdef _WIN32
-    const char *local = getenv("LOCALAPPDATA");
-    return local;
+        const char *local = getenv("LOCALAPPDATA");
+        return local;
 #else
-    return getenv("XDG_STATE_HOME");
+        return getenv("XDG_STATE_HOME");
 #endif
 }
 
 char *get_config_path(void)
 {
-    char *out = malloc(KEW_PATH_MAX);
-    if (!out) return NULL;
+        char *out = malloc(KEW_PATH_MAX);
+        if (!out)
+                return NULL;
 
-    const char *base = get_xdg_config_base();
-    const char *home = get_home_path();
+        const char *base = get_xdg_config_base();
+        const char *home = get_home_path();
 
-    if (base) {
+        if (base) {
 #ifdef _WIN32
-        snprintf(out, KEW_PATH_MAX, "%s\\kew", base);
+                snprintf(out, KEW_PATH_MAX, "%s\\kew", base);
 #else
-        snprintf(out, KEW_PATH_MAX, "%s/kew", base);
+                snprintf(out, KEW_PATH_MAX, "%s/kew", base);
 #endif
-    } else if (home) {
+        } else if (home) {
 #ifdef __APPLE__
-        snprintf(out, KEW_PATH_MAX, "%s/Library/Preferences/kew", home);
+                snprintf(out, KEW_PATH_MAX, "%s/Library/Preferences/kew", home);
 #elif defined(_WIN32)
-        snprintf(out, KEW_PATH_MAX, "%s\\kew", home);
+                snprintf(out, KEW_PATH_MAX, "%s\\kew", home);
 #else
-        snprintf(out, KEW_PATH_MAX, "%s/.config/kew", home);
+                snprintf(out, KEW_PATH_MAX, "%s/.config/kew", home);
 #endif
-    } else {
-        free(out);
-        return NULL;
-    }
+        } else {
+                free(out);
+                return NULL;
+        }
 
-    return out;
+        return out;
 }
 
 char *get_prefs_path(void)
 {
-    char *out = malloc(KEW_PATH_MAX);
-    if (!out) return NULL;
+        char *out = malloc(KEW_PATH_MAX);
+        if (!out)
+                return NULL;
 
-    const char *base = get_xdg_state_base();
-    const char *home = get_home_path();
+        const char *base = get_xdg_state_base();
+        const char *home = get_home_path();
 
-    if (base) {
-        snprintf(out, KEW_PATH_MAX, "%s", base);
-    } else if (home) {
+        if (base) {
+                snprintf(out, KEW_PATH_MAX, "%s", base);
+        } else if (home) {
 #ifdef __APPLE__
-        snprintf(out, KEW_PATH_MAX, "%s/Library/Application Support", home);
+                snprintf(out, KEW_PATH_MAX, "%s/Library/Application Support", home);
 #elif _WIN32
-        snprintf(out, KEW_PATH_MAX, "%s\\AppData\\Local", home);
+                snprintf(out, KEW_PATH_MAX, "%s\\AppData\\Local", home);
 #else
-        snprintf(out, KEW_PATH_MAX, "%s/.local/state", home);
+                snprintf(out, KEW_PATH_MAX, "%s/.local/state", home);
 #endif
-    } else {
-        free(out);
-        return NULL;
-    }
+        } else {
+                free(out);
+                return NULL;
+        }
 
-    return out;
+        return out;
 }
 bool is_valid_filename(const char *filename)
 {
@@ -563,10 +566,10 @@ float get_float(const char *str)
 static int file_sync(int fd)
 {
 #ifdef _WIN32
-    /* Windows equivalent */
-    return _commit(fd);
+        /* Windows equivalent */
+        return _commit(fd);
 #else
-    return fsync(fd);
+        return fsync(fd);
 #endif
 }
 
@@ -574,12 +577,14 @@ int copy_file(const char *src, const char *dst)
 {
         // Validate inputs
         if (!src || !dst) {
+                fprintf(stderr, "copy_file: one or both of the inputs are null\n");
                 return -1;
         }
 
         // Check if source and destination are the same
         struct stat src_stat, dst_stat;
         if (stat(src, &src_stat) != 0) {
+                fprintf(stderr, "copy_file: source and destination are the same\n");
                 return -1;
         }
 
@@ -587,23 +592,27 @@ int copy_file(const char *src, const char *dst)
         if (stat(dst, &dst_stat) == 0) {
                 if (src_stat.st_dev == dst_stat.st_dev &&
                     src_stat.st_ino == dst_stat.st_ino) {
+                        fprintf(stderr, "copy_file: the same file exists at the destination\n");
                         return -1; // Same file
                 }
         }
 
         // Don't copy directories, symlinks, or special files
         if (!S_ISREG(src_stat.st_mode)) {
+                fprintf(stderr, "copy_file: file is of wrong type\n");
                 return -1;
         }
 
         // Check file size is reasonable (prevent copying huge files)
         if (src_stat.st_size > 10 * 1024 * 1024) { // 10MB limit for theme files
+                fprintf(stderr, "copy_file: file too large\n");
                 return -1;
         }
 
         // Open source file
         int src_fd = open(src, O_RDONLY);
         if (src_fd < 0) {
+                perror("copy_file");
                 return -1;
         }
 
@@ -614,31 +623,46 @@ int copy_file(const char *src, const char *dst)
                 dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0600);
                 if (dst_fd < 0) {
                         close(src_fd);
+                        perror("copy_file");
                         return -1;
                 }
         }
 
         // Copy data in chunks
         char buffer[8192];
-        ssize_t bytes_read, bytes_written;
+        ssize_t bytes_read;
         ssize_t total_written = 0;
 
         while ((bytes_read = read(src_fd, buffer, sizeof(buffer))) > 0) {
-                bytes_written = write(dst_fd, buffer, bytes_read);
-                if (bytes_written != bytes_read) {
-                        close(src_fd);
-                        close(dst_fd);
-                        unlink(dst); // Remove partial file on error
-                        return -1;
-                }
-                total_written += bytes_written;
+                ssize_t total = 0;
 
-                // Sanity check: make sure we're not writing more than expected
-                if (total_written > src_stat.st_size) {
-                        close(src_fd);
-                        close(dst_fd);
-                        unlink(dst);
-                        return -1;
+                while (total < bytes_read) {
+                        ssize_t bytes_written = write(dst_fd,
+                                                      buffer + total,
+                                                      bytes_read - total);
+
+                        if (bytes_written < 0) {
+                                if (errno == EINTR)
+                                        continue;
+                                close(src_fd);
+                                close(dst_fd);
+                                unlink(dst);
+                                perror("copy_file");
+                                return -1;
+                        }
+
+                        total_written += bytes_written;
+
+                        // Sanity check: make sure we're not writing more than expected
+                        if (total_written > src_stat.st_size) {
+                                close(src_fd);
+                                close(dst_fd);
+                                unlink(dst);
+                                fprintf(stderr, "copy_file: file too large\n");
+                                return -1;
+                        }
+
+                        total += bytes_written;
                 }
         }
 
@@ -679,20 +703,20 @@ int get_number_from_string(const char *str)
         return (int)value;
 }
 
-
-void start_timer(void) {
-    clock_gettime(CLOCK_MONOTONIC, &timer_start);
-    fprintf(stderr, "Timer started\n");
+void start_timer(void)
+{
+        clock_gettime(CLOCK_MONOTONIC, &timer_start);
+        fprintf(stderr, "Timer started\n");
 }
 
-void end_timer(void) {
-    struct timespec timer_end;
-    clock_gettime(CLOCK_MONOTONIC, &timer_end);
+void end_timer(void)
+{
+        struct timespec timer_end;
+        clock_gettime(CLOCK_MONOTONIC, &timer_end);
 
-    double elapsed =
-        (timer_end.tv_sec - timer_start.tv_sec) +
-        (timer_end.tv_nsec - timer_start.tv_nsec) / 1e9;
+        double elapsed =
+            (timer_end.tv_sec - timer_start.tv_sec) +
+            (timer_end.tv_nsec - timer_start.tv_nsec) / 1e9;
 
-    fprintf(stderr, "Timer ended: %.6f seconds elapsed\n", elapsed);
+        fprintf(stderr, "Timer ended: %.6f seconds elapsed\n", elapsed);
 }
-
