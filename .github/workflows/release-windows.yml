@@ -14,6 +14,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      # -------------------------
+      # MSYS2 SETUP
+      # -------------------------
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -34,57 +37,122 @@ jobs:
             mingw-w64-ucrt-x86_64-libogg
             mingw-w64-ucrt-x86_64-ntldd
 
+      # -------------------------
+      # BUILD
+      # -------------------------
       - name: Build
         shell: msys2 {0}
         run: |
           mingw32-make -j$(nproc)
 
+      # -------------------------
+      # STAGE INSTALL
+      # -------------------------
+      - name: Stage install
+        shell: msys2 {0}
+        run: |
+          rm -rf stage
+          mkdir -p stage
+
+          mingw32-make install DESTDIR=stage PREFIX=
+
+      # -------------------------
+      # COLLECT DLLs + EXE
+      # -------------------------
       - name: Collect DLLs
         shell: msys2 {0}
         run: |
-          mkdir -p kew-dist
+          mkdir -p stage/bin
 
-          # Copy the binary and icon
-          cp kew.exe kew-dist/
-          cp kew.ico kew-dist/
+          cp kew.exe stage/bin/
 
-          # Copy all MSYS2/UCRT64 DLLs (exclude Windows system DLLs)
           ntldd -R kew.exe \
             | grep -i msys64 \
             | awk '{print $3}' \
             | cygpath -f - \
-            | xargs -I{} cp {} kew-dist/
+            | xargs -I{} cp {} stage/bin/
 
+      # -------------------------
+      # BUNDLE DOCS
+      # -------------------------
       - name: Bundle docs
         shell: msys2 {0}
         run: |
-          cp docs/0-README_WINDOWS.txt kew-dist/
-          cp PRIVACY_POLICY.md           kew-dist/
-          cp TERMS.md                    kew-dist/
-          cp LICENSE                     kew-dist/
-          cp README.md                   kew-dist/
+          mkdir -p stage/docs
 
+          cp docs/0-README_WINDOWS.txt stage/docs/
+          cp PRIVACY_POLICY.md stage/docs/
+          cp TERMS.md stage/docs/
+          cp LICENSE stage/docs/
+          cp README.md stage/docs/
+
+      # -------------------------
+      # VERSION
+      # -------------------------
       - name: Get version
         id: version
         shell: bash
         run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
+      # -------------------------
+      # PORTABLE ZIP
+      # -------------------------
       - name: Create zip
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.version }}"
-          Compress-Archive -Path kew-dist\* -DestinationPath "kew-$version-windows-x64.zip"
+          Compress-Archive -Path stage\* -DestinationPath "kew-$version-windows-x64.zip"
 
-      - name: Upload artifact (for manual/test runs)
+      # -------------------------
+      # INSTALL INNO SETUP
+      # -------------------------
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --yes
+
+      # -------------------------
+      # BUILD INSTALLER (VERSION INJECTED)
+      # -------------------------
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+
+          iscc /DMyAppVersion=$version installer.iss
+
+      # -------------------------
+      # RENAME INSTALLER
+      # -------------------------
+      - name: Rename installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+
+          Rename-Item `
+            "Output\kew-setup.exe" `
+            "kew-$version-setup.exe"
+
+      # -------------------------
+      # ARTIFACT (CI TEST)
+      # -------------------------
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: kew-windows-x64
-          path: kew-*.zip
+          path: |
+            kew-*.zip
+            kew-*-setup.exe
           retention-days: 7
 
+      # -------------------------
+      # GITHUB RELEASE
+      # -------------------------
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name }}
-          files: kew-*.zip
+          files: |
+            kew-*.zip
+            kew-*-setup.exe
           generate_release_notes: true
