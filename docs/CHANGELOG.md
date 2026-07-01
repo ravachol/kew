@@ -2,23 +2,29 @@
 
 ## kew 4.1.5
 
-Fix resize crash. By @ravachol. Found by @thedyze.
+- Fix resize crash. By @ravachol. Found by @thedyze.
+
+- Don't re-render all the time while resizing. By @ravachol.
+
+#### Sponsors
+
+Thanks to new sponsor rei for their support!
 
 ## kew 4.1.4
 
-Added proper installer for Windows.
+- Added proper installer for Windows.
 
 ## kew 4.1.3
 
-Change discord integration to opt-in/off by default, byt popular request.
+- Change discord integration to opt-in/off by default, byt popular request.
 
 ## kew 4.1.2
 
-Fixes issue with installing on FreeBSD.
+- Fixes issue with installing on FreeBSD.
 
 ## kew 4.1.1
 
-Fixes issue that affected homebrew tests.
+- Fixes issue that affected homebrew tests.
 
 ## kew 4.1.0
 
