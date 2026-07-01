@@ -341,7 +341,6 @@ bool ensure_default_themes(void)
                 if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode) &&
                     (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md")))
                 {
-
                         char src[KEW_PATH_MAX], dst[KEW_PATH_MAX], bak[KEW_PATH_MAX];
 
                         if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))

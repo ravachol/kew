@@ -20,6 +20,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 
 #ifdef _WIN32
@@ -563,128 +564,55 @@ float get_float(const char *str)
         return value;
 }
 
-static int file_sync(int fd)
-{
-#ifdef _WIN32
-        /* Windows equivalent */
-        return _commit(fd);
-#else
-        return fsync(fd);
-#endif
-}
-
 int copy_file(const char *src, const char *dst)
 {
-        // Validate inputs
-        if (!src || !dst) {
-                fprintf(stderr, "copy_file: one or both of the inputs are null\n");
-                return -1;
-        }
+    if (src == NULL || dst == NULL)
+    {
+        fprintf(stderr, "copy_file: one or both of the inputs are null\n");
+        return -1;
+    }
 
-        // Check if source and destination are the same
-        struct stat src_stat, dst_stat;
-        if (stat(src, &src_stat) != 0) {
-                fprintf(stderr, "copy_file: source and destination are the same\n");
-                return -1;
-        }
+#ifdef _WIN32
 
-        // Don't copy if destination exists and is the same file (same inode)
-        if (stat(dst, &dst_stat) == 0) {
-                if (src_stat.st_dev == dst_stat.st_dev &&
-                    src_stat.st_ino == dst_stat.st_ino) {
-                        fprintf(stderr, "copy_file: the same file exists at the destination\n");
-                        return -1; // Same file
-                }
-        }
-
-        // Don't copy directories, symlinks, or special files
-        if (!S_ISREG(src_stat.st_mode)) {
-                fprintf(stderr, "copy_file: file is of wrong type\n");
-                return -1;
-        }
-
-        // Check file size is reasonable (prevent copying huge files)
-        if (src_stat.st_size > 10 * 1024 * 1024) { // 10MB limit for theme files
-                fprintf(stderr, "copy_file: file too large\n");
-                return -1;
-        }
-
-        // Open source file
-        int src_fd = open(src, O_RDONLY);
-        if (src_fd < 0) {
-                perror("copy_file");
-                return -1;
-        }
-
-        // Create destination with user read/write permissions
-        int dst_fd = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0600);
-        if (dst_fd < 0) {
-                // If file exists, try to open it (but don't use O_EXCL)
-                dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0600);
-                if (dst_fd < 0) {
-                        close(src_fd);
-                        perror("copy_file");
-                        return -1;
-                }
-        }
-
-        // Copy data in chunks
-        char buffer[8192];
-        ssize_t bytes_read;
-        ssize_t total_written = 0;
-
-        while ((bytes_read = read(src_fd, buffer, sizeof(buffer))) > 0) {
-                ssize_t total = 0;
-
-                while (total < bytes_read) {
-                        ssize_t bytes_written = write(dst_fd,
-                                                      buffer + total,
-                                                      bytes_read - total);
-
-                        if (bytes_written < 0) {
-                                if (errno == EINTR)
-                                        continue;
-                                close(src_fd);
-                                close(dst_fd);
-                                unlink(dst);
-                                perror("copy_file");
-                                return -1;
-                        }
-
-                        total_written += bytes_written;
-
-                        // Sanity check: make sure we're not writing more than expected
-                        if (total_written > src_stat.st_size) {
-                                close(src_fd);
-                                close(dst_fd);
-                                unlink(dst);
-                                fprintf(stderr, "copy_file: file too large\n");
-                                return -1;
-                        }
-
-                        total += bytes_written;
-                }
-        }
-
-        if (bytes_read < 0) {
-                close(src_fd);
-                close(dst_fd);
-                unlink(dst); // Remove partial file on error
-                return -1;
-        }
-
-        // Sync to disk before closing
-        if (file_sync(dst_fd) != 0) {
-                close(src_fd);
-                close(dst_fd);
-                unlink(dst);
-                return -1;
-        }
-
-        close(src_fd);
-        close(dst_fd);
-
+    // False means overwrite
+    if (CopyFileA(src, dst, FALSE))
         return 0;
+
+    fprintf(stderr, "copy_file: CopyFileA failed.\n");
+    return -1;
+
+#else
+
+    pid_t pid = fork();
+
+    if (pid < 0)
+        return -1;
+
+    if (pid == 0) {
+        // Child
+
+        execlp("cp", "cp", "--", src, dst, (char *)NULL);
+
+        // Exec failed
+        fprintf(stderr, "copy_file: execlp(cp, src, dst), failed.\n");
+
+        _exit(127);
+    }
+
+    int status;
+
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno == EINTR)
+            continue;
+        return -1;
+    }
+
+    if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+        return 0;
+
+    return -1;
+
+#endif
 }
 
 int get_number_from_string(const char *str)
