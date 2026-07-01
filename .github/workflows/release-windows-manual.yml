@@ -1,0 +1,163 @@
+name: Release Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.2.3)"
+        required: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -------------------------
+      # MSYS2 SETUP
+      # -------------------------
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-pkg-config
+            mingw-w64-ucrt-x86_64-faad2
+            mingw-w64-ucrt-x86_64-taglib
+            mingw-w64-ucrt-x86_64-fftw
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-make
+            mingw-w64-ucrt-x86_64-chafa
+            mingw-w64-ucrt-x86_64-glib2
+            mingw-w64-ucrt-x86_64-opus
+            mingw-w64-ucrt-x86_64-opusfile
+            mingw-w64-ucrt-x86_64-libvorbis
+            mingw-w64-ucrt-x86_64-libogg
+            mingw-w64-ucrt-x86_64-ntldd
+
+      # -------------------------
+      # BUILD
+      # -------------------------
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          mingw32-make -j$(nproc)
+
+      # -------------------------
+      # STAGE INSTALL
+      # -------------------------
+      - name: Stage install
+        shell: msys2 {0}
+        run: |
+          rm -rf stage
+          mkdir -p stage
+          mingw32-make install DESTDIR=stage PREFIX=
+
+      # -------------------------
+      # COLLECT DLLs + EXE
+      # -------------------------
+      - name: Collect DLLs
+        shell: msys2 {0}
+        run: |
+          mkdir -p stage/bin
+
+          cp kew.exe stage/bin/
+
+          ntldd -R kew.exe \
+            | grep -i msys64 \
+            | awk '{print $3}' \
+            | cygpath -f - \
+            | xargs -I{} cp {} stage/bin/
+
+      # -------------------------
+      # BUNDLE DOCS
+      # -------------------------
+      - name: Bundle docs
+        shell: msys2 {0}
+        run: |
+          mkdir -p stage/docs
+
+          cp docs/0-README_WINDOWS.txt stage/docs/
+          cp PRIVACY_POLICY.md stage/docs/
+          cp TERMS.md stage/docs/
+          cp LICENSE stage/docs/
+          cp README.md stage/docs/
+
+      # -------------------------
+      # VERSION
+      # -------------------------
+      - name: Get version
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      # -------------------------
+      # INSTALL INNO SETUP
+      # -------------------------
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --yes
+
+      # -------------------------
+      # BUILD INSTALLER
+      # -------------------------
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+
+          iscc /DMyAppVersion=$version installer.iss
+
+          if (!(Test-Path "Output\kew-setup.exe")) {
+            Write-Error "Installer not found"
+            exit 1
+          }
+
+      # -------------------------
+      # RENAME INSTALLER
+      # -------------------------
+      - name: Rename installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+
+          $src = "Output\kew-setup.exe"
+          $dst = "kew-$version-setup.exe"
+
+          if (!(Test-Path $src)) {
+            Write-Error "Missing installer: $src"
+            exit 1
+          }
+
+          Copy-Item $src $dst
+
+
+      # -------------------------
+      # ARTIFACT (CI ONLY)
+      # -------------------------
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kew-windows-x64
+          path: |
+            kew-*.exe
+          retention-days: 7
+
+      # -------------------------
+      # RELEASE (SAFE OLD LOGIC RESTORED)
+      # -------------------------
+      - name: Create GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          overwrite_files: true
+          files: |
+            kew-*.exe
+          generate_release_notes: true
