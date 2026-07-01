@@ -151,7 +151,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name }}
+          tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}
           files: |
             kew-*.zip
             kew-*-setup.exe
