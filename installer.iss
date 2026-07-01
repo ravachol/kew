@@ -36,15 +36,18 @@ Source: "stage\bin\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs 
 ; Shared resources (read-only app data)
 Source: "stage\share\*"; DestDir: "{app}\share"; Flags: recursesubdirs createallsubdirs ignoreversion
 
+; Cmd launcher
+Source: "stage\bin\kew.cmd"; DestDir: "{app}"; Flags: ignoreversion
+
 ; Docs
 Source: "stage\docs\*"; DestDir: "{app}\docs"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{group}\kew"; Filename: "{app}\kew.exe"; IconFilename: "{app}\kew.exe"
-Name: "{commondesktop}\kew"; Filename: "{app}\kew.exe"; IconFilename: "{app}\kew.exe"; Tasks: desktopicon
+Name: "{group}\kew"; Filename: "{app}\kew.cmd"
+Name: "{commondesktop}\kew"; Filename: "{app}\kew.cmd"; Tasks: desktopicon
 
 [Tasks]
 Name: desktopicon; Description: "Create desktop icon"; GroupDescription: "Additional icons:"
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch kew"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\kew.cmd"; Description: "Launch kew"; Flags: nowait postinstall skipifsilent
