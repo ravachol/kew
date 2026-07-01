@@ -13,8 +13,6 @@ AppPublisherURL=https://codeberg.org/ravachol/kew
 AppSupportURL=https://codeberg.org/ravachol/kew/issues
 AppUpdatesURL=https://codeberg.org/ravachol/kew/releases
 
-IconFilename={app}\kew.exe
-
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 
@@ -42,8 +40,8 @@ Source: "stage\share\*"; DestDir: "{app}\share"; Flags: recursesubdirs createall
 Source: "stage\docs\*"; DestDir: "{app}\docs"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{group}\kew"; Filename: "{app}\{#MyAppExeName}"
-Name: "{commondesktop}\kew"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{group}\kew"; Filename: "{app}\kew.exe"; IconFilename: "{app}\kew.exe"
+Name: "{commondesktop}\kew"; Filename: "{app}\kew.exe"; IconFilename: "{app}\kew.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: desktopicon; Description: "Create desktop icon"; GroupDescription: "Additional icons:"
