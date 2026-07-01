@@ -33,21 +33,20 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ; Main binaries
 Source: "stage\bin\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
-; Shared resources (read-only app data)
+; Shared resources
 Source: "stage\share\*"; DestDir: "{app}\share"; Flags: recursesubdirs createallsubdirs ignoreversion
-
-; Cmd launcher
-Source: "stage\bin\kew.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Docs
 Source: "stage\docs\*"; DestDir: "{app}\docs"; Flags: recursesubdirs createallsubdirs ignoreversion
 
+Source: "kew.ico"; DestDir: "{app}"; Flags: ignoreversion
+
 [Icons]
-Name: "{group}\kew"; Filename: "{app}\kew.cmd"; IconFilename: "{app}\kew.ico"
-Name: "{commondesktop}\kew"; Filename: "{app}\kew.cmd"; IconFilename: "{app}\kew.ico"; Tasks: desktopicon
+Name: "{group}\kew"; Filename: "{app}\kew.exe"; IconFilename: "{app}\kew.ico"
+Name: "{commondesktop}\kew"; Filename: "{app}\kew.exe"; IconFilename: "{app}\kew.ico"; Tasks: desktopicon
 
 [Tasks]
 Name: desktopicon; Description: "Create desktop icon"; GroupDescription: "Additional icons:"
 
 [Run]
-Filename: "{app}\kew.cmd"; Description: "Launch kew"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\kew.exe"; Description: "Launch kew"; Flags: nowait postinstall skipifsilent
