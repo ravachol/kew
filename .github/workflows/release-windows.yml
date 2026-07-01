@@ -95,15 +95,6 @@ jobs:
         run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       # -------------------------
-      # PORTABLE ZIP
-      # -------------------------
-      - name: Create zip
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-          Compress-Archive -Path stage\* -DestinationPath "kew-$version-windows-x64.zip"
-
-      # -------------------------
       # INSTALL INNO SETUP
       # -------------------------
       - name: Install Inno Setup
@@ -153,7 +144,6 @@ jobs:
         with:
           name: kew-windows-x64
           path: |
-            kew-*.zip
             kew-*.exe
           retention-days: 7
 
@@ -166,6 +156,5 @@ jobs:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}
           overwrite_files: true
           files: |
-            kew-*.zip
             kew-*.exe
           generate_release_notes: true
