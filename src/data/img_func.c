@@ -302,7 +302,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
                         &passthrough, &symbol_map);
 
 #ifdef _WIN32
-        if (getenv("WT_SESSION")) {
+        if (getenv("WT_SESSION") || getenv("KEW_SIXEL")) {
                 pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
                 passthrough = CHAFA_PASSTHROUGH_NONE;
         }
