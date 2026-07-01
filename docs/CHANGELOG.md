@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.1.5
+
+Fix resize crash. By @ravachol. Found by @thedyze.
+
 ## kew 4.1.4
 
 Added proper installer for Windows.
