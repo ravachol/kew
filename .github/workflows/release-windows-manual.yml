@@ -160,4 +160,3 @@ jobs:
           overwrite_files: true
           files: |
             kew-*.exe
-        generate_release_notes: true
