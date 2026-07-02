@@ -12,6 +12,7 @@
 
 * 2863189117
 * Alex Hart @hartalex <alex_codeberg@hart.gg>
+* @bkmgit
 * Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
 * @chrontax
 * Davis @kazemaksOG <davis.kazemaks@gmail.com>
