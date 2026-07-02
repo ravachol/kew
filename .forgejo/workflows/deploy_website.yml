@@ -2,7 +2,7 @@ name: Deploy to Codeberg Pages
 on:
   push:
     branches: [main]
-    paths: ['docs/**', 'website/**']
+    paths: ['site_src/**', 'website/**']
 
 jobs:
   build-and-deploy:
