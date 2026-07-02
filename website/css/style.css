@@ -140,56 +140,23 @@ footer {
 
 .navbar {
   overflow: hidden;
-  background-color: var(--code-color);
 }
 
 .navbar a {
   float: left;
   font-size: 16px;
-  color: var(--code-background-color);
-  text-align: center;
-  padding: 14px 16px;
+  padding: 2px 6px;
+  border: 2px;
+  border-style: solid;
+  border-radius: 6px;
+  border-color: var(--background-color);
+  color: var(--code-color);
+  background-color: var(--heading-color);
   text-decoration: none;
 }
 
-/* Dropdown Menu */
-.dropbtn {
-  background-color: var(--code-color);
-  color: var(--code-background-color);
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-}
-
-.dropdown {
-  float: left;
-  overflow: hidden;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: var(--heading--color);
-}
-
-.dropdown-content a {
-  color: var(--link-color)
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-}
-
-.dropdown-content a:hover {
-  background-color: #de2b4d;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.dropdown:hover .dropbtn {
-  background-color: #de2b4d;
+.navbar a:hover {
+  background-color: var(--code-background-color);
 }
 
 /* blog post list */
