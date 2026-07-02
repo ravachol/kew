@@ -38,18 +38,26 @@ void emit_image(ImagePayload *image,
 
         if (centered)
                 col = ((term_width_cells - corrected_width) / 2) + 1;
+        const char *p = (const char *)image->data;
+        int current_row = row + 1;
+        while (*p) {
 
-        char buf[64];
-        int len = snprintf(buf, sizeof(buf),
-                           "\033[%d;%dH",
-                           row + 1, col + 1);
-        // Move cursor into position
-        fwrite(buf, 1, len, stdout);
+                // We have tried writing this all in one line, but it failed on gnome terminals
 
-        // Write the image at once
-        fwrite(image->data, 1, image->data_len, stdout);
+                const char *line_start = p;
+                // Find end of line
+                while (*p && *p != '\n')
+                        p++;
+                size_t line_len = p - line_start;
+                // Move cursor
+                printf("\033[%d;%dH", current_row++, col + 1);
+                // Print line without requiring temporary allocation
+                fwrite(line_start, 1, line_len, stdout);
+                // Skip newline if present
+                if (*p == '\n')
+                        p++;
+        }
 
-        fflush(stdout);
 }
 
 static inline void safe_putchar(int c)
