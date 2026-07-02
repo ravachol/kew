@@ -428,7 +428,6 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_RENDERED:
                 model->last_cover_path_hash = model->current_hash;
-                model->state.last_view = model->state.currentView;
                 model->state.ui.resetPlaylistDisplay = false;
                 RenderContext *ctx = get_render_context();
                 model->state.ui.render_often = ctx->render_often;
@@ -500,11 +499,18 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_SHOWLYRICSPAGE:
-                if (model->state.currentView != TRACK_VIEW) {
-                        switch_view(TRACK_VIEW);
-                        model->state.ui.showLyricsPage = true;
+                model->state.ui.showLyricsPage = !model->state.ui.showLyricsPage;
+                if (model->state.ui.showLyricsPage) {
+                        switch_view(model->state.currentView); // show
                 } else {
-                        model->state.ui.showLyricsPage = !model->state.ui.showLyricsPage;
+                        if (model->state.currentView == TRACK_VIEW) {
+                                switch_view(model->state.last_view); // switch back to last view
+                        } else {
+                                // We are not on TRACK_VIEW, so ignore toggle state.
+                                // Enable lyrics page and switch view to show it.
+                                switch_view(model->state.currentView);
+                                model->state.ui.showLyricsPage = true;
+                        }
                 }
                 set_dirty(DIRTY_ALL);
                 break;
