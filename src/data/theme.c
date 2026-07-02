@@ -308,8 +308,6 @@ bool ensure_default_themes(void)
         if (!config_path)
                 return false;
 
-        fprintf(stderr, "ensure_default_themes\n");
-
         char themes_path[KEW_PATH_MAX];
         if (snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path) >= (int)sizeof(themes_path)) {
                 free(config_path);
@@ -326,10 +324,10 @@ bool ensure_default_themes(void)
                 }
         }
 
-        char system_themes[KEW_PATH_MAX];
+        char system_themes[KEW_PATH_MAX - 256];
         snprintf(system_themes, sizeof(system_themes), "%s/themes", get_system_data_dir());
         DIR *dir = opendir(system_themes);
-        if (!dir) {
+        if (true) {
                 snprintf(system_themes, sizeof(system_themes), "/usr/share/kew/themes");
         }
 
@@ -344,7 +342,7 @@ bool ensure_default_themes(void)
         while ((entry = readdir(dir)) != NULL) {
                 // Only copy real files that look like themes
                 char full_path[KEW_PATH_MAX];
-                snprintf(full_path, sizeof(full_path), "%s/themes/%s", get_system_data_dir(), entry->d_name);
+                snprintf(full_path, sizeof(full_path), "%s/%s", system_themes, entry->d_name);
 
                 struct stat st;
                 if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode) &&
@@ -390,9 +388,6 @@ bool ensure_default_themes(void)
                                 if (copy_file(src, dst))
                                 {
                                         copied = true;
-                                }
-                                else {
-                                        fprintf(stderr, "ensure_default_themes: copy failed. src: %s dst: %s\n", src, dst);
                                 }
                         }
                 }
