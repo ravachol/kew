@@ -11,40 +11,40 @@
 ## Contributors (in alphabetical order)
 
 * 2863189117
-* Alex Hart @hartalex <alex_codeberg@hart.gg>
+* Alex Hart @hartalex
 * @bkmgit
-* Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
+* Chromium-3-Oxide
 * @chrontax
-* Davis @kazemaksOG <davis.kazemaks@gmail.com>
+* Davis @kazemaksOG
 * @dandelion-75
 * DNEGEL3125 @DNEGEL3125
 * @emptyhead41
 * @episvr
 * @feng1st
-* Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
+* Hans Petter Jansson @hpjansson
 * @hartalex
 * @hiruocha
 * @hnatt Hnat Kubov
 * @hypercunx
 * @Kolby11
 * @ilx159
-* Joey Schaff @jaoheah / @jaoh (codeberg) <jschaff@proton.me>
-* John Lakeman @j-lakeman <le0324tb@anonaddy.me>
+* Joey Schaff @jaoheah / @jaoh (codeberg)
+* John Lakeman @j-lakeman
 * @noiamnote
 * Martin Kollár @Kolby11
-* Matthias Geiger @werdahias <werdahias@riseup.net>
+* Matthias Geiger @werdahias
 * Michael Petö @petoem https://petoe.me
 * @Moksh-Parikh
 * @netodosrjoao
 * @Overionised
-* Ravachol @ravachol <kew-player@proton.me>
+* Ravachol @ravachol kew-player at proton dot me
 * Rioprastyo17
 * Robertson D. Torress @Welpyes
 * Rowan Shi @rowanxshi
 * @rudra-dhamecha
-* Rui Chen @chenrui333 <rui@chenrui.dev>
-* Ruoyu Zhong @ZhongRuoyu <zhongruoyu@outlook.com>
-* Ryouji @soryu-ryouji <helloryouji@outlook.com>
+* Rui Chen @chenrui333
+* Ruoyu Zhong @ZhongRuoyu
+* Ryouji @soryu-ryouji
 * Samuel @Samueru-sama
 * @toasteeeer
 * Vafone @vafone
@@ -55,7 +55,7 @@
 
 * Vafone @vafone
 * Nicolas F
-* Ravachol @ravachol <kew-player@proton.me>
+* Ravachol @ravachol
 * LeahTheSlug leahtheslug@slugmail.quest & https://slugmail.quest
 
 ## Website development
@@ -83,7 +83,7 @@ We would like to extend our gratitude to the following individuals who have cont
 * Agustin Ballesteros @agus-balles
 * Saijin Naib @Saijin_Naib
 * Xplshn @xplshn
-* Mateo @malteo <mateo@aur>
+* Mateo @malteo
 * Hampa @hampa
 * Markmark1 @markmark1
 * VDawg @vdawg-git
