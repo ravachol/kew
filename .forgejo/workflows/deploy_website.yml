@@ -30,6 +30,6 @@ jobs:
         with:
           site: 'https://${{ forge.repository_owner }}.codeberg.page/ravachol/kew'
           token: ${{ forge.token }}
-          source: website/site/
+          source: pages/
 permissions:
   contents: write
