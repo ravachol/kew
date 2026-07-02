@@ -17,7 +17,6 @@ jobs:
           apk update
           apk add --no-cache nodejs make lowdown
           apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing sblg
-          run: apk add --no-cache nodejs make sblg lowdown
 
       - name: Checkout
         uses: https://code.forgejo.org/actions/checkout@v4
