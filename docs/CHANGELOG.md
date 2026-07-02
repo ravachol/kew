@@ -2,6 +2,8 @@
 
 ## kew 4.1.5
 
+- Look for themes/layouts in fallback /usr/share/kew  if they are not found using PREFIX. Fixes problem with packaging kew.
+
 - Use exec 'cp' command for copying instead of a copy function. Safer and fixes issue on Arch Linux where layouts weren't being copied. By @ravachol. Reported by @Erwin-Iosef.
 
 - Fix resize crash. By @ravachol. Found by @thedyze.
