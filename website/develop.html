@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Kew (/kjuː/)</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Expires" content="-1" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <link href="css/style.css" type="text/css" rel="stylesheet" />
+</head>
+
+<body id="landing">
+<img src="images/kew.gif" alt="Kew Screenshot" />	
+<header>
+  <h1>Kew (/kjuː/)</h1>
+  <h2>A terminal music player.</h2>
+</header>
+
+<div class="navbar">
+    <a href="index.html">Home</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="install.html">Install</a>
+    <a href="use.html">Use</a>
+    <a href="develop.html">Develop</a>
+    <a href="thanks.html">Thanks</a>
+    <a href="donate.html">Donate</a>
+    <a href="terms.html">Terms</a>
+</div>
+
+    <article data-sblg-article="1" data-sblg-set-title="Kew (/kjuː/)" data-sblg-set-subtitle="A terminal music player.">
+<h1>Ccontributing</h1>
+<h2>Welcome to kew contributing guide</h2>
+<p>Thank you for your interest in contributing to kew!</p>
+<h3>Goal of the project</h3>
+<p>The goal of kew is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience.
+It&#8217;s a small app, limited in scope and it shouldn&#8217;t be everything to all people. It should continue to be a very light weight app.</p>
+<p>For instance, it&#8217;s not imagined as a software for dj&#8217;ing or as a busy music file manager with all the features.</p>
+<p>We want to keep the codebase easy to manage and free of bloat, so might reject a feature out of that reason only.</p>
+<h3>Bugs</h3>
+<p>Please report any bugs directly on codeberg, with as much relevant detail as possible.
+If there&#8217;s a crash or stability issue, the audio file details are interesting, but also the details of the previous and next file on the playlist. You can extract these details by running:
+ffprobe -i AUDIO FILE -show<em>streams -select</em>streams a:0 -v quiet -print_format json</p>
+<h3>Create a pull request</h3>
+<p>After making any changes, open a pull request on Codeberg, develop branch.</p>
+<p><a href="https://codeberg.org/ravachol/kew">https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew</a></p>
+<ul>
+<li><p>Please contact me (<a href="mailto:kew-player@proton.me">kew-player@proton.me</a>) before doing a big change, or risk the whole thing getting rejected.</p></li>
+<li><p>Try to keep commits fairly small so that they are easy to review.</p></li>
+<li><p>If you&#8217;re fixing a particular bug in the issue list, please explicitly say &#8220;Fixes #&#8221; in your description&#8221;.</p></li>
+</ul>
+<h3>Issue assignment</h3>
+<p>We don&#8217;t have a process for assigning issues to contributors. Please feel free to jump into any issues in this repo that you are able to help with. Our intention is to encourage anyone to help without feeling burdened by an assigned task. Life can sometimes get in the way, and we don&#8217;t want to leave contributors feeling obligated to complete issues when they may have limited time or unexpected commitments.</p>
+<p>We also recognize that not having a process could lead to competing or duplicate PRs. There&#8217;s no perfect solution here. We encourage you to communicate early and often on an Issue to indicate that you&#8217;re actively working on it. If you see that an Issue already has a PR, try working with that author instead of drafting your own.</p>
+<h2>Developers</h2>
+<h3>Getting started</h3>
+<p>This document will help you setup your development environment. It is intended to be beginner friendly as we welcome and encourage people who are just starting to learn about programming in C to contribute to this project. We also welcome senior developers of course, but much of this document will be redundant if you are experienced.</p>
+<h4>Problems</h4>
+<p>If you run into any problems just ask for help in an email to <a href="mailto:kew-player@protonmail.com">kew-player@protonmail.com</a> or in the PR itself.</p>
+<h4>Prerequisites</h4>
+<p>Before contributing, ensure you have the following tools installed on your development machine:</p>
+<ul>
+<li><a href="https://gcc.gnu.org/">GCC</a> (or another compatible C&#47;C++ compiler)</li>
+<li><a href="https://www.gnu.org/software/make/">Make</a></li>
+<li><a href="https://git-scm.com/">Git</a></li>
+<li><a href="http://valgrind.org/">Valgrind</a> (optional, for memory debugging and profiling)</li>
+<li><a href="https://vscodium.com/">VSCodium</a> or <a href="https://code.visualstudio.com/">VSCode</a> (or other debugger)</li>
+</ul>
+<h4>Building the Project</h4>
+<ol>
+<li><p>Clone the repository:
+<code>
+git clone https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew.git --single-branch --branch develop
+cd kew
+</code></p></li>
+<li><p>To enable debugging symbols, run make with DEBUG=1</p></li>
+<li><p>Build the project:
+<code>
+make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
+</code></p></li>
+</ol>
+<h4>Commenting</h4>
+<p>Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. If you used AI make sure to remove comments that aren&#8217;t strictly needed.</p>
+<h4>Architecture</h4>
+<p><img src="images/kew_architecture.png" alt="Kew architecture diagram" title="Kew architecture diagrram"/></p>
+<p>kew follows the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module. If you have doubts in where to place it, just ask.</p>
+<h4>Debugging with VSCodium</h4>
+<ol>
+<li><p>Install extension clangd, C&#47;C++ Debug (gdb) and EditorConfig.</p></li>
+<li><p>Install the program bear that can generate a compile_commands.json. This helps clangd find libs.</p></li>
+<li><p>Run bear &#8211; make.</p></li>
+</ol>
+<p>This should enable you to develop kew on VSCodium.</p>
+<h4>Debugging with Visual Studio Code</h4>
+<p>To enable debugging in VSCode, you&#8217;ll need to create a <code>launch.json</code> file that configures the debugger. Follow these steps:</p>
+<ol>
+<li><p>Open your project&#8217;s folder in VSCode.</p></li>
+<li><p>Press <code>F5</code> or go to the &#8220;Run and Debug&#8221; sidebar (<code>Ctrl+Shift+D</code> on Windows&#47;Linux, <code>Cmd+Shift+D</code> on macOS), then click on the gear icon to create a new launch configuration file.</p></li>
+<li><p>Select &#8220;C++ (GDB&#47;LLDB)&#8221; as the debugger type, and choose your platform (e.g., x64-linux, x86-win32, etc.).</p></li>
+<li><p>Replace the contents of the generated <code>launch.json</code> file with the following, adjusting paths and arguments as needed:</p>
+<pre><code class="language-json">{
+"version": "0.2.0",
+"configurations": [
+
+    {
+        "name": "kew",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "&#47;kew",
+    &#47;&#47;"args": ["artist or song name"],
+        "stopAtEntry": false,
+        "cwd": "",
+        "environment": [],
+        "externalConsole": true,
+        "MIMode": "gdb",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    }
+]
+}
+</code></pre></li>
+<li><p>Save the <code>launch.json</code> file.</p></li>
+<li><p>Create a c<em>cpp</em>properties.json file in the same folder (.vscode) with the following contents adjusting paths and arguments as needed:</p>
+<pre><code class="language-json">{
+    "configurations": [
+            {
+                    "name": "linux-gcc-x64",
+                    "includePath": [
+                            "&#47;include&#47;miniaudio",
+                            "&#47;include&#47;nestegg",
+                            "&#47;**",
+                            "&#47;usr&#47;include",
+                            "&#47;usr&#47;include&#47;opus",
+                            "&#47;usr&#47;include&#47;vorbis",
+                            "&#47;usr&#47;include&#47;chafa&#47;",
+                            "&#47;lib&#47;chafa&#47;include",
+                            "&#47;usr&#47;include&#47;glib-2.0",
+                            "&#47;usr&#47;lib&#47;glib-2.0&#47;include",
+                            "&#47;usr&#47;include&#47;libmount",
+                            "&#47;usr&#47;include&#47;blkid",
+                            "&#47;usr&#47;include&#47;sysprof-6",
+                            "&#47;usr&#47;include&#47;glib-2.0&#47;gio",
+                            "&#47;usr&#47;include&#47;glib-2.0",
+                            "&#47;include"
+                    ],
+                    "browse": {
+                            "path": [
+                                    "&#47;include&#47;miniaudio",
+                                    "&#47;src",
+                                    "&#47;include",
+                                    "&#47;**"
+                            ],
+                            "limitSymbolsToIncludedHeaders": true
+                    },
+                    "defines": [
+                            "_POSIX_C_SOURCE=200809L"
+                    ],
+                    "compilerPath": "&#47;usr&#47;bin&#47;gcc",
+                    "cStandard": "",
+                    "cppStandard": "",
+                    "intelliSenseMode": "linux-gcc-x64"
+            }
+    ],
+    "version": 4
+}
+
+</code></pre></li>
+<li><p>Add the extensions C&#47;C++, C&#47;C++ Extension pack, C&#47;C++ Themes (optional).</p></li>
+<li><p>Now you can use VSCode&#8217;s debugger to step through your code, inspect variables, and analyze any issues:</p>
+<pre><code>* Set breakpoints in your source code by placing your cursor on the desired line number, then press `F9`.
+* Press `F5` or click on the "Start Debugging" button (or go to the "Run and Debug" sidebar) to start the debugger.
+* When the execution reaches a breakpoint, VSCode will pause, allowing you to use its built-in features for debugging.
+</code></pre></li>
+</ol>
+<h5>Finding where libs are located</h5>
+<p>If the paths in c<em>cpp</em>properties.json are wrong for your OS, to find the folder where for instance Chafa library is installed, you can use one of the following methods:</p>
+<ol>
+<li><p><strong>Using <code>pkg-config</code></strong>:</p>
+<p>The <code>pkg-config</code> tool is a helper tool used to determine compiler flags and linker flags for libraries. You can use it to find the location of Chafa&#8217;s include directory. Open your terminal and run the following command:</p>
+<pre><code>pkg-config --cflags chafa
+</code></pre>
+<p>This should display the <code>-I</code> flags required to include Chafa&#8217;s headers, which in turn will reveal the installation prefix (e.g., <code>&#47;usr&#47;include&#47;chafa&#47;</code>). The folder containing the library files itself is typically located under <code>lib</code> or <code>lib64</code>, so you can find it by looking for a folder named <code>chafa</code> within those directories.</p></li>
+<li><p><strong>Using <code>brew</code> (for macOS)</strong>:</p>
+<p>If you installed Chafa using Homebrew, you can find its installation prefix with the following command:</p>
+<pre><code>brew --prefix chafa
+</code></pre>
+<p>This will display the installation prefix for Chafa (e.g., <code>&#47;usr&#47;local&#47;opt&#47;chafa</code>).</p></li>
+<li><p><strong>Manually searching</strong>:</p>
+<p>Alternatively, you can search your file system manually for the <code>chafa</code> folder or library files. On Unix-based systems like Linux and macOS, libraries are typically installed under <code>&#47;usr</code>, <code>&#47;usr&#47;local</code>, or within the user&#8217;s home directory (e.g., <code>~&#47;.local</code>). You can use the <code>find</code> command to search for the folder:</p>
+<pre><code>find &#47;usr &#47;usr&#47;local ~&#47;.local -name chafa
+</code></pre>
+<p>This should display the location of the Chafa installation, revealing both the include and library folders.</p></li>
+</ol>
+<h4>Valgrind</h4>
+<p>To use Valgrind for memory debugging and profiling:</p>
+<ol>
+<li><p>Build kew with debug symbols. Run this command: make DEBUG=1 -j4</p></li>
+<li><p>Run Valgrind on your binary:
+<code>
+valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --log-file=valgrind-out.txt --show-reachable=no -s .&#47;kew
+</code></p></li>
+</ol>
+<h4>Editorconfig</h4>
+<ul>
+<li>If you can, use EditorConfig for VS Code Extension. There is a file with settings for it: .editorconfig.</li>
+</ul>
+<h2>Building an RPM package</h2>
+<p>For RPM-based distributions (like Fedora, CentOS, RHEL), you can build the package from source using the provided <code>.spec</code> file.</p>
+<ol>
+<li><p><strong>Install Build Tools &#38; Dependencies</strong></p>
+<p>First, install the necessary build dependencies for <code>kew</code> by following the instructions for your distribution (e.g., Fedora) in the &#8220;Building the project manually&#8221; section.</p>
+<p>Then, install the RPM build tools:
+<code>bash
+sudo dnf install rpm-build
+</code></p></li>
+<li><p><strong>Prepare Source Tarball</strong></p>
+<p>Create the source tarball from the git repository and place it where <code>rpmbuild</code> can find it:
+```bash</p>
+<h1>Define the version based on the spec file</h1>
+<p>VERSION=$(grep &#8216;Version:&#8217; kew.spec | awk &#8216;{print $2}&#8217;)</p>
+<h1>Create the rpmbuild directory structure</h1>
+<p>mkdir -p ~&#47;rpmbuild&#47;SOURCES</p>
+<h1>Create the source tarball</h1>
+<p>git archive &#8211;format=tar.gz &#8211;prefix=kew-$VERSION&#47; -o ~&#47;rpmbuild&#47;SOURCES&#47;kew-$VERSION.tar.gz HEAD
+```</p></li>
+<li><p><strong>Build the RPM</strong></p>
+<p>Now, you can build the binary and source RPMs:
+<code>bash
+rpmbuild -ba kew.spec
+</code>
+The resulting RPM files will be created in the <code>~&#47;rpmbuild&#47;RPMS&#47;</code> and <code>~&#47;rpmbuild&#47;SRPMS&#47;</code> directories.</p></li>
+</ol>
+</article>
+    <footer>
+        <p>A local music player under your control</p>
+    </footer>
+</body>
+
+</html>
+

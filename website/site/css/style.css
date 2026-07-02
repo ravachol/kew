@@ -1,0 +1,178 @@
+@import url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.css');
+
+body {
+  font-family: 'Hack', 'Courier New', monospace;
+}
+
+body {
+  font-family: 'Hack', 'Courier New', monospace;
+}
+
+body {
+  font-family: 'Hack', 'Courier New', monospace;
+  background-color: #000;
+  color: #e0e0e0;
+}
+
+:root {
+  --font-main:  Verdana, monospace;
+  --font-secondary: 'Hack', 'Courier New', sans-serif;
+  --font-scale: 1.2em;
+  --background-color: #000000;
+  --heading-color: #de2b4d;
+  --title-color: #000000;
+  --text-color: #e0e0e0;
+  --link-color: #de2b4d;
+  --visited-color: #de2b4d;
+  --code-background-color: #e0e0e0;
+  --code-color: #000000;
+  --blockquote-color: #d9d8dc;
+}
+
+body, html {
+  font-family: var(--font-main);
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin-left: 200px;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+	color: var(--visited-color);
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--link-color);
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+}
+
+blockquote {
+    border-left: 5px solid var(--link-color);
+  	padding: 0 15px;
+  	margin: 15px 0;
+  	line-height: 50px;
+  	font-size: 16px;
+  	background-color: var(--code-background-color);
+    color: var(--code-color);
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title h1 {
+    text-indent: -9999px;
+    height: 0;
+    overflow: hidden;
+    position: relative;
+    display: none;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* Navbar */
+
+.navbar {
+  overflow: hidden;
+}
+
+.navbar a {
+  float: left;
+  font-size: 16px;
+  padding: 2px 6px;
+  border: 2px;
+  border-style: solid;
+  border-radius: 6px;
+  border-color: var(--background-color);
+  color: var(--code-color);
+  background-color: var(--heading-color);
+  text-decoration: none;
+}
+
+.navbar a:hover {
+  background-color: var(--code-background-color);
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+ 	min-width: 150px; 
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
