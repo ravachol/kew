@@ -24,6 +24,6 @@ jobs:
       - name: Deploy to Codeberg Pages
         uses: https://codeberg.org/git-pages/action@v2
         with:
-          site: 'https://${{ forge.repository_owner }}.codeberg.page/YOUR-REPO-NAME/'
+          site: 'https://${{ forge.repository_owner }}.codeberg.page/ravachol/'
           token: ${{ forge.token }}
           source: website/site/
