@@ -9,7 +9,7 @@ all: $(PAGES)
 
 $(PAGES): template.xml $(PAGES_SRC)
 	cp $(addprefix $(PAGES_SRC_DIR)/,$(@:.html=.md)) .
-	echo "<article data-sblg-article=\"1\" data-sblg-set-title=\"kew &#40;&#47;kjuː&#47;&#41; is a terminal music player.\" data-sblg-set-subtitle=\"kew &#40;&#47;kjuː&#47;&#41; is a variant of cue\" data-sblg-set-tagline=\"Music for the Shell\">"  >$(@:.html=.xml)
+	echo "<article data-sblg-article=\"1\" data-sblg-set-title=\"kew &#40;&#47;kjuː&#47;, a variant of cue&#41; is a terminal music player.\" data-sblg-set-subtitle=\"kew &#40;&#47;kjuː&#47;&#41; is a variant of cue\" data-sblg-set-tagline=\"Music for the Shell\">"  >$(@:.html=.xml)
 	$(LOWDOWN) --html-no-head-ids  --html-no-skiphtml --html-no-escapehtml $(@:.html=.md) >>$(@:.html=.xml)
 	echo "</article>" >>$(@:.html=.xml)
 	$(SBLG) -o $@ -t template.xml -c $(@:.html=.xml)

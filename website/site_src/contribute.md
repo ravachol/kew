@@ -1,8 +1,6 @@
-## Contributing
+## Welcome to the contributing guide
 
-## Welcome to kew contributing guide
-
-Thank you for your interest in contributing to kew!
+Thank you for your interest in contributing to kew! This page consists of two sections, how to contribute, and further down, how to develop for kew.
 
 ### Goal of the project
 
