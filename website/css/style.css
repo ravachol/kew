@@ -15,9 +15,10 @@ body {
 }
 
 :root {
-  --font-main:  Verdana, monospace;
+  --font-main: Verdana, monospace;
   --font-secondary: 'Hack', 'Courier New', sans-serif;
   --font-scale: 1.2em;
+  --width: 800px;
   --background-color: #000000;
   --heading-color: #de2b4d;
   --title-color: #000000;
@@ -36,7 +37,7 @@ body, html {
 body {
     font-family: var(--font-secondary);
     font-size: var(--font-scale);
-    margin-left: 200px;
+    margin: 0 auto;
     padding: 20px;
     max-width: var(--width);
     text-align: left;
@@ -170,7 +171,7 @@ ul.blog-posts li {
 }
 
 ul.blog-posts li span {
- 	min-width: 150px; 
+ 	min-width: 150px;
 }
 
 ul.blog-posts li a:visited {
