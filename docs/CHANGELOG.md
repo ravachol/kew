@@ -10,6 +10,8 @@
 
 - Don't re-render all the time while resizing. By @ravachol.
 
+- Lyrics page now returns you to previous view not track view. By @petoem.
+
 #### Sponsors
 
 Thanks to new sponsor rei for their support!
