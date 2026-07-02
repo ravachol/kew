@@ -2,19 +2,20 @@ name: Deploy to Codeberg Pages
 on:
   push:
     branches: [main]
-    paths: ['site_src/**', 'website/**']
+    paths: ['docs/**', 'website/**']
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: codeberg-tiny
     container:
-      image: node:20-alpine
+      image: alpine:edge
     steps:
+      - name: Install prerequisites
+        run: apk add --no-cache nodejs make sblg lowdown
+
       - name: Checkout
         uses: https://code.forgejo.org/actions/checkout@v4
-
-      - name: Install build tools
-        run: apk add --no-cache make sblg lowdown
 
       - name: Build site
         working-directory: website
