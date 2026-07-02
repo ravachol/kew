@@ -1,12 +1,12 @@
 <div align="center">
-  <img src="images/logo.png" alt="kew Logo">
+  <img src="website/images/logo.png" alt="kew Logo">
 </div>
 
 <br>
 
 <div align="center">
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-theme">
-    <img src="images/kew.gif" alt="Screenshot">
+    <img src="website/images/kew.gif" alt="Screenshot">
   </a>
   <br>
 </div>
