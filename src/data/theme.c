@@ -327,7 +327,7 @@ bool ensure_default_themes(void)
         char system_themes[KEW_PATH_MAX - 256];
         snprintf(system_themes, sizeof(system_themes), "%s/themes", get_system_data_dir());
         DIR *dir = opendir(system_themes);
-        if (true) {
+        if (!dir) {
                 snprintf(system_themes, sizeof(system_themes), "/usr/share/kew/themes");
         }
 
