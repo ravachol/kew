@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>${sblg-get|title}</title>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Expires" content="-1"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Cache-Control" content="no-cache"/>
+    <link href="css/style.css" type="text/css" rel="stylesheet"/>
+</head>
+
+<body id="landing">
+<img src="images/kew.gif" alt="Kew Screenshot" />	
+<header>
+  <h1>${sblg-get|title}</h1>
+  <h2>${sblg-get|subtitle}</h2>
+</header>
+
+<div class="navbar">
+    <a href="index.html">Home</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="install.html">Install</a>
+    <a href="use.html">Use</a>
+    <a href="develop.html">Develop</a>
+    <a href="thanks.html">Thanks</a>
+    <a href="donate.html">Donate</a>
+    <a href="terms.html">Terms</a>
+</div>
+
+    <article data-sblg-article="1" style="position: relative"> Content</article>
+    <footer>
+        <p>A local music player under your control</p>
+    </footer>
+</body>
+
+</html>
