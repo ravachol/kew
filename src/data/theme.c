@@ -308,6 +308,8 @@ bool ensure_default_themes(void)
         if (!config_path)
                 return false;
 
+        fprintf(stderr, "ensure_default_themes\n");
+
         char themes_path[KEW_PATH_MAX];
         if (snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path) >= (int)sizeof(themes_path)) {
                 free(config_path);
@@ -319,6 +321,7 @@ bool ensure_default_themes(void)
                 // Directory doesn't exist → create it
                 if (create_directory(themes_path) == -1) {
                         free(config_path);
+                        fprintf(stderr, "ensure_default_themes: failed to create themes directory.\n");
                         return false;
                 }
         }
@@ -328,6 +331,7 @@ bool ensure_default_themes(void)
         DIR *dir = opendir(system_themes);
         if (!dir) {
                 free(config_path);
+                fprintf(stderr, "ensure_default_themes: failed to open system themes directory: %s.\n", system_themes);
                 return false;
         }
 
@@ -344,12 +348,21 @@ bool ensure_default_themes(void)
                         char src[KEW_PATH_MAX], dst[KEW_PATH_MAX], bak[KEW_PATH_MAX];
 
                         if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))
+                        {
+                                fprintf(stderr, "ensure_default_themes: system_themes larger than src\n");
                                 continue;
+                        }
                         if (snprintf(dst, sizeof(dst), "%s/%s", themes_path, entry->d_name) >= (int)sizeof(dst))
+                        {
+                                fprintf(stderr, "ensure_default_themes: themes_path larger than dst\n");
                                 continue;
+                        }
 
-                        if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(dst))
+                        if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(bak))
+                        {
+                                fprintf(stderr, "ensure_default_themes: bak path larger than dst\n");
                                 continue;
+                        }
 
                         bool need_copy = true;
 
@@ -358,6 +371,7 @@ bool ensure_default_themes(void)
                         if (stat(src, &src_st) == 0 && stat(dst, &dst_st) == 0) {
                                 if (difftime(src_st.st_mtime, dst_st.st_mtime) <= 0) {
                                         // Destination is newer or same → no need to copy
+                                        fprintf(stderr, "ensure_default_themes: destination is newer or same: %s\n", dst);
                                         need_copy = false;
                                 }
                         }
@@ -369,7 +383,12 @@ bool ensure_default_themes(void)
                                 }
 
                                 if (copy_file(src, dst))
+                                {
                                         copied = true;
+                                }
+                                else {
+                                        fprintf(stderr, "ensure_default_themes: copy failed. src: %s dst: %s\n", src, dst);
+                                }
                         }
                 }
         }
