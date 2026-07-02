@@ -1,4 +1,4 @@
-# Kew website
+# kew website
 
 The website is built using [sblg](https://kristaps.bsd.lv/sblg/) and
 [lowdown](https://kristaps.bsd.lv/lowdown/).  These tools are used to transform

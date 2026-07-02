@@ -298,4 +298,3 @@ Uncomment this line:
 volume-keys = volume
 
 Save (ctrl+x)
-

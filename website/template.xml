@@ -11,25 +11,32 @@
 
 <body id="landing">
 <img src="images/kew.gif" alt="kew terminal music player screenshot" />
-<header>
-  <h1>${sblg-get|title}</h1>
-  <h2>${sblg-get|subtitle}</h2>
-</header>
 
 <div class="navbar">
     <a href="index.html">Home</a>
-    <a href="gallery.html">Gallery</a>
-    <a href="install.html">Install</a>
-    <a href="use.html">Use</a>
-    <a href="develop.html">Develop</a>
-    <a href="thanks.html">Thanks</a>
     <a href="donate.html">Donate</a>
-    <a href="terms.html">Terms</a>
+    <a href="install.html">Install</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="use.html">Docs</a>
+    <a href="develop.html">Develop</a>
+    <a href="thanks.html">Credits</a>
 </div>
+
+<header>
+  <p>${sblg-get|title}</p>
+</header>
+
 
     <article data-sblg-article="1" style="position: relative"> Content</article>
     <footer>
-        <p>Music for the Shell</p>
+        <p>Like kew?</p>
+    <div class="navbar">
+
+        <a href="donate.html">Support the project</a>
+        </div>
+
+          <p>${sblg-get|tagline}</p>
+
     </footer>
 </body>
 

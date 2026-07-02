@@ -14,10 +14,16 @@ body {
   color: #e0e0e0;
 }
 
+body#landing > img {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
 :root {
   --font-main: Verdana, monospace;
   --font-secondary: 'Hack', 'Courier New', sans-serif;
-  --font-scale: 1.2em;
+  --font-scale: 1.0em;
   --width: 800px;
   --background-color: #000000;
   --heading-color: #de2b4d;
@@ -45,6 +51,20 @@ body {
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.5;
+    color: var(--text-color);
+}
+
+header {
+    text-align: center;
+}
+
+.subtitle {
+    font-size: 0.85em;
+    color: var(--text-color);
+}
+
+.subtitle {
+    font-size: 0.85em;
     color: var(--text-color);
 }
 
@@ -140,20 +160,22 @@ footer {
 /* Navbar */
 
 .navbar {
-  overflow: hidden;
+    overflow: hidden;
+    text-align: center;
 }
 
 .navbar a {
-  float: left;
-  font-size: 16px;
-  padding: 2px 6px;
-  border: 2px;
-  border-style: solid;
-  border-radius: 6px;
-  border-color: var(--background-color);
-  color: var(--code-color);
-  background-color: var(--heading-color);
-  text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    padding: 2px 6px;
+    margin: 0 4px;
+    border: 2px;
+    border-style: solid;
+    border-radius: 6px;
+    border-color: var(--background-color);
+    color: var(--code-color);
+    background-color: var(--heading-color);
+    text-decoration: none;
 }
 
 .navbar a:hover {

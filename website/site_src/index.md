@@ -1,20 +1,27 @@
 
+## kew
+
+kew is an immersive, fast music player that allows you to listen to music with privacy.
+
 ## Features
 
- - Search a music library with partial titles from the command-line.
- - Creates a playlist automatically based on matched song, album or artist.
- - Private, no data is collected by kew[^1].
+ - Play auto-generated playlists based on words from the artist, album or song name: 'kew nirvana'.
+ - Private and offline[^1].
  - Music without distractions or algorithmic manipulation.
- - Full color covers in sixel-capable terminals.
- - Visualizer with various settings.
- - Edit the playlist by adding, removing and reordering songs.
  - Gapless playback.
- - Explore the library and enqueue files or folders.
- - Search your music library and add to the queue.
- - Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm, WAV and AIFF audio.
- - Supports desktop events through MPRIS.
- - Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
- - Supports replay gain.
- - Use themes or colors derived from covers.
+ - Full color covers in sixel-capable terminals.
+ - Spectrum visualizer.
+ - Music library explorer.
+ - Playlist editing (add, reorder, delete).
+ - Search.
+ - Lyrics support.
+ - Desktop integration (both Linux and macOS).
+ - Import/export .m3u playlists.
+ - Replay gain.
+ - hemes based on album colors or popular themes.
+ - Custom layouts.
+ - Crossfade (experimental), both automatic and on demand.
+ - Auto-Resume.
+ - Linux, FreeBSD, Android, macOS, Windows and others.
 
-[^1]: kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
+[^1]: can display your listening status in Discord, but this is now opt-in by popular request.
