@@ -1439,7 +1439,7 @@ This release adds:
 
 - Added a few VIM key bindings (h,j,k,l) to use instead of arrow keys.
 
-- Shuffle now behaves like in other players, and works with MPRIS. Previously the list would be reordered, instead of the song just jumping from place to place, in the same list. Starting cue with 'cue shuffle <text>' still works the old way.
+- Shuffle now behaves like in other players, and works with MPRIS. Previously the list would be reordered, instead of the song just jumping from place to place, in the same list. Starting cue with 'cue shuffle \<text\>' still works the old way.
 
 - Now prints a R or S on the last line when repeat or shuffle is enabled.
 
