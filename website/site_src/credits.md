@@ -1,7 +1,7 @@
 ## Credits
 
 ## Maintainers
-* **Ravachol** @ravachol, kew-player AT proton DOT me
+* **Ravachol** @ravachol, (kew-player AT proton DOT me)
   * Founder and Main Author
 
 ## Advisors

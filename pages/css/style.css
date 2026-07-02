@@ -27,13 +27,14 @@ body#landing > img {
   --width: 860px;
   --background-color: #000000;
   --heading-color: #de2b4d;
+  --navbar-color: #000000;
   --title-color: #000000;
-  --text-color: #e0e0e0;
+  --text-color: #bcbbbb;
   --link-color: #de2b4d;
   --visited-color: #de2b4d;
-  --code-background-color: #e0e0e0;
-  --code-color: #000000;
-  --blockquote-color: #d9d8dc;
+  --code-background-color: #4d4d4d;
+  --code-color: #bcbbbb;
+  --blockquote-color: #bcbbbb;
 }
 
 body, html {
@@ -172,14 +173,39 @@ footer {
     border: 2px;
     border-style: solid;
     border-radius: 6px;
-    border-color: var(--background-color);
-    color: var(--code-color);
-    background-color: var(--heading-color);
+    border-color: var(--text-color);
+    color: var(--text-color);
+    background-color: var(--navbar-color);
     text-decoration: none;
 }
 
 .navbar a:hover {
-  background-color: var(--code-background-color);
+  background-color: var(--visited-color);
+}
+
+/* Support button */
+
+.support-button {
+    overflow: hidden;
+    text-align: center;
+}
+
+.support-button a {
+    display: inline-block;
+    font-size: 16px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    border: 2px;
+    border-style: solid;
+    border-radius: 6px;
+    border-color: var(--visited-color);
+    color: var(--text-color);
+    background-color: var(--visited-color);
+    text-decoration: none;
+}
+
+.support-button a:hover {
+  color: #ffffff;
 }
 
 /* blog post list */

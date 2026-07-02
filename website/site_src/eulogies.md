@@ -223,7 +223,7 @@ Well, my only contribution for now is kew as a terminal music player. S tier thi
 @thegobimahato
 Playing music in Terminal feels cool 😎.
 
-@alejandrobdn@social.linux.pizza
+@alejandrobdn@social\.linux\.pizza
 Trying out kew, a music player for the CLI. For the first time, I've found a player for the Linux terminal that I don't have to spend time configuring and that works right out of the box.
 
 @kewIT

@@ -24,4 +24,4 @@ kew is available on Android as a package for the app [Termux](https://termux.dev
 
 #### Manual installation instructions
 
-If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](https://codeberg.org/ravachol/kew/src/branch/main/docs/MANUAL-INSTALL-INSTRUCTIONS.md).
+If you can't find it on your distro, or you want the bleeding edge, follow the manual installation [guide](https://codeberg.org/ravachol/kew/src/branch/main/docs/MANUAL-INSTALL-INSTRUCTIONS.md).
