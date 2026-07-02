@@ -10,7 +10,7 @@
 </head>
 
 <body id="landing">
-<img src="images/kew.gif" alt="Kew Screenshot" />	
+<img src="images/kew.gif" alt="kew terminal music player screenshot" />
 <header>
   <h1>Kew (/kjuː/)</h1>
   <h2>A terminal music player.</h2>
@@ -29,14 +29,108 @@
 
     <article data-sblg-article="1" data-sblg-set-title="Kew (/kjuː/)" data-sblg-set-subtitle="A terminal music player.">
 <h1>CHANGELOG</h1>
-<h2>4.1.0</h2>
-<h4>Enhancements</h4>
+<h2>kew 4.1.5</h2>
 <ul>
-<li>Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.</li>
-<li>Scrolling lyrics on lyrics page (press m) By @petoem. Suggested by @kewIT.</li>
+<li><p>Use exec &#8216;cp&#8217; command for copying instead of a copy function. Safer and fixes issue on Arch Linux where layouts weren&#8217;t being copied. By @ravachol. Reported by @Erwin-Iosef.</p></li>
+<li><p>Fix resize crash. By @ravachol. Found by @thedyze.</p></li>
+<li><p>Don&#8217;t re-render all the time while resizing. By @ravachol.</p></li>
 </ul>
-<h4>Bugfixes</h4>
-<p>There are no bugs. It&#8217;s an illusion.</p>
+<h4>Sponsors</h4>
+<p>Thanks to new sponsor rei for their support!</p>
+<h2>kew 4.1.4</h2>
+<ul>
+<li>Added proper installer for Windows.</li>
+</ul>
+<h2>kew 4.1.3</h2>
+<ul>
+<li>Change discord integration to opt-in&#47;off by default, byt popular request.</li>
+</ul>
+<h2>kew 4.1.2</h2>
+<ul>
+<li>Fixes issue with installing on FreeBSD.</li>
+</ul>
+<h2>kew 4.1.1</h2>
+<ul>
+<li>Fixes issue that affected homebrew tests.</li>
+</ul>
+<h2>kew 4.1.0</h2>
+<p>kew 4.1 adds custom layouts, auto-resume, crossfade, an improved visualizer.</p>
+<p>kew is also available on Windows now.</p>
+<p>The sound system was rewritten in v4.0 and in this version the UI system has been rewritten using the MVU pattern. There are still smaller areas that need improvement, but most of the app is now in a much better shape.</p>
+<h3>Enhancements</h3>
+<h3>Layouts</h3>
+<p>It&#8217;s now possible to change how kew looks. It&#8217;s as minimal as possible, the syntax for layouts is very simple and the files are small. More info in <a href="https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md">LAYOUTS-HOWTO.md</a>.</p>
+<p>By @ravachol.</p>
+<h3>Crossfade (experimental)</h3>
+<p>Crossfade can be toggled on or off and affects the end of the song, or initiated on demand.</p>
+<p>Four new commands:</p>
+<p>z = Toggle crossfade on</p>
+<p>shift+d = Quick crossfade</p>
+<p>shift+f = Medium crossfade</p>
+<p>shift+g = Slow crossfade</p>
+<p>New settings:</p>
+<p>alwaysCrossfade</p>
+<p>fadeEnterSongMs &#47;&#47; Tells kew to start fading x milliseconds into the next song.</p>
+<p>fadeQuickMs</p>
+<p>fadeMediumMs</p>
+<p>fadeSlowMs</p>
+<p>By @ravachol.</p>
+<h3>AutoResume.</h3>
+<p>Persists playback state between sessions, on by default.</p>
+<p>autoResume=1</p>
+<p>By @ravachol. Suggested by @thbemme.</p>
+<h3>New colorful spectrum visualizer modes.</h3>
+<p>&#8220;Party Mode&#8221; is the default option. Cycle by pressing &#8216;v&#8217;.</p>
+<p>Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant, 5=lum vibrant, 6=binning, 7=off.</p>
+<p>By @emptyhead41.</p>
+<h3>New album color mode that uses up to 4 album colors</h3>
+<p>It&#8217;s all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match!</p>
+<p>By @ravachol, building on @emptyhead41&#8217;s palettes.</p>
+<h3>New theme pack and Improved Themes.</h3>
+<p>Nord and Nanagawa themes have been added, plus both the new album colors themes.</p>
+<p>Also all existing themes have been worked on and make a bit more sense now, and use colors more sparsely.</p>
+<p>By @ravachol.</p>
+<h3>Scrolling lyrics on the lyrics page</h3>
+<p>By @petoem. Suggested by @kewIT.</p>
+<h3>Other enhancements</h3>
+<ul>
+<li><p>Albums get sorted by metadata tracknumber, if the files aren&#8217;t numbered. By @Moksh-Parikh.</p></li>
+<li><p>New setting coverstyle, which let&#8217;s you decide how Chafa should render the covers. By @netodosrjoao.</p></li>
+<li><p>New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.</p></li>
+<li><p>New settings simpleTimeStatus. Hides kHz and bitrate from the time line in track view. By @ravachol.</p></li>
+<li><p>New color mode Neutral. Loads the neutral theme.</p></li>
+<li><p>Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.</p></li>
+<li><p>Better handling of repeat states and song switching if there&#8217;s only one song. By @ravachol and @LeahTheSlug.</p></li>
+<li><p>New visualizer color mode, flat colors. By @ravachol.</p></li>
+<li><p>New time line on track view that uses less info is now default. To enable the one with bitrate and kHz numbers, set simpleTimeStatus=0. By @ravachol.</p></li>
+<li><p>New desktop shortcut and icon, that installs with kew. By @ravachol.</p></li>
+<li><p>You can now access the lyrics page (press &#8216;m&#8217;) from any view. By @ravachol.</p></li>
+<li><p>Lrc files don&#8217;t need to be named exactly as the song file anymore. By @toasteeeer.</p></li>
+<li><p>Playlist position and total songs now appear on the time line in track view. By @ravachol. Suggested by @thedyze.</p></li>
+</ul>
+<h4>Bug fixes</h4>
+<ul>
+<li><p>Regression bug: Songs that can&#8217;t be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.</p></li>
+<li><p>Fix new settings in kewrc not being respected if they also appear in kewstaterc. By @ravachol.</p></li>
+<li><p>AAUDIO wasn&#8217;t being used by miniaudio on Android&#47;Termux. This is now fixed, and gives higher quality sound on Android. By @ravachol. Reported by @TNT4ME.</p></li>
+<li><p>Prevent slight glitch when pausing and switching tracks. When unpausing a bit of the old song played. By @ravachol. Reported by @LeahTheSlug. Thanks to @petoem for helping.</p></li>
+<li><p>Fix issue with wrong nesting in search in some situations. By @ravachol. Reported by @Moksh-Parikh.</p></li>
+<li><p>Fix issues with repeat list and track management. By @ravachol. Found by @LeahTheSlug.</p></li>
+<li><p>There were some issues with Chroma that emerged with as the launch of kew 4.0 which means you have to install a specific commit of Chroma recommended in the readme for it to work. And on top of that, the first commit that was recommended there wasn&#8217;t reacting to audio. Now fixed and the commit in the readme should work.</p></li>
+<li><p>Exiting kew is no longer slow when you have a lot of music in the playlist. By @ravachol. Found by @Kuuube.</p></li>
+<li><p>Make sure CTRL+Z, fg and bg commands are handled properly. By @ravachol. Reported by @that_owl.</p></li>
+<li><p>Provide an error message with instructions when D-BUS is not available and kew is compiled with USE_DBUS=1. By @ravachol. Suggested by @ktnb-netbsd.</p></li>
+<li><p>Fix bug realted to immediate play from search view when playlist is shuffled. By @ravachol</p></li>
+</ul>
+<h4>Refactor</h4>
+<ul>
+<li>Centralize PATH<em>MAX into common&#47;path</em>max.h. By @hartalex.</li>
+</ul>
+<h4>Sponsors</h4>
+<p>Thank you to new sponsors @LTEder, @Lee, @rick, @Supporter, @tezoatlipoca and @enzawin for their generous contributions!</p>
+<p>You can sponsor kew here:</p>
+<p>Github Sponsors: <a href="https://github.com/sponsors/ravachol">https:&#47;&#47;github.com&#47;sponsors&#47;ravachol</a>
+Ko-Fi: <a href="https://ko-fi.com/ravachol">https:&#47;&#47;ko-fi.com&#47;ravachol</a></p>
 <h2>4.0.0 LOVE IS GONNA SAVE US EDITION</h2>
 <p>kew 4.0 brings ASCII visualizations and a redesigned audio module. There&#8217;s also a discord integration, kew play &#60;path&#62; command, support for macOS media keys, AIFF support and more.</p>
 <p>kew now has an official Arch Linux package and will soon also be on Android (Termux).</p>
@@ -898,7 +992,7 @@ make DEBUG=1 -ij4.</p></li>
 </ul>
 </article>
     <footer>
-        <p>A local music player under your control</p>
+        <p>Music for the Shell</p>
     </footer>
 </body>
 
