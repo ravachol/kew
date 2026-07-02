@@ -25,11 +25,21 @@ jobs:
         working-directory: website
         run: make install PAGES_SRC_DIR=site_src
 
+      - name: Debug pages output
+        run: |
+          echo "--- symlinks ---"
+          find pages -type l -exec ls -la {} \;
+          echo "--- max depth ---"
+          find pages -type d -printf '%d %p\n' | sort -rn | head -20
+          echo "--- total dirs ---"
+          find pages -type d | wc -l
+
       - name: Deploy to Codeberg Pages
         uses: https://codeberg.org/git-pages/action@v2
         with:
           site: 'https://${{ forge.repository_owner }}.codeberg.page/ravachol/kew'
           token: ${{ forge.token }}
           source: pages/
+
 permissions:
   contents: write
