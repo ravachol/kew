@@ -10,7 +10,7 @@
 </head>
 
 <body id="landing">
-<img src="images/kew.gif" alt="Kew Screenshot" />	
+<img src="images/kew.gif" alt="kew terminal music player screenshot" />
 <header>
   <h1>${sblg-get|title}</h1>
   <h2>${sblg-get|subtitle}</h2>
@@ -29,7 +29,7 @@
 
     <article data-sblg-article="1" style="position: relative"> Content</article>
     <footer>
-        <p>A local music player under your control</p>
+        <p>Music for the Shell</p>
     </footer>
 </body>
 
