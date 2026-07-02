@@ -20,7 +20,6 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <time.h>
 
 #ifdef _WIN32
@@ -30,6 +29,7 @@
 #else
 #include <pwd.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #endif
 
 struct timespec timer_start;
