@@ -33,7 +33,7 @@
 * @noiamnote
 * Martin Kollár @Kolby11
 * Matthias Geiger @werdahias <werdahias@riseup.net>
-* Michael Petö @petoem
+* Michael Petö @petoem https://petoe.me
 * @Moksh-Parikh
 * @netodosrjoao
 * @Overionised
@@ -58,6 +58,10 @@
 * Ravachol @ravachol <kew-player@proton.me>
 * LeahTheSlug leahtheslug@slugmail.quest & https://slugmail.quest
 
+## Website development
+
+* @bkmgit
+
 ## Translations
 
 * @hiruocha (Simplified Chinese)
@@ -66,8 +70,10 @@
 
 We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
-* David Reid @mackron <mackron@gmail.com> (author of Miniaudio, used for playing music)
+* @LeahtheSlug (Advisor) leahtheslug@slugmail.quest & https://slugmail.quest
+* Michael Petö @petoem https://petoe.me
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org> (author of Chafa, used for displaying images)
+* David Reid @mackron <mackron@gmail.com> (author of Miniaudio, used for playing music)
 * Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Vafone @vafone
@@ -75,7 +81,6 @@ We would like to extend our gratitude to the following individuals who have cont
 * Yuri @yurivict yuri@freebsd.org
 * Joey Schaff @jaoheah <jschaff@proton.me>
 * Agustin Ballesteros @agus-balles <arcpie@aur>
-* LeahTheSlug
 * Saijin Naib @Saijin_Naib
 * Xplshn @xplshn
 * Mateo @malteo <mateo@aur>
