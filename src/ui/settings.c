@@ -1889,7 +1889,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
 
         struct stat st = {0};
         if (stat(configdir, &st) == -1) {
-                if (create_directory(configdir) != 0) {
+                if (create_directory(configdir) != 1) {
                         perror("mkdir");
                         free(configdir);
                         quit();
@@ -1921,7 +1921,7 @@ void get_config(AppSettings *settings, UISettings *ui)
 
         struct stat st = {0};
         if (stat(configdir, &st) == -1) {
-                if (create_directory(configdir) != 0) {
+                if (create_directory(configdir) != 1) {
                         perror("mkdir");
                         quit();
                 }
