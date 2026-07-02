@@ -1,5 +1,5 @@
 
-# Usage
+## Documentation
 
 kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.
 
@@ -119,7 +119,7 @@ Key bindings can be added like this:
 
 bind = +, volUp, +5%
 
-If you have an old install of kew, delete the kewrc file to make this style of 
+If you have an old install of kew, delete the kewrc file to make this style of
 bindings appear.
 
 kew state (for settings that can be changed in-app) is kept in ~/.config/kew/ke

@@ -1,4 +1,4 @@
-# Installing
+## How to install
 
 ## Linux and macOS Packages
 

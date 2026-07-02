@@ -1,12 +1,12 @@
-# Credits
+## Credits
 
 ## Maintainers
-* **Ravachol** @ravachol <kew-player@proton.me>
+* **Ravachol** @ravachol, kew-player AT proton DOT me
   * Founder and Main Author
 
 ## Advisors
-* @LeahtheSlug (Advisor) leahtheslug@slugmail.quest & https://slugmail.quest
-* Michael Petö @petoem (Technical advisor)
+* @LeahtheSlug (Advisor) https://slugmail.quest
+* Michael Petö @petoem (Technical advisor) https://petoe.me
 
 ## Contributors (in alphabetical order)
 
@@ -33,7 +33,7 @@
 * @noiamnote
 * Martin Kollár @Kolby11
 * Matthias Geiger @werdahias
-* Michael Petö @petoem https://petoe.me
+* Michael Petö @petoem (Technical advisor) https://petoe.me
 * @Moksh-Parikh
 * @netodosrjoao
 * @Overionised
@@ -56,11 +56,30 @@
 * Vafone @vafone
 * Nicolas F
 * Ravachol @ravachol
-* LeahTheSlug leahtheslug@slugmail.quest & https://slugmail.quest
+* LeahTheSlug (Advisor) https://slugmail.quest
 
 ## Website development
 
 * @bkmgit
+
+## Package Managers
+
+* Matthias Geiger @werdahias (Debian, Ubuntu, Raspbian, Kali, Parrot, PureOS)
+* Yuri @yurivict (FreeBSD)
+* Brett Carlock	saijin-naib (Alpine Linux)
+* Robin Candau @antiz (Arch Linux)
+* Agustin Ballesteros arcpie@aur (AUR, kew-git)
+* Matteo Giordano @malteo (former AUR)
+* Mihail Ivanchev @MIvanchev (Void Linux)
+* Robert Kirkman @robertkirkman (Android/Termux)
+* Dominique Leuenberger @dimstar_suse (OpenSuse)
+* Sergey Bolshakov @sbolshakov (ALT Linux)
+* @emergeviolet (Gentoo overlay GURU, LiGurOS)
+* @ktnb (NetBSD)
+* @jared (Solus)
+* @owen (Terra Rawhide)
+* @riches_tweaks0o (NixOS)
+* @riches_tweaks0o (NixOS)
 
 ## Translations
 
@@ -71,7 +90,7 @@
 We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
 * @LeahtheSlug (Advisor) https://slugmail.quest
-* Michael Petö @petoem https://petoe.me
+* Michael Petö @petoem (Technical Advisor) https://petoe.me
 * Hans Petter Jansson @hpjansson
 * David Reid @mackron
 * Chromium-3-Oxide

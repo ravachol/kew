@@ -1,4 +1,4 @@
-# Terms of Service for kew
+## Terms of Service for kew
 
 **Last updated: February 16, 2026**
 

@@ -2,7 +2,7 @@
 
 The website is built using [sblg](https://kristaps.bsd.lv/sblg/) and
 [lowdown](https://kristaps.bsd.lv/lowdown/).  These tools are used to transform
-the files [docs](docs) folder into a static website.
+the files [src_site](src_site) folder into a static website.
 
 To build the site, type `make` this should generate html files. Type
 `make install` to get a copy of the website in a folder called `site`
