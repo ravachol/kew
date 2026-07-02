@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 
 #ifndef PREFIX
-#define PREFIX "/usr/local" // Fallback if not set in the makefile
+#define PREFIX "/usr" // Fallback if not set in the makefile
 #endif
 
 #ifdef _WIN32
@@ -330,8 +330,13 @@ bool ensure_default_themes(void)
         snprintf(system_themes, sizeof(system_themes), "%s/themes", get_system_data_dir());
         DIR *dir = opendir(system_themes);
         if (!dir) {
+                snprintf(system_themes, sizeof(system_themes), "/usr/share/kew/themes");
+        }
+
+        dir = opendir(system_themes);
+        if (!dir) {
+                fprintf(stderr, "ensure_default_themes: failed to copy themes, system themes dir not found\n");
                 free(config_path);
-                fprintf(stderr, "ensure_default_themes: failed to open system themes directory: %s.\n", system_themes);
                 return false;
         }
 
