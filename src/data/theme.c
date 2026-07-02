@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 
 #ifndef PREFIX
-#define PREFIX "/usr" // Fallback if not set in the makefile
+#define PREFIX "/usr/local"
 #endif
 
 #ifdef _WIN32
