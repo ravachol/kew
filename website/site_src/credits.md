@@ -5,8 +5,8 @@
   * Founder and Main Author
 
 ## Advisors
-* @LeahtheSlug (Advisor) https://slugmail.quest
-* Michael Petö @petoem (Technical advisor) https://petoe.me
+* **@LeahtheSlug** (Advisor) https://slugmail.quest
+* **Michael Petö** @petoem (Technical advisor) https://petoe.me
 
 ## Contributors (in alphabetical order)
 
@@ -85,9 +85,37 @@
 
 * @hiruocha (Simplified Chinese)
 
+## Attributions
+
+kew makes use of the following great open source projects:
+
+Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
+
+Chroma by yuri-xyz - https://github.com/yuri-xyz/chroma
+
+TagLib by TagLib Team - https://taglib.org/
+
+Faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
+
+FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
+
+Libopus by Opus - https://opus-codec.org/
+
+Libvorbis by Xiph.org - https://xiph.org/
+
+Miniaudio by David Reid - https://github.com/mackron/miniaudio
+
+Minimp4 by Lieff - https://github.com/lieff/minimp4
+
+Nestegg by Mozilla - https://github.com/mozilla/nestegg
+
+Img_To_Txt (adapted) by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+
+TermBox2 (adapted) - By nsf and Adam Saponara https://github.com/termbox/termbox2
+
 ## Special Thanks
 
-We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
+Last but not least, we would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
 * @LeahtheSlug (Advisor) https://slugmail.quest
 * Michael Petö @petoem (Technical Advisor) https://petoe.me

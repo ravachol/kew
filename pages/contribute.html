@@ -51,9 +51,27 @@ ffprobe -i AUDIO FILE -show<em>streams -select</em>streams a:0 -v quiet -print_f
 <h3>Issue assignment</h3>
 <p>We don&#8217;t have a process for assigning issues to contributors. Please feel free to jump into any issues in this repo that you are able to help with. Our intention is to encourage anyone to help without feeling burdened by an assigned task. Life can sometimes get in the way, and we don&#8217;t want to leave contributors feeling obligated to complete issues when they may have limited time or unexpected commitments.</p>
 <p>We also recognize that not having a process could lead to competing or duplicate PRs. There&#8217;s no perfect solution here. We encourage you to communicate early and often on an Issue to indicate that you&#8217;re actively working on it. If you see that an Issue already has a PR, try working with that author instead of drafting your own.</p>
-<h2>Developers</h2>
+<hr/>
+<h2>Security</h2>
+<h3>Reporting a Bug</h3>
+<p>If you find a security related issue, please contact us at <a href="mailto:kew-player@proton.me">kew-player@proton.me</a>.</p>
+<p>When a fix is published, you will receive credit under your real name or bug
+tracker handle in Codeberg. If you prefer to remain anonymous or pseudonymous,
+you should mention this in your e-mail.</p>
+<h3>Disclosure Policy</h3>
+<p>The maintainer will coordinate the fix and release process, involving the
+following steps:</p>
+<ul>
+<li>Confirm the problem and determine the affected versions.</li>
+<li>Audit code to find any potential similar problems.</li>
+<li>Prepare fix for the latest release. This fix will be
+released as fast as possible.</li>
+</ul>
+<p>You may be asked to provide further information in pursuit of a fix.</p>
+<hr/>
+<h2>For Developers</h2>
 <h3>Getting started</h3>
-<p>This document will help you setup your development environment. It is intended to be beginner friendly as we welcome and encourage people who are just starting to learn about programming in C to contribute to this project. We also welcome senior developers of course, but much of this document will be redundant if you are experienced.</p>
+<p>This text will help you setup your development environment. It is intended to be beginner friendly as we welcome and encourage people who are just starting to learn about programming in C to contribute to this project. We also welcome senior developers of course, but much of this document will be redundant if you are experienced.</p>
 <h4>Problems</h4>
 <p>If you run into any problems just ask for help in an email to <a href="mailto:kew-player@protonmail.com">kew-player@protonmail.com</a> or in the PR itself.</p>
 <h4>Prerequisites</h4>
@@ -63,7 +81,7 @@ ffprobe -i AUDIO FILE -show<em>streams -select</em>streams a:0 -v quiet -print_f
 <li><a href="https://www.gnu.org/software/make/">Make</a></li>
 <li><a href="https://git-scm.com/">Git</a></li>
 <li><a href="http://valgrind.org/">Valgrind</a> (optional, for memory debugging and profiling)</li>
-<li><a href="https://vscodium.com/">VSCodium</a> or <a href="https://code.visualstudio.com/">VSCode</a> (or other debugger)</li>
+<li><a href="https://vscodium.com/">VSCodium</a> or <a href="https://code.visualstudio.com/">VSCode</a> (or other editor)</li>
 </ul>
 <h4>Building the Project</h4>
 <ol>
@@ -72,7 +90,7 @@ ffprobe -i AUDIO FILE -show<em>streams -select</em>streams a:0 -v quiet -print_f
 git clone https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew.git --single-branch --branch develop
 cd kew
 </code></p></li>
-<li><p>To enable debugging symbols, run make with DEBUG=1</p></li>
+<li><p>To enable debugging symbols, run make with DEBUG=1 or DEBUG=2 (crashes on errors). Both log to error.log</p></li>
 <li><p>Build the project:
 <code>
 make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
@@ -80,9 +98,13 @@ make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
 </ol>
 <h4>Commenting</h4>
 <p>Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. If you used AI make sure to remove comments that aren&#8217;t strictly needed.</p>
+<h4>Coding style</h4>
+<p>kew strives to use the same coding style as the Linux kernel developers:
+<a href="https://www.kernel.org/doc/html/v4.10/process/coding-style.html">https:&#47;&#47;www.kernel.org&#47;doc&#47;html&#47;v4.10&#47;process&#47;coding-style.html</a></p>
+<p>If you can, use EditorConfig for VS Code Extension that is prepared for this style. There is a file with settings for it: .editorconfig.</p>
 <h4>Architecture</h4>
 <p><img src="images/kew_architecture.png" alt="Kew architecture diagram" title="Kew architecture diagrram"/></p>
-<p>kew follows the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module. If you have doubts in where to place it, just ask.</p>
+<p>kew developers should strive to follow the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module. If you have doubts in where to place it, just ask.</p>
 <h4>Debugging with VSCodium</h4>
 <ol>
 <li><p>Install extension clangd, C&#47;C++ Debug (gdb) and EditorConfig.</p></li>
@@ -106,7 +128,7 @@ make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
         "type": "cppdbg",
         "request": "launch",
         "program": "&#47;kew",
-    &#47;&#47;"args": ["artist or song name"],
+    &#47;&#47;"args": ["all"],
         "stopAtEntry": false,
         "cwd": "",
         "environment": [],
@@ -176,27 +198,8 @@ make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
 * When the execution reaches a breakpoint, VSCode will pause, allowing you to use its built-in features for debugging.
 </code></pre></li>
 </ol>
-<h5>Finding where libs are located</h5>
-<p>If the paths in c<em>cpp</em>properties.json are wrong for your OS, to find the folder where for instance Chafa library is installed, you can use one of the following methods:</p>
-<ol>
-<li><p><strong>Using <code>pkg-config</code></strong>:</p>
-<p>The <code>pkg-config</code> tool is a helper tool used to determine compiler flags and linker flags for libraries. You can use it to find the location of Chafa&#8217;s include directory. Open your terminal and run the following command:</p>
-<pre><code>pkg-config --cflags chafa
-</code></pre>
-<p>This should display the <code>-I</code> flags required to include Chafa&#8217;s headers, which in turn will reveal the installation prefix (e.g., <code>&#47;usr&#47;include&#47;chafa&#47;</code>). The folder containing the library files itself is typically located under <code>lib</code> or <code>lib64</code>, so you can find it by looking for a folder named <code>chafa</code> within those directories.</p></li>
-<li><p><strong>Using <code>brew</code> (for macOS)</strong>:</p>
-<p>If you installed Chafa using Homebrew, you can find its installation prefix with the following command:</p>
-<pre><code>brew --prefix chafa
-</code></pre>
-<p>This will display the installation prefix for Chafa (e.g., <code>&#47;usr&#47;local&#47;opt&#47;chafa</code>).</p></li>
-<li><p><strong>Manually searching</strong>:</p>
-<p>Alternatively, you can search your file system manually for the <code>chafa</code> folder or library files. On Unix-based systems like Linux and macOS, libraries are typically installed under <code>&#47;usr</code>, <code>&#47;usr&#47;local</code>, or within the user&#8217;s home directory (e.g., <code>~&#47;.local</code>). You can use the <code>find</code> command to search for the folder:</p>
-<pre><code>find &#47;usr &#47;usr&#47;local ~&#47;.local -name chafa
-</code></pre>
-<p>This should display the location of the Chafa installation, revealing both the include and library folders.</p></li>
-</ol>
-<h4>Valgrind</h4>
-<p>To use Valgrind for memory debugging and profiling:</p>
+<h4>Memory debugging with Valgrind</h4>
+<p>To use Valgrind for memory debugging:</p>
 <ol>
 <li><p>Build kew with debug symbols. Run this command: make DEBUG=1 -j4</p></li>
 <li><p>Run Valgrind on your binary:
@@ -204,42 +207,11 @@ make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
 valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --log-file=valgrind-out.txt --show-reachable=no -s .&#47;kew
 </code></p></li>
 </ol>
-<h4>Editorconfig</h4>
-<ul>
-<li>If you can, use EditorConfig for VS Code Extension. There is a file with settings for it: .editorconfig.</li>
-</ul>
-<h2>Building an RPM package</h2>
-<p>For RPM-based distributions (like Fedora, CentOS, RHEL), you can build the package from source using the provided <code>.spec</code> file.</p>
-<ol>
-<li><p><strong>Install Build Tools &#38; Dependencies</strong></p>
-<p>First, install the necessary build dependencies for <code>kew</code> by following the instructions for your distribution (e.g., Fedora) in the &#8220;Building the project manually&#8221; section.</p>
-<p>Then, install the RPM build tools:
-<code>bash
-sudo dnf install rpm-build
-</code></p></li>
-<li><p><strong>Prepare Source Tarball</strong></p>
-<p>Create the source tarball from the git repository and place it where <code>rpmbuild</code> can find it:
-```bash</p>
-<h1>Define the version based on the spec file</h1>
-<p>VERSION=$(grep &#8216;Version:&#8217; kew.spec | awk &#8216;{print $2}&#8217;)</p>
-<h1>Create the rpmbuild directory structure</h1>
-<p>mkdir -p ~&#47;rpmbuild&#47;SOURCES</p>
-<h1>Create the source tarball</h1>
-<p>git archive &#8211;format=tar.gz &#8211;prefix=kew-$VERSION&#47; -o ~&#47;rpmbuild&#47;SOURCES&#47;kew-$VERSION.tar.gz HEAD
-```</p></li>
-<li><p><strong>Build the RPM</strong></p>
-<p>Now, you can build the binary and source RPMs:
-<code>bash
-rpmbuild -ba kew.spec
-</code>
-The resulting RPM files will be created in the <code>~&#47;rpmbuild&#47;RPMS&#47;</code> and <code>~&#47;rpmbuild&#47;SRPMS&#47;</code> directories.</p></li>
-</ol>
 </article>
     <footer>
         <p>Like kew?</p>
-    <div class="support-button">
-
-        <a href="donate.html">Support the project</a>
+        <div class="support-button">
+                <a href="donate.html">Support the project</a>
         </div>
 
           <p>Music for the Shell</p>

@@ -31,9 +31,8 @@
     <article data-sblg-article="1" style="position: relative"> Content</article>
     <footer>
         <p>Like kew?</p>
-    <div class="support-button">
-
-        <a href="donate.html">Support the project</a>
+        <div class="support-button">
+                <a href="donate.html">Support the project</a>
         </div>
 
           <p>${sblg-get|tagline}</p>

@@ -15,30 +15,29 @@ artist folder->album folder(s)->track(s).
 
 ## Example commands
 
-
- * `kew` (starting kew with no arguments opens the library view where you can choose what to play)
- * `kew all` (plays all songs, up to 50 000, in your library, shuffled)
- * `kew albums` (plays all albums, up to 2000, randomly one after the other)
- * `kew moonlight son` (finds and plays moonlight sonata)
- * `kew moon` (finds and plays moonlight sonata)
- * `kew beet` (finds and plays all music files under "beethoven" directory)
- * `kew dir <album name>` (sometimes, if names collide, it's necessary to specify it's a directory you want)
- * `kew song <song>` (or a song)
- * `kew play "/home/joe/Musik/Fridge - (2007) The Sun/"` (Plays this album, location can be anywhere)
- * `kew play "/home/joe/Musik/moonlight sonata.flac"` (Plays moonlight sonata, location can be anywhere)
- * `kew play <album path> <album path> <song path>` (play can take multiple album paths or song paths and add them all into temporary playlist)
- * `kew list <playlist>` (or a playlist)
- * `kew theme midnight` (sets the 'midnight.theme' theme).
- * `kew shuffle <album name>` (shuffles the playlist. shuffle needs to come first.)
- * `kew artistA:artistB:artistC` (plays all three artists, shuffled)
+ * `kew (starting kew with no arguments opens the library view where you can choose what to play)`
+ * `kew all (plays all songs, up to 50 000, in your library, shuffled)`
+ * `kew albums (plays all albums, up to 2000, randomly one after the other)`
+ * `kew moonlight son (finds and plays moonlight sonata)`
+ * `kew moon (finds and plays moonlight sonata)`
+ * `kew beet (finds and plays all music files under "beethoven" directory)`
+ * `kew dir <album name> (sometimes, if names collide, it's necessary to specify it's a directory you want)`
+ * `kew song <song> (or a song)`
+ * `kew play "/home/joe/Musik/Fridge - (2007) The Sun/" (Plays this album, location can be anywhere)`
+ * `kew play "/home/joe/Musik/moonlight sonata.flac" (Plays moonlight sonata, location can be anywhere)`
+ * `kew play <album path> <album path> <song path> (play can take multiple album paths or song paths and add them all into temporary playlist)`
+ * `kew list <playlist> (or a playlist)`
+ * `kew theme midnight (sets the 'midnight.theme' theme).`
+ * `kew shuffle <album name> (shuffles the playlist. shuffle needs to come first.)`
+ * `kew artistA:artistB:artistC (plays all three artists, shuffled)`
  * `kew --help, -? or -h`
  * `kew --version or -v`
  * `kew --nocover`
- * `kew --noui` (completely hides the UI)
- * `kew -q <song>, --quitonstop` (exits after finishing playing the playlist)
- * `kew -e <song>, --exact` (specifies you want an exact (but not case sensitive) match, of for instance an album)
- * `kew . ` loads kew favorites.m3u
- * `kew path "/home/joe/Musik/"` (changes the path)
+ * `kew --noui (completely hides the UI)`
+ * `kew -q <song>, --quitonstop (exits after finishing playing the playlist)`
+ * `kew -e <song>, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)`
+ * `kew .  (loads kew favorites.m3u)`
+ * `kew path "/home/joe/Musik/" (changes the path)`
 
 
 ## Key Bindings
@@ -93,6 +92,18 @@ Add current song: press <kbd>.</kbd>
 
 To load 'kew list fav': kew .
 
+## Layouts
+
+It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](layouts/LAYOUTS-HOWTO.md)
+
+The layout used by kew is called current.layout.
+
+Replace current.layout to change the layout. If breaking changes are introduced, current.layout will be renamed to current.layout.bak, before the new one is copied over.
+
+Layouts are in \~/.config/kew/layouts (\~/Library/Preferences/kew/layouts on macOS).
+
+If layouts aren't working, try re-installing kew or running 'sudo make install' if you ran make yourself.
+
 ## Themes
 
 Press t to cycle available themes.
@@ -108,6 +119,16 @@ Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS)
 Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.
 
 Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https://bholroyd.github.io/Kew-tip/).
+
+## If Colors or Graphics Look Wrong
+
+Cycle <kbd>i</kbd> until they look right.
+
+Press <kbd>v</kbd> to turn off visualizer.
+
+Press <kbd>b</kbd> for ASCII covers.
+
+A terminal emulator that can handle TrueColor and sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
 
 ## Configuration
 
@@ -156,7 +177,7 @@ Disable by pressing <kbd>b</kbd>.
 
 This works by kew being fed frames from Chroma and does not add bloat to kew.
 
-### Configuration
+#### Chroma Configuration
 
 You can customize Chroma's behavior in your `kewrc` file:
 
@@ -175,24 +196,37 @@ kew's private and offline nature means we don't support Scrobbling/last.fm dire
 ctly. Instead tools such as PanoScrobbler are recommended. See: https://github.
 com/kawaiiDango/pano-scrobbler.
 
-## Security
+## How to make sure kew is offline and private
 
-### Reporting a Bug
+kew itself does not have telemetry, it does not collect data and send to kew servers, it does not access the internet.
 
-If you find a security related issue, please contact us at kew-player@proton.me.
+However, if Discord RPC is enabled and Discord is running, data about what you are listening to will end up on Discord servers.
 
-When a fix is published, you will receive credit under your real name or bug
-tracker handle in Codeberg. If you prefer to remain anonymous or pseudonymous,
-you should mention this in your e-mail.
+To ensure the best privacy, two settings have to be set as following in the settings file kewrc:
 
-### Disclosure Policy
+```bash
+allowNotifications=0
+discordRPCEnabled=0
+```
 
-The maintainer will coordinate the fix and release process, involving the
-following steps:
+in kewstaterc, make sure this is set:
 
-  * Confirm the problem and determine the affected versions.
-  * Audit code to find any potential similar problems.
-  * Prepare fix for the latest release. This fix will be
-    released as fast as possible.
+```bash
+allowNotifications=0
+```
 
-You may be asked to provide further information in pursuit of a fix.
+kewstaterc tracks in-app choices so if you press 'n' for toggling notifications, the value will change.
+
+Notifications means desktop notifications (MPRIS/DBUS) which is local, but is broadcast to other apps on your machine that are listening. It's generally not logged unless an app on your machine that is listening logs it.
+
+To force notifications to be always off, compile with:
+
+```bash
+make USE_DBUS=0 -j
+```
+
+To erase traces of your kew listening after uninstall, you need to delete the library.dat file in ~/.config/kew.
+
+## License
+
+Licensed under GPL. [See LICENSE for more information](./LICENSE).
