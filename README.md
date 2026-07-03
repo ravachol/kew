@@ -6,7 +6,7 @@
 
 <div align="center">
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-theme">
-    <img src="images/kew.gif" alt="Screenshot">
+    <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot">
   </a>
   <br>
 </div>
