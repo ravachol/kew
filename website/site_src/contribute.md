@@ -84,7 +84,7 @@ Run the following commands:
 
 ### Coding style
 
-kew strives to use the same coding style as the Linux kernel developers:
+We have adopted the same coding style for the most part as the Linux kernel developers:
 https://www.kernel.org/doc/html/v4.10/process/coding-style.html
 
 If you can, use EditorConfig for VS Code Extension that is prepared for this style. There is a file with settings for it: .editorconfig.
