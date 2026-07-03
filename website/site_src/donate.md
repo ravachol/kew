@@ -20,18 +20,6 @@ Below you'll find answers to some questions that you might have.
 
 You get to be inducted into the <a href="sponsors.html">Hall of Fame of the Elite</a> (the Sponsors page).
 
-#### How do I know you will put my donation to good use?
-
-This is a very important project to me. I started working as a software developer in 1996, and this is my Magnum Opus and gift to the world, that I'm doing as a hobby. A lot of people contribute to this project too, about ~20 people the last two big releases. We have been adding a ton of stuff to kew and making it better and safer to use.
-
-#### I can only donate a small amount. Does that help?
-
-Yes, it absolutely does.
-
-#### Why are monthly subscriptions preferred?
-
-We fully appreciate one-time donations, but monthly donations provide safety, stability and predictability.
-
 #### Can I contact you?
 
 You can send an email to kew-player AT proton DOT me.
