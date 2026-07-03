@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## kew 4.1.5
+## kew 4.1.7
+
+- Fixes image rendering error on gnome terminal. By @ravachol. Reported by @Erwin-Iosef.
+
+## kew 4.1.6
 
 - Look for themes/layouts in fallback /usr/share/kew  if they are not found using PREFIX. Fixes problem with packaging kew.  By @ravachol. Reported by @Erwin-Iosef.
 
