@@ -32,9 +32,9 @@ artist folder->album folder(s)->track(s).
 
  kew song <song> (or a song)
 
- kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/" (Plays this album, location can be anywhere)
+ kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/" (plays the \'Are you Experienced?\' album)
 
- kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/Purple Haze.flac" (Plays this song, location can be anywhere)
+ kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/Purple Haze.flac" (plays Purple Haze)
 
  kew play <album path> <album path> <song path> (play can take multiple album paths or song paths and add them all into
  temporary playlist)
