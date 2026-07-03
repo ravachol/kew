@@ -7,12 +7,8 @@ Below you'll find answers to some questions that you might have.
 # <a href="https://github.com/sponsors/ravachol"><img src="images/github.png" width="50" /></a> [Github Sponsors](https://github.com/sponsors/ravachol)
 <small>Github Sponsors has zero fees.</small>
 
-
-
 # <a href="https://ko-fi.com/ravachol"><img src="images/ko-fi.avif" width="50" /></a> [ko-fi](https://ko-fi.com/ravachol)
 <small>ko-fi takes a 5% cut.</small>
-
-
 
 ## FAQ
 
