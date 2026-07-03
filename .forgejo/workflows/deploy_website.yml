@@ -30,7 +30,7 @@ jobs:
         with:
           site: 'https://kewplayer.com/'
           token: ${{ forge.token }}
-          source: website/pages/
+          source: pages/
 
       - name: Prep redirect-only site
         run: |
