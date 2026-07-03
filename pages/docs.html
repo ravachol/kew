@@ -37,31 +37,53 @@
 <p>It works best when your music library is organized this way:</p>
 <p>artist folder-&#62;album folder(s)-&#62;track(s).</p>
 <h2>Example commands</h2>
-<ul>
-<li><code>kew (starting kew with no arguments opens the library view where you can choose what to play)</code></li>
-<li><code>kew all (plays all songs, up to 50 000, in your library, shuffled)</code></li>
-<li><code>kew albums (plays all albums, up to 2000, randomly one after the other)</code></li>
-<li><code>kew moonlight son (finds and plays moonlight sonata)</code></li>
-<li><code>kew moon (finds and plays moonlight sonata)</code></li>
-<li><code>kew beet (finds and plays all music files under "beethoven" directory)</code></li>
-<li><code>kew dir &#60;album name&#62; (sometimes, if names collide, it&#39;s necessary to specify it&#39;s a directory you want)</code></li>
-<li><code>kew song &#60;song&#62; (or a song)</code></li>
-<li><code>kew play "&#47;home&#47;joe&#47;Musik&#47;Fridge - (2007) The Sun&#47;" (Plays this album, location can be anywhere)</code></li>
-<li><code>kew play "&#47;home&#47;joe&#47;Musik&#47;moonlight sonata.flac" (Plays moonlight sonata, location can be anywhere)</code></li>
-<li><code>kew play &#60;album path&#62; &#60;album path&#62; &#60;song path&#62; (play can take multiple album paths or song paths and add them all into temporary playlist)</code></li>
-<li><code>kew list &#60;playlist&#62; (or a playlist)</code></li>
-<li><code>kew theme midnight (sets the &#39;midnight.theme&#39; theme).</code></li>
-<li><code>kew shuffle &#60;album name&#62; (shuffles the playlist. shuffle needs to come first.)</code></li>
-<li><code>kew artistA:artistB:artistC (plays all three artists, shuffled)</code></li>
-<li><code>kew --help, -? or -h</code></li>
-<li><code>kew --version or -v</code></li>
-<li><code>kew --nocover</code></li>
-<li><code>kew --noui (completely hides the UI)</code></li>
-<li><code>kew -q &#60;song&#62;, --quitonstop (exits after finishing playing the playlist)</code></li>
-<li><code>kew -e &#60;song&#62;, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)</code></li>
-<li><code>kew .  (loads kew favorites.m3u)</code></li>
-<li><code>kew path "&#47;home&#47;joe&#47;Musik&#47;" (changes the path)</code></li>
-</ul>
+<pre><code> kew (starting kew with no arguments opens the library view where you can choose what to play)
+
+ kew all (plays all songs, up to 50 000, in your library, shuffled)
+
+ kew albums (plays all albums, up to 2000, randomly one after the other)
+
+ kew moonlight son (finds and plays moonlight sonata)
+
+ kew moon (finds and plays moonlight sonata)
+
+ kew beet (finds and plays all music files under "beethoven" directory)
+
+ kew dir &#60;album name&#62; (sometimes, if names collide, it&#39;s necessary to specify it&#39;s a directory you want)
+
+ kew song &#60;song&#62; (or a song)
+
+ kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;" (Plays this album, location can be anywhere)
+
+ kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;Purple Haze.flac" (Plays this song, location can be anywhere)
+
+ kew play &#60;album path&#62; &#60;album path&#62; &#60;song path&#62; (play can take multiple album paths or song paths and add them all into
+ temporary playlist)
+
+ kew list &#60;playlist&#62; (or a playlist)
+
+ kew theme midnight (sets the &#39;midnight.theme&#39; theme)
+
+ kew shuffle &#60;album name&#62; (shuffles the playlist. shuffle needs to come first.)
+
+ kew artistA:artistB:artistC (plays all three artists, shuffled)
+
+ kew --help, -? or -h
+
+ kew --version or -v
+
+ kew --nocover
+
+ kew --noui (completely hides the UI)
+
+ kew -q &#60;song&#62;, --quitonstop (exits after finishing playing the playlist)
+
+ kew -e &#60;song&#62;, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
+
+ kew .  (loads kew favorites.m3u)
+
+ kew path "&#47;home&#47;you&#47;Music&#47;" (changes the path)
+</code></pre>
 <h2>Key Bindings</h2>
 <h3>Basic</h3>
 <ul>

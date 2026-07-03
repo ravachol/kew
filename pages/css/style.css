@@ -126,7 +126,7 @@ img {
 
 code {
     font-family: monospace;
-    padding: 2px;
+    padding: 16px;
     background-color: var(--code-background-color);
     color: var(--code-color);
     width: var(--width);

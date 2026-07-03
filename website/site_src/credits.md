@@ -59,11 +59,18 @@
 * Ravachol @ravachol
 * LeahTheSlug (Advisor) https://slugmail.quest
 
-## Website structure
+## Website
 
-* @bkmgit
+* @bkmgit (structure and generating script)
+* Ravachol @ravachol (texts and style)
+
+## Translations
+
+* @hiruocha (Simplified Chinese)
 
 ## Package Maintainers
+
+Big thanks for always being so helpful and understanding!
 
 * Matthias Geiger @werdahias (Debian, Ubuntu, Raspbian, Kali, Parrot, PureOS)
 * Yuri @yurivict (FreeBSD)
@@ -79,16 +86,13 @@
 * @ktnb (NetBSD)
 * @jared (Solus)
 * @owen (Terra Rawhide)
-* @riches_tweaks0o (NixOS)
-* @riches_tweaks0o (NixOS)
-
-## Translations
-
-* @hiruocha (Simplified Chinese)
+* Nikita Demin @Demine0 (NixOS)
+* Matteo Pacini @matteo-pacini (NixOS)
 
 ## Attributions
 
-* kew makes use of the following great open source projects:
+kew makes use of the following great open source projects:
+
 * Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
 * Chroma by yuri-xyz - https://github.com/yuri-xyz/chroma
 * TagLib by TagLib Team - https://taglib.org/

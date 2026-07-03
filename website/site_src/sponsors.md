@@ -13,9 +13,9 @@
 
 #### One time Sponsors
 
-@Supporter $50 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑 🥳
+@Supporter $50 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑 🤯
 
-@LTeder $45 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑 🥳
+@LTeder $45 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑 🤯
 
 @imalee.sk $20 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
 
@@ -31,7 +31,11 @@
 
 @codemacabre $10 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
 
+@mimidios8 $8 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
+
 @the-boar $5 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
+
+@Christian Mummelthey $5 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
 
 @nikolasdmtr $5 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
 
@@ -39,10 +43,6 @@
 
 @Needlide $3 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
 
-@Christian Mummelthey $5 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
-
 @YiddishMcSquidish $3 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
-
-@mimidios8 $8 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
 
 

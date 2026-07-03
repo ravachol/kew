@@ -2,6 +2,12 @@
 
 Thank you for your interest in contributing to kew! This page consists of two sections, how to contribute, and further down, how to develop for kew.
 
+kew is developed on:
+https://codeberg.org/ravachol/kew - Issues, PR:s go here.
+
+Mirror:
+https://github.com/ravachol/kew - Still used for some workflows, that haven't been migrated yet.
+
 ### Goal of the project
 
 The goal of kew is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience.

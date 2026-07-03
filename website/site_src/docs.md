@@ -15,29 +15,54 @@ artist folder->album folder(s)->track(s).
 
 ## Example commands
 
- * `kew (starting kew with no arguments opens the library view where you can choose what to play)`
- * `kew all (plays all songs, up to 50 000, in your library, shuffled)`
- * `kew albums (plays all albums, up to 2000, randomly one after the other)`
- * `kew moonlight son (finds and plays moonlight sonata)`
- * `kew moon (finds and plays moonlight sonata)`
- * `kew beet (finds and plays all music files under "beethoven" directory)`
- * `kew dir <album name> (sometimes, if names collide, it's necessary to specify it's a directory you want)`
- * `kew song <song> (or a song)`
- * `kew play "/home/joe/Musik/Fridge - (2007) The Sun/" (Plays this album, location can be anywhere)`
- * `kew play "/home/joe/Musik/moonlight sonata.flac" (Plays moonlight sonata, location can be anywhere)`
- * `kew play <album path> <album path> <song path> (play can take multiple album paths or song paths and add them all into temporary playlist)`
- * `kew list <playlist> (or a playlist)`
- * `kew theme midnight (sets the 'midnight.theme' theme).`
- * `kew shuffle <album name> (shuffles the playlist. shuffle needs to come first.)`
- * `kew artistA:artistB:artistC (plays all three artists, shuffled)`
- * `kew --help, -? or -h`
- * `kew --version or -v`
- * `kew --nocover`
- * `kew --noui (completely hides the UI)`
- * `kew -q <song>, --quitonstop (exits after finishing playing the playlist)`
- * `kew -e <song>, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)`
- * `kew .  (loads kew favorites.m3u)`
- * `kew path "/home/joe/Musik/" (changes the path)`
+ ```
+ kew (starting kew with no arguments opens the library view where you can choose what to play)
+
+ kew all (plays all songs, up to 50 000, in your library, shuffled)
+
+ kew albums (plays all albums, up to 2000, randomly one after the other)
+
+ kew moonlight son (finds and plays moonlight sonata)
+
+ kew moon (finds and plays moonlight sonata)
+
+ kew beet (finds and plays all music files under "beethoven" directory)
+
+ kew dir <album name> (sometimes, if names collide, it's necessary to specify it's a directory you want)
+
+ kew song <song> (or a song)
+
+ kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/" (Plays this album, location can be anywhere)
+
+ kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/Purple Haze.flac" (Plays this song, location can be anywhere)
+
+ kew play <album path> <album path> <song path> (play can take multiple album paths or song paths and add them all into
+ temporary playlist)
+
+ kew list <playlist> (or a playlist)
+
+ kew theme midnight (sets the 'midnight.theme' theme)
+
+ kew shuffle <album name> (shuffles the playlist. shuffle needs to come first.)
+
+ kew artistA:artistB:artistC (plays all three artists, shuffled)
+
+ kew --help, -? or -h
+
+ kew --version or -v
+
+ kew --nocover
+
+ kew --noui (completely hides the UI)
+
+ kew -q <song>, --quitonstop (exits after finishing playing the playlist)
+
+ kew -e <song>, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
+
+ kew .  (loads kew favorites.m3u)
+
+ kew path "/home/you/Music/" (changes the path)
+ ```
 
 
 ## Key Bindings

@@ -2822,7 +2822,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         // Project links
         draw_buffer_set_string(buf, row, col, _(" Project URL: "), help_style);
         draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Project URL: ")),
-                               "https://codeberg.org/ravachol/kew", link_style);
+                               "https://www.kewplayer.com", link_style);
         row++;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
