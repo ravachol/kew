@@ -133,12 +133,6 @@ wstaterc.</p>
 <p>kewrc is never changed by kew with the exception of when you run kew path.</p>
 <p>If you delete your kewrc a new default one will be generated. You wont get newe
 r config options listed in your config file unless you do this.</p>
-<h2>Playlists</h2>
-<p>To load a playlist: type <code>kew list &#60;name&#62;</code></p>
-<p>To export a playlist, press <code>x</code>. This will save a file in your music path with the name of the first song in the queue.</p>
-<p>There is also a favorites playlist function:</p>
-<p>Add current song: press <kbd>.</kbd></p>
-<p>To load &#8216;kew list fav&#8217;: kew .</p>
 <h2>Layouts</h2>
 <p>It&#8217;s possible to define your own layout in kew. How to make one is described in <a href="https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md">LAYOUTS-HOWTO.md</a></p>
 <p>The layout used by kew is called current.layout.</p>
@@ -158,6 +152,12 @@ r config options listed in your config file unless you do this.</p>
 <p>Press <kbd>v</kbd> to turn off visualizer.</p>
 <p>Press <kbd>b</kbd> for ASCII covers.</p>
 <p>A terminal emulator that can handle TrueColor and sixels is recommended. See <a href="https://www.arewesixelyet.com/">Sixels in Terminal</a>.</p>
+<h2>Playlists</h2>
+<p>To load a playlist: type <code>kew list &#60;name&#62;</code></p>
+<p>To export a playlist, press <code>x</code>. This will save a file in your music path with the name of the first song in the queue.</p>
+<p>There is also a favorites playlist function:</p>
+<p>Add current song: press <kbd>.</kbd></p>
+<p>To load &#8216;kew list fav&#8217;: kew .</p>
 <h2>Visulizations &#47; Chroma</h2>
 <p>Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.</p>
 <p>You&#8217;ll need to install a specific commit, which is the latest one that works.</p>
@@ -174,9 +174,11 @@ cargo install --path . --features audio
 <p>Disable by pressing <kbd>b</kbd>.</p>
 <p>This works by kew being fed frames from Chroma and does not add bloat to kew.</p>
 <h4>Chroma Configuration</h4>
-<p>You can customize Chroma&#8217;s behavior in your <code>kewrc</code> file:</p>
-<p><code>chromaPath</code>: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
-<code>chromaDevice</code>: Specify the audio device for Chroma to capture from (e.g., <code>PipeWire Sound Server</code>). Use <code>chroma --list-audio-devices</code> to find available devices.</p>
+<p>You can customize Chroma&#8217;s behavior in your kewrc file:</p>
+<ul>
+<li>chromaPath: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.</li>
+<li>chromaDevice: Specify the audio device for Chroma to capture from (e.g., "PipeWire Sound Server"). Use chroma &#8211;list-audio-devices, to find available devices.</li>
+</ul>
 <pre><code class="language-ini">[chroma]
 chromaPath=&#47;path&#47;to&#47;your&#47;custom.preset
 chromaDevice=PipeWire Sound Server
@@ -202,7 +204,7 @@ discordRPCEnabled=0
 </code></pre>
 <p>To erase traces of your kew listening after uninstall, you need to delete the library.dat file in ~&#47;.config&#47;kew.</p>
 <h2>License</h2>
-<p>Licensed under GPL. <a href="https://codeberg.org/ravachol/kew/src/branch/main/LICENSE">See LICENSE for more information</a>.</p>
+<p>Licensed under GPLv2+. <a href="https://codeberg.org/ravachol/kew/src/branch/main/LICENSE">See LICENSE for more information</a>.</p>
 </article>
     <footer>
         <p>Like kew?</p>

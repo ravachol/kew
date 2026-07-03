@@ -126,18 +126,6 @@ kewrc is never changed by kew with the exception of when you run kew path.
 If you delete your kewrc a new default one will be generated. You wont get newe
 r config options listed in your config file unless you do this.
 
-## Playlists
-
-To load a playlist: type `kew list <name>`
-
-To export a playlist, press `x`. This will save a file in your music path with the name of the first song in the queue.
-
-There is also a favorites playlist function:
-
-Add current song: press <kbd>.</kbd>
-
-To load 'kew list fav': kew .
-
 ## Layouts
 
 It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md)
@@ -176,6 +164,18 @@ Press <kbd>b</kbd> for ASCII covers.
 
 A terminal emulator that can handle TrueColor and sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
 
+## Playlists
+
+To load a playlist: type `kew list <name>`
+
+To export a playlist, press `x`. This will save a file in your music path with the name of the first song in the queue.
+
+There is also a favorites playlist function:
+
+Add current song: press <kbd>.</kbd>
+
+To load 'kew list fav': kew .
+
 ## Visulizations / Chroma
 
 Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.
@@ -202,10 +202,10 @@ This works by kew being fed frames from Chroma and does not add bloat to kew.
 
 #### Chroma Configuration
 
-You can customize Chroma's behavior in your `kewrc` file:
+You can customize Chroma's behavior in your kewrc file:
 
-`chromaPath`: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
-`chromaDevice`: Specify the audio device for Chroma to capture from (e.g., `PipeWire Sound Server`). Use `chroma --list-audio-devices` to find available devices.
+- chromaPath: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
+- chromaDevice: Specify the audio device for Chroma to capture from (e.g., \"PipeWire Sound Server\"). Use chroma --list-audio-devices, to find available devices.
 
 ```ini
 [chroma]
@@ -252,4 +252,4 @@ To erase traces of your kew listening after uninstall, you need to delete the li
 
 ## License
 
-Licensed under GPL. [See LICENSE for more information](https://codeberg.org/ravachol/kew/src/branch/main/LICENSE).
+Licensed under GPLv2+. [See LICENSE for more information](https://codeberg.org/ravachol/kew/src/branch/main/LICENSE).

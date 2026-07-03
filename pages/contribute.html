@@ -30,31 +30,18 @@
 
     <article data-sblg-article="1" data-sblg-set-title="kew (/kjuː/, a variant of cue) is a terminal music player." data-sblg-set-subtitle="kew (/kjuː/) is a variant of cue" data-sblg-set-tagline="Music for the Shell">
 <h2>Welcome to the contributing guide</h2>
-<p>Thank you for your interest in contributing to kew! This page consists of two sections, how to contribute, and further down, how to develop for kew.</p>
+<p>Thank you for your interest in contributing to kew!</p>
 <p>kew is developed on:
 <a href="https://codeberg.org/ravachol/kew">https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew</a> - Issues, PR:s go here.</p>
 <p>Mirror:
-<a href="https://github.com/ravachol/kew">https:&#47;&#47;github.com&#47;ravachol&#47;kew</a> - Still used for some workflows, that haven&#8217;t been migrated yet.</p>
+<a href="https://github.com/ravachol/kew">https:&#47;&#47;github.com&#47;ravachol&#47;kew</a> - Still used for some workflows that haven&#8217;t been migrated yet.</p>
 <h3>Goal of the project</h3>
 <p>The goal of kew is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience.
 It&#8217;s a small app, limited in scope and it shouldn&#8217;t be everything to all people. It should continue to be a very light weight app.</p>
 <p>For instance, it&#8217;s not imagined as a software for dj&#8217;ing or as a busy music file manager with all the features.</p>
 <p>We want to keep the codebase easy to manage and free of bloat, so might reject a feature out of that reason only.</p>
-<h3>Bugs</h3>
-<p>Please report any bugs directly on codeberg, with as much relevant detail as possible.
-If there&#8217;s a crash or stability issue, the audio file details are interesting, but also the details of the previous and next file on the playlist. You can extract these details by running:
-ffprobe -i AUDIO FILE -show<em>streams -select</em>streams a:0 -v quiet -print_format json</p>
-<h3>Create a pull request</h3>
-<p>After making any changes, open a pull request on Codeberg, develop branch.</p>
-<p><a href="https://codeberg.org/ravachol/kew">https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew</a></p>
-<ul>
-<li><p>Please contact me (<a href="mailto:kew-player@proton.me">kew-player@proton.me</a>) before doing a big change, or risk the whole thing getting rejected.</p></li>
-<li><p>Try to keep commits fairly small so that they are easy to review.</p></li>
-<li><p>If you&#8217;re fixing a particular bug in the issue list, please explicitly say &#8220;Fixes #&#8221; in your description&#8221;.</p></li>
-</ul>
-<h3>Issue assignment</h3>
-<p>We don&#8217;t have a process for assigning issues to contributors. Please feel free to jump into any issues in this repo that you are able to help with. Our intention is to encourage anyone to help without feeling burdened by an assigned task. Life can sometimes get in the way, and we don&#8217;t want to leave contributors feeling obligated to complete issues when they may have limited time or unexpected commitments.</p>
-<p>We also recognize that not having a process could lead to competing or duplicate PRs. There&#8217;s no perfect solution here. We encourage you to communicate early and often on an Issue to indicate that you&#8217;re actively working on it. If you see that an Issue already has a PR, try working with that author instead of drafting your own.</p>
+<h3>Reporting Bugs and Suggesting Enhancements</h3>
+<p>Please report any bugs on <a href="https://codeberg.org/ravachol/kew/issues">Codeberg</a>, with as much relevant detail as possible.</p>
 <hr/>
 <h2>Security</h2>
 <h3>Reporting a Bug</h3>
@@ -74,143 +61,55 @@ released as fast as possible.</li>
 <p>You may be asked to provide further information in pursuit of a fix.</p>
 <hr/>
 <h2>For Developers</h2>
-<h3>Getting started</h3>
 <p>This text will help you setup your development environment. It is intended to be beginner friendly as we welcome and encourage people who are just starting to learn about programming in C to contribute to this project. We also welcome senior developers of course, but much of this document will be redundant if you are experienced.</p>
-<h4>Problems</h4>
-<p>If you run into any problems just ask for help in an email to <a href="mailto:kew-player@protonmail.com">kew-player@protonmail.com</a> or in the PR itself.</p>
-<h4>Prerequisites</h4>
+<h3>Before doing a lot of work</h3>
+<p>Please contact us first and discuss your plans if you are trying to do something big, so your PR doesn&#8217;t get rejected after having spent a lot of time on it. You can for instance open a PR that contains your intent, and continue working on it if the response is positive.</p>
+<h3>Just ask</h3>
+<p>If you run into any problems just ask for help in an email to kew-player AT proton DOT me or in the PR itself.</p>
+<h3>Prerequisites</h3>
 <p>Before contributing, ensure you have the following tools installed on your development machine:</p>
 <ul>
 <li><a href="https://gcc.gnu.org/">GCC</a> (or another compatible C&#47;C++ compiler)</li>
 <li><a href="https://www.gnu.org/software/make/">Make</a></li>
 <li><a href="https://git-scm.com/">Git</a></li>
-<li><a href="http://valgrind.org/">Valgrind</a> (optional, for memory debugging and profiling)</li>
-<li><a href="https://vscodium.com/">VSCodium</a> or <a href="https://code.visualstudio.com/">VSCode</a> (or other editor)</li>
+<li><a href="http://valgrind.org/">Valgrind</a></li>
+<li>An editor: <a href="https://vscodium.com/">VSCodium</a>, <a href="https://code.visualstudio.com/">VSCode</a>, <a href="https://www.vim.org">Vim</a>, <a href="https://www.gnu.org/software/emacs/">Emacs</a> or some other editor.</li>
 </ul>
-<h4>Building the Project</h4>
-<ol>
-<li><p>Clone the repository:
-<code>
-git clone https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew.git --single-branch --branch develop
-cd kew
-</code></p></li>
-<li><p>To enable debugging symbols, run make with DEBUG=1 or DEBUG=2 (crashes on errors). Both log to error.log</p></li>
-<li><p>Build the project:
-<code>
-make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
-</code></p></li>
-</ol>
-<h4>Commenting</h4>
-<p>Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. If you used AI make sure to remove comments that aren&#8217;t strictly needed.</p>
-<h4>Coding style</h4>
+<h3>Building the Project</h3>
+<p>Run the following commands:</p>
+<pre><code>   git clone https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew.git --single-branch --branch develop
+   cd kew
+   make DEBUG=1 -j
+   sudo make install
+</code></pre>
+<p>You can use either DEBUG=1 or DEBUG=2. DEBUG=2 is helpful because it crashes on any errors and logs why. Both log to error.log.</p>
+<h3>Coding style</h3>
 <p>kew strives to use the same coding style as the Linux kernel developers:
 <a href="https://www.kernel.org/doc/html/v4.10/process/coding-style.html">https:&#47;&#47;www.kernel.org&#47;doc&#47;html&#47;v4.10&#47;process&#47;coding-style.html</a></p>
 <p>If you can, use EditorConfig for VS Code Extension that is prepared for this style. There is a file with settings for it: .editorconfig.</p>
-<h4>Architecture</h4>
-<p><img src="images/kew_architecture.png" alt="Kew architecture diagram" title="Kew architecture diagrram"/></p>
-<p>kew developers should strive to follow the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module. If you have doubts in where to place it, just ask.</p>
-<h4>Debugging with VSCodium</h4>
+<h3>Commenting</h3>
+<p>Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. Remove comments that aren&#8217;t strictly needed.</p>
+<h3>Architecture</h3>
+<p>Pic: <a href="images/kew_architecture.png">kew architecture diagram</a></p>
+<p>kew developers should strive to follow the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module (directory). If you have doubts in where to place it, just ask.</p>
+<h3>Debugging with VSCodium</h3>
 <ol>
 <li><p>Install extension clangd, C&#47;C++ Debug (gdb) and EditorConfig.</p></li>
 <li><p>Install the program bear that can generate a compile_commands.json. This helps clangd find libs.</p></li>
-<li><p>Run bear &#8211; make.</p></li>
+<li><p>Run bear -- make.</p></li>
 </ol>
 <p>This should enable you to develop kew on VSCodium.</p>
-<h4>Debugging with Visual Studio Code</h4>
-<p>To enable debugging in VSCode, you&#8217;ll need to create a <code>launch.json</code> file that configures the debugger. Follow these steps:</p>
-<ol>
-<li><p>Open your project&#8217;s folder in VSCode.</p></li>
-<li><p>Press <code>F5</code> or go to the &#8220;Run and Debug&#8221; sidebar (<code>Ctrl+Shift+D</code> on Windows&#47;Linux, <code>Cmd+Shift+D</code> on macOS), then click on the gear icon to create a new launch configuration file.</p></li>
-<li><p>Select &#8220;C++ (GDB&#47;LLDB)&#8221; as the debugger type, and choose your platform (e.g., x64-linux, x86-win32, etc.).</p></li>
-<li><p>Replace the contents of the generated <code>launch.json</code> file with the following, adjusting paths and arguments as needed:</p>
-<pre><code class="language-json">{
-"version": "0.2.0",
-"configurations": [
-
-    {
-        "name": "kew",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "&#47;kew",
-    &#47;&#47;"args": ["all"],
-        "stopAtEntry": false,
-        "cwd": "",
-        "environment": [],
-        "externalConsole": true,
-        "MIMode": "gdb",
-        "setupCommands": [
-            {
-                "description": "Enable pretty-printing for gdb",
-                "text": "-enable-pretty-printing",
-                "ignoreFailures": true
-            }
-        ]
-    }
-]
-}
-</code></pre></li>
-<li><p>Save the <code>launch.json</code> file.</p></li>
-<li><p>Create a c<em>cpp</em>properties.json file in the same folder (.vscode) with the following contents adjusting paths and arguments as needed:</p>
-<pre><code class="language-json">{
-    "configurations": [
-            {
-                    "name": "linux-gcc-x64",
-                    "includePath": [
-                            "&#47;include&#47;miniaudio",
-                            "&#47;include&#47;nestegg",
-                            "&#47;**",
-                            "&#47;usr&#47;include",
-                            "&#47;usr&#47;include&#47;opus",
-                            "&#47;usr&#47;include&#47;vorbis",
-                            "&#47;usr&#47;include&#47;chafa&#47;",
-                            "&#47;lib&#47;chafa&#47;include",
-                            "&#47;usr&#47;include&#47;glib-2.0",
-                            "&#47;usr&#47;lib&#47;glib-2.0&#47;include",
-                            "&#47;usr&#47;include&#47;libmount",
-                            "&#47;usr&#47;include&#47;blkid",
-                            "&#47;usr&#47;include&#47;sysprof-6",
-                            "&#47;usr&#47;include&#47;glib-2.0&#47;gio",
-                            "&#47;usr&#47;include&#47;glib-2.0",
-                            "&#47;include"
-                    ],
-                    "browse": {
-                            "path": [
-                                    "&#47;include&#47;miniaudio",
-                                    "&#47;src",
-                                    "&#47;include",
-                                    "&#47;**"
-                            ],
-                            "limitSymbolsToIncludedHeaders": true
-                    },
-                    "defines": [
-                            "_POSIX_C_SOURCE=200809L"
-                    ],
-                    "compilerPath": "&#47;usr&#47;bin&#47;gcc",
-                    "cStandard": "",
-                    "cppStandard": "",
-                    "intelliSenseMode": "linux-gcc-x64"
-            }
-    ],
-    "version": 4
-}
-
-</code></pre></li>
-<li><p>Add the extensions C&#47;C++, C&#47;C++ Extension pack, C&#47;C++ Themes (optional).</p></li>
-<li><p>Now you can use VSCode&#8217;s debugger to step through your code, inspect variables, and analyze any issues:</p>
-<pre><code>* Set breakpoints in your source code by placing your cursor on the desired line number, then press `F9`.
-* Press `F5` or click on the "Start Debugging" button (or go to the "Run and Debug" sidebar) to start the debugger.
-* When the execution reaches a breakpoint, VSCode will pause, allowing you to use its built-in features for debugging.
-</code></pre></li>
-</ol>
-<h4>Memory debugging with Valgrind</h4>
+<h3>Memory debugging with Valgrind</h3>
 <p>To use Valgrind for memory debugging:</p>
-<ol>
-<li><p>Build kew with debug symbols. Run this command: make DEBUG=1 -j4</p></li>
-<li><p>Run Valgrind on your binary:
-<code>
-valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --log-file=valgrind-out.txt --show-reachable=no -s .&#47;kew
-</code></p></li>
-</ol>
+<p>Run make.</p>
+<p>Run Valgrind on your binary:</p>
+<pre><code>valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all \
+        --log-file=valgrind-out.txt --show-reachable=no -s .&#47;kew
+</code></pre>
+<h3>Create a pull request</h3>
+<p>After making any changes, open a pull request on Codeberg, develop branch.</p>
+<h3>Issue assignment</h3>
+<p>We don&#8217;t have a process for assigning issues to contributors. Please feel free to jump into any issues in this repo that you are able to help with. Duplicate work might be avoided if everybody keeps an eye on what&#8217;s going on on in the repo.</p>
 </article>
     <footer>
         <p>Like kew?</p>
