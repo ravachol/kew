@@ -18,7 +18,7 @@ Below you'll find answers to some questions that you might have.
 
 #### What happens after I donated?
 
-You get to be inducted into the <a href="gallery.html">Hall of Fame of the Elite</a> (the Sponsors page).
+You get to be inducted into the <a href="sponsors.html">Hall of Fame of the Elite</a> (the Sponsors page).
 
 #### How do I know you will put my donation to good use?
 
@@ -38,7 +38,7 @@ You can send an email to kew-player AT proton DOT me.
 
 #### Is kew vibe coded?
 
-I have never tried Co-pilot or Claude Opus or Codex or whatever. I have used AI tools, and asked a lot of questions, but very carefully, not vibe coded, and I don’t pay them money. There are 15 commits co-authored by Claude (out of thousands) and they are made by two people who aren’t me.
+No, I have never tried Co-pilot or Claude Opus or Codex or whatever. I have used AI tools, and asked a lot of questions, but very carefully, not vibe coded, and I don’t pay them money. There are 15 commits co-authored by Claude (out of thousands) and they are made by two people who aren’t me.
 
 Besides, a lot of people who vibe code are young beginner indie devs, and not necessarily people that should make you go grab a pitchfork.
 

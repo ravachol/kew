@@ -64,7 +64,7 @@ artist folder->album folder(s)->track(s).
 ### Advanced
 
 * <kbd>u</kbd> to update the library.
-* <kbd>m</kbd> show full page lyrics in track view. See [Lyrics](#lyrics)
+* <kbd>m</kbd> show full page lyrics in track view.
 * <kbd>v</kbd> to toggle the visualizer.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>n</kbd> to toggle notifications.
@@ -94,7 +94,7 @@ To load 'kew list fav': kew .
 
 ## Layouts
 
-It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](layouts/LAYOUTS-HOWTO.md)
+It's possible to define your own layout in kew. How to make one is described in [LAYOUTS-HOWTO.md](https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md)
 
 The layout used by kew is called current.layout.
 
@@ -229,4 +229,4 @@ To erase traces of your kew listening after uninstall, you need to delete the li
 
 ## License
 
-Licensed under GPL. [See LICENSE for more information](./LICENSE).
+Licensed under GPL. [See LICENSE for more information](https://codeberg.org/ravachol/kew/src/branch/main/LICENSE).
