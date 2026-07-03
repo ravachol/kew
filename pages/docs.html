@@ -175,10 +175,8 @@ cargo install --path . --features audio
 <p>This works by kew being fed frames from Chroma and does not add bloat to kew.</p>
 <h4>Chroma Configuration</h4>
 <p>You can customize Chroma&#8217;s behavior in your <code>kewrc</code> file:</p>
-<ul>
-<li><code>chromaPath</code>: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.</li>
-<li><code>chromaDevice</code>: Specify the audio device for Chroma to capture from (e.g., <code>PipeWire Sound Server</code>). Use <code>chroma --list-audio-devices</code> to find available devices.</li>
-</ul>
+<p><code>chromaPath</code>: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
+<code>chromaDevice</code>: Specify the audio device for Chroma to capture from (e.g., <code>PipeWire Sound Server</code>). Use <code>chroma --list-audio-devices</code> to find available devices.</p>
 <pre><code class="language-ini">[chroma]
 chromaPath=&#47;path&#47;to&#47;your&#47;custom.preset
 chromaDevice=PipeWire Sound Server

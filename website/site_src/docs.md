@@ -204,8 +204,8 @@ This works by kew being fed frames from Chroma and does not add bloat to kew.
 
 You can customize Chroma's behavior in your `kewrc` file:
 
-- `chromaPath`: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
-- `chromaDevice`: Specify the audio device for Chroma to capture from (e.g., `PipeWire Sound Server`). Use `chroma --list-audio-devices` to find available devices.
+`chromaPath`: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.
+`chromaDevice`: Specify the audio device for Chroma to capture from (e.g., `PipeWire Sound Server`). Use `chroma --list-audio-devices` to find available devices.
 
 ```ini
 [chroma]
