@@ -11,14 +11,18 @@ kew is designed for those who want:
 
 ✅ Fair compensation for artists (by supporting owned music).
 
+<img src="images/kew-terminal-music-player-screenshot.png" width="860" />
+
 ## Features
 
  - Play auto-generated playlists based on words from the artist, album or song name: 'kew nirvana'.
  - Gapless playback.
+ - Requires virtually no setup.
  - Private and offline[^1].
  - Music without distractions or algorithmic manipulation.
  - Full color covers in sixel-capable terminals.
  - Spectrum visualizer.
+ - Auto-generated themes based on album colors and custom themes.
  - Music library explorer.
  - Playlist editing (add, reorder, delete).
  - Search.
@@ -26,7 +30,6 @@ kew is designed for those who want:
  - Desktop integration (both Linux and macOS).
  - Import/export .m3u playlists.
  - Replay gain.
- - Themes based on album colors or popular themes.
  - Custom layouts.
  - Crossfade (experimental), both automatic and on demand.
  - Auto-Resume.
