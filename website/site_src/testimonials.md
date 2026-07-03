@@ -1,4 +1,4 @@
-## Eulogies
+## Testimonials
 
 Humbling praise mostly from Reddit, Github and Codeberg. Thank you all!
 
@@ -69,7 +69,7 @@ Hey @ravachol thank you for the amazing project, I have started to use it and re
 @echoriiku
 thanks for the amazing project @ravachol !
 
-@Hefty-Cobbler-4914 (reddit)
+@Hefty-Cobbler-4914
 Been using kew for a week. This music player is very nice. I did not have a local music library and kew has inspired me to tuck away some favourites to see how the covers encode as ASCII art. Thank you.
 
 I used to maintain a digital music library but gave it up for streaming. I might have to dig around through storage for bandcamp codes that came with vinyl purchases over the years if I get serious about a local library again. For now I'm just enjoying marvelling at what you've created.
@@ -87,7 +87,7 @@ It looks cool, it is easy to use and I like it best.
 @T8ert0t
 I haven't used the app yet. I'm just here based on how thorough the documentation is. Really nice job!
 
-@pretender (unixporn discord)
+@pretender
 shoutout the methhead who showed me kew
 
 @nikolasdmtr

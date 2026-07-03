@@ -13,9 +13,9 @@
 
 #### One time Sponsors
 
-@Supporter $50 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
+@Supporter $50 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑 🥳
 
-@LTeder $45 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑
+@LTeder $45 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑 🥳
 
 @imalee.sk $20 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
 

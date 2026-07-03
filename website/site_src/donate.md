@@ -44,4 +44,4 @@ Besides, a lot of people who vibe code are young beginner indie devs, and not ne
 
 #### I want to remain anonymous
 
-There's a private option on Gihub Sponsors. If you choose that option we wont post your username here.
+There's a private option on Github Sponsors. If you choose that option we wont post your username here.
