@@ -41,7 +41,7 @@ We also recognize that not having a process could lead to competing or duplicate
 
 ### Reporting a Bug
 
-If you find a security related issue, please contact us at kew-player@proton.me.
+If you find a security related issue, please contact us at kew-player AT proton DOT me.
 
 When a fix is published, you will receive credit under your real name or bug
 tracker handle in Codeberg. If you prefer to remain anonymous or pseudonymous,
