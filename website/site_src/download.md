@@ -6,7 +6,7 @@ If you want the bleeding edge, follow the manual installation [guide](https://co
 
 Special cases:
 
-- **NixOS** has an official package but also a [Nix Flake](flake.nix) that is tied to the latest commit.
+- **NixOS** has an official package but also a [Nix Flake](https://codeberg.org/ravachol/kew/src/branch/main/flake.nix) that is tied to the latest commit.
 - On **Artix** it's available in the [artist repository](https://wiki.artixlinux.org/Main/Repositories#artist_repository).
 - **Fedora** has it on an [unofficial repo](https://copr.fedorainfracloud.org/coprs/fed500/kew).
 - kew is on **Arch Linux's** official repositories, but there's also an **AUR** package that tracks the latest commit called kew-git.
