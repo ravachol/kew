@@ -17,7 +17,7 @@ For macOS users it's available through [Homebrew](https://formulae.brew.sh/formu
 
 ## WINDOWS
 
-Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.1.6/kew-v4.1.6-setup.exe).
+Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.1.7/kew-v4.1.7-setup.exe).
 
 (sha256:a83f6ebe198b2f07c8b4756270ede14ea350e0f59a68e22d02aa03810493b3df)
 

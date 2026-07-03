@@ -30,6 +30,7 @@
 * @ilx159
 * Joey Schaff @jaoheah / @jaoh (codeberg)
 * John Lakeman @j-lakeman
+* LeahTheSlug (Advisor) https://slugmail.quest
 * @noiamnote
 * Martin Kollár @Kolby11
 * Matthias Geiger @werdahias
@@ -58,7 +59,7 @@
 * Ravachol @ravachol
 * LeahTheSlug (Advisor) https://slugmail.quest
 
-## Website development
+## Website structure
 
 * @bkmgit
 
