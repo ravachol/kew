@@ -10,7 +10,8 @@
 </head>
 
 <body id="landing">
-<img src="images/kew.gif" alt="kew terminal music player screenshot" />
+
+<p class="kew-logo-wrapper"><a style="kew-logo" href="index.html"><img src="images/kew.gif" alt="kew terminal music player screenshot" /></a></p>
 
 <header>
   <p>${sblg-get|title}</p>

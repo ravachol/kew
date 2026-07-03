@@ -88,6 +88,16 @@ nav a {
     margin-right: 8px;
 }
 
+p.kew-logo-wrapper {
+  text-align: center;
+}
+
+a.kew-logo {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+}
+
 strong, b {
     color: var(--text-color);
 }
