@@ -28,7 +28,7 @@ jobs:
       - name: Deploy to Codeberg Pages
         uses: https://codeberg.org/git-pages/action@v2
         with:
-          site: 'https://${{ forge.repository_owner }}.codeberg.page/kew/'
+          site: 'https://www.kewplayer.com/'
           token: ${{ forge.token }}
           source: pages/
 
