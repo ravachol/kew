@@ -20,10 +20,6 @@ You get to be inducted into the <a href="sponsors.html">Hall of Fame of the Elit
 
 You can send an email to kew-player AT proton DOT me.
 
-#### How do I know you will put my donation to good use?
-
-This is a very important project to me. I started working as a software developer in 1996, and this is my Magnum Opus and gift to the world that I’m doing as a hobby. It's my first app written in C, that's why it's so bad!!! A lot of people contribute to this project too, about ~20 people the last two big releases. We have been adding a ton of stuff to kew and making it better and safer to use.
-
 #### Is kew vibe coded?
 
 No, I have never tried Co-pilot or Claude Opus or Codex or whatever. I have used AI tools, and asked a lot of questions, but very carefully, not vibe coded, and I don’t pay them money. There are 15 commits co-authored by Claude (out of thousands) and they are made by two people who aren’t me. This project started in 2022 as well, when times were different.
