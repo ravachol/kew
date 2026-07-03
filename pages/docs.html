@@ -98,6 +98,19 @@
 <li><p><kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with &#8220;kew .&#8221;).</p></li>
 <li><p><kbd>Esc</kbd> to quit.</p></li>
 </ul>
+<h2>Configuration</h2>
+<p>Linux: ~&#47;.config&#47;kew&#47;</p>
+<p>macOS: ~&#47;Library&#47;Preferences&#47;kew&#47;</p>
+<p>Key bindings can be added like this:</p>
+<p>bind = +, volUp, +5%</p>
+<p>If you have an old install of kew, delete the kewrc file to make this style of
+bindings appear.</p>
+<p>kew state (for settings that can be changed in-app) is kept in ~&#47;.config&#47;kew&#47;ke
+wstaterc.</p>
+<p>If you change a setting in-app it will be tracked by kewstaterc and not kewrc.</p>
+<p>kewrc is never changed by kew with the exception of when you run kew path.</p>
+<p>If you delete your kewrc a new default one will be generated. You wont get newe
+r config options listed in your config file unless you do this.</p>
 <h2>Playlists</h2>
 <p>To load a playlist: type <code>kew list &#60;name&#62;</code></p>
 <p>To export a playlist, press <code>x</code>. This will save a file in your music path with the name of the first song in the queue.</p>
@@ -123,19 +136,6 @@
 <p>Press <kbd>v</kbd> to turn off visualizer.</p>
 <p>Press <kbd>b</kbd> for ASCII covers.</p>
 <p>A terminal emulator that can handle TrueColor and sixels is recommended. See <a href="https://www.arewesixelyet.com/">Sixels in Terminal</a>.</p>
-<h2>Configuration</h2>
-<p>Linux: ~&#47;.config&#47;kew&#47;</p>
-<p>macOS: ~&#47;Library&#47;Preferences&#47;kew&#47;</p>
-<p>Key bindings can be added like this:</p>
-<p>bind = +, volUp, +5%</p>
-<p>If you have an old install of kew, delete the kewrc file to make this style of
-bindings appear.</p>
-<p>kew state (for settings that can be changed in-app) is kept in ~&#47;.config&#47;kew&#47;ke
-wstaterc.</p>
-<p>If you change a setting in-app it will be tracked by kewstaterc and not kewrc.</p>
-<p>kewrc is never changed by kew with the exception of when you run kew path.</p>
-<p>If you delete your kewrc a new default one will be generated. You wont get newe
-r config options listed in your config file unless you do this.</p>
 <h2>Visulizations &#47; Chroma</h2>
 <p>Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.</p>
 <p>You&#8217;ll need to install a specific commit, which is the latest one that works.</p>

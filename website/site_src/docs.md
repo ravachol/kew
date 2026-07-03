@@ -79,6 +79,28 @@ artist folder->album folder(s)->track(s).
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
 
+## Configuration
+
+Linux: ~/.config/kew/
+
+macOS: ~/Library/Preferences/kew/
+
+Key bindings can be added like this:
+
+bind = +, volUp, +5%
+
+If you have an old install of kew, delete the kewrc file to make this style of
+bindings appear.
+
+kew state (for settings that can be changed in-app) is kept in ~/.config/kew/ke
+wstaterc.
+
+If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
+
+kewrc is never changed by kew with the exception of when you run kew path.
+
+If you delete your kewrc a new default one will be generated. You wont get newe
+r config options listed in your config file unless you do this.
 
 ## Playlists
 
@@ -129,29 +151,6 @@ Press <kbd>v</kbd> to turn off visualizer.
 Press <kbd>b</kbd> for ASCII covers.
 
 A terminal emulator that can handle TrueColor and sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
-
-## Configuration
-
-Linux: ~/.config/kew/
-
-macOS: ~/Library/Preferences/kew/
-
-Key bindings can be added like this:
-
-bind = +, volUp, +5%
-
-If you have an old install of kew, delete the kewrc file to make this style of
-bindings appear.
-
-kew state (for settings that can be changed in-app) is kept in ~/.config/kew/ke
-wstaterc.
-
-If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
-
-kewrc is never changed by kew with the exception of when you run kew path.
-
-If you delete your kewrc a new default one will be generated. You wont get newe
-r config options listed in your config file unless you do this.
 
 ## Visulizations / Chroma
 
