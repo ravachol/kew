@@ -62,7 +62,7 @@
 
 * @bkmgit
 
-## Package Managers
+## Package Maintainers
 
 * Matthias Geiger @werdahias (Debian, Ubuntu, Raspbian, Kali, Parrot, PureOS)
 * Yuri @yurivict (FreeBSD)

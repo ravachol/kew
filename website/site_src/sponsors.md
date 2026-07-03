@@ -1,7 +1,7 @@
 
 ## Hall of Fame of the Elite
 
-#### Monthly:
+#### Monthly Sponsors
 
 @enzawin $5/mo @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑
 
@@ -11,7 +11,7 @@
 
 @Rick $3/mo @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
 
-#### One time:
+#### One time Sponsors
 
 @Supporter $50 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
 
