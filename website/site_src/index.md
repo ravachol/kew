@@ -1,6 +1,4 @@
 
-## kew
-
 kew is an aesthetically pleasing, immersive and fast music player that allows you to listen to music with privacy. It's a labor of love that grew out of frustration with the trajectory of music and the music industry.
 
 kew is designed for those who want:

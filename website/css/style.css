@@ -211,31 +211,6 @@ footer {
   color: #ffffff;
 }
 
-/* Big Sponsor Website button */
-
-.sponsor-page-button {
-    overflow: hidden;
-    text-align: center;
-}
-
-.sponsor-page-button a {
-    display: inline-block;
-    font-size: 16px;
-    padding: 2px 6px;
-    margin: 0 2px;
-    border: 2px;
-    border-style: solid;
-    border-radius: 6px;
-    border-color: var(--visited-color);
-    color: var(--text-color);
-    background-color: var(--visited-color);
-    text-decoration: none;
-}
-
-.sponsor-page-button a:hover {
-  color: #ffffff;
-}
-
 /* blog post list */
 ul.blog-posts {
     list-style-type: none;

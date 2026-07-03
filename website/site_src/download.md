@@ -1,6 +1,4 @@
-## How to install
-
-#### LINUX
+## LINUX
 
 For most cases, you should install it using the package manager of your distro.
 
@@ -13,17 +11,17 @@ Special cases:
 - **Fedora** has it on an [unofficial repo](https://copr.fedorainfracloud.org/coprs/fed500/kew).
 - kew is on **Arch Linux's** official repositories, but there's also an **AUR** package that tracks the latest commit called kew-git.
 
-#### MACOS
+## MACOS
 
 For macOS users it's available through [Homebrew](https://formulae.brew.sh/formula/kew).
 
-#### WINDOWS
+## WINDOWS
 
 Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.1.6/kew-v4.1.6-setup.exe).
 
 (sha256:a83f6ebe198b2f07c8b4756270ede14ea350e0f59a68e22d02aa03810493b3df)
 
-#### ANDROID
+## ANDROID
 
 kew is available on Android as a package for the app [Termux](https://termux.dev), which is a terminal emulator for Android.
 

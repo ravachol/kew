@@ -1,6 +1,6 @@
 ## Donate
 
-Thank you for considering supporting maintenance and development of Kew. ❤️
+Thank you for considering supporting maintenance and development of kew. ❤️
 
 Below you'll find answers to some questions that you might have.
 
@@ -18,7 +18,7 @@ Below you'll find answers to some questions that you might have.
 
 #### What happens after I donated?
 
-You get to be inducted into the <a href="gallery.html">Hall of Fame of the Elite</a> (the sponsors page).
+You get to be inducted into the <a href="gallery.html">Hall of Fame of the Elite</a> (the Sponsors page).
 
 #### How do I know you will put my donation to good use?
 
