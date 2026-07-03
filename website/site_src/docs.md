@@ -36,8 +36,7 @@ artist folder->album folder(s)->track(s).
 
  kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/Purple Haze.flac" (plays Purple Haze)
 
- kew play <album path> <album path> <song path> (play can take multiple album paths or song paths and add them all into
- temporary playlist)
+ kew play <album path> <album path> <song path> (kew play accepts multiple paths)
 
  kew list <playlist> (or a playlist)
 
