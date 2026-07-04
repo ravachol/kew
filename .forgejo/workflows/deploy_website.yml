@@ -28,6 +28,7 @@ jobs:
       - name: Deploy canonical (kewplayer.com)
         uses: https://codeberg.org/git-pages/action@v2
         with:
+          server: codeberg.org
           site: 'http://kewplayer.com'
           token: ${{ forge.token }}
           source: docs/
