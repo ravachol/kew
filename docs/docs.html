@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>kew (/kjuː/, a variant of cue) is a terminal music player.</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Expires" content="-1" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <link href="css/style.css" type="text/css" rel="stylesheet" />
+</head>
+
+<body id="landing">
+
+<p class="kew-logo-wrapper"><a style="kew-logo" href="index.html"><img src="images/kew.gif" alt="kew terminal music player screenshot" /></a></p>
+
+<header>
+  <p>kew (/kjuː/, a variant of cue) is a terminal music player.</p>
+</header>
+
+<div class="navbar">
+    <a href="index.html">Home</a>
+    <a href="donate.html">Donate</a>
+    <a href="download.html">Download</a>
+    <a href="docs.html">Docs</a>
+    <a href="contribute.html">Contribute</a>
+    <a href="testimonials.html">Testimonials</a>
+    <a href="credits.html">Credits</a>
+    <a href="merch.html">Merch</a>
+    <a href="sponsors.html">Sponsors</a>
+</div>
+
+    <article data-sblg-article="1" data-sblg-set-title="kew (/kjuː/, a variant of cue) is a terminal music player." data-sblg-set-subtitle="kew (/kjuː/) is a variant of cue" data-sblg-set-tagline="Music for the Shell">
+<h2>Documentation</h2>
+<p>kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.</p>
+<pre><code class="language-bash">kew cure great
+</code></pre>
+<p>This creates and starts playing a playlist with &#8216;The cure greatest hits&#8217; if it&#8217;s in your music library.</p>
+<p>It works best when your music library is organized this way:</p>
+<p>artist folder-&#62;album folder(s)-&#62;track(s).</p>
+<h2>Example commands</h2>
+<pre><code> kew (starting kew with no arguments opens the library view where you can choose what to play)
+
+ kew all (plays all songs, up to 50 000, in your library, shuffled)
+
+ kew albums (plays all albums, up to 2000, randomly one after the other)
+
+ kew moonlight son (finds and plays moonlight sonata)
+
+ kew moon (finds and plays moonlight sonata)
+
+ kew beet (finds and plays all music files under "beethoven" directory)
+
+ kew dir &#60;album name&#62; (sometimes, if names collide, it&#39;s necessary to specify it&#39;s a directory you want)
+
+ kew song &#60;song&#62; (or a song)
+
+ kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;" (plays the \&#39;Are you Experienced?\&#39; album)
+
+ kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;Purple Haze.flac" (plays Purple Haze)
+
+ kew play &#60;album path&#62; &#60;album path&#62; &#60;song path&#62; (kew play accepts multiple paths)
+
+ kew list &#60;playlist&#62; (or a playlist)
+
+ kew theme midnight (sets the &#39;midnight.theme&#39; theme)
+
+ kew shuffle &#60;album name&#62; (shuffles the playlist. shuffle needs to come first.)
+
+ kew artistA:artistB:artistC (plays all three artists, shuffled)
+
+ kew --help, -? or -h
+
+ kew --version or -v
+
+ kew --nocover
+
+ kew --noui (completely hides the UI)
+
+ kew -q &#60;song&#62;, --quitonstop (exits after finishing playing the playlist)
+
+ kew -e &#60;song&#62;, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
+
+ kew .  (loads kew favorites.m3u)
+
+ kew path "&#47;home&#47;you&#47;Music&#47;" (changes the path)
+</code></pre>
+<h2>Key Bindings</h2>
+<h3>Basic</h3>
+<ul>
+<li>Play&#47;Enqueue&#47;Dequeue: <kbd>Enter</kbd> or middle mouse.</li>
+<li>Toggle Play&#47;Pause: <kbd>Space</kbd>, <kbd>p</kbd> or right mouse.</li>
+<li>Volume: <kbd>+</kbd> <kbd>-</kbd> (alt: <kbd>=</kbd> <kbd>-</kbd>).</li>
+<li>Switch Track: <kbd>←</kbd> <kbd>→</kbd> (alt: <kbd>h</kbd> <kbd>l</kbd>).</li>
+<li>Switch View: <kbd>F2-F6</kbd>, (macOS&#47;Android: <kbd>Shift+z,+x,+c,+v,+b</kbd>), Tab or click the footer.</li>
+<li>Stop: <kbd>Alt+s</kbd>.</li>
+<li>Cycle Color Modes: <kbd>i</kbd>.</li>
+<li>Cycle Themes: <kbd>t</kbd>.</li>
+<li>Clear Playlist: <kbd>Backspace</kbd>.</li>
+<li>Delete from Playlist: <kbd>Del</kbd>.</li>
+<li>Repeat: <kbd>r</kbd>.</li>
+<li>Shuffle: <kbd>s</kbd>.</li>
+<li>Quit: <kbd>Esc</kbd> or <kbd>q</kbd>.</li>
+</ul>
+<h3>Advanced</h3>
+<h4>Library</h4>
+<ul>
+<li>Update: <kbd>u</kbd>.</li>
+<li>Sort: <kbd>o</kbd> (by age&#47;alhabetically).</li>
+</ul>
+<h4>Track View</h4>
+<ul>
+<li>Cycle Visualizer Modes: <kbd>v</kbd>.</li>
+<li>ASCII Covers: <kbd>b</kbd>.</li>
+</ul>
+<h4>Playlist</h4>
+<ul>
+<li>Save: <kbd>x</kbd> (places .m3u in your music folder, named after the first song).</li>
+<li>Move songs: <kbd>f</kbd> <kbd>g</kbd>.</li>
+<li>Jump to song: number + <kbd>G</kbd> or <kbd>Enter</kbd>.</li>
+</ul>
+<h4>General</h4>
+<ul>
+<li>Lyrics View: <kbd>m</kbd>.</li>
+<li>Seek <kbd>a</kbd> and <kbd>d</kbd> or drag the progress bar.</li>
+<li>Previous View <kbd>Shift+Tab</kbd>.</li>
+<li>Add to Favorites: <kbd>.</kbd>. Play favorites with: <code>kew .</code></li>
+<li>Notifications on&#47;off: <kbd>n</kbd>.</li>
+</ul>
+<h4>Crossfade</h4>
+<ul>
+<li>Always on&#47;off: <kbd>z</kbd>.</li>
+<li>Quick: <kbd>Shift+d</kbd>.</li>
+<li>Medium: <kbd>Shift+f</kbd>.</li>
+<li>Slow: <kbd>Shift+g</kbd>.</li>
+</ul>
+<h2>Configuration</h2>
+<p>Linux: ~&#47;.config&#47;kew&#47;</p>
+<p>macOS: ~&#47;Library&#47;Preferences&#47;kew&#47;</p>
+<p>Key bindings can be added like this:</p>
+<p>bind = +, volUp, +5%</p>
+<p>If you have an old install of kew, delete the kewrc file to make this style of
+bindings appear.</p>
+<p>kew state (for settings that can be changed in-app) is kept in ~&#47;.config&#47;kew&#47;ke
+wstaterc.</p>
+<p>If you change a setting in-app it will be tracked by kewstaterc and not kewrc.</p>
+<p>kewrc is never changed by kew with the exception of when you run kew path.</p>
+<p>If you delete your kewrc a new default one will be generated. You wont get newer config options listed in your config file unless you do this.</p>
+<h2>Layouts</h2>
+<p>It&#8217;s possible to define your own layout in kew. How to make one is described in <a href="https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md">LAYOUTS-HOWTO.md</a></p>
+<p>The layout used by kew is called current.layout.</p>
+<p>Replace current.layout to change the layout. If breaking changes are introduced, current.layout will be renamed to current.layout.bak, before the new one is copied over.</p>
+<p>Layouts are in ~&#47;.config&#47;kew&#47;layouts (~&#47;Library&#47;Preferences&#47;kew&#47;layouts on macOS).</p>
+<p>If layouts aren&#8217;t working, try re-installing kew or running &#8216;sudo make install&#8217; if you ran make yourself.</p>
+<h2>Themes</h2>
+<p>Press t to cycle available themes.</p>
+<p>To set a theme from the command-line, run:</p>
+<pre><code class="language-bash">kew theme &#60;themename&#62; (ie &#39;kew theme midnight&#39;)
+</code></pre>
+<p>Put themes in ~&#47;.config&#47;kew&#47;themes (~&#47;Library&#47;Preferences&#47;kew&#47;themes on macOS).</p>
+<p>Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.</p>
+<p>Try the theme editor (by @bholroyd): <a href="https://bholroyd.github.io/Kew-tip/">https:&#47;&#47;bholroyd.github.io&#47;Kew-tip&#47;</a>.</p>
+<h2>If Colors or Graphics Look Wrong</h2>
+<p>Cycle <kbd>i</kbd> until they look right.</p>
+<p>Press <kbd>v</kbd> to turn off visualizer.</p>
+<p>Press <kbd>b</kbd> for ASCII covers.</p>
+<p>A terminal emulator that can handle TrueColor and sixels is recommended. See <a href="https://www.arewesixelyet.com/">Are We Sixel Yet?</a>.</p>
+<h2>Playlists</h2>
+<p>To load a playlist: type <code>kew list &#60;name&#62;</code></p>
+<p>To export a playlist, press x. This will save a file in your music path with the name of the first song in the queue.</p>
+<p>There is also a favorites playlist function:</p>
+<p>Add current song: press <kbd>.</kbd></p>
+<p>To load &#8216;kew list fav&#8217;: kew .</p>
+<h2>Visualizations &#47; Chroma</h2>
+<p>Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.</p>
+<p>You&#8217;ll need to install a specific commit, which is the latest one that works.</p>
+<p>How to install Chroma:</p>
+<pre><code>git clone https:&#47;&#47;github.com&#47;yuri-xyz&#47;chroma.git
+
+cd chroma
+
+git checkout fb00b6e
+
+cargo install --path . --features audio
+</code></pre>
+<p>Enable and cycle through the visualizations by pressing <kbd>c</kbd> in track view.</p>
+<p>Disable by pressing <kbd>b</kbd>.</p>
+<p>This works by kew being fed frames from Chroma and does not add bloat to kew.</p>
+<h4>Chroma Configuration</h4>
+<p>You can customize Chroma&#8217;s behavior in your kewrc file:</p>
+<ul>
+<li>chromaPath: Path to a custom Chroma preset file. If set, this preset will be used instead of the built-in ones.</li>
+<li>chromaDevice: Specify the audio device for Chroma to capture from (e.g., "PipeWire Sound Server"). Use chroma &#8211;list-audio-devices, to find available devices.</li>
+</ul>
+<pre><code class="language-ini">[chroma]
+chromaPath=&#47;path&#47;to&#47;your&#47;custom.preset
+chromaDevice=PipeWire Sound Server
+</code></pre>
+<h2>Scrobbling</h2>
+<p>kew&#8217;s private and offline nature means we don&#8217;t support Scrobbling&#47;last.fm dire
+ctly. Instead tools such as PanoScrobbler are recommended. See: <a href="https://github.com/kawaiiDango/pano-scrobbler">https:&#47;&#47;github.com&#47;kawaiiDango&#47;pano-scrobbler</a>.</p>
+<h2>How to make sure kew is offline and private</h2>
+<p>kew itself does not have telemetry, it does not collect data and send to kew servers, it does not access the internet.</p>
+<p>However, if Discord RPC is enabled and Discord is running, data about what you are listening to will end up on Discord servers.</p>
+<p>To ensure the best privacy, two settings have to be set as following in the settings file kewrc:</p>
+<pre><code class="language-bash">allowNotifications=0
+discordRPCEnabled=0
+</code></pre>
+<p>in kewstaterc, make sure this is set:</p>
+<pre><code class="language-bash">allowNotifications=0
+</code></pre>
+<p>kewstaterc tracks in-app choices so if you press &#8216;n&#8217; for toggling notifications, the value will change.</p>
+<p>Notifications means desktop notifications (MPRIS&#47;DBUS) which is local, but is broadcast to other apps on your machine that are listening. It&#8217;s generally not logged unless an app on your machine that is listening logs it.</p>
+<p>To force notifications to be always off, compile with:</p>
+<pre><code class="language-bash">make USE_DBUS=0 -j
+</code></pre>
+<p>To erase traces of your kew listening after uninstall, you need to delete the library.dat file in ~&#47;.config&#47;kew.</p>
+<h2>License</h2>
+<p>Licensed under GPLv2+. <a href="https://codeberg.org/ravachol/kew/src/branch/main/LICENSE">See LICENSE for more information</a>.</p>
+</article>
+    <footer>
+        <p>Like kew?</p>
+        <div class="support-button">
+                <a href="donate.html">Support the project</a>
+        </div>
+
+          <p>Music for the Shell</p>
+
+    </footer>
+
+<script
+    data-goatcounter="https://kew.goatcounter.com/count"
+    async="async"
+    src="//gc.zgo.at/count.js">
+</script>
+
+</body>
+
+</html>
+

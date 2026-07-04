@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>kew (/kjuː/, a variant of cue) is a terminal music player.</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Expires" content="-1" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <link href="css/style.css" type="text/css" rel="stylesheet" />
+</head>
+
+<body id="landing">
+
+<p class="kew-logo-wrapper"><a style="kew-logo" href="index.html"><img src="images/kew.gif" alt="kew terminal music player screenshot" /></a></p>
+
+<header>
+  <p>kew (/kjuː/, a variant of cue) is a terminal music player.</p>
+</header>
+
+<div class="navbar">
+    <a href="index.html">Home</a>
+    <a href="donate.html">Donate</a>
+    <a href="download.html">Download</a>
+    <a href="docs.html">Docs</a>
+    <a href="contribute.html">Contribute</a>
+    <a href="testimonials.html">Testimonials</a>
+    <a href="credits.html">Credits</a>
+    <a href="merch.html">Merch</a>
+    <a href="sponsors.html">Sponsors</a>
+</div>
+
+    <article data-sblg-article="1" data-sblg-set-title="kew (/kjuː/, a variant of cue) is a terminal music player." data-sblg-set-subtitle="kew (/kjuː/) is a variant of cue" data-sblg-set-tagline="Music for the Shell">
+<h2>Welcome to the contributing guide</h2>
+<p>Thank you for your interest in contributing to kew!</p>
+<p>kew is developed on:
+<a href="https://codeberg.org/ravachol/kew">https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew</a> - Issues, PR:s go here.</p>
+<p>Mirror:
+<a href="https://github.com/ravachol/kew">https:&#47;&#47;github.com&#47;ravachol&#47;kew</a> - Still used for some workflows that haven&#8217;t been migrated yet.</p>
+<h3>Goal of the project</h3>
+<p>The goal of kew is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience.
+It&#8217;s a small app, limited in scope and it shouldn&#8217;t be everything to all people. It should continue to be a very light weight app.</p>
+<p>For instance, it&#8217;s not imagined as a software for dj&#8217;ing or as a busy music file manager with all the features.</p>
+<p>We want to keep the codebase easy to manage and free of bloat, so might reject a feature out of that reason only.</p>
+<h3>Reporting Bugs and Suggesting Enhancements</h3>
+<p>Please report any bugs on <a href="https://codeberg.org/ravachol/kew/issues">Codeberg</a>, with as much relevant detail as possible.</p>
+<hr/>
+<h2>Security</h2>
+<h3>Reporting a Bug</h3>
+<p>If you find a security related issue, please contact us at kew-player AT proton DOT me.</p>
+<p>When a fix is published, you will receive credit under your real name or bug
+tracker handle in Codeberg. If you prefer to remain anonymous or pseudonymous,
+you should mention this in your e-mail.</p>
+<h3>Disclosure Policy</h3>
+<p>The maintainer will coordinate the fix and release process, involving the
+following steps:</p>
+<ul>
+<li>Confirm the problem and determine the affected versions.</li>
+<li>Audit code to find any potential similar problems.</li>
+<li>Prepare fix for the latest release. This fix will be
+released as fast as possible.</li>
+</ul>
+<p>You may be asked to provide further information in pursuit of a fix.</p>
+<hr/>
+<h2>For Developers</h2>
+<p>This text will help you setup your development environment. It is intended to be beginner friendly as we welcome and encourage people who are just starting to learn about programming in C to contribute to this project. We also welcome senior developers of course, but much of this document will be redundant if you are experienced.</p>
+<h3>Before doing a lot of work</h3>
+<p>Please contact us first and discuss your plans if you are trying to do something big, so your PR doesn&#8217;t get rejected after having spent a lot of time on it. You can for instance open a PR that contains your intent, and continue working on it if the response is positive.</p>
+<h3>Just ask</h3>
+<p>If you run into any problems just ask for help in an email to kew-player AT proton DOT me or in the PR itself.</p>
+<h3>Prerequisites</h3>
+<p>Before contributing, ensure you have the following tools installed on your development machine:</p>
+<ul>
+<li><a href="https://gcc.gnu.org/">GCC</a> (or another compatible C&#47;C++ compiler)</li>
+<li><a href="https://www.gnu.org/software/make/">Make</a></li>
+<li><a href="https://git-scm.com/">Git</a></li>
+<li><a href="http://valgrind.org/">Valgrind</a></li>
+<li>An editor: <a href="https://vscodium.com/">VSCodium</a>, <a href="https://code.visualstudio.com/">VSCode</a>, <a href="https://www.vim.org">Vim</a>, <a href="https://www.gnu.org/software/emacs/">Emacs</a> or some other editor.</li>
+</ul>
+<h3>Building the Project</h3>
+<p>Run the following commands:</p>
+<pre><code>   git clone https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew.git --single-branch --branch develop
+   cd kew
+   make DEBUG=1 -j
+   sudo make install
+</code></pre>
+<p>You can use either DEBUG=1 or DEBUG=2. DEBUG=2 is helpful because it crashes on any errors and logs why. Both log to error.log.</p>
+<h3>Coding style</h3>
+<p>We have adopted the same coding style for the most part as the Linux kernel developers:
+<a href="https://www.kernel.org/doc/html/v4.10/process/coding-style.html">https:&#47;&#47;www.kernel.org&#47;doc&#47;html&#47;v4.10&#47;process&#47;coding-style.html</a></p>
+<p>If you can, use EditorConfig for VS Code Extension that is prepared for this style. There is a file with settings for it: .editorconfig.</p>
+<h3>Commenting</h3>
+<p>Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. Remove comments that aren&#8217;t strictly needed.</p>
+<h3>Architecture</h3>
+<p>Pic: <a href="images/kew_architecture.png">kew architecture diagram</a></p>
+<p>kew developers should strive to follow the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module (directory). If you have doubts in where to place it, just ask.</p>
+<h3>Debugging with VSCodium</h3>
+<ol>
+<li><p>Install extension clangd, C&#47;C++ Debug (gdb) and EditorConfig.</p></li>
+<li><p>Install the program bear that can generate a compile_commands.json. This helps clangd find libs.</p></li>
+<li><p>Run bear -- make.</p></li>
+</ol>
+<p>This should enable you to develop kew on VSCodium.</p>
+<h3>Memory debugging with Valgrind</h3>
+<p>To use Valgrind for memory debugging:</p>
+<p>Run make.</p>
+<p>Run Valgrind on your binary:</p>
+<pre><code>valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all \
+        --log-file=valgrind-out.txt --show-reachable=no -s .&#47;kew
+</code></pre>
+<h3>Create a pull request</h3>
+<p>After making any changes, open a pull request on Codeberg, develop branch.</p>
+<h3>Issue assignment</h3>
+<p>We don&#8217;t have a process for assigning issues to contributors. Please feel free to jump into any issues in this repo that you are able to help with. Duplicate work might be avoided if everybody keeps an eye on what&#8217;s going on on in the repo.</p>
+</article>
+    <footer>
+        <p>Like kew?</p>
+        <div class="support-button">
+                <a href="donate.html">Support the project</a>
+        </div>
+
+          <p>Music for the Shell</p>
+
+    </footer>
+
+<script
+    data-goatcounter="https://kew.goatcounter.com/count"
+    async="async"
+    src="//gc.zgo.at/count.js">
+</script>
+
+</body>
+
+</html>
+

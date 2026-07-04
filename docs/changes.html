@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>kew (/kjuː/, a variant of cue) is a terminal music player.</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Expires" content="-1" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <link href="css/style.css" type="text/css" rel="stylesheet" />
+</head>
+
+<body id="landing">
+
+<p class="kew-logo-wrapper"><a style="kew-logo" href="index.html"><img src="images/kew.gif" alt="kew terminal music player screenshot" /></a></p>
+
+<header>
+  <p>kew (/kjuː/, a variant of cue) is a terminal music player.</p>
+</header>
+
+<div class="navbar">
+    <a href="index.html">Home</a>
+    <a href="donate.html">Donate</a>
+    <a href="download.html">Download</a>
+    <a href="docs.html">Docs</a>
+    <a href="contribute.html">Contribute</a>
+    <a href="testimonials.html">Testimonials</a>
+    <a href="credits.html">Credits</a>
+    <a href="merch.html">Merch</a>
+    <a href="sponsors.html">Sponsors</a>
+</div>
+
+    <article data-sblg-article="1" data-sblg-set-title="kew (/kjuː/, a variant of cue) is a terminal music player." data-sblg-set-subtitle="kew (/kjuː/) is a variant of cue" data-sblg-set-tagline="Music for the Shell">
+<h1>CHANGELOG</h1>
+<h2>kew 4.1.5</h2>
+<ul>
+<li><p>Use exec &#8216;cp&#8217; command for copying instead of a copy function. Safer and fixes issue on Arch Linux where layouts weren&#8217;t being copied. By @ravachol. Reported by @Erwin-Iosef.</p></li>
+<li><p>Fix resize crash. By @ravachol. Found by @thedyze.</p></li>
+<li><p>Don&#8217;t re-render all the time while resizing. By @ravachol.</p></li>
+</ul>
+<h4>Sponsors</h4>
+<p>Thanks to new sponsor rei for their support!</p>
+<h2>kew 4.1.4</h2>
+<ul>
+<li>Added proper installer for Windows.</li>
+</ul>
+<h2>kew 4.1.3</h2>
+<ul>
+<li>Change discord integration to opt-in&#47;off by default, byt popular request.</li>
+</ul>
+<h2>kew 4.1.2</h2>
+<ul>
+<li>Fixes issue with installing on FreeBSD.</li>
+</ul>
+<h2>kew 4.1.1</h2>
+<ul>
+<li>Fixes issue that affected homebrew tests.</li>
+</ul>
+<h2>kew 4.1.0</h2>
+<p>kew 4.1 adds custom layouts, auto-resume, crossfade, an improved visualizer.</p>
+<p>kew is also available on Windows now.</p>
+<p>The sound system was rewritten in v4.0 and in this version the UI system has been rewritten using the MVU pattern. There are still smaller areas that need improvement, but most of the app is now in a much better shape.</p>
+<h3>Enhancements</h3>
+<h3>Layouts</h3>
+<p>It&#8217;s now possible to change how kew looks. It&#8217;s as minimal as possible, the syntax for layouts is very simple and the files are small. More info in <a href="https://codeberg.org/ravachol/kew/src/branch/main/layouts/LAYOUTS-HOWTO.md">LAYOUTS-HOWTO.md</a>.</p>
+<p>By @ravachol.</p>
+<h3>Crossfade (experimental)</h3>
+<p>Crossfade can be toggled on or off and affects the end of the song, or initiated on demand.</p>
+<p>Four new commands:</p>
+<p>z = Toggle crossfade on</p>
+<p>shift+d = Quick crossfade</p>
+<p>shift+f = Medium crossfade</p>
+<p>shift+g = Slow crossfade</p>
+<p>New settings:</p>
+<p>alwaysCrossfade</p>
+<p>fadeEnterSongMs &#47;&#47; Tells kew to start fading x milliseconds into the next song.</p>
+<p>fadeQuickMs</p>
+<p>fadeMediumMs</p>
+<p>fadeSlowMs</p>
+<p>By @ravachol.</p>
+<h3>AutoResume.</h3>
+<p>Persists playback state between sessions, on by default.</p>
+<p>autoResume=1</p>
+<p>By @ravachol. Suggested by @thbemme.</p>
+<h3>New colorful spectrum visualizer modes.</h3>
+<p>&#8220;Party Mode&#8221; is the default option. Cycle by pressing &#8216;v&#8217;.</p>
+<p>Visualizer modes: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant, 5=lum vibrant, 6=binning, 7=off.</p>
+<p>By @emptyhead41.</p>
+<h3>New album color mode that uses up to 4 album colors</h3>
+<p>It&#8217;s all defined in themes that you can edit. Also these 4 album colors can be used in any theme. Mix and match!</p>
+<p>By @ravachol, building on @emptyhead41&#8217;s palettes.</p>
+<h3>New theme pack and Improved Themes.</h3>
+<p>Nord and Nanagawa themes have been added, plus both the new album colors themes.</p>
+<p>Also all existing themes have been worked on and make a bit more sense now, and use colors more sparsely.</p>
+<p>By @ravachol.</p>
+<h3>Scrolling lyrics on the lyrics page</h3>
+<p>By @petoem. Suggested by @kewIT.</p>
+<h3>Other enhancements</h3>
+<ul>
+<li><p>Albums get sorted by metadata tracknumber, if the files aren&#8217;t numbered. By @Moksh-Parikh.</p></li>
+<li><p>New setting coverstyle, which let&#8217;s you decide how Chafa should render the covers. By @netodosrjoao.</p></li>
+<li><p>New setting collapseTopLevel. Hides albums (sub-directories) in library view. By @ravachol. Suggested by @souljedi.</p></li>
+<li><p>New settings simpleTimeStatus. Hides kHz and bitrate from the time line in track view. By @ravachol.</p></li>
+<li><p>New color mode Neutral. Loads the neutral theme.</p></li>
+<li><p>Optimized sorting. Should be a big improvement on slow disks. By @ravachol. Reported by @greguti.</p></li>
+<li><p>Better handling of repeat states and song switching if there&#8217;s only one song. By @ravachol and @LeahTheSlug.</p></li>
+<li><p>New visualizer color mode, flat colors. By @ravachol.</p></li>
+<li><p>New time line on track view that uses less info is now default. To enable the one with bitrate and kHz numbers, set simpleTimeStatus=0. By @ravachol.</p></li>
+<li><p>New desktop shortcut and icon, that installs with kew. By @ravachol.</p></li>
+<li><p>You can now access the lyrics page (press &#8216;m&#8217;) from any view. By @ravachol.</p></li>
+<li><p>Lrc files don&#8217;t need to be named exactly as the song file anymore. By @toasteeeer.</p></li>
+<li><p>Playlist position and total songs now appear on the time line in track view. By @ravachol. Suggested by @thedyze.</p></li>
+</ul>
+<h4>Bug fixes</h4>
+<ul>
+<li><p>Regression bug: Songs that can&#8217;t be decoded are now cleanly skipped again. By @ravachol. Reported by @emptyhead41.</p></li>
+<li><p>Fix new settings in kewrc not being respected if they also appear in kewstaterc. By @ravachol.</p></li>
+<li><p>AAUDIO wasn&#8217;t being used by miniaudio on Android&#47;Termux. This is now fixed, and gives higher quality sound on Android. By @ravachol. Reported by @TNT4ME.</p></li>
+<li><p>Prevent slight glitch when pausing and switching tracks. When unpausing a bit of the old song played. By @ravachol. Reported by @LeahTheSlug. Thanks to @petoem for helping.</p></li>
+<li><p>Fix issue with wrong nesting in search in some situations. By @ravachol. Reported by @Moksh-Parikh.</p></li>
+<li><p>Fix issues with repeat list and track management. By @ravachol. Found by @LeahTheSlug.</p></li>
+<li><p>There were some issues with Chroma that emerged with as the launch of kew 4.0 which means you have to install a specific commit of Chroma recommended in the readme for it to work. And on top of that, the first commit that was recommended there wasn&#8217;t reacting to audio. Now fixed and the commit in the readme should work.</p></li>
+<li><p>Exiting kew is no longer slow when you have a lot of music in the playlist. By @ravachol. Found by @Kuuube.</p></li>
+<li><p>Make sure CTRL+Z, fg and bg commands are handled properly. By @ravachol. Reported by @that_owl.</p></li>
+<li><p>Provide an error message with instructions when D-BUS is not available and kew is compiled with USE_DBUS=1. By @ravachol. Suggested by @ktnb-netbsd.</p></li>
+<li><p>Fix bug realted to immediate play from search view when playlist is shuffled. By @ravachol</p></li>
+</ul>
+<h4>Refactor</h4>
+<ul>
+<li>Centralize PATH<em>MAX into common&#47;path</em>max.h. By @hartalex.</li>
+</ul>
+<h4>Sponsors</h4>
+<p>Thank you to new sponsors @LTEder, @Lee, @rick, @Supporter, @tezoatlipoca and @enzawin for their generous contributions!</p>
+<p>You can sponsor kew here:</p>
+<p>Github Sponsors: <a href="https://github.com/sponsors/ravachol">https:&#47;&#47;github.com&#47;sponsors&#47;ravachol</a>
+Ko-Fi: <a href="https://ko-fi.com/ravachol">https:&#47;&#47;ko-fi.com&#47;ravachol</a></p>
+<h2>4.0.0 LOVE IS GONNA SAVE US EDITION</h2>
+<p>kew 4.0 brings ASCII visualizations and a redesigned audio module. There&#8217;s also a discord integration, kew play &#60;path&#62; command, support for macOS media keys, AIFF support and more.</p>
+<p>kew now has an official Arch Linux package and will soon also be on Android (Termux).</p>
+<p>I want to take this opportunity to thank the package managers who showed up out of nowhere and were brave enough to support this project very, very early on, when it was just a piece of shit with some cool ideas. People like Matthias Geiger who maintains the packages for Debian, Ubuntu, Raspberry Pi, Kali and others. Agustin Ballesteros and Matteo Giordano for the two AUR packages. Yuri Victorovich for FreeBSD. Brett Carlock for Alpine Linux and all the others.</p>
+<p>Now we also have Robin Candau on Arch Linux helping us. Thank you to you all and thank you also to all the others that I haven&#8217;t had much contact with but we are very thankful to you as well.</p>
+<p>Check out the Chroma Demo here: <a href="https://www.youtube.com/watch?v=Ql5ZKeaX2MQ">https:&#47;&#47;www.youtube.com&#47;watch?v=Ql5ZKeaX2MQ</a>. Benny Benassi is not affiliated with us.</p>
+<ul>
+<li>Ravachol</li>
+</ul>
+<h4>Enhancements</h4>
+<ul>
+<li>The audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load.  Lots of functions were removed&#47;unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. Please help us by reporting any issues with audio.</li>
+</ul>
+<p>Everything to do with playing audio is now behind a facade: <a href="https://codeberg.org/ravachol/kew/src/branch/main/images/kew_architecture.png">https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew&#47;src&#47;branch&#47;main&#47;images&#47;kew_architecture.png</a>.</p>
+<p>These changes were made to reduce the occurence of stuttering:
+- kew now runs as a realtime scheduled app (SCHED_RR), but at a low priority.
+- miniaudio period size increased to 200ms and number of periods to 4.
+- much cleaner decode and audio callback logic with no locks.</p>
+<ul>
+<li>Chroma ASCII Visualizations.</li>
+</ul>
+<p>This adds cool new ASCII visualizations to kew. It is not baked into kew and doesn&#8217;t add bloat, but runs alongside it. So it requires that you install chroma separately if you want this. Chroma can be found here:
+<a href="https://github.com/yuri-xyz/chroma">https:&#47;&#47;github.com&#47;yuri-xyz&#47;chroma</a>.</p>
+<p>Chroma is started from within kew. Just switch to track view and press c to cycle through visualizations. Press b to disable.</p>
+<p>Thank you @yuri-xyz for helping out with this.</p>
+<ul>
+<li><p>Discord RPC integration. by @ravachol and @chrontax. Suggested by @Chmosha.</p></li>
+<li><p>kew play &#60;path&#62; &#60;path2&#62; command. by @Overionised. Suggested by @amigthea.</p></li>
+<li><p>Support for macOS media keys. By @Rohyme and @petoem.</p></li>
+<li><p>You can now dequeue m3u playlists and they are sorted first. By @feng1st.</p></li>
+<li><p>Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.</p></li>
+<li><p>Smoother gradient for non default sized spectrum visualizers. By @ravachol. Suggested by @Saijin_Naib.</p></li>
+<li><p>Added a Nix Flake. By @Kolby11. Suggested by @Ultrasquid9.</p></li>
+<li><p>Expandable directories in search view. By @ravachol. Suggested by @BIZZARE6.</p></li>
+<li><p>miniaudio bumped to version 0.11.24.</p></li>
+<li><p>Hide footer option, hideFooter=1. By @ravachol. Suggested by @gizzmoguy.</p></li>
+<li><p>Hide time status (elapsed seconds, song length and so on) option, hideTimeStatus=1. By @ravachol. Suggested By: Found a guy on reddit (u&#47;haikuosextremist) who had this hidden in his kew.</p></li>
+<li><p>Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.</p></li>
+<li><p>Add AIFF support. Suggested by @brikk42. By @ravachol.</p></li>
+<li><p>ClearListClearsAll option, which makes backspace clear the whole playlist including the playing song. By @feng1st.</p></li>
+<li><p>Non-square cover art is no longer stretched. Suggested by @that_owl. By @rudra-dhamecha.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Do not strip the number from a song title if it&#8217;s connected to an alphanumeric character, like &#8216;10th song.flac&#8217;. Suggested by @bholroyd.</p></li>
+<li><p>Fixed switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.</p></li>
+<li><p>Fixed finishing a repeated playlist while in track view puts you back in library view. By @petoem.</p></li>
+<li><p>Last line of lyrics duplicated in landscape mode. By @petoem. Reported by @LeahTheSlug.</p></li>
+<li><p>Fixed lyrics page not staying at the last line but jumping to the top. By @petoem. Reported by @LeahTheSlug.</p></li>
+<li><p>Fixed trim() segfaults on NetBSD 11 (sometimes). By @ravachol. Reported by @ktnb-netbsd.</p></li>
+<li><p>Fixed side cover on library view sometimes appearing at the bottom and not centered. Reported by @LeahTheSlug. By @petoem.</p></li>
+<li><p>Fixed cover not being fetched from files with uppercase extension (.MP3). By @ravachol.</p></li>
+<li><p>Fixed crash when pressing enter on a different song while audio is playing on Termux. Found by @robertkirkman. By @ravachol.</p></li>
+<li><p>Fixed crash on exit in Termux&#47;Android. Found by @welpyes. By @ravachol.</p></li>
+<li><p>Improved and more efficient stripping of numbers on filenames. By @petoem.</p></li>
+<li><p>Fixed segfault sometimes when pressing u for update. Found by @petoem. By @petoem.</p></li>
+<li><p>Fix timestamp calculation in embedded lyrics. Found by @LeahTheSlug. By @ravachol.</p></li>
+<li><p>Fix playlist not loading in correct order on startup. By @ravachol</p></li>
+<li><p>Fix chinese lyrics characters not printed correctly. Found by @2863189117. By @ravachol.</p></li>
+</ul>
+<h4>Special Thanks</h4>
+<p>Special thanks to @LeahTheSlug and @petoem who have helped a great deal, and are now advisor and technical advisor respectively.</p>
+<h2>3.7.3</h2>
+<h4>New Features</h4>
+<ul>
+<li>Added support for USLT lyrics tag including USLT with embedded synchronized lrc content. Suggested by @gzemlevskiy17.</li>
+</ul>
+<h4>Bugfixes</h4>
+<ul>
+<li>Change makefile and kew.c so that locale install dir derives from PREFIX. Found by @yurivict.</li>
+</ul>
+<h2>3.7.2</h2>
+<h4>New Features</h4>
+<ul>
+<li>kew play &#60;filepath&#62; , plays a file or a the contents of a directory. By @Overionised.</li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li>Fix bug with running &#8216;kew song&#8217; on macOS. Reported by @spacetime-labs.</li>
+</ul>
+<h2>3.7.1</h2>
+<h4>Bug Fixes</h4>
+<ul>
+<li>Fix screen was not getting cleared when switching views if hidesidecover was set to 1. Found by @bholroyd.</li>
+</ul>
+<h3>3.7.0</h3>
+<p>Biggest news in this release: Optimisations for large music collections&#47;slow disks and a key binding&#47;input handling overhaul.</p>
+<ul>
+<li><p>Optimisations: Faster loading of previous playlist. So if you are used to running kew all for instance this will be significantly faster, especially for people with large collections. The new method should be up to 20 times faster for loading a big last used playlist.</p></li>
+<li><p>The library is now always cached. It scans the library only if the files have changed, which it checks at the top level. This will be much faster if you have music on a slow disk. But it&#8217;s all still very simple, no database dependencies or anything, just a flat binary file with the bare essentials. It&#8217;s not a lot of data: 1k songs = 60KiB on disk.</p></li>
+<li><p>Key binding overhaul: This allows for more advanced key bindings. You can now bind more keys and key combinations. The new format was suggested by @jaoh.</p></li>
+</ul>
+<p>Som examples:</p>
+<p>bind = +, volUp, +5%
+bind = Shift+s, stop
+bind = mouseMiddle, enqueueAndPlay</p>
+<p>The old format config files will still work for the most part, but to see examples of the new style, delete your kewrc file.</p>
+<ul>
+<li><p>The help page will now fully reflect the keys you have bound.</p></li>
+<li><p>Handle both synchronized and unsynchronized vorbis lyrics. Suggested by @hiruocha.</p></li>
+<li><p>Auto-scrolling lyrics in the lyrics page for synced lyrics. Also added the ability to scroll lyrics manually. By @noiamnote.</p></li>
+<li><p>The app and readme has been translated into japanese and chinese. Thank you for help with the chinese translation @hiruocha.</p></li>
+<li><p>New theme: catpuccin mocha by @pixel-peeper.</p></li>
+<li><p>New theme: neutral, uses only the default foreground color.</p></li>
+<li><p>The cover is now visible on the left side on most views. Can be disabled by setting hideSideCover=1 in the config file.</p></li>
+<li><p>Reverted to being neutral in album color mode when no music is playing.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Don&#8217;t enqueue the .m3u files themselves when mass enqueueing.</p></li>
+<li><p>Fixes a bug related to certain types of mp3 files, where the song metadata wasn&#8217;t switching in the UI. Found by: @Chromium-3-Oxide.</p></li>
+<li><p>Fixes a bug in library view where under some conditions, the position of the selected row could jump upwards.</p></li>
+<li><p>Made the path validation function less strict to avoid false positives. Reported by: DimaFyodorov.</p></li>
+<li><p>Removed hardcoded paths in Makefile to avoid conflicting paths. Found by @hpjansson.</p></li>
+<li><p>Fixed a few minor bugs with the library UI. Found by @bholroyd.</p></li>
+<li><p>Fixed full width characters not displayed in notifications. Found by @Chromium-3-Oxide.</p></li>
+</ul>
+<h4>Contributors</h4>
+<p>Thank you also especially to contributors @jaoh, @bholroyd, @LeahTheSlug, @Chromium-3-Oxide and @hpjansson, @Vafone for reporting many issues and helping out.</p>
+<p>Thank you to @bholroyd for making the kew theme editor: <a href="https://bholroyd.github.io/Kew-tip/">https:&#47;&#47;bholroyd.github.io&#47;Kew-tip&#47;</a></p>
+<p>Thank you to all the beta testers!</p>
+<h4>Sponsors</h4>
+<p>Thank you to Christian Mummelthey, imalee.sk and @sandrock. for their donations.</p>
+<h3>3.6.4</h3>
+<ul>
+<li><p>Fixed &#8216;kew theme&#8217; command.</p></li>
+<li><p>Add support for vorbis lyrics for FLAC&#47;Ogg&#47;Opus files. We now have .lrc file support, SYLT mp3 lyrics support and now these. Should cover most cases.</p></li>
+</ul>
+<h3>3.6.3</h3>
+<ul>
+<li><p>Fixed issue on termux for people who don&#8217;t have faad installed.</p></li>
+<li><p>If run with song arguments starts in track view like it&#8217;s supposed to.</p></li>
+<li><p>Fixed song loading instability with flac and mp3.</p></li>
+</ul>
+<h3>3.6.2</h3>
+<ul>
+<li><p>Fix kew not exiting cleanly on android.</p></li>
+<li><p>Fix update library from cache resulting in error.</p></li>
+</ul>
+<h3>3.6.1</h3>
+<ul>
+<li>Fixed build issue on termux.</li>
+</ul>
+<h3>3.6.0</h3>
+<p><img src="https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png" alt="kew logo"/></p>
+<ul>
+<li><p>kew now has a real logo and a tagline: &#8220;MUSIC FOR THE SHELL&#8221;.</p></li>
+<li><p>We now also have a color associated with kew, which is red: #de2b4d.</p></li>
+<li><p>This color is now the default if you are not playing anything and are using album colors.</p></li>
+<li><p>The welcome screen that appears when the path is not set has been given much love.</p></li>
+<li><p>Song lyrics support through .lrc files. These need to already be on your computer. By @Rioprastyo17</p></li>
+<li><p>Song lyrics support through SYLT id3 tags. By @dandelion-75.</p></li>
+<li><p>Watch timestamped lyrics in track view or press &#8216;m&#8217; in the same view for full page lyrics. By @ravachol.</p></li>
+<li><p>Bumped miniaudio to version v0.11.23 which among other things fixes a bug with some versions of mp3. By @hypercunx.</p></li>
+<li><p>Code cleanup, improved internal structure by A LOT and removed all globals among other things. There are still a bunch of little inconsistencies to work on, naming conventions and so on, but for the most part, I&#8217;m very pleased with the progress.</p></li>
+<li><p>There&#8217;s now a diagram of kew&#8217;s architecture included for devs who want to know how the internals are laid out.</p></li>
+<li><p>You can now finally set collaped paths such as ~&#47;Music and they will be set that way in config. Suggested by @danielwerg.</p></li>
+<li><p>The config file is now respected and no longer changed by kew, only if you run kew path &#60;path&#62;. Instead there is a kewstaterc file in ~&#47;.local&#47;state that keeps the variables that can change in-app, these override what&#8217;s in kewrc. Suggested by @danielwerg.</p></li>
+<li><p>Dropped Nerd Fonts in favor of ⇉,⇇,↻,⇄ which are all unicode symbols. While Nerdfonts is neat it&#8217;s too much trouble for users to install things and troubleshoot for just 4 slightly better symbols.</p></li>
+<li><p>kew now restarts if it&#8217;s already running in a different window. This replaces the ugly message that instructs the user to run &#8216;kill&#8217;. Suggested by @amigthea.</p></li>
+<li><p>Gradients are now enabled when using themes, not just when using album colors. It&#8217;s the little things that count.</p></li>
+<li><p>Playlist max files limit raised to 50k songs. Suggested by: @Saijin_Naib.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Path is expanded correctly when providing it through the first screen that let&#8217;s you choose a path.</p></li>
+<li><p>Don&#8217;t create ~&#47;.config&#47;kew&#47;themes dir if there are no themes to be copied (user hasn&#8217;t done sudo make install).</p></li>
+<li><p>Fixed a bug with the library cache ids that was introduced in the last version.</p></li>
+<li><p>Fixed a build issue on some versions of macOS.</p></li>
+<li><p>Fixed an issue with replay gain being calculated in the wrong place.</p></li>
+</ul>
+<h3>Sponsors</h3>
+<p>Thank you to for the generous donation @LTeder!</p>
+<h3>3.5.3</h3>
+<ul>
+<li>Fixes a bug that affects the library cache. This bug has the effect of making startup times for kew be slower on already slow HDDs.</li>
+</ul>
+<h3>3.5.2</h3>
+<ul>
+<li><p>Fixed line in cover being erased in landscape mode on some terminals. By @hartalex.</p></li>
+<li><p>Fixed long names no longer scrolling.</p></li>
+<li><p>Fixed cover in landscape mode jumping from line 1 to line 2 and back when resizing window.</p></li>
+</ul>
+<h3>3.5.1</h3>
+<ul>
+<li>Fix issue&#47;test on homebrew.</li>
+</ul>
+<h3>3.5.0</h3>
+<p>Now with themes and Android support</p>
+<p>New in this release:</p>
+<ul>
+<li><p>Fully customizable colors</p></li>
+<li><p>Themes supporting both TrueColor RGB and the terminal 16-color palette</p></li>
+<li><p>Theme pack with 16 included themes</p></li>
+<li><p>Android support</p></li>
+<li><p>Fixed TTY flickering</p></li>
+<li><p>Improved search</p></li>
+</ul>
+<h4>Themes</h4>
+<p>Press t to cycle available themes.</p>
+<p>To set a theme from the command-line, run:</p>
+<p>kew theme themename (ie &#8216;kew theme midnight&#8217;)</p>
+<p>Put themes in ~&#47;.config&#47;kew&#47;themes (~&#47;Library&#47;Preferences&#47;kew&#47;themes on macOS).</p>
+<h4>Android</h4>
+<p>I haven&#8217;t looked at battery life aspects yet, but staying in library view will be easier on the battery than using track view with the visualizer. You can also press v to toggle the visualizer on or off.</p>
+<h4>TTY problems resolved</h4>
+<p>The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for other color modes), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!</p>
+<h4>Move to Codeberg</h4>
+<p>We now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer. Except for PRs, PRs need to go to codeberg, develop branch.</p>
+<h4>OpenSuse</h4>
+<p>We are now back on openSuse, our package there hadn&#8217;t been updated in a long time, due to openSuse not having faad lib.</p>
+<p>We still need a Fedora package. We already have a RPM spec that @kazeevn added and everything.</p>
+<p>Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.</p>
+<h4>Sponsors and Donations Wanted</h4>
+<p>Thank you to a new sponsor, @BasedScience!</p>
+<p>Please support this effort:
+<a href="https://ko-fi.com/ravachol">https:&#47;&#47;ko-fi.com&#47;ravachol</a>
+<a href="https://github.com/sponsors/ravachol">https:&#47;&#47;github.com&#47;sponsors&#47;ravachol</a>.</p>
+<ul>
+<li>Ravachol</li>
+</ul>
+<h4>New Features &#47; Improvements</h4>
+<ul>
+<li><p>Theme colors, both TrueColor and 16-color palette theming. Cycle by pressing &#8216;t&#8217;.</p></li>
+<li><p>Android compatibility! Please see ANDROID-INSTRUCTIONS.md for how to get kew on your phone. (@welpyes)</p></li>
+<li><p>Improved the search function so that albums are shown below an artist hit.</p></li>
+<li><p>Improved installation instructions for Fedora and openSuse in the README.</p></li>
+<li><p>Enabled the detection of FAAD2 (which handles m4a) on Fedora properly in the makefile.</p></li>
+<li><p>Made makefile compatible with openSuse Tumbleweed. The kew package has been updated on openSuse for the first time in a long time, thank you mantarimay (maintainer on openSuse).</p></li>
+<li><p>Added an icon indicating if the song is playing or paused before the title at the top when the logo is hidden.</p></li>
+<li><p>Shows the playlist from the first song (if it&#8217;s in view), instead of always starting from the playing song. Suggested by @affhp.</p></li>
+<li><p>Improved the safety of various functions and addressed potential vulnerabilities.</p></li>
+<li><p>Don&#8217;t make a space for the cover if there is none on landscape view.</p></li>
+<li><p>Improved the instructions in the help view.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Fixed visualizer crashing the app on ultrawide monitors.</p></li>
+<li><p>Added null check for when exporting an empty playlist to .m3u.</p></li>
+<li><p>Prevent flickering when scrolling on TTY and likely on some other terminals as well.</p></li>
+<li><p>Search: fixed files being reordered when scrolling on macOS&#47;kitty.</p></li>
+</ul>
+<h3>3.4.1</h3>
+<p>Adds a few minor bug fixes and you can now use playlists from the library view.</p>
+<ul>
+<li><p>Added ability to see and enqueue playlists (m3u and m3u8) from library view. By Ravachol. Suggested by Kansei994.</p></li>
+<li><p>Removed -flto from the makefile since it was causing compatibility problems, for instance Ubuntu 25.04.</p></li>
+<li><p>Removed ALAC file support due to CVEs in the Apple ALAC decoder: <a href="https://github.com/macosforge/alac/issues/22">https:&#47;&#47;github.com&#47;macosforge&#47;alac&#47;issues&#47;22</a>. By Ravachol. Reported by @werdahias.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Fixed G key not bound for new config files. By @Chromium-3-Oxide.</p></li>
+<li><p>Fixed restarting from stop by pressing space bar only working once. By @ravachol. Found by @Chromium-3-Oxide.</p></li>
+<li><p>Fixed status&#47;error message sometimes not being cleared. By @SynthSlayer. Found by @SynthSlayer.</p></li>
+<li><p>Fixed playlist sometimes starting from last song when enqueueing all by pressing &#8220;MUSIC LIBRARY&#8221;. By @ravachol. Found by j-lakeman.</p></li>
+<li><p>Fixed fullwidth characters not being truncated correctly. By @ravachol. Found by Kuuuube.</p></li>
+<li><p>Fixed running kew &#8211;version to show the version screen along with the logo makes the logo have a really dark gradient that is barely readable on some terminals. By @ravachol. Found by @Chromium-3-Oxide.</p></li>
+</ul>
+<h3>3.4.0</h3>
+<ul>
+<li><p>Landscape View (horizontal layout). Something that was long overdue. Widen the window and it automatically goes into landscape mode. By @Ravachol. Suggested by @Saijin-Naib.</p></li>
+<li><p>Added ability to switch views by using the mouse. By @Chromium-3-Oxide.</p></li>
+<li><p>Added ability to drag the progress bar using the mouse. Suggested by @icejix.</p></li>
+<li><p>Faster loading of library cache from file, for people with very large music collections.</p></li>
+<li><p>Show the actual keys bound to different views on the last row on macOS and show Shift+key instead of Sh+key for clarity. By @arcathrax.</p></li>
+<li><p>Added an indicator when the library is being updated. Suggested by @Saijin-Naib.</p></li>
+<li><p>Now (optionally) sets the currently playing track as the window title. By @Chromium-3-Oxide. Suggested by @Saijin-Naib.</p></li>
+<li><p>Added back the special playlist, but renamed as the kew favorites playlist. This is a playlist you can add songs to by pressing &#8220;.&#8221;.&#8221; while the song is playing. Requested by @nikolasdmtr.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Don&#8217;t strip numbers from titles when presenting the actual title taken from metadata. We still strip numbers like 01-01 from the beginning of filenames before presenting them though.</p></li>
+<li><p>Reset clock when resuming playback when stopped. Found by @Knusper.</p></li>
+<li><p>Better way of checking for embedded opus covers, some covers weren&#8217;t detected. Reported by @LeahTheSlug.</p></li>
+<li><p>Better way of extracting ogg vorbis covers. Reported by @musselmandev.</p></li>
+<li><p>Fixed &#8216;kew all&#8217; not being shuffled if &#8216;save repeat and shuffle settings&#8217; was turned on. By @j-lakeman.</p></li>
+</ul>
+<h3>3.3.3</h3>
+<ul>
+<li><p>Don&#8217;t show zero&#8217;s for hours unless the duration is more than an hour long.</p></li>
+<li><p>Show shuffle, repeat settings even if last row not visible.</p></li>
+<li><p>Better handling of comments in config file.</p></li>
+<li><p>Volume settings now follow a more conventional pattern where it increases or decreases based directly on the system output, instead of being relative to maximum output. Was able to remove a lot of code related to getting system volume on linux and macOS. Suggested by @arcathrax.</p></li>
+<li><p>Escape for quit is no longer hard coded and can be disabled or changed in the settings file. Suggested by @0023-119.</p></li>
+<li><p>Page Up and Page Down for scrolling are no longer hard coded and can be changed in the settings file. Suggested by The Linux Cast.</p></li>
+<li><p>Remove special playlist function. It&#8217;s kew&#8217;s most odd feature and confuses people because they think it&#8217;s related to the normal saving playlist function. Plus nobody has ever mentioned using it.</p></li>
+<li><p>Tmux + kitty and Tmux + foot now displays images correctly. Reported by @amigthea and @acdcbyl.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Fixed &#8220;ghost&#8221; visualizer bars showing up at higher frequencies in a zoomed out terminal window. Reported by @Chromium-3-Oxide.</p></li>
+<li><p>Fixed bug in library related to handling of sub-directories several levels deep.</p></li>
+<li><p>Fixed volume up&#47;down not working when audio interface plugged in on macOS. Reported by @arcathrax.</p></li>
+<li><p>Fixed bug with library cache setting not being remembered. Reported by @Saijin-Naib.</p></li>
+</ul>
+<h3>3.3.2</h3>
+<ul>
+<li>Remove -lcurl from makefile.</li>
+</ul>
+<h3>3.3.1</h3>
+<p>Removal of Internet Radio Feature:
+We have decided to remove the internet radio feature from this release. This decision was made after careful consideration of stability and security concerns.</p>
+<p>Why This Change:
+To focus on core functionality. By removing the internet radio feature, we can concentrate on making the core music player really high quality, and making kew a more enjoyable experience.</p>
+<p>Security and Stability:
+It has been challenging addressing issues related to the internet radio feature. Removing it allows us to focus on other aspects of the application without compromising its stability and security.</p>
+<p>To summarize: By removing internet access completely from kew, we can make it a simple, secure and robust tool much more easily.</p>
+<ul>
+<li>Also Fixes an issue with visualizer height on macOS.</li>
+</ul>
+<h3>3.3.0</h3>
+<ul>
+<li><p>Reworked the visualizer to make it have more punch and to make higher frequency value changes more visible. The visualizer now also runs at 30fps instead of 60fps. 60 fps was just at odds with kew&#8217;s very low system requirements profile, and we want kew to consume very little resources. The lower framerate cuts the cpu utilization in half when in track view with no big noticeable differences.</p></li>
+<li><p>Added webm support. Suggested by @Kuuuube.</p></li>
+<li><p>kew now remembers the playlist between sessions, unless you tell it to load something else.</p></li>
+<li><p>Added a new setting, visualizerBarWidth. 0=Thin,1=Fat (twice as wide bars) or 2=Auto (depends on the window size. the default). Also line progressbar is now the default, mainly because it looks better with fat bars.</p></li>
+<li><p>The appearance of the progress bar can now be configured in detail. There&#8217;s even a pill muncher mode, where this round guy eats everything in his path. There are commented out examples in the kewrc so you can go back to the old look, if you don&#8217;t like the new. By @Chromium-3-Oxide.</p></li>
+<li><p>Gradient in library and playlist that makes the bottom rows a bit darker when using album colors.</p></li>
+<li><p>Replay gain source can now be set in the config file. 0 = track, 1 = album or 2 = disabled. Suggested by @ksushagryaznaya.</p></li>
+<li><p>Logging to error.log is now enabled if you run make DEBUG=1.</p></li>
+<li><p>Prevent Z,X,C,V,B,N to trigger view changes in search or radio search if not on macOS. These are the shortcuts that are used instead of the F1-F7 keys on macOS, because there F-keys don&#8217;t always mean F-functions. Delete the config file kewrc if you want to type uppercase letters in search.</p></li>
+<li><p>Now saves repeat and shuffle settings betweens sessions. This can be turned off in the settings file.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Fixed a format conversion issue with the visualizer.</p></li>
+<li><p>The clock wasn&#8217;t getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide and @Kuuuube.</p></li>
+<li><p>Fixed ascii cover image being too narrow on gnome terminal.</p></li>
+<li><p>Fixed error (invalid read 8 bytes) when using backspace to clear a stopped playlist.</p></li>
+<li><p>Gave the last row more minimum space.</p></li>
+<li><p>Fixed bug where on some terminals when in a small window and visualizer disabled, the time progress row would get repeated.</p></li>
+<li><p>Removed a use-after-unlock race in radio search.</p></li>
+<li><p>Eliminated memory leak on radio search cancel by switching to cooperative thread cancellation (stop flag) instead of pthread_cancel.</p></li>
+</ul>
+<h3>3.2.0</h3>
+<p>Now with a mini-player mode, a braille visualizer mode, a favorites list for radio stations, scrolling names that don&#8217;t fit, the visualizer running at 60 fps, and much more!</p>
+<ul>
+<li><p>New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007.</p></li>
+<li><p>The visualizer now runs at 60 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before to save on system resources.</p></li>
+<li><p>The visualizer can now be shown in braille mode (visualizerBrailleMode option in kewrc config file).</p></li>
+<li><p>Track progress can now be shown as a thin line instead of dots.</p></li>
+<li><p>Now shows sample rate and if relevant, bitrate, in track view.</p></li>
+<li><p>A favorites list for radio stations. It&#8217;s visible when the radio search field is empty.</p></li>
+<li><p>Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity.</p></li>
+<li><p>Long song names now scroll in the library and playlist. Suggested by @HAPPIOcrz007.</p></li>
+<li><p>Press o to sort the library, either showing latest first or alphabetically. Suggested by @j-lakeman.</p></li>
+<li><p>Radio search now refreshes the list as radio stations are found, making it less &#8220;laggy&#8221;.</p></li>
+<li><p>Track view works with radio now.</p></li>
+<li><p>Added a stop command (shift+s). Space bar is play as before.</p></li>
+<li><p>Removed the playback of tiny left overs of the previous song, when pausing and then switching song.</p></li>
+<li><p>Added bitrate field to radio station list.</p></li>
+<li><p>Added support for fullwidth characters.</p></li>
+<li><p>Added repeat playlist option. Suggested by @HAPPIOcrz007.</p></li>
+<li><p>Added option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.</p></li>
+<li><p>Added config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.</p></li>
+<li><p>Previous on first track now resets the track instead of stopping.</p></li>
+<li><p>Code cleanup. By @Chromium-3-Oxide.</p></li>
+</ul>
+<h4>Bug Fixes</h4>
+<ul>
+<li><p>Fixed deadlock when quickly and repeatedly starting a radio station.</p></li>
+<li><p>Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack.</p></li>
+<li><p>Fixed bug with moving songs around, there was a case where it wasn&#8217;t rebuilding the chain and the wrong song would get played.</p></li>
+<li><p>Fixed bug with alt + mouse commands not working.  By @Chromium-3-Oxide.</p></li>
+</ul>
+<h3>3.1.2</h3>
+<ul>
+<li><p>Fix radio search sometimes freezing because of an invalid radio station URL. Found by joel. by @ravachol.</p></li>
+<li><p>Added ability to play a song directly from the library (instead of just adding it to the playlist) by pressing Alt+Enter. Suggested by @PrivacyFriendlyMuffins. By @ravachol.</p></li>
+<li><p>Added ability to disable the glimmering (flashing) last row. By @Chromium-3-Oxide.</p></li>
+</ul>
+<h3>3.1.1</h3>
+<ul>
+<li>Reverts the command <code>kew path</code> to its previous behavior (exit on completion), which enables some automated tests to function again. By @ravachol.</li>
+</ul>
+<h3>3.1.0</h3>
+<p>Now with internet radio, mouse support and ability to move songs around in the playlist.</p>
+<h4>Dependencies:</h4>
+<ul>
+<li>New dependency on libcurl.</li>
+</ul>
+<h4>Changes:</h4>
+<ul>
+<li><p>Added Internet radio support.
+MP3 streams only so far, but the vast majority of streams are MP3 streams in the database we are using, others are excluded.
+Press F6 for radio search or Shift+B on macOS. By @ravachol.</p></li>
+<li><p>Added mouse support.
+Use the middle button for playing or enqueueing a song. Right button to pause. This is configurable with plenty of options. By @Chromium-3-Oxide.</p></li>
+<li><p>Move songs up and down the playlist with t and g. By @ravachol. Suggested By @HAPPIOcrz007.</p></li>
+<li><p>Added support for m4a files using ALAC decoder. By @ravachol.</p></li>
+<li><p>When the program exits previous commands and outputs are restored. By @DNEGEL3125.</p></li>
+<li><p>Clear the entire playlist by pressing backspace. By @mechatour.</p></li>
+<li><p>Added support for wav file covers. By @DNEGEL3125.</p></li>
+<li><p>Made the app do less work when idle. By @ravachol.</p></li>
+<li><p>The currently playing track is now underlined as well as bolded, because bold weight wasn&#8217;t working with some fonts. Found By @yurivict. By @ravachol.</p></li>
+<li><p>Added logic that enables running raw AAC files (but not HE-AAC). By @ravachol.</p></li>
+<li><p>Added debugging flag to the makefile. Now to run make with debug symbols, run:
+make DEBUG=1 -ij4.</p></li>
+<li><p>It&#8217;s now possible to remove or alter the delay when printing the song title, in settings. By @Chromium-3-Oxide.</p></li>
+<li><p>Added the config option of quitting after playing the playlist, same as &#8211;quitonstop flag. By @Chromium-3-Oxide.</p></li>
+<li><p>Improved error message system. By @ravachol.</p></li>
+<li><p>Reenabled seeking in ogg files. By @ravachol.</p></li>
+</ul>
+<h4>Bug Fixes:</h4>
+<ul>
+<li><p>Fixed cover sometimes not centered in wezterm terminal. By @ravachol.</p></li>
+<li><p>Fixed setting path on some machines doesn&#8217;t work, returns &#8216;path not found&#8217;. Found by @illnesse.</p></li>
+<li><p>Fixed crash when in shuffle mode and choosing previous song on empty playlist. Found by @DNEGEL3125.</p></li>
+<li><p>Fixed crash sometimes when pressing enter in track view. By @ravachol.</p></li>
+<li><p>Fixed ogg vorbis playback sometimes leading to crash because there was no reliable way to tell if the song had ended. By @ravachol.</p></li>
+<li><p>Fixed opus playback sometimes leading to crash because of a mixup with decoders. By @ravachol.</p></li>
+<li><p>Uses a different method for detecting if kew is already running since the previous method didn&#8217;t work on macOS. By @DNEGEL3125.</p></li>
+<li><p>Prevent the cover from scrolling up on tmux+konsole. Found by @acdcbyl. By @ravachol.</p></li>
+<li><p>Fix cursor sometimes not being in the right place when switching m4a files. Found by @LeahTheSlug. By @ravachol. Thanks to @rudra-dhamecha for help.</p></li>
+<li><p>Fix holding enter on track view causes skipping. Found by @LeahTheSlug. By @ravachol.</p></li>
+</ul>
+<h4>Special Thanks To These Sponsors:</h4>
+<ul>
+<li>@SpaceCheeseWizard</li>
+<li>@nikolasdmtr</li>
+<li><em>one private sponsor</em></li>
+</ul>
+<h3>3.0.3</h3>
+<ul>
+<li><p>Fixed buffer redraw issue with cover images on ghostty.</p></li>
+<li><p>Last Row is shown in the same place across all views.</p></li>
+<li><p>The library text no longer shifts one char to the left sometimes when starting songs.</p></li>
+<li><p>Fixed minor bug related to scrolling in library.</p></li>
+<li><p>Fixed bug related to covers in ascii, on narrow terminal sizes it wouldn&#8217;t print correctly. Found by @Hostuu.</p></li>
+<li><p>Minor UI improvements, style adjustments and cleaning up.</p></li>
+<li><p>Added play and stop icon, and replaced some nerdfont characters with unicode equivalents.</p></li>
+<li><p>Disabled desktop notifications on macOS. The macOS desktop notifications didn&#8217;t really gel well with the app, and the method used was unsafe in the long run. A better way to do it is by using objective-c, which I want to avoid using.</p></li>
+</ul>
+<h3>3.0.2</h3>
+<ul>
+<li><p>You can now enqueue and play all your music (shuffled) in library view, by pressing MUSIC LIBRARY at the top.</p></li>
+<li><p>Removed dependency on Libnotify because its&#8217; blocking in nature, and some users were experiencing freezes. Instead dbus is used directly if available and used with timeouts. Reported by @sina-salahshour.</p></li>
+<li><p>Fixed bug introduced in 3.0.1 where songs whose titles start with a number would be sorted wrong.</p></li>
+<li><p>Fixed music library folders containing spaces weren&#8217;t being accepted. Found by @PoutineSyropErable.</p></li>
+<li><p>Fixed bug where after finishing playing a playlist and then choosing a song in it, the next song would play twice.</p></li>
+<li><p>Fixed kew all not being randomized properly. Found by @j-lakeman.</p></li>
+<li><p>Fixed useConfigColors setting not being remembered. Found by @j-lakeman.</p></li>
+<li><p>Added AUTHORS.md, DEVELOPERS.md and CHANGELOG.md files.</p></li>
+<li><p>Dependencies Removed: Libnotify.</p></li>
+</ul>
+<h3>3.0.1</h3>
+<ul>
+<li><p>Uses safer string functions.</p></li>
+<li><p>Fixed bug where scrolling in the library would overshoot its place when it was scrolling through directories with lots of files.</p></li>
+<li><p>Fixed mpris&#47;dbus bug where some widgets weren&#8217;t able to pause&#47;play.</p></li>
+<li><p>Fixed crash when playing very short samples in sequence. Found by @hampa.</p></li>
+<li><p>Fixed order of songs in library was wrong in some cases. Found by @vincentcomfy.</p></li>
+<li><p>Fixed bug related to switching songs while paused.</p></li>
+<li><p>Fixed bug with being unable to rewind tracks to the start. Found by @INIROBO.</p></li>
+<li><p>Seek while paused is now disabled. Problems found by @INIROBO.</p></li>
+</ul>
+<h3>3.0.0</h3>
+<p>This release comes with bigger changes than usual. If you have installed kew manually, you need to now install taglib, ogglib and, if you want, faad2 (for aac&#47;m4a support) for this version (see the readme for instructions for your OS).</p>
+<ul>
+<li><p>kew now works on macOS. The default terminal doesn&#8217;t support colors and sixels fully, so installing a more modern terminal like kitty or wezterm is recommended.</p></li>
+<li><p>Removed dependencies: FFmpeg, FreeImage.</p></li>
+<li><p>Added Dependencies: Faad2, TagLib, Libogg.</p></li>
+<li><p>These changes make kew lighter weight and makes it faster to install on macOS through brew.</p></li>
+<li><p>Faad2 (which provides AAC decoding) is optional. By default, the build system will automatically detect if faad2 is available and include it if found.</p></li>
+<li><p>More optimized and faster binary. Thank you @zamazan4ik for ideas.</p></li>
+<li><p>Better support of Unicode strings.</p></li>
+<li><p>Case-insensitive search for unicode strings. Thank you @valesnikov.</p></li>
+<li><p>Fixed makefile and other things for building on all arches in Debian. Thank you so much @werdahias.</p></li>
+<li><p>More efficient handling of input.</p></li>
+<li><p>Added support for .m3u8 files. Thank you @mendhak for the suggestion.</p></li>
+<li><p>Fixed bug where switching songs quickly, the cover in the desktop notification would remain the same.</p></li>
+<li><p>Fixed issue with searching for nothing being broken. Thank you @Markmark1!</p></li>
+</ul>
+<p>Thank you so much @xplshn, @Vafone and @Markmark1 for help with testing.</p>
+<h3>3.0.0-rc1</h3>
+<p>This release comes with bigger changes than usual. If you have installed kew manually, you need to now install taglib, ogglib and, if you want, faad2 (for aac&#47;m4a support) for this version (see the readme for instructions for your OS).</p>
+<ul>
+<li><p>kew now works on macOS. The default terminal doesn&#8217;t support colors and sixels fully, so installing a more modern terminal like kitty or wezterm is recommended.</p></li>
+<li><p>Removed dependencies: FFmpeg, FreeImage</p></li>
+<li><p>Added Dependencies: Faad2, TagLib, Ogglib</p></li>
+<li><p>These changes makes kew lighter weight and makes it faster to install on macOS through brew.</p></li>
+<li><p>Faad2 (which provides AAC decoding) is optional! By default, the build system will automatically detect if faad2 is available and include it if found. Disable with make USE_FAAD=0.</p></li>
+<li><p>More optimized and faster binary. Thank you @zamazan4ik for ideas.</p></li>
+<li><p>Better support of Unicode strings.</p></li>
+<li><p>Fixed makefile and other things for building on all arches in Debian. Thank you @werdahias.</p></li>
+<li><p>More efficient handling of input.</p></li>
+<li><p>Added support for .m3u8 files. Thank you @mendhak for the suggestion.</p></li>
+<li><p>Fixed bug where switching songs quickly, the cover in the desktop notification would remain the same.</p></li>
+</ul>
+<p>Thank you @xplshn and @Markmark1 for help with testing.</p>
+<p>Big thanks to everyone who helps report bugs!</p>
+<h3>2.8.2</h3>
+<ul>
+<li><p>Fixed issue with building when libnotify is not installed.</p></li>
+<li><p>Fixed build issue on FreeBSD.</p></li>
+</ul>
+<h3>2.8.1</h3>
+<p>New in this version:</p>
+<ul>
+<li><p>Much nicer way to set the music library path on first use.</p></li>
+<li><p>Checks at startup if the music library&#8217;s modified time has changed when using cached library. If it has, update the library. Thanks @yurivict for the suggestion.</p></li>
+<li><p>Improved search: kew now also shows the album name (directory name) of search results, for clarity.</p></li>
+<li><p>You can now use TAB to cycle through the different views.</p></li>
+<li><p>There&#8217;s now a standalone executable AppImage for musl x86_64 systems. Thank you to @xplshn and @Samueru-sama for help with this.</p></li>
+</ul>
+<p>Bugfixes and other:</p>
+<ul>
+<li><p>Added missing include file. Thank you @yurivict.</p></li>
+<li><p>Don&#8217;t repeat the song notification when enqueuing songs. A small but annoying bug that slipped into the last release.</p></li>
+<li><p>Fixed issue where kew sometimes couldn&#8217;t find the cover image in the folder.</p></li>
+<li><p>Better handling of songs that cannot be initialized.</p></li>
+<li><p>Removed support for .mp4 files so as to not add a bunch of video folders to the music library. Thanks @yurivict for the suggestion.</p></li>
+<li><p>Made the makefile compatible with Void Linux. Thank you @itsdeadguy.</p></li>
+<li><p>Cursor was not reappearing in some cases on FreeBSD after program exited. Thank you @yurivict.</p></li>
+<li><p>Fixed slow loading UI on some machines, because of blocking desktop notification. Thanks @vdawg-git for reporting this.</p></li>
+</ul>
+<p>Thank you to @vdawg-git for helping me test and debug!</p>
+<p>Thank you also to @ZhongRuoyu!</p>
+<h3>2.8</h3>
+<p>New Features:</p>
+<ul>
+<li><p>Much nicer way to set the music library path on first use.</p></li>
+<li><p>Checks at startup if the music library&#8217;s modified time has changed when using cached library. If it has, update the library. Thanks @yurivict for the suggestion.</p></li>
+<li><p>Improved search: kew now also shows the album name (directory name) of search results, for clarity.</p></li>
+<li><p>You can now use TAB to cycle through the different views.</p></li>
+<li><p>There&#8217;s now a standalone executable AppImage for musl x86_64 systems. Thank you to @xplshn and @Samueru-sama for help with this.</p></li>
+</ul>
+<p>Bugfixes and other:</p>
+<ul>
+<li><p>Don&#8217;t repeat the song notification when enqueuing songs. A small but annoying bug that slipped into the last release.</p></li>
+<li><p>Fixed issue where kew sometimes couldn&#8217;t find the cover image in the folder.</p></li>
+<li><p>Better handling of songs that cannot be initialized.</p></li>
+<li><p>Removed support for .mp4 files so as to not add a bunch of video folders to the music library. Thanks @yurivict for the suggestion.</p></li>
+<li><p>Made the makefile compatible with Void Linux. Thank you @itsdeadguy.</p></li>
+<li><p>Cursor was not reappearing in some cases on FreeBSD after program exited. Thank you @yurivict.</p></li>
+<li><p>Fixed slow loading UI on some machines, because of blocking desktop notification. Thanks @vdawg-git for reporting this.</p></li>
+</ul>
+<p>Thank you to @vdawg-git for helping me test and debug!</p>
+<h3>2.7.2</h3>
+<ul>
+<li><p>You can now remove the currently playing song from the playlist. Thank you @yurivict for the suggestion. You can then press space bar to play the next song in the list.</p></li>
+<li><p>Scrolling now stops immediately after the key is released.</p></li>
+<li><p>Better reset of the terminal at program exit.</p></li>
+<li><p>MPRIS widgets are now updated when switching songs while paused.</p></li>
+<li><p>When pressing update library (&#8220;u&#8221;), it now remembers which files are enqueued.</p></li>
+<li><p>No more ugly scroll back buffer in the terminal.</p></li>
+</ul>
+<p>Btw, there is a bug in the KDE Media Player Widget which locks up plasmashell when certain songs   play (in any music player). If you are having that problem, I suggest not using that widget until you have plasmashell version 6.20 or later. Bug description: <a href="https://bugs.kde.org/show_bug.cgi?id=491946">https:&#47;&#47;bugs.kde.org&#47;show_bug.cgi?id=491946</a>.</p>
+<h3>2.7.1</h3>
+<ul>
+<li>Added missing #ifdef for libnotify. This fixes #157.</li>
+</ul>
+<h3>2.7</h3>
+<p>This release adds:
+    - Complete and corrected MPRIS implementation and support of playerCtl, except for opening Uris through mpris.
+    - Libnotify as a new optional dependency.
+    - Fixes to many minor issues that have cropped up.</p>
+<ul>
+<li><p>Proper MPRIS and PlayerCtl support. Set volume, stop, seek and others now work as expected. You can also switch tracks while stopped or paused now. Everything should work except openUri and repeat playlist which are not available for now.</p></li>
+<li><p>New (optional) dependency: Libnotify. In practice, adding libnotify as a dependency means browsing through music will no longer make desktop notifications pile up, instead the one visible will update itself. Thank you, @kazemaksOG, this looks much better. kew uses libnotify only if you have it installed, so it should if possible be an optional thing during installation.</p></li>
+<li><p>Allows binding of other keys for the different ui views that you get with F2-F6.</p></li>
+<li><p>Removed the option to toggle covers on and off by pressing &#8216;c&#8217;. This led to confusion.</p></li>
+<li><p>Removed build warning on systems with ffmpeg 4.4 installed.</p></li>
+<li><p>Only run one instance of kew at a time, thanks @werdahias for the suggestion.</p></li>
+<li><p>If you exit the kew with 0% volume, when you open it next time, volume will be at 10%. To avoid confusion.</p></li>
+<li><p>Handle SIGHUP not only SIGINT.</p></li>
+<li><p>Prints error message instead of crashing on Fedora (thanks @spambroo) when playing unsupported .m4a files. This problem is related to ffmpeg free&#47;non-free versions. You need the non-free version.</p></li>
+<li><p>Fixed issue where special characters in the song title could cause mpris widgets to not work correctly.</p></li>
+</ul>
+<h3>2.6</h3>
+<ul>
+<li><p>New command: &#8220;kew albums&#8221;, similar to &#8220;kew all&#8221; but it queues one album randomly after the other. Thank you @the-boar for the suggestion.</p></li>
+<li><p>Fixed bug where sometimes kew couldn&#8217;t find a suitable name for a playlist file (created by pressing x).</p></li>
+<li><p>Made it so that seeking jumps in more reasonable smaller increments when not in song view. Previously it could jump 30 seconds at a time.</p></li>
+<li><p>Rolled back code related to symlinked directories, it didn&#8217;t work with freebsd, possibly others.</p></li>
+</ul>
+<h3>2.5.1</h3>
+<ul>
+<li><p>Fixed bug where desktop notifications could stall the app if notify-send wasn&#8217;t installed. Thank you @Visual-Dawg for reporting this and all the help testing!</p></li>
+<li><p>Search: Removed duplicate search result name variable. This means search results will now have a very low memory footprint.</p></li>
+<li><p>Symlinked directories should work better now. Works best if the symlink and the destination directory has the same name.</p></li>
+</ul>
+<h3>2.5</h3>
+<ul>
+<li><p>Fuzzy search! Press F5 to search your library.</p></li>
+<li><p>You can now quit with Esc. Handy when you are in search view, because pressing &#8216;q&#8217; will just add that letter to the search string.</p></li>
+<li><p>Fixed issue where after completing a playthrough of a playlist and then starting over, only the first song would be played.</p></li>
+<li><p>Fine tuning of the spectrum visualizer. Still not perfect but I think this one is better. I might be wrong though.</p></li>
+<li><p>Fixed issue where debian package tracker wasn&#8217;t detecting LDFLAGS in the makefile.</p></li>
+<li><p>Made scrolling quicker.</p></li>
+</ul>
+<h3>2.4.4</h3>
+<ul>
+<li><p>Fixed no sound playing when playing a flac or mp3 song twice, then enqueuing another.</p></li>
+<li><p>Don&#8217;t save every change to the playlist when running the special playlist with &#8216;kew .&#8217;, only add the songs added by pressing &#8216;.&#8217;.</p></li>
+<li><p>Removed compiler warning and a few other minor fixes.</p></li>
+</ul>
+<h3>2.4.3</h3>
+<ul>
+<li><p>Fixed covers not being perfectly square on some terminals.</p></li>
+<li><p>Fixed playlist selector could get &#8216;stuck&#8217; after playing a long list.</p></li>
+<li><p>Code refactoring and minor improvements to playlist view.</p></li>
+<li><p>Moved the files kewrc and kewlibrary config files from XDG<em>CONFIG</em>HOME into XDG<em>CONFIG</em>HOME&#47;kew&#47;, typically ~&#47;.config&#47;kew.</p></li>
+</ul>
+<h3>2.4.2</h3>
+<ul>
+<li>Fixed a few issues related to reading and writing the library.</li>
+</ul>
+<h3>2.4.1</h3>
+<ul>
+<li><p>Improved album cover color mode. Press &#8216;i&#8217; to try this.</p></li>
+<li><p>To accelerate startup times, there is now a library cache. This feature is optional and can be enabled in the settings file (kewrc). If the library loading process is slow, you&#8217;ll be prompted to consider using the cache.</p></li>
+<li><p>You can now press &#8216;u&#8217; to update the library in case you&#8217;ve added or removed songs.</p></li>
+<li><p>Faster &#8220;kew all&#8221;. It now bases its playlist on the library instead of scanning everything a second time.</p></li>
+<li><p>Fixed when running the special playlist with &#8220;kew .&#8221;, the app sometimes became unresponsive when adding &#47; deleting.</p></li>
+<li><p>Code refactoring and cleanup.</p></li>
+</ul>
+<h3>2.4</h3>
+<ul>
+<li><p>Much faster song loading&#47;skipping.</p></li>
+<li><p>New settings: configurable colors. These are configured in the kewrc file (in ~&#47;.config&#47; or wherever your config files are) with instructions there.</p></li>
+<li><p>New setting: hidehelp. Hides the help text on library view and playlist view.</p></li>
+<li><p>New setting: hidelogo. Prints the artist name as well as the song title at the top instead of a logo.</p></li>
+<li><p>Fixed an issue with shuffle that could lead to a crash.</p></li>
+<li><p>Fixed an issue where it could crash at the end of the playlist.</p></li>
+<li><p>Fixed an issue where in some types of music libraries you couldn&#8217;t scroll all the way to the bottom.</p></li>
+<li><p>Fixed notifications not notifying on songs with spaces in cover art url.</p></li>
+<li><p>Fixed sometimes not being able to switch song.</p></li>
+<li><p>Further adjustments to the visualizer.</p></li>
+<li><p>.aac and .mp4 file support.</p></li>
+<li><p>New option: -q. Quits right after playing the playlist (same as &#8211;quitonstop).</p></li>
+<li><p>Improved help text.</p></li>
+</ul>
+<h3>2.3.1</h3>
+<ul>
+<li><p>The visualizer now (finally!) works like it&#8217;s supposed to for all formats.</p></li>
+<li><p>Proper clean up and restore cursor when using CTRL-C to quit the app.</p></li>
+<li><p>Don&#8217;t refresh track view twice when skipping to the previous song.</p></li>
+</ul>
+<h3>2.3</h3>
+<ul>
+<li><p>Notifications of currently playing song through notify-send. New setting: allowNotifications. Set to 0 to disable notifications.</p></li>
+<li><p>Fixed an issue that could lead to a crash when switching songs.</p></li>
+<li><p>Fixed an issue with switching opus songs that could lead to a crash.</p></li>
+<li><p>Plus other bug fixes.</p></li>
+</ul>
+<h3>2.2.1</h3>
+<ul>
+<li><p>Fixed issue related to enqueuing&#47;dequeuing the next song.</p></li>
+<li><p>Some adapting for FreeBSD.</p></li>
+</ul>
+<h3>2.2.1</h3>
+<ul>
+<li><p>Fixed issue related to enqueuing&#47;dequeuing the next song.</p></li>
+<li><p>Some adapting for FreeBSD.</p></li>
+</ul>
+<h3>2.2</h3>
+<ul>
+<li><p>This update mostly contains improvements to stability.</p></li>
+<li><p>M4a file decoding is no longer done by calling ffmpeg externally, it&#8217;s (finally) done like the other file formats. This should make kew more stable, responsive and it should consume less memory when playing m4a files.</p></li>
+<li><p>kew now starts the first time with your system volume as the volume, after that it remembers the last volume it exited with and uses that.</p></li>
+<li><p>kew now picks up and starts using the cover color without the user having to first go to track view.</p></li>
+</ul>
+<h3>2.1.1</h3>
+<ul>
+<li>Fixed a few issues related to passing cover art url and length to mpris. Should now display cover and progress correctly in widgets on gnome&#47;wayland.</li>
+</ul>
+<h3>2.0.4</h3>
+<ul>
+<li><p>You can now add &#8220;-e&#8221; or &#8220;&#8211;exact&#8221; in your searches to return an exact (not case sensitive) match. This can be helpful when two albums have a similar name, and you want to specify you want one or the other.</p>
+<p>Example: kew -e basement popstar.</p></li>
+<li><p>Fixed issue where pressing del on the playlist changed view to track view.</p></li>
+</ul>
+<h3>2.0.3</h3>
+<ul>
+<li><p>Fixed issue where sometimes the last of enqueued songs where being played instead of the first,</p></li>
+<li><p>F4 is bound to show track view, and shown on the last row, so that the track view isn&#8217;t hidden from new users.</p></li>
+</ul>
+<h3>2.0.1</h3>
+<ul>
+<li><p>New view: Library. Shows the contents of the music library. From there you can add songs to the playlist.</p></li>
+<li><p>Delete items from the playlist by pressing Del.</p></li>
+<li><p>You can flip through pages of the library or playlist by pressing Page Up and Page Down.</p></li>
+<li><p>Starting kew with no arguments now takes you to the library.</p></li>
+<li><p>After the playlist finishes playing, the library is shown, instead of the app exiting.</p></li>
+<li><p>To run kew with all songs shuffled like you could before, just type &#8220;kew all&#8221; in the terminal.</p></li>
+<li><p>Running kew  with the argument &#8211;quitonstop, enables the old behavior of exiting when finished.</p></li>
+<li><p>Removed the playlist duration counter. It caused problems when coupled with the new features of being able to remove and add songs while audio is playing.</p></li>
+<li><p>New ascii logo! This one takes up much less space.</p></li>
+<li><p>kew now shows which song is playing on top of the library and playlist views.</p></li>
+<li><p>Volume is now set at 50% at the start.</p></li>
+<li><p>Also many bug fixes.</p></li>
+</ul>
+<h3>1.11</h3>
+<ul>
+<li><p>Now shows volume percentage.</p></li>
+<li><p>Fixed bug where on a small window size, the nerdfonts for seeking, repeat and shuffle when all three enabled could mess up the visualizer.</p></li>
+</ul>
+<h3>1.10</h3>
+<ul>
+<li><p>Improved config file, with more information on how to make key bindings with special keys for instance.</p></li>
+<li><p>Changing the volume is now for just kew, not the master volume of your system.</p></li>
+<li><p>Switching songs now unpauses the player.</p></li>
+<li><p>Fixed issue of potential crash when uninitializing decoders.</p></li>
+</ul>
+<h3>1.9</h3>
+<ul>
+<li><p>Fixed a potential dead-lock situation.</p></li>
+<li><p>Fixed one instance of wrong metadata&#47;cover being displayed for a song on rare occasions.</p></li>
+<li><p>Fixed an issue that could lead to a crash when switching songs.</p></li>
+<li><p>Fixed issue of potential crash when closing audio file.</p></li>
+<li><p>Fixed playlist showing the previous track as the current one.</p></li>
+<li><p>Much improved memory allocation handling in visualizer.</p></li>
+<li><p>Playlist builder now ignores hidden directories.</p></li>
+</ul>
+<h3>1.8.1</h3>
+<ul>
+<li><p>Fixed bugs relating to showing the playlist and seeking.</p></li>
+<li><p>Fixed bug where trying to seek on ogg files led to strange behavior. Now seeking in ogg is entirely disabled.</p></li>
+<li><p>Fixed bug where kew for no reason stopped playing audio but kept counting elapsed seconds.</p></li>
+<li><p>More colorful visualizer bars when using album cover colors.</p></li>
+</ul>
+<h3>1.8</h3>
+<ul>
+<li>Visualizer bars now grow and decrease smoothly (if your terminal supports unicode).</li>
+</ul>
+<h3>1.7.4</h3>
+<ul>
+<li><p>Kew is now interactive when paused.</p></li>
+<li><p>Fixed issue with crashing after a few plays with repeat enabled.</p></li>
+<li><p>Deletes cover images from cache after playing the file.</p></li>
+</ul>
+<h3>1.7.3</h3>
+<ul>
+<li>Fixed issue with crash after seeking to the end of songs a few times. A lot was changed in 1.6.0 and 1.7.0 which led to some instability.</li>
+</ul>
+<h3>1.7.2</h3>
+<ul>
+<li><p>Introduced Nerd Font glyphs for things like pause, repeat, fast forward and so on.</p></li>
+<li><p>More fixes.</p></li>
+</ul>
+<h3>1.7.1</h3>
+<ul>
+<li>Fixes a few issues in 1.7.0</li>
+</ul>
+<h3>1.7.0</h3>
+<ul>
+<li>Added decoders for ogg vorbis and opus. Seeking on ogg files doesn&#8217;t yet work however.</li>
+</ul>
+<h3>1.6.0</h3>
+<ul>
+<li>Now uses miniaudio&#8217;s built-in decoders for mp3, flac and wav.</li>
+</ul>
+<h3>1.5.2</h3>
+<ul>
+<li>Fix for unplayable songs.</li>
+</ul>
+<h3>1.5.1</h3>
+<ul>
+<li><p>Misc issues with input handling resolved.</p></li>
+<li><p>Faster seeking.</p></li>
+</ul>
+<h3>1.5</h3>
+<ul>
+<li><p>Name changed to kew to resolve a name conflict.</p></li>
+<li><p>Fixed bug with elapsed seconds being counted wrong if pausing multiple times.</p></li>
+<li><p>Fixed bug with segfault on exit.</p></li>
+</ul>
+<h3>1.4</h3>
+<ul>
+<li><p>Seeking is now possible, with A and D.</p></li>
+<li><p>Config file now resides in your XDG<em>CONFIG</em>HOME, possibly ~&#47;.config&#47;kewrc. You can delete the one in your home folder after starting this version of cue once.</p></li>
+<li><p>Most key bindings are now configurable.</p></li>
+<li><p>Singing more visible in the visualizer.</p></li>
+<li><p>Better looking visualizer with smoother gradient.</p></li>
+<li><p>Misc fixes.</p></li>
+<li><p>You can no longer press A to add to kew.m3u. instead use period.</p></li>
+</ul>
+<h3>1.3</h3>
+<ul>
+<li><p>Now skips drm&#8217;d files more gracefully.</p></li>
+<li><p>Improvements to thread safety and background process handling.</p></li>
+<li><p>Misc bug fixes.</p></li>
+<li><p>Using album colors is now the default again.</p></li>
+</ul>
+<h3>1.2</h3>
+<ul>
+<li><p>It&#8217;s now possible to scroll through the songs in the playlist menu.</p></li>
+<li><p>Unfortunately this means a few key binding changes. Adjusting volume has been changed to +, -, instead up and down arrow is used for scrolling in the playlist menu.</p></li>
+<li><p>h,l is now prev and next track (previously j and k). Now j,k is used for scrolling in the playlist menu.</p></li>
+<li><p>Added a better check that metadata is correct before printing it, hopefully this fixes an occasional but annoying bug where the wrong metadata was sometimes displayed.</p></li>
+<li><p>Using profile&#47;theme colors is now the default choice for colors.</p></li>
+</ul>
+<h3>1.1</h3>
+<ul>
+<li><p>Everything is now centered around the cover and left-aligned within that space.</p></li>
+<li><p>Better visibility for text on white backgrounds. If colors are still too bright you can always press &#8220;i&#8221; and use the terminal colors, for now.</p></li>
+<li><p>Playlist is now F2 and key bindings is F3 to help users who are using the terminator terminal and other terminals who might have help on the F1 key.</p></li>
+<li><p>Now looks better in cases where there is no metadata and&#47;or when there is no cover.</p></li>
+<li><p>The window refreshes faster after resize.</p></li>
+</ul>
+<h3>1.0.9</h3>
+<ul>
+<li><p>More colorful. It should be rarer for the color derived from the album cover to be gray&#47;white</p></li>
+<li><p>Press I to toggle using colors from the album cover or using colors from your terminal color scheme.</p></li>
+<li><p>Smoother color transition on visualizer.</p></li>
+</ul>
+<h3>1.0.8</h3>
+<h4>Features:</h4>
+<ul>
+<li><p>New Setting: useProfileColors. If set to 1 will match cue with your terminal profile colors instead of the album cover which remains the default.</p></li>
+<li><p>It is now possible to switch songs a little quicker.</p></li>
+<li><p>It&#8217;s now faster (instant) to switch to playlist and key bindings views.</p></li>
+</ul>
+<h4>Bug Fixes:</h4>
+<ul>
+<li><p>Skip to numbered song wasn&#8217;t clearing the number array correctly.</p></li>
+<li><p>Rapid typing of a song number wasn&#8217;t being read correctly..</p>
+<h3>1.0.7</h3></li>
+<li><p>Fixed a bug where mpris stuff wasn&#8217;t being cleaned up correctly.</p></li>
+<li><p>More efficient printing to screen.</p></li>
+<li><p>Better (refactored) cleanup.</p></li>
+</ul>
+<h3>1.0.6</h3>
+<ul>
+<li>Fixed a bug where mpris stuff wasn&#8217;t being cleaned up correctly</li>
+</ul>
+<h3>1.0.5</h3>
+<ul>
+<li><p>Added a slow decay to the bars and made some other changes that should make the visualizer appear better, but this is all still experimental.</p></li>
+<li><p>Some more VIM key bindings:
+ 100G or 100g or 100+ENTER -&#62; go to song 100
+ gg -&#62; go to first song
+ G -&#62; go to last song</p></li>
+</ul>
+<h3>1.0.4</h3>
+<ul>
+<li><p>Added man pages.</p></li>
+<li><p>Added a few VIM key bindings (h,j,k,l) to use instead of arrow keys.</p></li>
+<li><p>Shuffle now behaves like in other players, and works with MPRIS. Previously the list would be reordered, instead of the song just jumping from place to place, in the same list. Starting cue with &#8216;cue shuffle &#60;text&#62;&#8217; still works the old way.</p></li>
+<li><p>Now prints a R or S on the last line when repeat or shuffle is enabled.</p></li>
+</ul>
+<h3>1.0.3</h3>
+<ul>
+<li><p>cue should now cleanly skip files it cannot play. Previously this caused instability to the app and made it become unresponsive.</p></li>
+<li><p>Fixed a bug where the app sometimes became unresponsive, in relation to pausing&#47;unpausing and pressing buttons while paused.</p></li>
+</ul>
+<h3>1.0.2:</h3>
+<ul>
+<li><p>Added support for MPRIS, which is the protocol used on Linux systems for controlling media players.</p></li>
+<li><p>Added &#8211;nocover option.</p></li>
+<li><p>Added &#8211;noui option. When it&#8217;s used cue doesn&#8217;t print anything to screen.</p></li>
+<li><p>Now you can press K to see key bindings.</p></li>
+<li><p>Fixed issue with long files being cut off.</p></li>
+<li><p>Hiding cover and changing other settings, now clears the screen first.</p></li>
+<li><p>Fixed installscript for opensuse.</p></li>
+<li><p>Feature or bug? You can no longer raise the volume above 100%</p></li>
+<li><p>New dependency: glib2. this was already required because chafa requires it, but it is now a direct dependency of cue.</p></li>
+</ul>
+</article>
+    <footer>
+        <p>Like kew?</p>
+        <div class="support-button">
+                <a href="donate.html">Support the project</a>
+        </div>
+
+          <p>Music for the Shell</p>
+
+    </footer>
+
+<script
+    data-goatcounter="https://kew.goatcounter.com/count"
+    async="async"
+    src="//gc.zgo.at/count.js">
+</script>
+
+</body>
+
+</html>
+

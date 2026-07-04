@@ -1,6 +1,6 @@
 SBLG = sblg
 LOWDOWN = lowdown
-PREFIX = ../pages
+PREFIX = ../docs
 PAGES_SRC_DIR = site_src
 PAGES_SRC = $(wildcard $(PAGES_SRC_DIR)/*.md)
 PAGES = $(subst $(PAGES_SRC_DIR)/,,$(PAGES_SRC:.md=.html))
