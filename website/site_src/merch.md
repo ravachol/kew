@@ -37,8 +37,6 @@
     </div>
 </div>
 
-<p>The kew project receives a 10% commission.</p>
-
 
 
 
