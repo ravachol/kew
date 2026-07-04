@@ -68,46 +68,45 @@ artist folder->album folder(s)->track(s).
 
 ### Basic
 
-* <kbd>Enter</kbd> or middle mouse to play or enqueue/dequeue.
-* <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to toggle play/pause.
-* <kbd>+</kbd> (alt:<kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
-* <kbd>←</kbd> <kbd>→</kbd> (alt: <kbd>h</kbd> <kbd>l</kbd>) keys to switch tracks.
-* <kbd>F2-F6</kbd>, (macOS/Android:<kbd>Shift+z,+x,+c,+v,+b</kbd>) to switch view. You can also Tab or click the footer.
-* <kbd>Alt+s</kbd> to stop.
-* <kbd>i</kbd> to cycle color mode.
-* <kbd>t</kbd> to cycle themes.
-* <kbd>Backspace</kbd> to clear the playlist.
-* <kbd>Delete</kbd> to delete a playlist entry.
-* <kbd>r</kbd> to cycle repeat settings.
-* <kbd>s</kbd> to shuffle.
-* <kbd>Esc</kbd> or <kbd>q</kbd> to quit.
+* Play/Enqueue/Dequeue: <kbd>Enter</kbd> or middle mouse.
+* Toggle Play/Pause: <kbd>Space</kbd>, <kbd>p</kbd> or right mouse.
+* Volume: <kbd>+</kbd> <kbd>-</kbd> (alt: <kbd>=</kbd> <kbd>-</kbd>).
+* Switch Track: <kbd>←</kbd> <kbd>→</kbd> (alt: <kbd>h</kbd> <kbd>l</kbd>).
+* Switch View: <kbd>F2-F6</kbd>, (macOS/Android:<kbd>Shift+z,+x,+c,+v,+b</kbd>), Tab or click the footer.
+* Stop: <kbd>Alt+s</kbd>.
+* Cycle Color Modes: <kbd>i</kbd>.
+* Cycle Themes: <kbd>t</kbd>.
+* Clear Playlist: <kbd>Backspace</kbd>.
+* Delete from Playlist: <kbd>Del</kbd>.
+* Repeat: <kbd>r</kbd>.
+* Shuffle: <kbd>s</kbd>.
+* Quit: <kbd>Esc</kbd> or <kbd>q</kbd>.
 
 ### Advanced
 
 Library
 
-* <kbd>u</kbd> to update the library.
-* <kbd>o</kbd> toggle sort by age/alhabetically.
+* Update: <kbd>u</kbd>.
+* Sort: <kbd>o</kbd> (by age/alhabetically).
 
 Track View
 
-* <kbd>v</kbd> to toggle the visualizer.
-* <kbd>b</kbd> to toggle ASCII covers.
-* <kbd>n</kbd> to toggle notifications.
+* Cycle Visualizer Modes: <kbd>v</kbd>.
+* ASCII Covers: <kbd>b</kbd>.
+* Notifications on/off: <kbd>n</kbd>.
 
 Playlist
 
-* <kbd>x</kbd> to save the playlist to an .m3u in your music folder.
-* <kbd>f</kbd>, <kbd>g</kbd> to move songs.
-* number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
+* Save: <kbd>x</kbd> (places .m3u in your music folder, named after the first song).
+* Move songs: <kbd>f</kbd> <kbd>g</kbd>.
+* Jump to song: number + <kbd>G</kbd> or <kbd>Enter</kbd>.
 
 General
 
-* <kbd>m</kbd> show full page lyrics.
-* <kbd>a</kbd> to seek back. (keep pressed for a longer duration, it executes the seek when you release the key).
-* <kbd>d</kbd> to seek forward. (you can also seek by dragging the progress bar in track view).
-* <kbd>Shift+Tab</kbd> to switch to previous view.
-* <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
+* Lyrics View: <kbd>m</kbd>.
+* Seek <kbd>a</kbd> and <kbd>d</kbd> or drag the progress bar.
+* Previous View <kbd>Shift+Tab</kbd>.
+* Add to Favorites: <kbd>.</kbd>. Play favorites with: `kew .`
 
 ## Configuration
 

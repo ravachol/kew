@@ -173,11 +173,11 @@ footer {
 kbd {
     display: inline-block;
     padding: 6px 5px;
-    font: 14px ui-monospace, SFMono-Regular, SF Mono, Consolas, "Liberation Mono", Menlo, monospace;
+    font: 18px ui-monospace, SFMono-Regular, SF Mono, Consolas, "Liberation Mono", Menlo, monospace;
     line-height: 10px;
-    color: #24292f;
+    color: #ffffff;
     vertical-align: middle;
-    background-color: #f6f8fa;
+    background-color: #797a7c;
     border: solid 1px #afb8c1;
     border-bottom-color: #959da5;
     border-radius: 6px;
