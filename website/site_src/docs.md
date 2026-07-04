@@ -68,40 +68,46 @@ artist folder->album folder(s)->track(s).
 
 ### Basic
 
-* <kbd>Enter</kbd> to play or enqueue/dequeue.
-* <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to play or pause.
-* Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
-* Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
+* <kbd>Enter</kbd> or middle mouse to play or enqueue/dequeue.
+* <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to toggle play/pause.
+* <kbd>+</kbd> (alt:<kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
+* <kbd>←</kbd> <kbd>→</kbd> (alt: <kbd>h</kbd> <kbd>l</kbd>) keys to switch tracks.
+* <kbd>F2-F6</kbd>, (macOS/Android:<kbd>Shift+z,+x,+c,+v,+b</kbd>) to switch view. You can also Tab or click the footer.
 * <kbd>Alt+s</kbd> to stop.
-* <kbd>F2</kbd> or <kbd>Shift+z</kbd> (macOS/Android) to show/hide playlist view.
-* <kbd>F3</kbd> or <kbd>Shift+x</kbd> (macOS/Android) to show/hide library view.
-* <kbd>F4</kbd> or <kbd>Shift+c</kbd> (macOS/Android) to show/hide track view.
-* <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS/Android) to show/hide search view.
-* <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
-* <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
+* <kbd>i</kbd> to cycle color mode.
 * <kbd>t</kbd> to cycle themes.
 * <kbd>Backspace</kbd> to clear the playlist.
-* <kbd>Delete</kbd> to remove a single playlist entry.
-* <kbd>r</kbd> to cycle repeat settings (repeat, repeat list, off).
-* <kbd>s</kbd> to shuffle the playlist.
+* <kbd>Delete</kbd> to delete a playlist entry.
+* <kbd>r</kbd> to cycle repeat settings.
+* <kbd>s</kbd> to shuffle.
+* <kbd>Esc</kbd> or <kbd>q</kbd> to quit.
 
 ### Advanced
 
-* <kbd>u</kbd> to update the library.
-* <kbd>m</kbd> show full page lyrics in track view.
-* <kbd>v</kbd> to toggle the visualizer.
-* <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>n</kbd> to toggle notifications.
-* <kbd>a</kbd> to seek back. keep pressed for a longer duration, it executes the seek when you release the key.
-* <kbd>d</kbd> to seek forward. keep pressed for a longer duration, it executes the seek when you release the key.
-* <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
-* <kbd>Tab</kbd> to switch to next view.
-* <kbd>Shift+Tab</kbd> to switch to previous view.
+Library
 
-* <kbd>f</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
+* <kbd>u</kbd> to update the library.
+* <kbd>o</kbd> toggle sort by age/alhabetically.
+
+Track View
+
+* <kbd>v</kbd> to toggle the visualizer.
+* <kbd>b</kbd> to toggle ASCII covers.
+* <kbd>n</kbd> to toggle notifications.
+
+Playlist
+
+* <kbd>x</kbd> to save the playlist to an .m3u in your music folder.
+* <kbd>f</kbd>, <kbd>g</kbd> to move songs.
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
+
+General
+
+* <kbd>m</kbd> show full page lyrics.
+* <kbd>a</kbd> to seek back. (keep pressed for a longer duration, it executes the seek when you release the key).
+* <kbd>d</kbd> to seek forward. (you can also seek by dragging the progress bar in track view).
+* <kbd>Shift+Tab</kbd> to switch to previous view.
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
-* <kbd>Esc</kbd> to quit.
 
 ## Configuration
 
