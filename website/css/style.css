@@ -180,8 +180,8 @@ footer {
 .navbar a {
     display: inline-block;
     font-size: 16px;
-    padding: 2px 2px;
-    margin: 0 2px;
+    padding: 2px 6px;
+    margin: 0 1px;
     border: 2px;
     border-style: solid;
     border-radius: 6px;
