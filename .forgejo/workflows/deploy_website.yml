@@ -30,7 +30,7 @@ jobs:
         with:
           site: 'http://kewplayer.com'
           token: ${{ forge.token }}
-          source: pages/
+          source: docs/
 
 permissions:
   contents: write
