@@ -1,8 +1,14 @@
 # CONTRIBUTING
 
-## Welcome to kew contributing guide
+## Welcome to the contributing guide
 
 Thank you for your interest in contributing to kew!
+
+kew is developed on:
+https://codeberg.org/ravachol/kew - Issues, PR:s go here.
+
+Mirror:
+https://github.com/ravachol/kew - Still used for some workflows that haven't been migrated yet.
 
 ### Goal of the project
 
@@ -13,26 +19,10 @@ For instance, it's not imagined as a software for dj'ing or as a busy music file
 
 We want to keep the codebase easy to manage and free of bloat, so might reject a feature out of that reason only.
 
-### Bugs
+### Reporting Bugs and Suggesting Enhancements
 
-Please report any bugs directly on codeberg, with as much relevant detail as possible.
-If there's a crash or stability issue, the audio file details are interesting, but also the details of the previous and next file on the playlist. You can extract these details by running:
-ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format json
+Please report any bugs on [Codeberg](https://codeberg.org/ravachol/kew/issues), with as much relevant detail as possible.
 
-### Create a pull request
+### Developing
 
-After making any changes, open a pull request on Codeberg, develop branch.
-
-https://codeberg.org/ravachol/kew
-
-- Please contact me (kew-player@proton.me) before doing a big change, or risk the whole thing getting rejected.
-
-- Try to keep commits fairly small so that they are easy to review.
-
-- If you're fixing a particular bug in the issue list, please explicitly say "Fixes #" in your description".
-
-### Issue assignment
-
-We don't have a process for assigning issues to contributors. Please feel free to jump into any issues in this repo that you are able to help with. Our intention is to encourage anyone to help without feeling burdened by an assigned task. Life can sometimes get in the way, and we don't want to leave contributors feeling obligated to complete issues when they may have limited time or unexpected commitments.
-
-We also recognize that not having a process could lead to competing or duplicate PRs. There's no perfect solution here. We encourage you to communicate early and often on an Issue to indicate that you're actively working on it. If you see that an Issue already has a PR, try working with that author instead of drafting your own.
+Please see [DEVELOPERS.md](DEVELOPERS.md) for how to develop with us.
