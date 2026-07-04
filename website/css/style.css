@@ -180,7 +180,7 @@ footer {
 .navbar a {
     display: inline-block;
     font-size: 16px;
-    padding: 2px 6px;
+    padding: 2px 2px;
     margin: 0 2px;
     border: 2px;
     border-style: solid;
@@ -219,6 +219,26 @@ footer {
 
 .support-button a:hover {
   color: #ffffff;
+}
+
+/* merch items */
+.merch-grid {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;      /* Allows wrapping on smaller screens */
+    justify-content: center;
+}
+
+.merch-item {
+    width: 100px;
+    text-align: center;
+}
+
+.merch-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;   /* Optional */
 }
 
 /* blog post list */
