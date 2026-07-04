@@ -30,7 +30,7 @@ https://ravachol.codeberg.page/kew/
  - Play auto-generated playlists based on words from the artist, album or song name: 'kew nirvana'.
  - Gapless playback.
  - Requires virtually no setup.
- - Private and offlin\*.
+ - Private and offline\*.
  - Music without distractions or algorithmic manipulation.
  - Full color covers in sixel-capable terminals.
  - Spectrum visualizer.
