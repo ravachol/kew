@@ -110,7 +110,7 @@ artist folder->album folder(s)->track(s).
 
 #### Crossfade
 
-* Always on: <kbd><</kbd>.
+* Always on/off: <kbd>z</kbd>.
 * Quick: <kbd>Shift+d</kbd>.
 * Medium: <kbd>Shift+f</kbd>.
 * Slow: <kbd>Shift+g</kbd>.
