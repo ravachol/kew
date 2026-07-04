@@ -72,7 +72,7 @@ artist folder->album folder(s)->track(s).
 * Toggle Play/Pause: <kbd>Space</kbd>, <kbd>p</kbd> or right mouse.
 * Volume: <kbd>+</kbd> <kbd>-</kbd> (alt: <kbd>=</kbd> <kbd>-</kbd>).
 * Switch Track: <kbd>←</kbd> <kbd>→</kbd> (alt: <kbd>h</kbd> <kbd>l</kbd>).
-* Switch View: <kbd>F2-F6</kbd>, (macOS/Android:<kbd>Shift+z,+x,+c,+v,+b</kbd>), Tab or click the footer.
+* Switch View: <kbd>F2-F6</kbd>, (macOS/Android: <kbd>Shift+z,+x,+c,+v,+b</kbd>), Tab or click the footer.
 * Stop: <kbd>Alt+s</kbd>.
 * Cycle Color Modes: <kbd>i</kbd>.
 * Cycle Themes: <kbd>t</kbd>.
