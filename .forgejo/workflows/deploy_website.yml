@@ -42,21 +42,21 @@ jobs:
       - name: Deploy redirect (www.kewplayer.com)
         uses: https://codeberg.org/git-pages/action@v2
         with:
-          site: 'https://www.kewplayer.com/'
+          site: 'http://www.kewplayer.com/'
           token: ${{ forge.token }}
           source: redirect_only/
 
       - name: Deploy redirect (kewplayer.org)
         uses: https://codeberg.org/git-pages/action@v2
         with:
-          site: 'https://kewplayer.org/'
+          site: 'http://kewplayer.org/'
           token: ${{ forge.token }}
           source: redirect_only/
 
       - name: Deploy redirect (www.kewplayer.org)
         uses: https://codeberg.org/git-pages/action@v2
         with:
-          site: 'https://www.kewplayer.org/'
+          site: 'http://www.kewplayer.org/'
           token: ${{ forge.token }}
           source: redirect_only/
 
