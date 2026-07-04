@@ -30,7 +30,7 @@
     </div>
 
     <div class="merch-item">
-        <p>Magnet<br />€8.72</p>
+        <p>Fucking Magnets<br />€8.72</p>
         <a href="https://www.redbubble.com/i/magnet/kew-music-player-sticker-by-ravacholl/180111598/9gzh">
             <img src="images/kew-magnet.jpg" alt="kew manet" width="100" />
         </a>
