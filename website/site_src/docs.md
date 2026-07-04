@@ -93,7 +93,6 @@ Track View
 
 * Cycle Visualizer Modes: <kbd>v</kbd>.
 * ASCII Covers: <kbd>b</kbd>.
-* Notifications on/off: <kbd>n</kbd>.
 
 Playlist
 
@@ -107,6 +106,13 @@ General
 * Seek <kbd>a</kbd> and <kbd>d</kbd> or drag the progress bar.
 * Previous View <kbd>Shift+Tab</kbd>.
 * Add to Favorites: <kbd>.</kbd>. Play favorites with: `kew .`
+* Notifications on/off: <kbd>n</kbd>.
+
+Crossfade
+* Always on: <kbd><</kbd>.
+* Quick: <kbd>Shift+d</kbd>.
+* Medium: <kbd>Shift+f</kbd>.
+* Slow: <kbd>Shift+g</kbd>.
 
 ## Configuration
 
@@ -128,8 +134,7 @@ If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
 
 kewrc is never changed by kew with the exception of when you run kew path.
 
-If you delete your kewrc a new default one will be generated. You wont get newe
-r config options listed in your config file unless you do this.
+If you delete your kewrc a new default one will be generated. You wont get newer config options listed in your config file unless you do this.
 
 ## Layouts
 
