@@ -168,7 +168,7 @@ A terminal emulator that can handle TrueColor and sixels is recommended. See [Si
 
 To load a playlist: type `kew list <name>`
 
-To export a playlist, press `x`. This will save a file in your music path with the name of the first song in the queue.
+To export a playlist, press x. This will save a file in your music path with the name of the first song in the queue.
 
 There is also a favorites playlist function:
 
@@ -216,8 +216,7 @@ chromaDevice=PipeWire Sound Server
 ## Scrobbling
 
 kew's private and offline nature means we don't support Scrobbling/last.fm dire
-ctly. Instead tools such as PanoScrobbler are recommended. See: https://github.
-com/kawaiiDango/pano-scrobbler.
+ctly. Instead tools such as PanoScrobbler are recommended. See: https://github.com/kawaiiDango/pano-scrobbler.
 
 ## How to make sure kew is offline and private
 
