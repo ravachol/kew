@@ -20,7 +20,7 @@ kew (/kjuː/ variant of cue) is a terminal music player.
 
 Please visit the website for information on how to install, use and contribute to kew.
 
-https://ravachol.codeberg.page/kew/
+https://kewplayer.com
 
 
 ## Features
