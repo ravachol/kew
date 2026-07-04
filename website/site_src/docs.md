@@ -84,23 +84,23 @@ artist folder->album folder(s)->track(s).
 
 ### Advanced
 
-Library
+#### Library
 
 * Update: <kbd>u</kbd>.
 * Sort: <kbd>o</kbd> (by age/alhabetically).
 
-Track View
+#### Track View
 
 * Cycle Visualizer Modes: <kbd>v</kbd>.
 * ASCII Covers: <kbd>b</kbd>.
 
-Playlist
+#### Playlist
 
 * Save: <kbd>x</kbd> (places .m3u in your music folder, named after the first song).
 * Move songs: <kbd>f</kbd> <kbd>g</kbd>.
 * Jump to song: number + <kbd>G</kbd> or <kbd>Enter</kbd>.
 
-General
+#### General
 
 * Lyrics View: <kbd>m</kbd>.
 * Seek <kbd>a</kbd> and <kbd>d</kbd> or drag the progress bar.
@@ -108,7 +108,8 @@ General
 * Add to Favorites: <kbd>.</kbd>. Play favorites with: `kew .`
 * Notifications on/off: <kbd>n</kbd>.
 
-Crossfade
+#### Crossfade
+
 * Always on: <kbd><</kbd>.
 * Quick: <kbd>Shift+d</kbd>.
 * Medium: <kbd>Shift+f</kbd>.
