@@ -173,7 +173,7 @@ Press <kbd>v</kbd> to turn off visualizer.
 
 Press <kbd>b</kbd> for ASCII covers.
 
-A terminal emulator that can handle TrueColor and sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
+A terminal emulator that can handle TrueColor and sixels is recommended. See [Are We Sixel Yet?](https://www.arewesixelyet.com/).
 
 ## Playlists
 
