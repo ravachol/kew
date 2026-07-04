@@ -1,50 +1,51 @@
-# AUTHORS
+## AUTHORS
 
 ## Maintainers
-* **Ravachol** @ravachol <kew-player@proton.me>
+* **Ravachol** @ravachol, (kew-player AT proton DOT me)
   * Founder and Main Author
 
 ## Advisors
-* @LeahtheSlug (Advisor) leahtheslug@slugmail.quest & https://slugmail.quest
-* Michael Petö @petoem (Technical advisor)
+* **@LeahtheSlug** (Advisor) https://slugmail.quest
+* **Michael Petö** @petoem (Technical advisor) https://petoe.me
 
 ## Contributors (in alphabetical order)
 
 * 2863189117
-* Alex Hart @hartalex <alex_codeberg@hart.gg>
+* Alex Hart @hartalex
 * @bkmgit
-* Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
+* Chromium-3-Oxide
 * @chrontax
-* Davis @kazemaksOG <davis.kazemaks@gmail.com>
+* Davis @kazemaksOG
 * @dandelion-75
 * DNEGEL3125 @DNEGEL3125
 * @emptyhead41
 * @episvr
 * @feng1st
-* Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
+* Hans Petter Jansson @hpjansson
 * @hartalex
 * @hiruocha
 * @hnatt Hnat Kubov
 * @hypercunx
 * @Kolby11
 * @ilx159
-* Joey Schaff @jaoheah / @jaoh (codeberg) <jschaff@proton.me>
-* John Lakeman @j-lakeman <le0324tb@anonaddy.me>
+* Joey Schaff @jaoheah / @jaoh (codeberg)
+* John Lakeman @j-lakeman
+* LeahTheSlug (Advisor) https://slugmail.quest
 * @noiamnote
 * Martin Kollár @Kolby11
-* Matthias Geiger @werdahias <werdahias@riseup.net>
-* Michael Petö @petoem https://petoe.me
+* Matthias Geiger @werdahias
+* Michael Petö @petoem (Technical advisor) https://petoe.me
 * @Moksh-Parikh
 * @netodosrjoao
 * @Overionised
-* Ravachol @ravachol <kew-player@proton.me>
+* Ravachol @ravachol kew-player at proton dot me
 * Rioprastyo17
 * Robertson D. Torress @Welpyes
 * Rowan Shi @rowanxshi
 * @rudra-dhamecha
-* Rui Chen @chenrui333 <rui@chenrui.dev>
-* Ruoyu Zhong @ZhongRuoyu <zhongruoyu@outlook.com>
-* Ryouji @soryu-ryouji <helloryouji@outlook.com>
+* Rui Chen @chenrui333
+* Ruoyu Zhong @ZhongRuoyu
+* Ryouji @soryu-ryouji
 * Samuel @Samueru-sama
 * @toasteeeer
 * Vafone @vafone
@@ -55,36 +56,76 @@
 
 * Vafone @vafone
 * Nicolas F
-* Ravachol @ravachol <kew-player@proton.me>
-* LeahTheSlug leahtheslug@slugmail.quest & https://slugmail.quest
+* Ravachol @ravachol
+* LeahTheSlug (Advisor) https://slugmail.quest
 
-## Website development
+## Website
 
-* @bkmgit
+* @bkmgit (structure and generating script)
+* Ravachol @ravachol (texts and style)
 
 ## Translations
 
 * @hiruocha (Simplified Chinese)
 
+## Package Maintainers
+
+Big thanks for always being so helpful and understanding!
+
+* Matthias Geiger @werdahias (Debian, Ubuntu, Raspbian, Kali, Parrot, PureOS)
+* Yuri @yurivict (FreeBSD)
+* Brett Carlock	saijin-naib (Alpine Linux)
+* Robin Candau @antiz (Arch Linux)
+* Agustin Ballesteros arcpie@aur (AUR, kew-git)
+* Matteo Giordano @malteo (former AUR)
+* Mihail Ivanchev @MIvanchev (Void Linux)
+* Robert Kirkman @robertkirkman (Android/Termux)
+* Dominique Leuenberger @dimstar_suse (OpenSuse)
+* Sergey Bolshakov @sbolshakov (ALT Linux)
+* @emergeviolet (Gentoo overlay GURU, LiGurOS)
+* @ktnb (NetBSD)
+* @jared (Solus)
+* @owen (Terra Rawhide)
+* Nikita Demin @Demine0 (NixOS)
+* Matteo Pacini @matteo-pacini (NixOS)
+
+## Attributions
+
+kew makes use of the following great open source projects:
+
+* Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
+* Chroma by yuri-xyz - https://github.com/yuri-xyz/chroma
+* Faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
+* FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
+* Img_To_Txt (adapted) by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+* Libopus by Opus - https://opus-codec.org/
+* Libvorbis by Xiph.org - https://xiph.org/
+* Miniaudio by David Reid - https://github.com/mackron/miniaudio
+* Minimp4 by Lieff - https://github.com/lieff/minimp4
+* Nestegg by Mozilla - https://github.com/mozilla/nestegg
+* TagLib by TagLib Team - https://taglib.org/
+* TermBox2 (adapted) - By nsf and Adam Saponara https://github.com/termbox/termbox2
+
 ## Special Thanks
 
-We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
+Last but not least, we would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
-* @LeahtheSlug (Advisor) leahtheslug@slugmail.quest & https://slugmail.quest
-* Michael Petö @petoem https://petoe.me
-* Hans Petter Jansson @hpjansson <hpj@hpjansson.org> (author of Chafa, used for displaying images)
-* David Reid @mackron <mackron@gmail.com> (author of Miniaudio, used for playing music)
-* Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
-* Matthias Geiger @werdahias <werdahias@riseup.net>
+* @LeahtheSlug (Advisor) https://slugmail.quest
+* Michael Petö @petoem (Technical Advisor) https://petoe.me
+* Hans Petter Jansson @hpjansson
+* David Reid @mackron
+* Chromium-3-Oxide
+* Matthias Geiger @werdahias
 * Vafone @vafone
 * Nicolas F
-* Yuri @yurivict yuri@freebsd.org
-* Joey Schaff @jaoheah <jschaff@proton.me>
-* Agustin Ballesteros @agus-balles <arcpie@aur>
+* Yuri @yurivict
+* Joey Schaff @jaoheah
+* Agustin Ballesteros @agus-balles
 * Saijin Naib @Saijin_Naib
 * Xplshn @xplshn
-* Mateo @malteo <mateo@aur>
+* Mateo @malteo
 * Hampa @hampa
 * Markmark1 @markmark1
 * VDawg @vdawg-git
 * INIROBO @inirobo
+

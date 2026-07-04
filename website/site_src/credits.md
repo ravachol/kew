@@ -103,7 +103,6 @@ kew makes use of the following great open source projects:
 * Miniaudio by David Reid - https://github.com/mackron/miniaudio
 * Minimp4 by Lieff - https://github.com/lieff/minimp4
 * Nestegg by Mozilla - https://github.com/mozilla/nestegg
-
 * TagLib by TagLib Team - https://taglib.org/
 * TermBox2 (adapted) - By nsf and Adam Saponara https://github.com/termbox/termbox2
 
