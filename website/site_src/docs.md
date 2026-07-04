@@ -182,7 +182,7 @@ Add current song: press <kbd>.</kbd>
 
 To load 'kew list fav': kew .
 
-## Visulizations / Chroma
+## Visualizations / Chroma
 
 Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.
 
