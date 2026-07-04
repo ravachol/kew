@@ -2827,8 +2827,8 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
-        draw_buffer_set_string(buf, row, col, _(" Please Donate: "), help_style);
-        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Please Donate: ")),
+        draw_buffer_set_string(buf, row, col, _(" A $3 dollar donation is recommended: "), help_style);
+        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" A $3 dollar donation is recommended: ")),
                                "https://ko-fi.com/ravachol", link_style);
         row += 2;
         if (row >= region.row + region.height)
