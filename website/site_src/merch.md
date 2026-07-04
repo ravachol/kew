@@ -1,4 +1,4 @@
-<h1>Merch</h1>
+## Merch
 
 <div class="merch-grid">
     <div class="merch-item">
