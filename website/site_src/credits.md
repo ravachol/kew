@@ -1,7 +1,7 @@
 ## Credits
 
 ## Maintainers
-* **Ravachol** @ravachol, (kew-player AT proton DOT me) https://social.vivaldi.net/@ravachol (Mostly about my art)
+* **Ravachol** @ravachol, (kew-player AT proton DOT me) https://social.vivaldi.net/@ravachol
   * Founder and Main Author
 
 ## Advisors
