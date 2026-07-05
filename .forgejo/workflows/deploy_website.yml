@@ -33,5 +33,13 @@ jobs:
           token: ${{ forge.token }}
           source: pages/
 
+      - name: Deploy www.kewplayer.com
+        uses: https://codeberg.org/git-pages/action@v2
+        with:
+          server: codeberg.page
+          site: "https://www.kewplayer.com"
+          token: ${{ forge.token }}
+          source: pages/
+
 permissions:
   contents: write
