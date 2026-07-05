@@ -13,6 +13,10 @@ Special cases:
 
 For macOS users it's available through [Homebrew](https://formulae.brew.sh/formula/kew).
 
+## FREEBSD / NETBSD
+
+Avaiable through the package manager or [manual installation guide](https://codeberg.org/ravachol/kew/src/branch/main/docs/MANUAL-INSTALL-INSTRUCTIONS.md).
+
 ## WINDOWS
 
 Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.1.7/kew-v4.1.7-setup.exe), compiled and created entirely on Github.com.
