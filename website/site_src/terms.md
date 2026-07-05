@@ -7,7 +7,7 @@ Welcome to **kew**, a fully offline music player. By using kew, you agree to the
 ## 1. License
 
 kew is licensed under the **GNU General Public License v2 (GPL v2)**.
-You can read the full license here: [LICENSE](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1)
+You can read the full license here: [LICENSE](https://codeberg.org/ravachol/kew/src/branch/main/LICENSE)
 
 This license allows you to:
 

@@ -41,7 +41,7 @@ artist folder->album folder(s)->track(s).
 
  kew song <song> (or a song)
 
- kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/" (plays the \'Are you Experienced?\' album)
+ kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/" (plays the Are you Experienced? album)
 
  kew play "/home/you/Music/Jimi Hendrix/Are You Experienced/Purple Haze.flac" (plays Purple Haze)
 
