@@ -86,7 +86,6 @@ artist folder->album folder(s)->track(s).
 * Cycle Color Modes: <kbd>i</kbd>.
 * Cycle Themes: <kbd>t</kbd>.
 * Clear Playlist: <kbd>Backspace</kbd>.
-* Delete from Playlist: <kbd>Del</kbd>.
 * Repeat: <kbd>r</kbd>.
 * Shuffle: <kbd>s</kbd>.
 * Quit: <kbd>Esc</kbd> or <kbd>q</kbd>.
@@ -105,6 +104,7 @@ artist folder->album folder(s)->track(s).
 
 #### Playlist
 
+* Remove: <kbd>Del</kbd>.
 * Save: <kbd>x</kbd> (places .m3u in your music folder, named after the first song).
 * Move songs: <kbd>f</kbd> <kbd>g</kbd>.
 * Jump to song: number + <kbd>G</kbd> or <kbd>Enter</kbd>.
