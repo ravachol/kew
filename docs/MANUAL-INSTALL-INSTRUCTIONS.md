@@ -18,6 +18,34 @@ Install dependencies:
 sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
 ```
 
+#### FreeBSD
+
+```bash
+sudo pkg install pkgconf faad2 taglib fftw3 opus opusfile libvorbis libogg git gcc gmake chafa glib gdk-pixbuf2
+
+cd kew
+
+gmake -j
+
+sudo make install
+
+```
+
+#### NetBSD
+
+```bash
+
+sudo pkgin install pkgconf faad2 taglib fftw opus opusfile libvorbis libogg git-base gcc gmake chafa glib2 gdk-pixbuf2
+
+cd kew
+
+gmake -j
+
+sudo make install
+
+```
+
+
 [Install kew](#install-kew)
 
 #### Android
