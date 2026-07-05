@@ -14,7 +14,7 @@
 
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
-kew (/kjuː/ variant of cue) is a terminal music player.
+kew (/kjuː/, variant of cue) is a terminal music player.
 
 ## kew - Music for the Shell
 
