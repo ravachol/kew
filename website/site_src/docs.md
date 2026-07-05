@@ -6,7 +6,7 @@ kew is an open source terminal music player written in C. It's been designed fro
 [Terms for using kew](terms.html).
 [Licensed under GPLv2+](https://codeberg.org/ravachol/kew/src/branch/main/LICENSE).
 
-## Basic functions
+## The Basics
 
 kew is a terminal app, so more keyboard than mouse oriented. It can be run from the command-line either by just typing kew, or with arguments. It can also be run from desktop shortcuts.
 
