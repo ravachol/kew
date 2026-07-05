@@ -31,7 +31,7 @@ jobs:
           server: codeberg.page
           site: 'https://kewplayer.com'
           token: ${{ forge.token }}
-          source: docs/
+          source: pages/
 
 permissions:
   contents: write
