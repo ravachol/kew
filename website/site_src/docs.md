@@ -1,7 +1,11 @@
 
-## Documentation
+## Introduction
 
-kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.
+kew is an open source terminal music player written in C. It's been designed from the ground up to be fast, minimalistic, immersive and fun to use. It is also designed to be very respectful toward users and music artists.
+
+kew is a TUI app that can be run from the command-line either by just typing kew, or with arguments.
+
+When run with arguments, kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.
 
 ```bash
 kew cure great
