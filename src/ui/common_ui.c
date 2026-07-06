@@ -788,7 +788,7 @@ void free_link_payload(LinkPayload *link)
 }
 
 void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
-                         char *url, char *title, CellStyle style)
+                         const char *url, char *title, CellStyle style)
 {
         (void)style;
 

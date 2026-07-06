@@ -1,0 +1,33 @@
+## How to create the artists.db
+
+1. Download the data from Wikipedia:
+
+https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2
+
+python3 extract_from_wikidata.py latest-all.json.bz2
+
+2. Wash the data:
+
+python3 keep_only_matching_urls.py artists_raw.tsv artists_matched.tsv
+
+python3 apply_corrections.py artists_matched.tsv corrections.tsv artists_unverified.tsv
+
+python3 verify_urls.py artists_unverified.tsv
+
+Be aware the last step takes many hours.
+
+3. Create the artists.db binary:
+
+python3 make_binary_db.py artists.tsv artists.db
+
+## How to add corrections to corrections.tsv
+
+Edit corrections.tsv:
+
+ADD: No key field -> artist is added.
+
+UPDATE: There's key (taken from artists.tsv) is available -> artist is updated with the data in corrections.
+
+DELETE: There's a key (taken from artists.tsv) and Name field is DELETE -> artist is deleted.
+
+

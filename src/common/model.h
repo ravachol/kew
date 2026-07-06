@@ -5,6 +5,7 @@
 #include "loader/songdatatype.h"
 
 #include "data/playlist.h"
+#include "data/artists.h"
 
 #include "sound/sound_facade.h"
 
@@ -801,6 +802,9 @@ typedef struct Model {
         Layout *track_landscape_layout;
         Layout *search_layout;
         Layout *help_layout;
+
+        bool hasArtistDb;
+        ArtistDb *db;
 
         volatile sig_atomic_t updating_library;
 } Model;

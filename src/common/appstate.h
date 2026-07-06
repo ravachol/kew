@@ -37,6 +37,10 @@
 
 #define DEFAULT_NUM_PROGRESS_BARS 35
 
+#ifndef DATADIR
+#define DATADIR "/usr/local/share"
+#endif
+
 typedef struct {
 
     bool render_often;
@@ -62,6 +66,14 @@ void tty_init(void);
 
 /**@brief initializes the model */
 void init_model(void);
+
+/* ========================= ARTIST DB ========================= */
+
+/**@brief opens the database that contains urls to artists homepages */
+void open_artistDb(char *name);
+
+/**@brief closes the database that contains urls to artists homepages */
+void close_artistDb(void);
 
 /* ========================= GETTERS ========================= */
 
