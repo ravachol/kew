@@ -1,4 +1,5 @@
 #include "artists.h"
+#include <ctype.h>
 
 static ArtistDb *g_db;
 
@@ -50,12 +51,33 @@ void db_close(ArtistDb *db)
         close(db->fd);
 }
 
+static int ci_strcmp(const char *a, const char *b)
+{
+    while (*a && *b) {
+        unsigned char ca = (unsigned char)*a;
+        unsigned char cb = (unsigned char)*b;
+
+        ca = (unsigned char)tolower(ca);
+        cb = (unsigned char)tolower(cb);
+
+        if (ca != cb)
+            return (int)ca - (int)cb;
+
+        ++a;
+        ++b;
+    }
+
+    return (int)tolower((unsigned char)*a)
+         - (int)tolower((unsigned char)*b);
+}
+
+
 static int db_cmp(const void *key, const void *elem)
 {
     const char *name = key;
     const ArtistRecord *r = elem;
 
-    return strcmp(name, g_db->strings + r->name_offset);
+    return ci_strcmp(name, g_db->strings + r->name_offset);
 }
 
 const ArtistRecord *db_find(ArtistDb *db, const char *name)
