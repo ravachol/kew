@@ -6,6 +6,7 @@
 
 #include "common/appstate.h"
 #include "common/model.h"
+#include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -72,6 +73,45 @@ void create_playlist(PlayList **playlist)
                 pthread_mutex_init(&(*playlist)->mutex, NULL);
         }
 }
+
+void open_artistDb(char *name)
+{
+        Model *model = get_model();
+
+        char filepath[PATH_MAX];
+
+        snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, name);
+
+        // FIXME: Add _WIN32 version of this
+
+        if (!exists_file(filepath))
+        {
+                snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", name);
+
+                if (!exists_file(filepath))
+                        return;
+        }
+
+        if (model->db)
+                free(model->db);
+
+        model->db = malloc(sizeof(ArtistDb));
+
+        if (db_open(model->db, filepath) == 0) {
+                model->hasArtistDb = true;
+        }
+}
+
+void close_artistDb(void)
+{
+        Model *model = get_model();
+
+        db_close(model->db);
+
+        if (model->db)
+                free(model->db);
+}
+
 
 void get_tty_size(TermSize *term_size_out)
 {
@@ -196,6 +236,9 @@ void init_model(void)
 
         model.elapsed_seconds = 0.0;
         model.song_duration = 0.0;
+
+        model.hasArtistDb = false;
+        model.db = NULL;
 
         model.tick = 17;
 

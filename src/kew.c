@@ -230,6 +230,7 @@ void kew_shutdown()
         set_prefs(&model->settings, &(model->state.settings));
         save_favorites_playlist(model->settings.path, model->favorites_playlist);
         save_library();
+        close_artistDb();
 
         ui_destroy(model);
 
@@ -669,6 +670,9 @@ void kew_init(bool set_library_enqueued_status)
         srand(seed);
 
         create_library(model, set_library_enqueued_status);
+
+        open_artistDb("artists.db");
+
         model->state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         clear_screen();
 
