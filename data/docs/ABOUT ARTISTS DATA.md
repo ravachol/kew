@@ -29,4 +29,4 @@ To recreate the same file run: 'python make_binary_db.py artists.tsv artists.db'
 Then run sha256sum artists.db
 
 You should get:
-0875bffe896be6c1836a98810793b9be9ae774cb6b047cb5ab81babfeab051a2  artists.db
+d77f09e0aeaf14b445642aaa13ba195e5b10c09ba799e02d785102a7355d86c9  artists.db
