@@ -19,7 +19,7 @@
 * @dandelion-75
 * DNEGEL3125 @DNEGEL3125
 * @emptyhead41
-* @episvr
+* @episvr-
 * @feng1st
 * Hans Petter Jansson @hpjansson
 * @hartalex
@@ -38,6 +38,7 @@
 * @Moksh-Parikh
 * @netodosrjoao
 * @Overionised
+* @Quillenar-dev.
 * Ravachol @ravachol kew-player at proton dot me
 * Rioprastyo17
 * Robertson D. Torress @Welpyes

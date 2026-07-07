@@ -38,6 +38,7 @@
 * @Moksh-Parikh
 * @netodosrjoao
 * @Overionised
+* @Quillenar-dev.
 * Ravachol @ravachol kew-player at proton dot me
 * Rioprastyo17
 * Robertson D. Torress @Welpyes
