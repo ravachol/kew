@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## kew 4.1.8
+
+- Always produces a log, not only when compiled with DEBUG=1. By @ravachol.
+
+Log location:
+Linux/FreeBSD: $HOME/.local/state/kew/logs
+macOs: /Library/Logs/kew
+Windows: LOCALAPPDATA/kew/logs
+
 ## kew 4.1.7
 
 - Fixes image rendering error on gnome terminal. By @ravachol. Reported by @Erwin-Iosef.
