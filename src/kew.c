@@ -247,31 +247,21 @@ char *logging_get_error_log_path(void)
     return path;
 
 #else
-    const char *state = getenv("XDG_STATE_HOME");
-    char state_dir[PATH_MAX];
+    const char *state_dir = g_get_user_state_dir();
 
-    if (state && *state) {
-        if (snprintf(state_dir, sizeof(state_dir), "%s", state) >= (int)sizeof(state_dir))
-            return NULL;
-    } else {
-        const char *home = getenv("HOME");
-        if (!home)
-            return NULL;
+    size_t dir_len = snprintf(NULL, 0, "%s/kew/logs", state_dir);
+    char *dir = malloc(dir_len + 1);
+    if (!dir)
+        return NULL;
 
-        if (snprintf(state_dir, sizeof(state_dir),
-                     "%s/.local/state", home) >= (int)sizeof(state_dir))
-            return NULL;
+    snprintf(dir, dir_len + 1, "%s/kew/logs", state_dir);
+
+    if (g_mkdir_with_parents(dir, 0755) != 0) {
+        free(dir);
+        return NULL;
     }
 
-    char dir[PATH_MAX];
-
-    if (snprintf(dir, sizeof(dir), "%s/kew", state_dir) >= (int)sizeof(dir))
-        return NULL;
-    mkdir_p(dir);
-
-    if (snprintf(dir, sizeof(dir), "%s/kew/logs", state_dir) >= (int)sizeof(dir))
-        return NULL;
-    mkdir_p(dir);
+    free(dir);
 
     size_t len = snprintf(NULL, 0, "%s/kew/logs/error.log", state_dir);
     char *path = malloc(len + 1);
@@ -279,6 +269,7 @@ char *logging_get_error_log_path(void)
         return NULL;
 
     snprintf(path, len + 1, "%s/kew/logs/error.log", state_dir);
+
     return path;
 #endif
 }
@@ -293,6 +284,8 @@ void logging_init(void)
 
     if (path != NULL) {
         Model *model = get_model();
+
+        g_mkdir_with_parents(path, 0755);
 
         model->state.ui.logFile = freopen(path, "w", stderr);
 
