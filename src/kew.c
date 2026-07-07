@@ -290,9 +290,7 @@ void logging_init(void)
         model->state.ui.logFile = freopen(path, "w", stderr);
 
         if (model->state.ui.logFile == NULL) {
-            fprintf(stdout,
-                    "Failed to redirect stderr to %s\n",
-                    path);
+            //fprintf(stdout, "Failed to redirect stderr to %s\n", path);
         }
 
         free(path);
