@@ -633,7 +633,7 @@ static time_t get_file_mtime(const char *path)
         return 0;
 }
 
-void init_settings(AppSettings *settings)
+void settings_init(AppSettings *settings)
 {
         AppState *state = get_app_state();
 
@@ -2248,7 +2248,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                          ui->replayGainCheckFirst);
 
         // Write the settings to the file
-        fprintf(file, "\n[miscellaneous]\n\n");
+        fprintf(file, "# kew Settings\n\n");
+        fprintf(file, "# IMPORTANT: kew doesn't write to this file, except for when you run kew path.\n");
+        fprintf(file, "# Delete this file if you installed a new version of kew and you want to see new settings here.\n");
+        fprintf(file, "# kew will then generate the file with all available settings.\n");
+        fprintf(file, "# kew tracks all in-app settings changes in kewstaterc, which take precedence over kewrc.\n\n");
+        fprintf(file, "[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
