@@ -310,8 +310,10 @@ void logging_init(void)
  * @brief Shuts down logging to error.log
  *
  */
-void logging_shutdown(Model *model)
+void logging_shutdown(void)
 {
+        Model *model = get_model();
+
         if (model->state.ui.logFile)
                 fclose(model->state.ui.logFile);
 }
@@ -402,7 +404,7 @@ void kew_shutdown()
         ui_shutdown();
         visualizer_shutdown();
         playlists_shutdown();
-        logging_shutdown(model);
+        logging_shutdown();
         notifications_shutdown();
         mutexes_shutdown();
         terminal_shutdown();
