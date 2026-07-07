@@ -74,8 +74,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
-#include "data/theme.h"
 #include "data/img_func.h"
+#include "data/theme.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -97,8 +97,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <unistd.h>
 
 #ifdef _WIN32
-#include <windows.h>
 #include <direct.h>
+#include <windows.h>
 #define mkdir_p(path) _mkdir(path)
 #else
 #include <sys/stat.h>
@@ -205,72 +205,72 @@ void player_tick(Model *model, RenderContext *ctx)
 char *logging_get_error_log_path(void)
 {
 #ifdef _WIN32
-    const char *base = getenv("LOCALAPPDATA");
-    if (!base)
-        return NULL;
+        const char *base = getenv("LOCALAPPDATA");
+        if (!base)
+                return NULL;
 
-    char dir[MAX_PATH];
+        char dir[MAX_PATH];
 
-    if (snprintf(dir, sizeof(dir), "%s\\kew", base) >= (int)sizeof(dir))
-        return NULL;
-    mkdir_p(dir);
+        if (snprintf(dir, sizeof(dir), "%s\\kew", base) >= (int)sizeof(dir))
+                return NULL;
+        mkdir_p(dir);
 
-    if (snprintf(dir, sizeof(dir), "%s\\kew\\logs", base) >= (int)sizeof(dir))
-        return NULL;
-    mkdir_p(dir);
+        if (snprintf(dir, sizeof(dir), "%s\\kew\\logs", base) >= (int)sizeof(dir))
+                return NULL;
+        mkdir_p(dir);
 
-    size_t len = snprintf(NULL, 0, "%s\\kew\\logs\\error.log", base);
-    char *path = malloc(len + 1);
-    if (!path)
-        return NULL;
+        size_t len = snprintf(NULL, 0, "%s\\kew\\logs\\error.log", base);
+        char *path = malloc(len + 1);
+        if (!path)
+                return NULL;
 
-    snprintf(path, len + 1, "%s\\kew\\logs\\error.log", base);
-    return path;
+        snprintf(path, len + 1, "%s\\kew\\logs\\error.log", base);
+        return path;
 
 #elif defined(__APPLE__)
-    const char *home = getenv("HOME");
-    if (!home)
-        return NULL;
+        const char *home = getenv("HOME");
+        if (!home)
+                return NULL;
 
-    char dir[PATH_MAX];
+        char dir[PATH_MAX];
 
-    if (snprintf(dir, sizeof(dir), "%s/Library/Logs/kew", home) >= (int)sizeof(dir))
-        return NULL;
-    mkdir_p(dir);
+        if (snprintf(dir, sizeof(dir), "%s/Library/Logs/kew", home) >= (int)sizeof(dir))
+                return NULL;
+        mkdir_p(dir);
 
-    size_t len = snprintf(NULL, 0, "%s/Library/Logs/kew/error.log", home);
-    char *path = malloc(len + 1);
-    if (!path)
-        return NULL;
+        size_t len = snprintf(NULL, 0, "%s/Library/Logs/kew/error.log", home);
+        char *path = malloc(len + 1);
+        if (!path)
+                return NULL;
 
-    snprintf(path, len + 1, "%s/Library/Logs/kew/error.log", home);
-    return path;
+        snprintf(path, len + 1, "%s/Library/Logs/kew/error.log", home);
+        return path;
 
 #else
-    const char *state_dir = g_get_user_state_dir();
+        const char *state_dir = g_get_user_state_dir();
 
-    size_t dir_len = snprintf(NULL, 0, "%s/kew/logs", state_dir);
-    char *dir = malloc(dir_len + 1);
-    if (!dir)
-        return NULL;
+        size_t dir_len = snprintf(NULL, 0, "%s/kew/logs", state_dir);
+        char *dir = malloc(dir_len + 1);
+        if (!dir)
+                return NULL;
 
-    snprintf(dir, dir_len + 1, "%s/kew/logs", state_dir);
+        snprintf(dir, dir_len + 1, "%s/kew/logs", state_dir);
 
-    if (g_mkdir_with_parents(dir, 0755) != 0) {
+        if (g_mkdir_with_parents(dir, 0755) != 0) {
+                free(dir);
+                return NULL;
+        }
+
         free(dir);
-        return NULL;
-    }
 
-    free(dir);
+        size_t len = snprintf(NULL, 0, "%s/kew/logs/error.log", state_dir);
+        char *path = malloc(len + 1);
+        if (!path)
+                return NULL;
 
-    size_t len = snprintf(NULL, 0, "%s/kew/logs/error.log", state_dir);
-    char *path = malloc(len + 1);
-    if (!path)
-        return NULL;
+        snprintf(path, len + 1, "%s/kew/logs/error.log", state_dir);
 
-    snprintf(path, len + 1, "%s/kew/logs/error.log", state_dir);
-
-    return path;
+        return path;
 #endif
 }
 
@@ -280,21 +280,21 @@ char *logging_get_error_log_path(void)
  */
 void logging_init(void)
 {
-    char *path = logging_get_error_log_path();
+        char *path = logging_get_error_log_path();
 
-    if (path != NULL) {
-        Model *model = get_model();
+        if (path != NULL) {
+                Model *model = get_model();
 
-        g_mkdir_with_parents(path, 0755);
+                g_mkdir_with_parents(path, 0755);
 
-        model->state.ui.logFile = freopen(path, "w", stderr);
+                model->state.ui.logFile = freopen(path, "w", stderr);
 
-        if (model->state.ui.logFile == NULL) {
-            //fprintf(stdout, "Failed to redirect stderr to %s\n", path);
+                if (model->state.ui.logFile == NULL) {
+                        //fprintf(stdout, "Failed to redirect stderr to %s\n", path);
+                }
+
+                free(path);
         }
-
-        free(path);
-    }
 }
 
 /**
@@ -1115,7 +1115,11 @@ int main(int argc, char *argv[])
         handle_play_command_playlist(argc, argv);
         enter_alternate_screen_buffer();
         register_singnal_handlers();
-        set_music_path();
+
+        if (model->settings.path[0] == '\0') {
+                set_music_path();
+        }
+
         transfer_args_to_settings(&argc, argv, &exact_search);
         ensure_default_themes();
         ensure_default_layouts();
