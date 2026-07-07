@@ -450,6 +450,11 @@ void restart_kew(char *argv[])
 // Ensures only a single instance of kew can run at a time for the current user.
 void restart_if_already_running(char *argv[])
 {
+#ifdef DEBUG // Only prevent multiple instances if not debugging.
+        (void)argv;
+        return;
+#endif
+
 #ifdef _WIN32
         (void)argv;
 #else
@@ -458,6 +463,7 @@ void restart_if_already_running(char *argv[])
         pid_t pid = read_pid_file();
 
 #ifdef __ANDROID__
+        (void)argv;
         if (is_process_running(pid) && is_kew_process(pid))
 #else
         if (is_process_running(pid))

@@ -1169,3 +1169,8 @@ void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_
         draw_spectrum_to_buf(model, buf, row, col, height, num_bars,
                              visualizer_width, display_magnitudes);
 }
+
+void visualizer_shutdown(void)
+{
+        free_visuals();
+}

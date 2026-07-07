@@ -114,6 +114,6 @@ void emit_playback_paused();
  * It is called when the media player is shutting down or when MPRIS support
  * is no longer needed.
  */
-void cleanup_mpris(void);
+void mpris_shutdown(void);
 
 #endif

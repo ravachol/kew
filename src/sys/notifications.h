@@ -44,7 +44,7 @@ int display_song_notification(const char *artist, const char *title, const char 
  * It ensures that the system is no longer receiving or handling notifications
  * once the player is no longer active.
  */
-void cleanup_notifications(void);
+void notifications_shutdown(void);
 
 #endif
 

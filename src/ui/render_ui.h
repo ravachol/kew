@@ -59,7 +59,7 @@ void ui_init(Model *model);
  *
  * @param model
  */
-void ui_destroy(Model *model);
+void ui_shutdown(void);
 
 /**
  * @brief Rebuilds the layout, and region sizes
@@ -127,7 +127,7 @@ char *get_library_file_path(void);
  *
  * @return Returns true if the theme was successfully initialized, false otherwise.
  */
-bool init_theme(int argc, char *argv[]);
+bool themes_init(int argc, char *argv[]);
 
 /**
  * @brief Requests the stopping of the current visualization.

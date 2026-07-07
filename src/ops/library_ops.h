@@ -266,4 +266,6 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
  */
 void dequeue_m3u(const char *filepath, FileSystemEntry *library);
 
+void library_shutdown(void);
+
 #endif

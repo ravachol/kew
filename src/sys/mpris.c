@@ -1035,9 +1035,11 @@ void emit_playback_paused()
 #endif
 }
 
-void cleanup_mpris(void)
+void mpris_shutdown(void)
 {
 #ifdef USE_DBUS
+        emit_playback_stopped();
+
         if (registration_id != 0) {
                 g_dbus_connection_unregister_object(get_gd_bus_connection(), registration_id);
                 registration_id = 0;

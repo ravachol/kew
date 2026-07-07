@@ -28,6 +28,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef __USE_POSIX
 #define __USE_POSIX
+#include "data/img_func.h"
 #endif
 
 #ifdef __FreeBSD__
@@ -101,11 +102,19 @@ static struct timespec last_resize_time = {0};
 
 const int COOLDOWN_RESIZE_MS = 200;
 
+/**
+ * @brief Updates last resize variable, which keeps track of when a resize happened
+ *
+ */
 void update_last_resize_time(void)
 {
         clock_gettime(CLOCK_MONOTONIC, &last_resize_time);
 }
 
+/**
+ * @brief Checks if enough time has passed since last UI resize
+ *
+ */
 bool is_resize_cooldown_elapsed(int milli_seconds)
 {
         struct timespec current_time;
@@ -184,91 +193,46 @@ void player_tick(Model *model, RenderContext *ctx)
 }
 
 /**
- * @brief Shuts down the application and cleans up resources.
+ * @brief Initializes logging to error.log
  *
- * This function stops playback, frees resources, and shuts down the application. It handles
- * cleanup tasks like saving settings, stopping playback, and freeing memory.
  */
-void kew_shutdown()
+void logging_init(void)
 {
         Model *model = get_model();
 
-        unload_song_data(&model->songdata);
-
-        shutdown_sound_system();
-
-        emit_playback_stopped();
-
-        if (chroma_is_started())
-
-                model->state.settings.chromaPreset = chroma_get_current_preset();
-        else
-                model->state.settings.chromaPreset = -1;
-
-        chroma_stop();
-
-        bool noMusicFound = false;
-
-        if (model->library == NULL || model->library->children == NULL) {
-                noMusicFound = true;
+        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+        model->state.ui.logFile = freopen("error.log", "w", stderr);
+        if (model->state.ui.logFile == NULL) {
+                fprintf(stdout, "Failed to redirect stderr to error.log\n");
         }
+}
 
-#ifdef CHAFA_VERSION_1_16
-        retirePassthroughWorkarounds_tmux();
-#endif
-        bool wait_until_complete = true;
-        component_library_helper_reset(model);
-        update_library_if_changed_detected(wait_until_complete);
-        shutdown_input();
-
-        if (model->state.settings.discordRPCEnabled)
-                discord_rpc_shutdown();
-
-        free_search_results();
-        cleanup_mpris();
-        set_path(model->settings.path);
-        set_prefs(&model->settings, &(model->state.settings));
-        save_favorites_playlist(model->settings.path, model->favorites_playlist);
-        save_library();
-
-        ui_destroy(model);
-
-        free_tree(model->library);
-
-        free_playlist(&model->playlist);
-        free_playlist(&model->unshuffled_playlist);
-        free_playlist(&model->favorites_playlist);
-        free_layout_config();
-        free_visuals();
-
-        set_default_text_color();
-
-        pthread_mutex_destroy(&(model->playbackState.switch_mutex));
-        pthread_mutex_destroy(&(model->state.library_mutex));
-        pthread_mutex_destroy(&(model->state.drawbuffer_mutex));
-
-#ifdef USE_DBUS
-        cleanup_notifications();
-#endif
-
-#ifdef DEBUG
+/**
+ * @brief Shuts down logging to error.log
+ *
+ */
+void logging_shutdown(Model *model)
+{
         if (model->state.ui.logFile)
                 fclose(model->state.ui.logFile);
-#endif
+}
 
-        if (freopen("/dev/stderr", "w", stderr) == NULL) {
-                perror("freopen error");
-        }
-
-        printf("\n");
+void terminal_shutdown(void)
+{
+        set_default_text_color();
         show_cursor();
         exit_alternate_screen_buffer();
-
         disable_terminal_mouse_buttons();
         restore_terminal_mode();
         restore_terminal_window_title();
+        set_default_text_color();
+}
 
-        if (noMusicFound) {
+void print_exit_errors(bool no_music_found)
+{
+        Model *model = get_model();
+
+        if (no_music_found) {
                 printf(_("No Music found.\n"));
                 printf(_("Please make sure the path is set correctly. \n"));
                 printf(_("To set it type: kew path \"/path/to/Music\". \n"));
@@ -282,6 +246,70 @@ void kew_shutdown()
 
         printf("\n");
         fflush(stdout);
+}
+
+void settings_shutdown(void)
+{
+        Model *model = get_model();
+        set_path(model->settings.path);
+        set_prefs(&model->settings, &(model->state.settings));
+        save_favorites_playlist(model->settings.path, model->favorites_playlist);
+        free_layout_config();
+}
+
+void playlists_shutdown(void)
+{
+        Model *model = get_model();
+        free_playlist(&model->playlist);
+        free_playlist(&model->unshuffled_playlist);
+        free_playlist(&model->favorites_playlist);
+}
+
+void mutexes_shutdown(void)
+{
+        Model *model = get_model();
+        pthread_mutex_destroy(&(model->playbackState.switch_mutex));
+        pthread_mutex_destroy(&(model->state.library_mutex));
+        pthread_mutex_destroy(&(model->state.drawbuffer_mutex));
+}
+
+void songdata_shutdown(void)
+{
+        Model *model = get_model();
+        unload_song_data(&model->songdata);
+}
+
+/**
+ * @brief Shuts down the application and cleans up resources.
+ *
+ * This function stops playback, frees resources, and shuts down the application. It handles
+ * cleanup tasks like saving settings, stopping playback, and freeing memory.
+ */
+void kew_shutdown()
+{
+        Model *model = get_model();
+        bool no_music_found = (model->library == NULL || model->library->children == NULL);
+
+        songdata_shutdown();
+        sound_system_shutdown();
+        chroma_shutdown();
+        chafa_shutdown();
+        input_shutdown();
+        discord_rpc_shutdown();
+        search_shutdown();
+        mpris_shutdown();
+        settings_shutdown();
+        library_shutdown();
+        ui_shutdown();
+        visualizer_shutdown();
+        playlists_shutdown();
+        logging_shutdown(model);
+        notifications_shutdown();
+        mutexes_shutdown();
+        terminal_shutdown();
+
+        print_exit_errors(no_music_found);
+
         exit(0);
 }
 
@@ -594,7 +622,7 @@ const char *get_system_locale_dir(void)
  *
  * This function sets up the locale settings and binds text domains for translations.
  */
-void init_locale(void)
+void locale_init(void)
 {
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
@@ -605,25 +633,6 @@ void init_locale(void)
 #endif
 
         textdomain("kew");
-}
-
-/**
- * @brief Initializes logging to error.log if DEBUG is set.
- *
- */
-void init_logging(Model *model)
-{
-#ifdef DEBUG
-        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-        model->state.ui.logFile = freopen("error.log", "w", stderr);
-        if (model->state.ui.logFile == NULL) {
-                fprintf(stdout, "Failed to redirect stderr to error.log\n");
-        }
-#else
-        (void)model;
-        FILE *null_stream = freopen("/dev/null", "w", stderr);
-        (void)null_stream;
-#endif
 }
 
 /**
@@ -688,7 +697,7 @@ void kew_init(bool set_library_enqueued_status)
  * This function initializes the default UI settings, playback state, and other system resources.
  * It sets up the playlist, resets various flags, and prepares the system for playback.
  */
-void init_default_state(void)
+void default_state_init(void)
 {
         bool set_library_enqueued_status = true;
         kew_init(set_library_enqueued_status);
@@ -722,20 +731,23 @@ void init_default_state(void)
  *
  * @return bool Returns true if the command is valid, false otherwise.
  */
-static bool handle_play_command_playlist(int *argc, char **argv)
+static void handle_play_command_playlist(int argc, char **argv)
 {
-        char de_expanded[KEW_PATH_MAX];
-        // Working with multiple files
-        //validate all paths
+        if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
+                char de_expanded[KEW_PATH_MAX];
+                // Working with multiple files
+                //validate all paths
 
-        for (int i = 2; i < *argc; i++) {
-                if ((expand_path(argv[i], de_expanded, KEW_PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
-                        return false;
+                for (int i = 2; i < argc; i++) {
+                        if ((expand_path(argv[i], de_expanded, KEW_PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
+                                return;
+                        }
                 }
-        }
-        play_command_with_playlist(argc, argv);
+                play_command_with_playlist(argc, argv);
 
-        return true;
+                kew_init(false);
+                run(true);
+        }
 }
 
 /**
@@ -744,9 +756,10 @@ static bool handle_play_command_playlist(int *argc, char **argv)
  * This function sets the application state, initializes variables, and prepares the system for
  * running. It sets up playback, UI settings, and various other application states.
  */
-void init_state(void)
+void state_init(void)
 {
         AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         state->settings.VERSION = KEW_VERSION;
         state->settings.uiEnabled = true;
@@ -765,7 +778,6 @@ void init_state(void)
         state->settings.visualizer_mode = VIZ_KMEANS_CLUSTERING;
         state->settings.discordRPCEnabled = true;
         state->settings.visualizer_height = 5;
-
         state->settings.visualizerBrailleMode = false;
         state->settings.visualizer_bar_mode = 2;
         state->settings.titleDelay = 1;
@@ -807,7 +819,6 @@ void init_state(void)
         state->settings.fade_quick_ms = 2000;
         state->settings.fade_medium_ms = 3000;
         state->settings.fade_slow_ms = 5000;
-
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
         state->ui.chosen_node_id = 0;
@@ -840,10 +851,8 @@ void init_state(void)
         state->ui.lib_row_count = 0;
         state->ui.resumed = 0;
         state->ui.resumed_in_background = 0;
-
         state->ui.footer_row = 0;
         state->ui.footer_col = 0;
-
         state->ui.chosen_row = 0;
         state->ui.chosen_dir = NULL;
         state->ui.start_iter = 0;
@@ -851,17 +860,12 @@ void init_state(void)
         state->ui.render_often = false;
         state->ui.render_search = false;
         state->ui.chosen_lyrics_row = 0;
-
         state->ui.chroma_started = false;
         state->ui.chroma_next_preset_requested = false;
         state->ui.chroma_start_requested = false;
         state->ui.chroma_height = 0;
-
         state->ui.metadata_switched = 0;
         state->ui.decoder_switched = 0;
-
-        PlaybackState *ps = get_playback_state();
-
         ps->lastPlayedId = -1;
         ps->nextSongNeedsRebuilding = false;
         ps->songHasErrors = false;
@@ -880,10 +884,6 @@ void init_state(void)
         ps->notifySeek = false;
 
         reset_digits_pressed();
-
-        Model *model = get_model();
-        init_logging(model);
-
         init_model();
 }
 
@@ -923,7 +923,7 @@ void force_terminal_restore(int sig)
 void handle_sigtstp(int sig)
 {
         force_terminal_restore(sig);
-        shutdown_input();
+        input_shutdown();
         disable_terminal_mouse_buttons();
 
         signal(SIGTSTP, SIG_DFL);
@@ -953,6 +953,43 @@ void register_singnal_handlers(void)
 #endif
 }
 
+void show_version_and_exit(int argc, char *argv[])
+{
+        Model *model = get_model();
+        AppState *state = &model->state;
+
+        if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
+                          strcmp(argv[1], "-v") == 0)) {
+                state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
+                state->settings.color = state->settings.defaultColorRGB;
+                print_about_for_version(model);
+                exit(0);
+        }
+}
+
+void show_help_and_exit(int argc, char *argv[])
+{
+        if ((argc == 2 &&
+             ((strcmp(argv[1], "--help") == 0) ||
+              (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0)))) {
+                print_help();
+                exit(0);
+        }
+}
+
+void set_path_and_exit(int argc, char *argv[])
+{
+        Model *model = get_model();
+
+        if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
+                char de_expanded[KEW_PATH_MAX];
+                collapse_path(argv[2], de_expanded, KEW_PATH_MAX);
+                c_strcpy(model->settings.path, de_expanded, sizeof(model->settings.path));
+                set_path(model->settings.path);
+                exit(0);
+        }
+}
+
 /**
  * @brief Main entry point of the application.
  *
@@ -966,65 +1003,32 @@ void register_singnal_handlers(void)
  */
 int main(int argc, char *argv[])
 {
-        tty_init();
-
-        init_state();
-        init_locale();
-
         Model *model = get_model();
         AppState *state = &model->state;
+        bool exact_search = false;
 
-        if ((argc == 2 &&
-             ((strcmp(argv[1], "--help") == 0) ||
-              (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0)))) {
-                print_help();
-                exit(0);
-        } else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
-                                 strcmp(argv[1], "-v") == 0)) {
-                state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
-                state->settings.color = state->settings.defaultColorRGB;
-                print_about_for_version(model);
-                exit(0);
-        }
-
-#ifndef DEBUG // Only prevent multiple instances if not debugging. Yes, now you can finally listen to music in kew while you work on kew!
+        tty_init();
+        state_init();
+        logging_init();
+        locale_init();
+        show_help_and_exit(argc, argv);
+        show_version_and_exit(argc, argv);
         restart_if_already_running(argv);
-#endif
-
-        init_settings(&model->settings);
+        settings_init(&model->settings);
         transfer_settings_to_ui();
-        init_key_mappings(&model->settings);
+        key_mappings_init(&model->settings);
         save_terminal_window_title();
-
-        bool run_for_play_command_with_playlist = false;
-
-        if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
-                char de_expanded[KEW_PATH_MAX];
-                collapse_path(argv[2], de_expanded, KEW_PATH_MAX);
-                c_strcpy(model->settings.path, de_expanded, sizeof(model->settings.path));
-                set_path(model->settings.path);
-                exit(0);
-        } else if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
-                run_for_play_command_with_playlist = handle_play_command_playlist(&argc, argv);
-        }
-
+        handle_play_command_playlist(argc, argv);
         enter_alternate_screen_buffer();
         register_singnal_handlers();
-
-        if (model->settings.path[0] == '\0') {
-                set_music_path();
-        }
-
-        bool exact_search = false;
-        handle_options(&argc, argv, &exact_search);
-
+        set_music_path();
+        transfer_args_to_settings(&argc, argv, &exact_search);
         ensure_default_themes();
         ensure_default_layouts();
-
-        init_theme(argc, argv);
+        themes_init(argc, argv);
 
         if (argc == 1) {
-                init_default_state();
+                default_state_init();
         } else if (argc == 2 && strcmp(argv[1], "all") == 0) {
                 kew_init(false);
                 play_all();
@@ -1036,9 +1040,6 @@ int main(int argc, char *argv[])
         } else if (argc == 2 && strcmp(argv[1], ".") == 0) {
                 kew_init(false);
                 play_favorites_playlist();
-                run(true);
-        } else if (run_for_play_command_with_playlist) {
-                kew_init(false);
                 run(true);
         } else if (argc >= 2) {
                 kew_init(false);

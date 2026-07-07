@@ -121,7 +121,7 @@ const char *get_binding_string(enum MsgType event, bool find_only_one);
  *
  * @return The initialized AppSettings structure.
  */
-void init_settings(AppSettings *settings);
+void settings_init(AppSettings *settings);
 
 /**
  * @brief Loads the layout config from file

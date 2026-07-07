@@ -25,7 +25,7 @@ void chroma_start(int height);
  * Stops a chroma_thread and frees resources.
  *
  */
-void chroma_stop(void);
+void chroma_shutdown(void);
 
 /**
  * Prints a Chroma frame to a buffer

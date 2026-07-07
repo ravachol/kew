@@ -2757,12 +2757,10 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Repeat: %s (repeat/repeat list/off)"),
                   get_binding_string(MSG_TOGGLEREPEAT, false));
         HELP_LINE(_(" · Clear Playlist: %s"), get_binding_string(MSG_CLEARPLAYLIST, false));
-        HELP_LINE(_(" · Delete from Playlist: %s"), get_binding_string(MSG_REMOVE, true));
         HELP_LINE(_(" · Scroll: %s, %s"),
                   get_binding_string(MSG_PREV_PAGE, false),
                   get_binding_string(MSG_NEXT_PAGE, false));
         HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
-        HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
 
         // Change view line
         if (row < region.row + region.height) {
@@ -2777,6 +2775,9 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                          get_binding_string(MSG_SHOWHELP, true));
                 draw_buffer_set_string_truncated(buf, row++, col, view_line, max_width, help_style);
         }
+
+        HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
+
         HELP_LINE(" ");
         draw_buffer_set_string_truncated(buf, row ++, col, _(" Advanced"), max_width, header_style);
         HELP_LINE(_(" · Toggle Lyrics Page: %s"),
@@ -2789,6 +2790,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Move songs: %s/%s"),
                   get_binding_string(MSG_MOVESONGUP, true),
                   get_binding_string(MSG_MOVESONGDOWN, true));
+        HELP_LINE(_(" · Delete from Playlist: %s"), get_binding_string(MSG_REMOVE, true));
         HELP_LINE(_(" · Cycle Color Mode: %s"),
                   get_binding_string(MSG_CYCLECOLORMODE, false));
         HELP_LINE(_(" · Cycle Themes: %s"), get_binding_string(MSG_CYCLETHEMES, false));

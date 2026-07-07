@@ -6,6 +6,7 @@
 
  */
 #include "discord_rpc.h"
+#include "common/appstate.h"
 #include <gio/gio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,6 +135,11 @@ void discord_rpc_init(void)
 
 void discord_rpc_shutdown(void)
 {
+        Model *model = get_model();
+
+        if (!model->state.settings.discordRPCEnabled)
+                return;
+
         if (!discord_available)
                 return;
 

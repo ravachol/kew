@@ -50,7 +50,7 @@ void update_last_input_time(void);
  *
  * @param settings The application settings that include key mapping information.
  */
-void init_key_mappings(AppSettings *settings);
+void key_mappings_init(AppSettings *settings);
 
 /**
  * @brief Presses a digit key.
@@ -75,7 +75,7 @@ void init_input(void);
  *
  * This function shuts down the input system, freeing any resources related to input handling.
  */
-void shutdown_input(void);
+void input_shutdown(void);
 
 /**
  * @brief Handles the cooldown period for certain actions.

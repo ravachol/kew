@@ -48,7 +48,7 @@ int create_sound_system(void)
         return result;
 }
 
-void shutdown_sound_system(void)
+void sound_system_shutdown(void)
 {
         sound_system_destroy(&sound_sys);
 }

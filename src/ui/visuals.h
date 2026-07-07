@@ -37,3 +37,5 @@ void free_visuals(void);
 void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width);
 
 void generate_all_visualizer_palettes(Model *model, int height);
+
+void visualizer_shutdown(void);

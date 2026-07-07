@@ -128,7 +128,7 @@ void collect_result(FileSystemEntry *entry, int distance)
         add_result(entry, distance);
 }
 
-void free_search_results(void)
+void search_shutdown(void)
 {
         Model *model = get_model();
 
@@ -277,7 +277,7 @@ void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
         Model *model = get_model();
         terminal_height = model->term_h;
 
-        free_search_results();
+        search_shutdown();
 
         if (num_search_letters > min_search_letters) {
                 fuzzy_search_recursive(root, search_term, threshold,

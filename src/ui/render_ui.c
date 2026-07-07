@@ -60,10 +60,10 @@ void request_stop_visualization(void)
         AppState *state = get_app_state();
         state->settings.visualizations_instead_of_cover = false;
         state->ui.chroma_next_preset_requested = false;
-        chroma_stop();
+        chroma_shutdown();
 }
 
-bool init_theme(int argc, char *argv[])
+bool themes_init(int argc, char *argv[])
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
@@ -1057,10 +1057,14 @@ void layout_destroy(Layout *layout)
         free(layout);
 }
 
-void ui_destroy(Model *model)
+void ui_shutdown(void)
 {
+        Model *model = get_model();
+
         if (!model)
                 return;
+
+        component_library_helper_reset(model);
 
         layout_destroy(model->library_layout);
         layout_destroy(model->playlist_layout);
