@@ -269,6 +269,21 @@ make USE_DBUS=0 -j
 
 To erase traces of your kew listening after uninstall, you need to delete the library.dat file in ~/.config/kew.
 
+## Troubleshooting
+
+Check the log at:
+
+#### Linux/FreeBSD
+~/.local/state/kew/logs/
+
+#### Windows
+LOCALAPPDATA/kew/logs
+
+#### macOS
+/Library/Logs/kew
+
+Then post an issue on: https://codeberg.org/ravachol/kew/issues
+
 ## License
 
 Licensed under GPLv2+. [See LICENSE for more information](https://codeberg.org/ravachol/kew/src/branch/main/LICENSE).

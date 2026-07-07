@@ -54,7 +54,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/chroma.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"
-#include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/input.h"
 #include "ui/queue_ui.h"
@@ -95,6 +94,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <direct.h>
+#define mkdir_p(path) _mkdir(path)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define mkdir_p(path) mkdir(path, 0755)
+#endif
 
 GMainLoop *main_loop;
 
@@ -192,21 +201,108 @@ void player_tick(Model *model, RenderContext *ctx)
         }
 }
 
+char *logging_get_error_log_path(void)
+{
+#ifdef _WIN32
+    const char *base = getenv("LOCALAPPDATA");
+    if (!base)
+        return NULL;
+
+    char dir[MAX_PATH];
+
+    if (snprintf(dir, sizeof(dir), "%s\\kew", base) >= (int)sizeof(dir))
+        return NULL;
+    mkdir_p(dir);
+
+    if (snprintf(dir, sizeof(dir), "%s\\kew\\logs", base) >= (int)sizeof(dir))
+        return NULL;
+    mkdir_p(dir);
+
+    size_t len = snprintf(NULL, 0, "%s\\kew\\logs\\error.log", base);
+    char *path = malloc(len + 1);
+    if (!path)
+        return NULL;
+
+    snprintf(path, len + 1, "%s\\kew\\logs\\error.log", base);
+    return path;
+
+#elif defined(__APPLE__)
+    const char *home = getenv("HOME");
+    if (!home)
+        return NULL;
+
+    char dir[PATH_MAX];
+
+    if (snprintf(dir, sizeof(dir), "%s/Library/Logs/kew", home) >= (int)sizeof(dir))
+        return NULL;
+    mkdir_p(dir);
+
+    size_t len = snprintf(NULL, 0, "%s/Library/Logs/kew/error.log", home);
+    char *path = malloc(len + 1);
+    if (!path)
+        return NULL;
+
+    snprintf(path, len + 1, "%s/Library/Logs/kew/error.log", home);
+    return path;
+
+#else
+    const char *state = getenv("XDG_STATE_HOME");
+    char state_dir[PATH_MAX];
+
+    if (state && *state) {
+        if (snprintf(state_dir, sizeof(state_dir), "%s", state) >= (int)sizeof(state_dir))
+            return NULL;
+    } else {
+        const char *home = getenv("HOME");
+        if (!home)
+            return NULL;
+
+        if (snprintf(state_dir, sizeof(state_dir),
+                     "%s/.local/state", home) >= (int)sizeof(state_dir))
+            return NULL;
+    }
+
+    char dir[PATH_MAX];
+
+    if (snprintf(dir, sizeof(dir), "%s/kew", state_dir) >= (int)sizeof(dir))
+        return NULL;
+    mkdir_p(dir);
+
+    if (snprintf(dir, sizeof(dir), "%s/kew/logs", state_dir) >= (int)sizeof(dir))
+        return NULL;
+    mkdir_p(dir);
+
+    size_t len = snprintf(NULL, 0, "%s/kew/logs/error.log", state_dir);
+    char *path = malloc(len + 1);
+    if (!path)
+        return NULL;
+
+    snprintf(path, len + 1, "%s/kew/logs/error.log", state_dir);
+    return path;
+#endif
+}
+
 /**
  * @brief Initializes logging to error.log
  *
  */
 void logging_init(void)
 {
+    char *path = logging_get_error_log_path();
+
+    if (path != NULL) {
         Model *model = get_model();
 
-#ifdef DEBUG
-        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-        model->state.ui.logFile = freopen("error.log", "w", stderr);
+        model->state.ui.logFile = freopen(path, "w", stderr);
+
         if (model->state.ui.logFile == NULL) {
-                fprintf(stdout, "Failed to redirect stderr to error.log\n");
+            fprintf(stdout,
+                    "Failed to redirect stderr to %s\n",
+                    path);
         }
-#endif
+
+        free(path);
+    }
 }
 
 /**
