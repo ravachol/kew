@@ -414,7 +414,7 @@ void library_shutdown(void)
         free_tree(model->library);
 }
 
-void create_library(Model *model, bool set_enqueued_status)
+void library_init(Model *model, bool set_enqueued_status)
 {
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();

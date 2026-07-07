@@ -74,7 +74,7 @@ void create_playlist(PlayList **playlist)
         }
 }
 
-void open_artistDb(char *name)
+void artists_db_init(char *name)
 {
         Model *model = get_model();
 
@@ -102,7 +102,7 @@ void open_artistDb(char *name)
         }
 }
 
-void close_artistDb(void)
+void artists_db_shutdown(void)
 {
         Model *model = get_model();
 
@@ -188,7 +188,7 @@ void tty_init(void)
 
 // --- Constructor ---
 
-void init_model(void)
+void model_init(void)
 {
         model.playlist = NULL;
         model.unshuffled_playlist = NULL;

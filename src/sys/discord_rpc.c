@@ -130,7 +130,10 @@ static gboolean try_connect_socket(void)
 // Initialize Discord RPC (call at startup)
 void discord_rpc_init(void)
 {
-        try_connect_socket();
+        Model *model = get_model();
+
+        if (model->state.settings.discordRPCEnabled)
+                try_connect_socket();
 }
 
 void discord_rpc_shutdown(void)

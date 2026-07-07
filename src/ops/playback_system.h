@@ -16,7 +16,7 @@
  * @return 0 on success, or a negative value if device creation fails.
  */
 #include <stdbool.h>
-int create_sound_system(void);
+int sound_system_init(void);
 
 /**
  * @brief Shutdown the sound system.
