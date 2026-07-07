@@ -54,7 +54,7 @@ void set_chosen_search_dir(FileSystemEntry *entry);
  *
  * This function frees the memory used by the search results and resets related variables.
  */
-void free_search_results(void);
+void search_shutdown(void);
 
 /**
  * @brief Performs a fuzzy search on the file system entries.

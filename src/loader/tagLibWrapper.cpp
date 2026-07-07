@@ -1170,6 +1170,61 @@ static bool parseUntimedLyricsFromTagLines(const TagLib::StringList &lines, Lyri
         return (lyrics->count > 0);
 }
 
+static bool loadLyricsMP4(TagLib::MP4::File *file, Lyrics **lyricsOut)
+{
+        if (!file || !lyricsOut || !file->tag())
+                return false;
+
+        auto tag = file->tag();
+        auto itemMap = tag->itemMap();
+
+        // M4A lyrics are stored under the "©lyr" atom (\xa9 is the hex code for ©)
+        TagLib::String key("\xa9lyr");
+        if (!itemMap.contains(key))
+                return false;
+
+        // Extract the string list from the MP4 item
+        TagLib::StringList stringList = itemMap[key].toStringList();
+        if (stringList.isEmpty())
+                return false;
+
+        // Build final line list
+        TagLib::StringList lines;
+        for (const auto &val : stringList) {
+                TagLib::StringList split = val.split("\n");
+                for (const auto &ln : split)
+                        lines.append(ln);
+        }
+
+        // Remove trailing blanks
+        while (!lines.isEmpty() && lines.back().stripWhiteSpace().isEmpty()) {
+                auto it = lines.end();
+                --it;
+                lines.erase(it);
+        }
+
+        if (lines.isEmpty())
+                return false;
+
+        Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
+        if (!lyrics)
+                return false;
+
+        lyrics->max_length = 1024;
+
+        bool looksLikeLrc = detectLrcFormat(lines);
+        bool ok = looksLikeLrc ? parseTimedLyricsFromTagLines(lines, lyrics)
+        : parseUntimedLyricsFromTagLines(lines, lyrics);
+
+        if (!ok) {
+                freeLyrics(lyrics);
+                return false;
+        }
+
+        *lyricsOut = lyrics;
+        return true;
+}
+
 static bool loadLyricsVorbisFromTag(TagLib::Ogg::XiphComment *tag, Lyrics **lyricsOut)
 {
         if (!tag || !lyricsOut)
@@ -1555,6 +1610,8 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         loadLyricsVorbisOgg(oggFile, lyrics);
                 else if (auto opusFile = dynamic_cast<TagLib::Ogg::Opus::File *>(f.file()))
                         loadLyricsVorbisOpus(opusFile, lyrics);
+                else if (auto mp4File = dynamic_cast<TagLib::MP4::File *>(f.file()))
+                        loadLyricsMP4(mp4File, lyrics);
         }
 
         // Extract audio properties for duration.

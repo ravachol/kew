@@ -37,7 +37,7 @@ void remove_arg_element(char *argv[], int index, int *argc);
  * @param[out]    exact_search  Pointer to a boolean flag that will be set
  *                               if an exact search option is found.
  */
-void handle_options(int *argc, char *argv[], bool *exact_search);
+void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search);
 
 /**
  * @brief Displays a menu on screen that allows the user to set the path setting (path to music library).

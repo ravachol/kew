@@ -62,7 +62,7 @@ void ui_resize(Model *model)
         model->state.ui.num_progress_bars = model->term_w / 2 - model->indent;
 
         if (model->state.ui.chroma_started) {
-                chroma_stop();
+                chroma_shutdown();
                 model->state.ui.chroma_start_requested = true;
         }
 
@@ -185,7 +185,7 @@ void run_tick_commands(Model *model)
         }
 
         if (model->state.ui.chroma_started && model->state.last_view != model->state.currentView) {
-                chroma_stop();
+                chroma_shutdown();
                 model->state.ui.chroma_start_requested = true;
         }
 
@@ -199,7 +199,7 @@ void run_tick_commands(Model *model)
                 }
 
                 if (model->state.currentView != TRACK_VIEW && chroma_is_started())
-                        chroma_stop();
+                        chroma_shutdown();
         }
 }
 
@@ -369,7 +369,7 @@ void run_command(UpdateResult result)
 
         case CMD_VIEW_CHANGED:
                 if (model->state.ui.chroma_started) {
-                        chroma_stop();
+                        chroma_shutdown();
                         model->state.ui.chroma_start_requested = true;
                 }
                 break;

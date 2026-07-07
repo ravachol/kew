@@ -596,7 +596,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_UPDATELIBRARY:
                 component_library_helper_reset(model);
-                free_search_results();
+                search_shutdown();
                 set_error_message("Updating Library...");
                 result.cmd.type = CMD_UPDATE_LIBRARY;
                 break;
@@ -694,7 +694,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_SORTLIBRARY:
                 component_library_helper_reset(model);
-                free_search_results();
+                search_shutdown();
                 result.cmd.type = CMD_SORT_LIBRARY;
                 break;
 

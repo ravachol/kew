@@ -176,7 +176,7 @@ bool is_cooldown_elapsed(int milli_seconds)
         return elapsed_milliseconds >= milli_seconds;
 }
 
-void init_key_mappings(AppSettings *settings)
+void key_mappings_init(AppSettings *settings)
 {
         map_settings_to_keys(settings, key_mappings);
 }
@@ -1007,7 +1007,7 @@ void init_input(void)
 #endif
 }
 
-void shutdown_input(void)
+void input_shutdown(void)
 {
 #ifdef _WIN32
         SetConsoleMode(global.hin, global.original_mode);

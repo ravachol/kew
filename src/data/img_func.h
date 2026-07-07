@@ -116,4 +116,6 @@ gboolean retirePassthroughWorkarounds_tmux(void);
 
 void free_image_payload(ImagePayload *img);
 
+void chafa_shutdown(void);
+
 #endif

@@ -55,7 +55,7 @@ void chroma_set_next_preset(void)
         AppState *state = get_app_state();
         state->settings.chromaPreset = g_viz.preset;
 
-        chroma_stop();
+        chroma_shutdown();
         chroma_start(state->ui.chroma_height);
 }
 
@@ -241,10 +241,18 @@ void chroma_start(int height)
         model->state.ui.chroma_height = height;
 }
 
-void chroma_stop()
+void chroma_shutdown()
 {
         if (!g_viz.running)
                 return;
+
+        Model *model = get_model();
+
+        if (chroma_is_started())
+
+                model->state.settings.chromaPreset = chroma_get_current_preset();
+        else
+                model->state.settings.chromaPreset = -1;
 
         g_viz.running = 0;                // Tell thread to exit
         pthread_join(g_viz.thread, NULL); // Wait until it finishes
@@ -256,7 +264,6 @@ void chroma_stop()
         }
         pthread_mutex_unlock(&g_viz.lock);
 
-        Model *model = get_model();
         model->state.ui.chroma_started = false;
         model->state.ui.chroma_start_requested = false;
 }

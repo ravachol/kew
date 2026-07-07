@@ -25,7 +25,7 @@ int create_sound_system(void);
  * This version does not acquire any synchronization locks and
  * must only be called when it is safe to do so.
  */
-void shutdown_sound_system(void);
+void sound_system_shutdown(void);
 
 /**
  * @brief Uninitializes the audio output device and resets playback state.

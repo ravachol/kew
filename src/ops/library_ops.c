@@ -405,6 +405,15 @@ void save_library(void)
         free(filepath);
 }
 
+void library_shutdown(void)
+{
+        update_library_if_changed_detected(true);
+        save_library();
+
+        Model *model = get_model();
+        free_tree(model->library);
+}
+
 void create_library(Model *model, bool set_enqueued_status)
 {
         AppSettings *settings = get_app_settings();
