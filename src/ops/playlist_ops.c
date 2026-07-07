@@ -1003,12 +1003,12 @@ void play_all_albums(void)
         mark_list_as_enqueued(library, playlist);
 }
 
-void play_command_with_playlist(int *argc, char **argv)
+void play_command_with_playlist(int argc, char **argv)
 {
         PlayList *playlist = get_playlist();
         const char *allowed_extensions = MUSIC_FILE_EXTENSIONS;
 
-        for (int i = 2; i < *argc; i++) {
+        for (int i = 2; i < argc; i++) {
                 build_playlist_recursive(argv[i], allowed_extensions, playlist);
         }
 

@@ -34,7 +34,7 @@ void remove_arg_element(char *argv[], int index, int *argc)
         (*argc)--;
 }
 
-void handle_options(int *argc, char *argv[], bool *exact_search)
+void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
@@ -92,6 +92,10 @@ void handle_options(int *argc, char *argv[], bool *exact_search)
 
 void set_music_path(void)
 {
+        Model *model = get_model();
+        if (model->settings.path[0] != '\0')
+                return;
+
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
 

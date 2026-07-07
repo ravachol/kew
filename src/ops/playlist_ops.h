@@ -262,10 +262,10 @@ void play_all_albums(void);
  * Recursively scans provided paths for supported audio files and adds
  * them to the playlist.
  *
- * @param argc Pointer to argument count.
+ * @param argc argument count.
  * @param argv Argument vector containing file or directory paths.
  */
-void play_command_with_playlist(int *argc, char **argv);
+void play_command_with_playlist(int argc, char **argv);
 
 Node *choose_next_song(void);
 

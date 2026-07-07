@@ -405,8 +405,9 @@ int display_song_notification(const char *artist, const char *title, const char 
         return 0;
 }
 
-void cleanup_notifications()
+void notifications_shutdown()
 {
+#ifdef USE_DBUS
         cleanup_previous_notification();
 
         // Unsubscribe from signals
@@ -420,5 +421,6 @@ void cleanup_notifications()
                 g_object_unref(connection);
                 connection = NULL;
         }
+#endif
 }
 #endif
