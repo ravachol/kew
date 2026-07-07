@@ -28,7 +28,7 @@ void start_playing(bool value)
         atomic_store(&start_audio, value);
 }
 
-int create_sound_system(void)
+int sound_system_init(void)
 {
         Model *model = get_model();
 

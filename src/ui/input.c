@@ -953,7 +953,7 @@ static DWORD WINAPI win_input_thread(void *arg)
 }
 #endif
 
-void init_input(void)
+void input_init(void)
 {
         tb_init();
         // Enable SGR (1006) + drag-motion (1002)

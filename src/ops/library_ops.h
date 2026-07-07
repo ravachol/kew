@@ -23,7 +23,7 @@
  * @param set_enqueued_status If true, restore enqueued status from the cached
  *                            library representation.
  */
-void create_library(Model *model, bool set_enqueued_status);
+void library_init(Model *model, bool set_enqueued_status);
 
 /**
  * @brief Update the library by rescanning the given path.

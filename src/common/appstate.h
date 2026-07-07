@@ -65,15 +65,15 @@ void tty_init(void);
 /* ========================= CONSTRUCTOR ========================= */
 
 /**@brief initializes the model */
-void init_model(void);
+void model_init(void);
 
 /* ========================= ARTIST DB ========================= */
 
 /**@brief opens the database that contains urls to artists homepages */
-void open_artistDb(char *name);
+void artists_db_init(char *name);
 
 /**@brief closes the database that contains urls to artists homepages */
-void close_artistDb(void);
+void artists_db_shutdown(void);
 
 /* ========================= GETTERS ========================= */
 

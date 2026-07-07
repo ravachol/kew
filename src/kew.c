@@ -406,7 +406,7 @@ void kew_shutdown()
         notifications_shutdown();
         mutexes_shutdown();
         terminal_shutdown();
-        close_artistDb();
+        artists_db_shutdown();
 
         print_exit_errors(no_music_found);
 
@@ -437,7 +437,7 @@ void reinitialize()
         disable_terminal_line_input();
         set_term_size();
         enable_scrolling();
-        init_input();
+        input_init();
         enter_alternate_screen_buffer();
         clear_screen();
         set_dirty(DIRTY_ALL);
@@ -746,6 +746,7 @@ void locale_init(void)
 void kew_init(bool set_library_enqueued_status)
 {
         Model *model = get_model();
+
         save_terminal_mode();
         set_nonblocking_mode();
 
@@ -764,11 +765,8 @@ void kew_init(bool set_library_enqueued_status)
         load_favorites_playlist(model->settings.path, &model->favorites_playlist);
 
         enable_scrolling();
-
-        init_input();
-
-        if (model->state.settings.discordRPCEnabled)
-                discord_rpc_init();
+        input_init();
+        discord_rpc_init();
 
         // The (sometimes shuffled) sequence of songs that will be played
         start_playing(true);
@@ -777,9 +775,9 @@ void kew_init(bool set_library_enqueued_status)
 
         srand(seed);
 
-        create_library(model, set_library_enqueued_status);
+        library_init(model, set_library_enqueued_status);
 
-        open_artistDb("artists.db");
+        artists_db_init("artists.db");
 
         model->state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         clear_screen();
@@ -790,7 +788,7 @@ void kew_init(bool set_library_enqueued_status)
 
         ui_init(model);
 
-        if (create_sound_system() == -1)
+        if (sound_system_init() == -1)
                 quit();
 }
 
@@ -987,7 +985,7 @@ void state_init(void)
         ps->notifySeek = false;
 
         reset_digits_pressed();
-        init_model();
+        model_init();
 }
 
 /**
