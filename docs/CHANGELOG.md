@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.1.8
+
+- Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
+
 ## kew 4.1.7
 
 - Fixes image rendering error on gnome terminal. By @ravachol. Reported by @Erwin-Iosef.
