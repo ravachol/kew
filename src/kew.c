@@ -76,6 +76,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/track_manager.h"
 
 #include "data/theme.h"
+#include "data/img_func.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
