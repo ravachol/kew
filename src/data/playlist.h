@@ -21,8 +21,6 @@
 
 #define MAX_FILES 50000
 
-
-
 /**
  * @brief Clears the currently selected song.
  *

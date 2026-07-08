@@ -53,7 +53,6 @@ void increment_update_counter(void);
  */
 void inverse_text(void);
 
-
 void apply_color(PixelData color);
 
 /**

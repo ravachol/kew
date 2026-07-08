@@ -82,8 +82,6 @@ void artists_db_init(char *name)
 
         snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, name);
 
-        // FIXME: Add _WIN32 version of this
-
         if (!exists_file(filepath))
         {
                 snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", name);
@@ -257,7 +255,6 @@ Model *get_model()
 {
         return &model;
 }
-
 
 RenderContext *get_render_context()
 {
