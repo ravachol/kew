@@ -657,13 +657,18 @@ void *decode_loop(void *arg)
                         perform_crossfade(sound, decoder, next_decoder, current_buf, next_buf, mixed_buf, frames_to_decode, &frames_to_read);
 
                 } else {
-                        // Decode
 
-                        if (decoder) {
+                        bool finished = atomic_load_explicit(&sound->decode_finished, memory_order_relaxed);
+
+                        // Decode
+                        if (decoder && !finished) {
                                 result = ma_data_source_read_pcm_frames(decoder, mixed_buf,
                                                                         frames_to_decode, &frames_to_read);
                                 sound->current_frame += frames_to_read;
                                 sound->total_frames += frames_to_read;
+                        }
+                        else {
+                                c_sleep(10);
                         }
                 }
 
