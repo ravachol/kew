@@ -54,7 +54,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/chroma.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"
-#include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/input.h"
 #include "ui/queue_ui.h"
@@ -305,7 +304,9 @@ void kew_shutdown()
         visualizer_shutdown();
         playlists_shutdown();
         logging_shutdown(model);
+#ifdef USE_DBUS
         notifications_shutdown();
+#endif
         mutexes_shutdown();
         terminal_shutdown();
 
