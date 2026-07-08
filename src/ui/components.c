@@ -1,3 +1,5 @@
+#include "utils/file.h"
+#include <libgen.h>
 #define _XOPEN_SOURCE 700
 
 #include "components.h"
@@ -9,9 +11,9 @@
 
 #include "update/messages.h"
 
+#include "data/artists.h"
 #include "data/directorytree.h"
 #include "data/img_func.h"
-#include "data/artists.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_state.h"
@@ -1766,44 +1768,81 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         TagSettings *metadata = songdata->metadata;
         int max_width = region.width; // -1 for the leading space
 
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(model->settings.path, expanded_path, sizeof(expanded_path));
+
         if (dirty & DIRTY_SONG) {
 
                 // Artist
-                if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 && region.height >= 2) {
+                if (region.height >= 2) {
+
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_artist);
                         char line[METADATA_MAX_LENGTH + 2];
-                        snprintf(line, sizeof(line), "%s", metadata->artist);
-
-                        draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
-                                                         line, max_width, style);
-
-
                         const ArtistRecord *record = NULL;
                         const char *homepage = NULL;
+                        char *artist = NULL;
+                        char *artist_folder = NULL;
+                        char path_copy[4096];
+                        strcpy(path_copy, model->songdata->file_path);
+                        char *dir = dirname(path_copy);
 
-                        if (model->hasArtistDb) {
-                                record = db_find(model->db, metadata->artist);
-
-                                if (record)
-                                        homepage = db_get_value(model->db, record);
+                        if (strcmp(dir, expanded_path) != 0) {
+                                dir = dirname(dir);
+                                artist_folder = basename(dir);
                         }
 
-                        if (homepage) {
-                                draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
-                                        homepage, metadata->artist, style);
-                        } else {
-                                draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
-                                                                 line, max_width, style);
+                        if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0) {
+
+                                snprintf(line, sizeof(line), "%s", metadata->artist);
+                                artist = metadata->artist;
+
+                        } else if (artist_folder) {
+                                snprintf(line, sizeof(line), "%s", artist_folder);
+                                artist = artist_folder;
+                        }
+
+                        if (artist) {
+                                if (model->hasArtistDb) {
+                                        record = db_find(model->db, artist);
+
+                                        if (record)
+                                                homepage = db_get_value(model->db, record);
+                                }
+
+                                if (homepage) {
+                                        draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
+                                                            homepage, artist, style);
+                                } else {
+                                        draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
+                                                                         line, max_width, style);
+                                }
                         }
                 }
 
                 // Album
-                if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0 && region.height >= 3) {
+                if (region.height >= 3) {
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_album);
                         char line[METADATA_MAX_LENGTH + 2];
-                        snprintf(line, sizeof(line), "%s", metadata->album);
-                        draw_buffer_set_string_truncated(buf, region.row + 2, region.col,
-                                                         line, max_width, style);
+                        char path_copy2[4096];
+                        strcpy(path_copy2, model->songdata->file_path);
+                        char *dir = dirname(path_copy2); // Dirname can modify the string, so use a copy
+                        char *album = NULL;
+                        if (strcmp(dir, expanded_path) != 0) {
+                                album = basename(dir);
+                        }
+
+                        if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0) {
+
+                                snprintf(line, sizeof(line), "%s", metadata->album);
+
+                        } else if (album) {
+
+                                snprintf(line, sizeof(line), "%s", album);
+                        }
+
+                        if (line[0] != '\0')
+                                draw_buffer_set_string_truncated(buf, region.row + 2, region.col,
+                                                                 line, max_width, style);
                 }
 
                 // Year

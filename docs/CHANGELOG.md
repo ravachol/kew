@@ -11,6 +11,8 @@ Linux/FreeBSD: $HOME/.local/state/kew/logs
 macOs: /Library/Logs/kew
 Windows: LOCALAPPDATA/kew/logs
 
+- When album and artist is missing, use folder names as fallback. By @ravachol. Suggested by @theDyze.
+
 ## kew 4.1.7
 
 - Fixes image rendering error on gnome terminal. By @ravachol. Reported by @Erwin-Iosef.
