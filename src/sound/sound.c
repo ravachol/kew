@@ -658,10 +658,13 @@ void *decode_loop(void *arg)
 
                 } else {
                         // Decode
-                        result = ma_data_source_read_pcm_frames(decoder, mixed_buf,
-                                                                frames_to_decode, &frames_to_read);
-                        sound->current_frame += frames_to_read;
-                        sound->total_frames += frames_to_read;
+
+                        if (decoder) {
+                                result = ma_data_source_read_pcm_frames(decoder, mixed_buf,
+                                                                        frames_to_decode, &frames_to_read);
+                                sound->current_frame += frames_to_read;
+                                sound->total_frames += frames_to_read;
+                        }
                 }
 
                 long long cursor = 0;
