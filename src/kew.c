@@ -1014,6 +1014,7 @@ int main(int argc, char *argv[])
         locale_init();
         show_help_and_exit(argc, argv);
         show_version_and_exit(argc, argv);
+        set_path_and_exit(argc, argv);
         restart_if_already_running(argv);
         settings_init(&model->settings);
         transfer_settings_to_ui();
