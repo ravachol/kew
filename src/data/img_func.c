@@ -150,13 +150,6 @@ retirePassthroughWorkarounds_tmux(void)
         return result;
 }
 
-void chafa_shutdown(void)
-{
-#ifdef CHAFA_VERSION_1_16
-        retirePassthroughWorkarounds_tmux();
-#endif
-}
-
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out,
                             ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out)
 {
@@ -640,4 +633,11 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 img->data_len = printable->len;
                 img->data = (uint8_t *)g_string_free(printable, FALSE);
         }
+}
+
+void chafa_shutdown(void)
+{
+#ifdef CHAFA_VERSION_1_16
+        retirePassthroughWorkarounds_tmux();
+#endif
 }
