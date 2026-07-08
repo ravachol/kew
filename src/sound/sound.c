@@ -542,7 +542,7 @@ void *decode_loop(void *arg)
         sound->fade_current_frame = 0;
         sound->fade_enter_song_ms = 0;
         atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
-        atomic_store_explicit(&sound_s->clock_reset_ms, 0, memory_order_relaxed);
+        atomic_store_explicit(&sound->clock_reset_ms, 0, memory_order_relaxed);
 
         while (atomic_load(&sound->decode_thread_running)) {
 
@@ -676,7 +676,7 @@ void *decode_loop(void *arg)
                         if (cursor != lastCursor) { // mid-song switch, clear buffer
                                 atomic_store(&sound->request_switch_metadata, true);
                                 atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
-                                atomic_store_explicit(&sound_s->clock_reset_ms, 0, memory_order_relaxed);
+                                atomic_store_explicit(&sound->clock_reset_ms, 0, memory_order_relaxed);
                                 sound->fade_requested = false;
                                 sound->fade_current_frame = 0;
                                 sound->fade_enter_song_ms = 1;
@@ -723,8 +723,8 @@ void *decode_loop(void *arg)
                                 sent = sent + (long long)ma_pcm_rb_available_read(&pcm_rb);
                                 atomic_store_explicit(&sound->track_end_frame, sent, memory_order_release);
                                 atomic_store_explicit(&sound->decode_finished, true, memory_order_release);
-                                atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
-                                atomic_store_explicit(&sound_s->clock_reset_ms, 0, memory_order_relaxed);
+                                atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
+                                atomic_store_explicit(&sound->clock_reset_ms, 0, memory_order_relaxed);
 
                                 continue;
                         }
@@ -753,8 +753,8 @@ void *decode_loop(void *arg)
         aligned64_free(current_buf);
         aligned64_free(next_buf);
         atomic_store(&sound->decode_thread_running, false);
-        atomic_store(&sound_s->drain_callbacks_remaining, 0);
-        atomic_store(&sound_s->request_pause, false);
+        atomic_store(&sound->drain_callbacks_remaining, 0);
+        atomic_store(&sound->request_pause, false);
         return NULL;
 }
 
