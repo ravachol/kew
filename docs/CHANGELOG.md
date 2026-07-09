@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## kew 4.1.8
+## kew 4.1.9
 
 - Add support for parsing embedded lyrics from M4A files, By @Quillenar-dev.
 
@@ -12,6 +12,10 @@ macOs: /Library/Logs/kew
 Windows: LOCALAPPDATA/kew/logs
 
 - When album and artist is missing, use folder names as fallback. By @ravachol. Suggested by @theDyze.
+
+## kew 4.1.8
+
+- Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
 
 ## kew 4.1.7
 

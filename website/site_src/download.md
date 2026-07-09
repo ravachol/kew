@@ -19,9 +19,9 @@ Available through the package manager or [manual installation guide](https://cod
 
 ## WINDOWS
 
-Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.1.7/kew-v4.1.7-setup.exe), compiled and created entirely on Github.com.
+Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.1.8/kew-v4.1.8-setup.exe), compiled and created entirely on Github.com.
 
-(sha256:a83f6ebe198b2f07c8b4756270ede14ea350e0f59a68e22d02aa03810493b3df)
+(sha256:c26868b63eef6841b3946a558041f22d3a2f40bf49c16a152fd5c6492ec83abd)
 
 ## ANDROID
 

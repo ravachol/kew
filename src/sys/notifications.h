@@ -34,6 +34,8 @@
  */
 int display_song_notification(const char *artist, const char *title, const char *cover, UISettings *ui);
 
+#endif
+
 /**
  * @brief Cleans up and unsubscribes from notification-related resources.
  *
@@ -45,7 +47,5 @@ int display_song_notification(const char *artist, const char *title, const char 
  * once the player is no longer active.
  */
 void notifications_shutdown(void);
-
-#endif
 
 #endif
