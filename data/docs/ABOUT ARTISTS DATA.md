@@ -1,14 +1,18 @@
-## About the artist data:
+## About the artist data
 
-Database size: 9MB
-Homepage Urls: 162 000
-Data License: WIKIDATA CC BY-SA 4.0.
+- Database size: 9MB
+- Homepage Urls: 162 000
+- Data License: WIKIDATA CC BY-SA 4.0.
 
 ### For Package Maintainers
 
 All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide below on how to reproduce the exact same binary.
 
-### Skipping the databse
+### Why?
+
+To help artists economically and give a way for listeners to connect to artists.
+
+### Skipping the database
 
 if you don't want to use the database, set:
 
@@ -23,7 +27,6 @@ kew works just as well without it.
 ### Adding artists
 
 We don't have the capacity to add other artists or indie artists unfortunately, and want the database to remain small.
-
 
 ### About the dataset
 
