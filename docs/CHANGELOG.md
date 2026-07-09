@@ -11,6 +11,7 @@ The big changes this release are clickable artists names that takes you to their
 Artists that have a homepage listed on Wikipedia are now clickable links in track view. This is to enable listeners to connect to artists and also to help artists promote their music/tour/merch with few middle hands.
 
 Database size: 9MB
+Homepage Urls: 162 000
 
 For Package Maintainers: All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
 

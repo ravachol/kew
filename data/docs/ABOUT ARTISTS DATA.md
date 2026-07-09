@@ -1,6 +1,23 @@
-About the artist data:
+## About the artist data:
 
-- This dataset contains artist names and homepage URLs sourced from Wikidata.
+Database size: 9MB
+Homepage Urls: 162 000
+
+For Package Maintainers: All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
+
+if you don't want to use the database, set:
+
+useartistsdb=0
+
+Or compile kew with:
+
+make install USE_DB=0 -j
+
+kew works just as well without it.
+
+We don't have the capacity to add other artists or indie artists unfortunately, and want the database to remain small.
+
+- The dataset contains artist names and homepage URLs sourced from Wikidata.
 
 - Wikidata is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0).
 https://creativecommons.org/licenses/by-sa/4.0/.
@@ -23,6 +40,8 @@ https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2
 - The script verify_urls.py is used to verify that urls work.
 
 - The script make_binary_db.py is used to create artists.db from artists.tsv.
+
+### Reproducing the binary
 
 To recreate the same file run: 'python make_binary_db.py artists.tsv artists.db' using Python 3.14.5.
 
