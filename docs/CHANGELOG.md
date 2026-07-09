@@ -1,6 +1,28 @@
 # CHANGELOG
 
-## kew 4.1.9
+## kew 4.2.0
+
+- Artist Database. Artists that have a homepage listed on Wikipedia are now clickable links in track view. This is to enable listeners to connect to artists and also to help artists promote their music/tour/merch with few middle hands.
+
+Database size: 9MB
+
+For Package Maintainers: All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
+
+if you don't want to use the database, set:
+
+useartistsdb=0
+
+Or compile kew with:
+
+make install USE_DB=0 -j
+
+kew works just as well without it.
+
+We don't have the capacity to add other artists or indie artists unfortunately, and want the database to remain small.
+
+The data has been washed from 300k entries down to 162k but there's bound to still be bad data in there. Create an issue consisting of the artist name and accurate homepage, if you find a mistake.
+
+- Replace minimp4 with libmp4, because minimp4 has the wrong license for Fedora. libmp4 is vendored and under BSD-3-Clause license: https://github.com/Parrot-Developers/libmp4. By @ravachol. Suggested by @bkmgit.
 
 - Add ability to name playlist. By @ravachol.
 
