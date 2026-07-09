@@ -107,7 +107,6 @@ artist folder->album folder(s)->track(s).
 * Remove: <kbd>Del</kbd>.
 * Save: <kbd>x</kbd> (places .m3u in your music folder, named after the first song).
 * Move songs: <kbd>f</kbd> <kbd>g</kbd>.
-* Jump to song: number + <kbd>G</kbd> or <kbd>Enter</kbd>.
 
 #### General
 
