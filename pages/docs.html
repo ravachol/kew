@@ -34,7 +34,7 @@
 <p>kew is an open source terminal music player written in C. It&#8217;s been designed from the ground up to be fast, minimalistic, immersive and fun to use. It is also designed to be very respectful toward users and music artists.</p>
 <p><a href="terms.html">Terms for using kew</a>.
 <a href="https://codeberg.org/ravachol/kew/src/branch/main/LICENSE">Licensed under GPLv2+</a>.</p>
-<h2>Basic functions</h2>
+<h2>The Basics</h2>
 <p>kew is a terminal app, so more keyboard than mouse oriented. It can be run from the command-line either by just typing kew, or with arguments. It can also be run from desktop shortcuts.</p>
 <p>When run with arguments, kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.</p>
 <pre><code class="language-bash">kew cure great
@@ -59,7 +59,7 @@
 
  kew song &#60;song&#62; (or a song)
 
- kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;" (plays the \&#39;Are you Experienced?\&#39; album)
+ kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;" (plays the Are you Experienced? album)
 
  kew play "&#47;home&#47;you&#47;Music&#47;Jimi Hendrix&#47;Are You Experienced&#47;Purple Haze.flac" (plays Purple Haze)
 
@@ -219,6 +219,15 @@ discordRPCEnabled=0
 <pre><code class="language-bash">make USE_DBUS=0 -j
 </code></pre>
 <p>To erase traces of your kew listening after uninstall, you need to delete the library.dat file in ~&#47;.config&#47;kew.</p>
+<h2>Troubleshooting</h2>
+<p>Check the log at:</p>
+<h4>Linux&#47;FreeBSD</h4>
+<p>~&#47;.local&#47;state&#47;kew&#47;logs&#47;</p>
+<h4>Windows</h4>
+<p>LOCALAPPDATA&#47;kew&#47;logs</p>
+<h4>macOS</h4>
+<p>&#47;Library&#47;Logs&#47;kew</p>
+<p>Then post an issue on: <a href="https://codeberg.org/ravachol/kew/issues">https:&#47;&#47;codeberg.org&#47;ravachol&#47;kew&#47;issues</a></p>
 <h2>License</h2>
 <p>Licensed under GPLv2+. <a href="https://codeberg.org/ravachol/kew/src/branch/main/LICENSE">See LICENSE for more information</a>.</p>
 </article>
