@@ -94,7 +94,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 's', TB_MOD_SHIFT, MSG_STOP, ""},
 
     // Playlist actions
-    {0, 'x', 0, MSG_EXPORTPLAYLIST, ""},
+    {0, 'x', 0, MSG_SAVEPLAYLIST, ""},
     {0, '.', 0, MSG_ADDTOFAVORITESPLAYLIST, ""},
     {0, 'u', 0, MSG_UPDATELIBRARY, ""},
     {0, 'f', 0, MSG_MOVESONGUP, ""},
@@ -711,7 +711,7 @@ static const EventMap event_map[] = {
     {"toggleAscii", MSG_TOGGLEASCII},
     {"addToFavorites_playlist", MSG_ADDTOFAVORITESPLAYLIST},
     {"deleteFromMainPlaylist", MSG_DELETEFROMMAINPLAYLIST},
-    {"exportPlaylist", MSG_EXPORTPLAYLIST},
+    {"exportPlaylist", MSG_SAVEPLAYLIST},
     {"updateLibrary", MSG_UPDATELIBRARY},
     {"shuffle", MSG_SHUFFLE},
     {"keyPress", MSG_KEY_PRESS},
@@ -1357,7 +1357,7 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->save_playlist,
                                  sizeof(settings->save_playlist), "%s",
                                  pair->value);
-                        add_legacy_key_binding(MSG_EXPORTPLAYLIST, pair->value);
+                        add_legacy_key_binding(MSG_SAVEPLAYLIST, pair->value);
                 } else if (strcmp(lowercase_key, "addtofavoritesplaylist") == 0) {
                         snprintf(settings->add_to_favorites_playlist,
                                  sizeof(settings->add_to_favorites_playlist), "%s",
@@ -1749,7 +1749,7 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[14] = (EventMapping){settings->seekBackward, MSG_SEEKBACK};
         mappings[15] = (EventMapping){settings->seek_forward, MSG_SEEKFORWARD};
         mappings[16] = (EventMapping){settings->toggle_repeat, MSG_TOGGLEREPEAT};
-        mappings[17] = (EventMapping){settings->save_playlist, MSG_EXPORTPLAYLIST};
+        mappings[17] = (EventMapping){settings->save_playlist, MSG_SAVEPLAYLIST};
         mappings[18] = (EventMapping){settings->cycleColorsDerivedFrom, MSG_CYCLECOLORMODE};
         mappings[19] = (EventMapping){settings->add_to_favorites_playlist, MSG_ADDTOFAVORITESPLAYLIST};
         mappings[20] = (EventMapping){settings->update_library, MSG_UPDATELIBRARY};

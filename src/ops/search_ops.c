@@ -14,6 +14,8 @@
 #include "data/directorytree.h"
 #include "data/playlist.h"
 
+#include "utils/utils.h"
+
 #include <stdbool.h>
 
 #define MAX_SEARCH_LEN 32
@@ -319,19 +321,6 @@ int add_to_search_text(Model *model, const char *str)
         set_dirty(DIRTY_SEARCH);
 
         return 0;
-}
-
-// Determine the number of bytes in the last UTF-8 character
-int get_last_char_bytes(const char *str, int len)
-{
-        if (len == 0)
-                return 0;
-
-        int i = len - 1;
-        while (i >= 0 && (str[i] & 0xC0) == 0x80) {
-                i--;
-        }
-        return len - i;
 }
 
 int remove_from_search_text(Model *model)

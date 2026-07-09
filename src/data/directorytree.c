@@ -1273,6 +1273,15 @@ int compare_folders_by_age_files_alphabetically(const void *a, const void *b)
         const FileSystemEntry *entry_a = *(const FileSystemEntry **)a;
         const FileSystemEntry *entry_b = *(const FileSystemEntry **)b;
 
+        // m3u files go first
+        bool is_m3u_a = is_m3u(entry_a->name);
+        bool is_m3u_b = is_m3u(entry_b->name);
+        if (is_m3u_a && !is_m3u_b) {
+                return -1;
+        } else if (!is_m3u_a && is_m3u_b) {
+                return 1;
+        }
+
         // Both are directories → sort by mtime descending
         if (entry_a->is_directory && entry_b->is_directory) {
 

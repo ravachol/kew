@@ -2,6 +2,8 @@
 
 ## kew 4.1.9
 
+- Add ability to name playlist. By @ravachol.
+
 - Add support for parsing embedded lyrics from M4A files, By @Quillenar-dev.
 
 - Always produces a log, not only when compiled with DEBUG=1. By @ravachol.
