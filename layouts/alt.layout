@@ -1,4 +1,15 @@
-version=10
+version=11
+
+[footer_pane]
+
+row
+height=fixed:1
+col=0
+
+pane
+component=error_row
+dirty=footer
+width=auto
 
 [playlist_pane]
 
@@ -65,6 +76,15 @@ component=playback_status
 dirty=footer
 width=auto
 
+row
+height=fixed:1
+col=indent
+
+pane
+layout=footer_pane
+width=auto
+
+
 [library_pane]
 
 row
@@ -130,6 +150,15 @@ component=playback_status
 dirty=footer
 width=auto
 
+row
+height=fixed:1
+col=indent
+
+pane
+layout=footer_pane
+width=auto
+
+
 [track]
 
 row
@@ -156,6 +185,14 @@ col=indent
 pane
 component=playback_status
 dirty=footer
+width=auto
+
+row
+height=fixed:1
+col=indent
+
+pane
+layout=footer_pane
 width=auto
 
 [track_landscape_pane]
@@ -278,6 +315,15 @@ component=playback_status
 dirty=footer
 width=auto
 
+row
+height=fixed:1
+col=indent
+
+pane
+layout=footer_pane
+width=auto
+
+
 [help_pane]
 
 row
@@ -350,4 +396,12 @@ col=indent_wide
 pane
 component=playback_status
 dirty=footer
+width=auto
+
+row
+height=fixed:1
+col=indent
+
+pane
+layout=footer_pane
 width=auto
