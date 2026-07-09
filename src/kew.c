@@ -36,7 +36,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #endif
 
 #ifndef KEW_VERSION
-#define KEW_VERSION "4.1.7"
+#define KEW_VERSION "4.1.8"
 #endif
 
 #include "common/appstate.h"
@@ -76,6 +76,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "data/img_func.h"
 #include "data/theme.h"
+#include "data/img_func.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -396,7 +397,9 @@ void kew_shutdown()
         visualizer_shutdown();
         playlists_shutdown();
         logging_shutdown();
+#ifdef USE_DBUS
         notifications_shutdown();
+#endif
         mutexes_shutdown();
         terminal_shutdown();
         artists_db_shutdown();

@@ -657,7 +657,6 @@ void *decode_loop(void *arg)
                         perform_crossfade(sound, decoder, next_decoder, current_buf, next_buf, mixed_buf, frames_to_decode, &frames_to_read);
 
                 } else {
-
                         bool finished = atomic_load_explicit(&sound->decode_finished, memory_order_relaxed);
 
                         // Decode
