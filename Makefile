@@ -53,6 +53,7 @@ ifeq ($(origin USE_MACOS_MEDIA), undefined)
 endif
 
 PREFIX    ?= /usr/local
+USE_DB    ?= 1
 
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(ARCH),arm64)
@@ -104,7 +105,9 @@ endif
 LOCAL_INC = \
     -Isrc \
     -Iinclude \
-    -Iinclude/minimp4 \
+    -Iinclude/compat \
+    -Iinclude/libmp4/src \
+    -Iinclude/libmp4/include \
     -Iinclude/stb_image \
     -Iinclude/miniaudio \
     -Iinclude/nestegg
@@ -259,6 +262,14 @@ all: kew
 # Generate object lists
 OBJS_C = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
+LIBMP4_SRCS = \
+    include/libmp4/src/mp4.c \
+    include/libmp4/src/mp4_box_reader.c \
+    include/libmp4/src/mp4_demux.c \
+    include/libmp4/src/mp4_track.c
+
+LIBMP4_OBJS = $(LIBMP4_SRCS:include/libmp4/src/%.c=$(OBJDIR)/libmp4/%.o)
+
 NESTEGG_SRCS = include/nestegg/nestegg.c
 NESTEGG_OBJS = $(NESTEGG_SRCS:include/nestegg/%.c=$(OBJDIR)/nestegg/%.o)
 
@@ -269,7 +280,7 @@ ifeq ($(USE_MACOS_MEDIA), 1)
 endif
 
 # All objects together
-OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(MACOS_MEDIA_OBJ) $(WIN_MANIFEST_OBJ)
+OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(LIBMP4_OBJS) $(MACOS_MEDIA_OBJ) $(WIN_MANIFEST_OBJ)
 
 # Create object directories
 $(OBJDIR):
@@ -299,6 +310,11 @@ $(WRAPPER_OBJ): $(WRAPPER_SRC) Makefile | $(OBJDIR)
 $(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
+
+# Compile LibMp4
+$(OBJDIR)/libmp4/%.o: include/libmp4/src/%.c Makefile | $(OBJDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(DEFINES) -DMP4_API_EXPORTS -std=gnu99 -c -o $@ $<
 
 $(WIN_MANIFEST_OBJ): src/ui/manifest.rc src/ui/ms-utf8.xml kew.ico
 	$(WINDRES) src/ui/manifest.rc -O coff -o $@
@@ -343,10 +359,11 @@ else
 		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 endif
 
-
+ifeq ($(USE_DB),1)
         # Install artist db
 	install -m644 data/artists.db \
 	        "$(DESTDIR)$(DATADIR)/kew/artists.db"
+endif
 
 	@if [ -d "$(THEMESRCDIR)" ]; then \
 		for theme in "$(THEMESRCDIR)"/*.theme; do \
@@ -389,6 +406,7 @@ endif
 uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/bin/kew"
 	rm -f "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
+	rm -f "$(DESTDIR)$(DATADIR)/kew/artists.db"
 	rm -rf "$(DESTDIR)$(THEMEDIR)"
 	rm -rf "$(DESTDIR)$(LAYOUTDIR)"
 	rm -f "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
