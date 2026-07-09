@@ -163,7 +163,7 @@ void restart_kew(char *argv[]);
  * by using SIGWINCH. It configures a signal handler to reset the resize flag when
  * the terminal is resized.
  */
-void init_resize(void);
+void resize_init(void);
 
 
 /**

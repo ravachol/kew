@@ -1069,7 +1069,7 @@ void mpris_shutdown(void)
 #endif
 }
 
-void init_mpris(void)
+void mpris_init(void)
 {
 #ifdef USE_DBUS
         AppState *state = get_app_state();

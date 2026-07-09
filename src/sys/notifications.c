@@ -405,6 +405,8 @@ int display_song_notification(const char *artist, const char *title, const char 
         return 0;
 }
 
+#endif
+
 void notifications_shutdown()
 {
 #ifdef USE_DBUS
@@ -423,4 +425,3 @@ void notifications_shutdown()
         }
 #endif
 }
-#endif

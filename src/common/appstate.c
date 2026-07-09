@@ -31,6 +31,8 @@ Model model;
 
 static const char LIBRARY_FILE[] = "library.dat";
 
+static const char ARTISTS_DB_FILE[] = "artists.db";
+
 static char library_real_path_if_diff[KEW_PATH_MAX] = {0};
 
 double pause_seconds = 0.0;
@@ -74,17 +76,17 @@ void create_playlist(PlayList **playlist)
         }
 }
 
-void artists_db_init(char *name)
+void artists_db_init(void)
 {
         Model *model = get_model();
 
         char filepath[PATH_MAX];
 
-        snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, name);
+        snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, ARTISTS_DB_FILE);
 
         if (!exists_file(filepath))
         {
-                snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", name);
+                snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", ARTISTS_DB_FILE);
 
                 if (!exists_file(filepath))
                         return;
@@ -226,6 +228,7 @@ void model_init(void)
         model.state.ui.current_lib_entry = NULL;
         model.state.ui.chosen_dir = NULL;
         model.state.ui.playlist_node = NULL;
+        model.state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
 
         model.state.ui.rendered = false;
 

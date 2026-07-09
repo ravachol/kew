@@ -397,9 +397,7 @@ void kew_shutdown()
         visualizer_shutdown();
         playlists_shutdown();
         logging_shutdown();
-#ifdef USE_DBUS
         notifications_shutdown();
-#endif
         mutexes_shutdown();
         terminal_shutdown();
         artists_db_shutdown();
@@ -634,20 +632,18 @@ void auto_resume(double *seconds)
 void run(bool start_playing)
 {
         Model *model = get_model();
-        AppState *state = &model->state;
         PlayList *playlist = model->playlist;
-        PlaybackState *ps = &model->playbackState;
 
         deep_copy_list(playlist, &model->unshuffled_playlist);
 
-        if (state->settings.saveRepeatShuffleSettings) {
+        if (model->state.settings.saveRepeatShuffleSettings) {
 
-                if (state->settings.shuffle_enabled)
+                if (model->state.settings.shuffle_enabled)
                         toggle_shuffle(model);
         }
 
         if (playlist->head == NULL) {
-                state->currentView = LIBRARY_VIEW;
+                model->state.currentView = LIBRARY_VIEW;
         }
 
         double seconds = 0.0;
@@ -660,17 +656,15 @@ void run(bool start_playing)
                 }
         }
 
-        init_mpris();
-
-        if (state->settings.chromaPreset >= 0) {
-                chroma_set_current_preset(state->settings.chromaPreset);
-                state->settings.visualizations_instead_of_cover = true;
+        if (model->state.settings.chromaPreset >= 0) {
+                chroma_set_current_preset(model->state.settings.chromaPreset);
+                model->state.settings.visualizations_instead_of_cover = true;
         }
 
-        ps->loadedNextSong = false;
+        model->playbackState.loadedNextSong = false;
 
         if (start_playing)
-                ps->waitingForPlaylist = true;
+                model->playbackState.waitingForPlaylist = true;
 
         if (playlist->count != 0)
                 check_and_load_next_song(seconds);
@@ -731,18 +725,8 @@ void locale_init(void)
         textdomain("kew");
 }
 
-/**
- * @brief Initializes the application and sets up necessary states.
- *
- * This function sets the initial state of the application, initializes resources, and prepares
- * the environment for playback. It handles various settings, file paths, and library initialization.
- *
- * @param set_library_enqueued_status Flag indicating whether to set the library's enqueued status.
- */
-void kew_init(bool set_library_enqueued_status)
+void terminal_init(void)
 {
-        Model *model = get_model();
-
         save_terminal_mode();
         set_nonblocking_mode();
 
@@ -754,35 +738,47 @@ void kew_init(bool set_library_enqueued_status)
 #endif
 
         disable_terminal_line_input();
-
-        init_resize();
+        resize_init();
         set_term_size();
-
-        load_favorites_playlist(model->settings.path, &model->favorites_playlist);
-
         enable_scrolling();
         input_init();
-        discord_rpc_init();
-
-        // The (sometimes shuffled) sequence of songs that will be played
-        start_playing(true);
-
-        unsigned int seed = (unsigned int)time(NULL);
-
-        srand(seed);
-
-        library_init(model, set_library_enqueued_status);
-
-        artists_db_init("artists.db");
-
-        model->state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         clear_screen();
-
         hide_cursor();
-
         fflush(stdout);
+}
 
-        ui_init(model);
+void favorites_init(void)
+{
+        Model *model = get_model();
+        load_favorites_playlist(model->settings.path, &model->favorites_playlist);
+}
+
+void rand_init(void)
+{
+        unsigned int seed = (unsigned int)time(NULL);
+        srand(seed);
+}
+
+/**
+ * @brief Initializes the application and sets up necessary states.
+ *
+ * This function sets the initial state of the application, initializes resources, and prepares
+ * the environment for playback. It handles various settings, file paths, and library initialization.
+ *
+ * @param set_library_enqueued_status Flag indicating whether to set the library's enqueued status.
+ */
+void kew_init(bool set_library_enqueued_status)
+{
+        terminal_init();
+        favorites_init();
+        discord_rpc_init();
+        rand_init();
+        library_init(set_library_enqueued_status);
+        artists_db_init();
+        mpris_init();
+        ui_init();
+
+        start_playing(true);
 
         if (sound_system_init() == -1)
                 quit();
@@ -796,23 +792,18 @@ void kew_init(bool set_library_enqueued_status)
  */
 void default_state_init(void)
 {
-        bool set_library_enqueued_status = true;
-        kew_init(set_library_enqueued_status);
-
-        AppState *state = get_app_state();
+        Model *model = get_model();
         FileSystemEntry *library = get_library();
         PlayList *playlist = get_playlist();
-        PlaybackState *ps = get_playback_state();
+        bool set_library_enqueued_status = true;
 
+        kew_init(set_library_enqueued_status);
         add_enqueued_songs_to_playlist(library, playlist);
-
         reset_list_after_dequeuing_playing_song();
-
-        start_playing(true);
         sound_system_set_end_of_list_reached(sound_sys, true);
-        ps->loadedNextSong = false;
 
-        state->currentView = LIBRARY_VIEW;
+        model->playbackState.loadedNextSong = false;
+        model->state.currentView = LIBRARY_VIEW;
 
         run(false);
 }

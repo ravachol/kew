@@ -1017,8 +1017,10 @@ Layout *build_layout_by_name(const char *name)
         return layout;
 }
 
-void ui_init(Model *model)
+void ui_init(void)
 {
+        Model *model = get_model();
+
         calc_indent(model);
 
         load_layout_config();

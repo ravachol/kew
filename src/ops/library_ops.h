@@ -10,7 +10,10 @@
 #ifndef LIBRARY_OPS_H
 #define LIBRARY_OPS_H
 
-#include "common/model.h"
+#include "data/directorytree.h"
+#include "data/playlist_type.h"
+
+#include <stdbool.h>
 
 /**
  * @brief Create and initialize the music library.
@@ -19,11 +22,10 @@
  * optionally restores the enqueued status of entries. If changes are detected
  * in the underlying filesystem, the library may be rebuilt.
  *
- * @param model
- * @param set_enqueued_status If true, restore enqueued status from the cached
+  * @param set_enqueued_status If true, restore enqueued status from the cached
  *                            library representation.
  */
-void library_init(Model *model, bool set_enqueued_status);
+void library_init(bool set_enqueued_status);
 
 /**
  * @brief Update the library by rescanning the given path.
