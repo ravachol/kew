@@ -50,6 +50,8 @@ Windows: LOCALAPPDATA/kew/logs
 
 - When album and artist is missing, use folder names as fallback. By @ravachol. Suggested by @theDyze.
 
+- Remove number + g / number + ENTER for playing a numbered song on the playlist. it's just complicated to implement with termbox2.
+
 ## kew 4.1.8
 
 - Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
