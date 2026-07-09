@@ -70,7 +70,7 @@ void model_init(void);
 /* ========================= ARTIST DB ========================= */
 
 /**@brief opens the database that contains urls to artists homepages */
-void artists_db_init(char *name);
+void artists_db_init(void);
 
 /**@brief closes the database that contains urls to artists homepages */
 void artists_db_shutdown(void);
