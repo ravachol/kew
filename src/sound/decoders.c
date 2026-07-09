@@ -391,6 +391,18 @@ static const CodecEntry codec_ops_list[] = {
         .init             = (init_func)init_m4a_decoder,
         .uninit           = (uninit_func)uninit_m4a_decoder
     }},
+    {"mp4", {
+        .get_file_info    = get_m4a_file_info,
+        .get_decoder_format = (decoder_format_func)m4a_decoder_ds_get_data_format,
+        .seek_to_pcm_frame  = m4a_seek_to_pcm_frame_wrapper,
+        .get_cursor       = m4a_get_cursor_in_pcm_frames_wrapper,
+        .decoder_type         = M4A,
+        .supportsGapless  = true,
+        .setup_decoder    = setup_m4a,
+        .decoderSize      = sizeof(m4a_decoder),
+        .init             = (init_func)init_m4a_decoder,
+        .uninit           = (uninit_func)uninit_m4a_decoder
+    }},
 #endif
 };
 
