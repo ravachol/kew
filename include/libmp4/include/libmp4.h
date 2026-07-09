@@ -29,7 +29,6 @@
 #define _LIBMP4_H_
 
 #include <inttypes.h>
-#include <json-c/json.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
@@ -836,16 +835,6 @@ static inline uint64_t mp4_convert_timescale(uint64_t time,
 }
 
 
-/**
- * Convert an MP4 file to a json object
- * @param filename: file path
- * @param verbose: if true, print all the MP4 boxes
- * @param json_obj: pointer to the json_object to fill (output)
- * @return 0 on success, negative errno value in case of error
- */
-MP4_API int mp4_file_to_json(const char *filename,
-			     bool verbose,
-			     struct json_object **json_obj);
 
 
 /* Recovery API */
