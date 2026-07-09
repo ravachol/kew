@@ -1,5 +1,4 @@
 
-#define MINIMP4_IMPLEMENTATION
 #include "../include/libmp4/include/libmp4.h"
 #include <miniaudio.h>
 

@@ -212,7 +212,7 @@ Libvorbis，由 Xiph.org 开发 - https://xiph.org/
 
 Miniaudio，由 David Reid 开发 - https://github.com/mackron/miniaudio
 
-Minimp4，由 Lieff 开发 - https://github.com/lieff/minimp4
+Libmp4，由 Parrot 开发 -https://github.com/Parrot-Developers/libmp4
 
 Nestegg，由 Mozilla 开发 - https://github.com/mozilla/nestegg
 
