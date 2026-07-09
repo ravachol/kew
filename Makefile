@@ -359,12 +359,6 @@ else
 		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 endif
 
-ifeq ($(USE_DB),1)
-        # Install artist db
-	install -m644 data/artists.db \
-	        "$(DESTDIR)$(DATADIR)/kew/artists.db"
-endif
-
 	@if [ -d "$(THEMESRCDIR)" ]; then \
 		for theme in "$(THEMESRCDIR)"/*.theme; do \
 			if [ -f "$$theme" ]; then \
