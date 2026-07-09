@@ -33,6 +33,8 @@
 
 @mimidios8 $8 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
 
+@ddogfoodd $5 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
+
 @the-boar $5 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
 
 @Christian Mummelthey $5 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
