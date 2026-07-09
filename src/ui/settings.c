@@ -877,6 +877,8 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->clearListClearsAll));
         c_strcpy(settings->hideGlimmeringText, "0",
                  sizeof(settings->hideGlimmeringText));
+        c_strcpy(settings->useArtistsDb, "1",
+                 sizeof(settings->useArtistsDb));
         c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled));
         c_strcpy(settings->replayGainCheckFirst, "0",
                  sizeof(settings->replayGainCheckFirst));
@@ -1487,6 +1489,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "hideglimmeringtext") == 0) {
                         snprintf(settings->hideGlimmeringText,
                                  sizeof(settings->hideGlimmeringText), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "useartistsdb") == 0) {
+                        snprintf(settings->useArtistsDb,
+                                 sizeof(settings->useArtistsDb), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "quit") == 0) {
                         snprintf(settings->quit, sizeof(settings->quit), "%s",
@@ -2168,6 +2174,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->hideGlimmeringText))
                     : c_strcpy(settings->hideGlimmeringText, "0",
                                sizeof(settings->hideGlimmeringText));
+        if (settings->useArtistsDb[0] == '\0')
+                ui->useArtistsDb
+                    ? c_strcpy(settings->useArtistsDb, "1",
+                               sizeof(settings->useArtistsDb))
+                    : c_strcpy(settings->useArtistsDb, "0",
+                               sizeof(settings->useArtistsDb));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1",
                                             sizeof(settings->mouseEnabled))
@@ -2254,7 +2266,9 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# kew will then generate the file with all available settings.\n");
         fprintf(file, "# kew tracks all in-app settings changes in kewstaterc, which take precedence over kewrc.\n\n");
         fprintf(file, "[miscellaneous]\n\n");
-        fprintf(file, "path=%s\n", settings->path);
+        fprintf(file, "path=%s\n\n", settings->path);
+        fprintf(file, "# Enable artist database, that provides clickable artists links in track view.\n");
+        fprintf(file, "useArtistsDb=%s\n\n", settings->useArtistsDb);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
@@ -2268,8 +2282,6 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
         fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);
         fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
-
-        fprintf(file, "\n[miscellaneous]\n\n");
 
         fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);

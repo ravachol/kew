@@ -30,3 +30,4 @@ Then run sha256sum artists.db
 
 You should get:
 d77f09e0aeaf14b445642aaa13ba195e5b10c09ba799e02d785102a7355d86c9  artists.db
+

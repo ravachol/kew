@@ -129,6 +129,7 @@ void transfer_settings_to_ui(void)
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->clearListClearsAll = (settings->clearListClearsAll[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
+        ui->useArtistsDb = (settings->useArtistsDb[0] == '1');
         ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
