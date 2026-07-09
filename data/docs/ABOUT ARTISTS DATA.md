@@ -2,8 +2,13 @@
 
 Database size: 9MB
 Homepage Urls: 162 000
+Data License: WIKIDATA CC BY-SA 4.0.
 
-For Package Maintainers: All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
+### For Package Maintainers
+
+All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide below on how to reproduce the exact same binary.
+
+### Skipping the databse
 
 if you don't want to use the database, set:
 
@@ -15,7 +20,12 @@ make install USE_DB=0 -j
 
 kew works just as well without it.
 
+### Adding artists
+
 We don't have the capacity to add other artists or indie artists unfortunately, and want the database to remain small.
+
+
+### About the dataset
 
 - The dataset contains artist names and homepage URLs sourced from Wikidata.
 
@@ -30,6 +40,8 @@ https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2
 - The binary file, artists.db, is needed to display homepage links for artists in kew.
 
 - kew works fine even if the file isn't available.
+
+### About the scripts
 
 - The script extract_from_wikidata.py is used to extract the artist data from the bz2 file.
 
