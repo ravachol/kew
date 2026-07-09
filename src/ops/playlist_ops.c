@@ -33,6 +33,9 @@
 #include "utils/utils.h"
 
 static bool skip_in_progress = false;
+static int num_playlist_name_letters = 0;
+static int num_playlist_name_bytes = 0;
+static int min_playlist_name_letters = 1;
 
 Node *choose_next_song(void)
 {
@@ -1016,3 +1019,91 @@ void play_command_with_playlist(int argc, char **argv)
                 quit();
         }
 }
+
+int add_to_playlist_name(const char *str)
+{
+        Model *model = get_model();
+
+        if (str == NULL) {
+                return -1;
+        }
+
+        size_t len = strnlen(str, MAX_PLAYLIST_NAME_LEN);
+
+        // Check if the string can fit into the playlist name buffer
+        if (num_playlist_name_letters + len > MAX_PLAYLIST_NAME_LEN) {
+                return 0; // Not enough space
+        }
+
+        // Add the string to the playlist name text buffer
+        for (size_t i = 0; i < len; i++) {
+                model->state.ui.playlist_name[num_playlist_name_bytes++] = str[i];
+        }
+
+        model->state.ui.playlist_name[num_playlist_name_bytes] = '\0'; // Null-terminate the buffer
+
+        num_playlist_name_letters++;
+
+        set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
+
+        return 0;
+}
+
+int remove_from_playlist_name(void)
+{
+        Model *model = get_model();
+
+        if (num_playlist_name_letters == 0)
+                return 0;
+
+        // Determine the number of bytes to remove for the last character
+        int last_char_bytes = get_last_char_bytes(model->state.ui.playlist_name, num_playlist_name_bytes);
+        if (last_char_bytes == 0)
+                return 0;
+
+        // Remove the character from the buffer
+        num_playlist_name_bytes -= last_char_bytes;
+        model->state.ui.playlist_name[num_playlist_name_bytes] = '\0';
+
+        num_playlist_name_letters--;
+
+        set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
+
+        return 0;
+}
+
+void playlist_save(void)
+{
+        Model *model = get_model();
+        PlayList *playlist = get_playlist();
+
+        if (num_playlist_name_letters < min_playlist_name_letters)
+                return;
+
+        export_current_playlist(model->settings.path, playlist, model->state.ui.playlist_name);
+
+        model->state.ui.naming_playlist = false;
+
+        set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
+}
+
+void set_save_playlist_mode(void)
+{
+        Model *model = get_model();
+
+        model->state.ui.playlist_name[0] = '\0';
+        model->state.ui.naming_playlist = true;
+        num_playlist_name_letters = 0;
+        num_playlist_name_bytes = 0;
+
+        set_dirty(DIRTY_VISUALIZER | DIRTY_FOOTER);
+}
+
+char *get_playlist_name(void)
+{
+        Model *model = get_model();
+
+        return model->state.ui.playlist_name;
+}
+
+

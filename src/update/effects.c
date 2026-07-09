@@ -300,10 +300,8 @@ void run_command(UpdateResult result)
                 add_to_favorites_playlist();
                 break;
 
-        case CMD_EXPORT_PLAYLIST: {
-                AppSettings *settings = get_app_settings();
-                PlayList *playlist = get_playlist();
-                export_current_playlist(settings->path, playlist);
+        case CMD_SAVEPLAYLIST: {
+                set_save_playlist_mode();
                 break;
         }
 

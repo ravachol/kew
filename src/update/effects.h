@@ -38,7 +38,7 @@ typedef enum {
         CMD_SEARCH,
 
         CMD_ADD_TO_FAVORITES,
-        CMD_EXPORT_PLAYLIST,
+        CMD_SAVEPLAYLIST,
         CMD_UPDATE_LIBRARY,
 
         CMD_TOGGLE_VIEW,

@@ -793,12 +793,10 @@ void kew_init(bool set_library_enqueued_status)
 void default_state_init(void)
 {
         Model *model = get_model();
-        FileSystemEntry *library = get_library();
-        PlayList *playlist = get_playlist();
         bool set_library_enqueued_status = true;
 
         kew_init(set_library_enqueued_status);
-        add_enqueued_songs_to_playlist(library, playlist);
+        add_enqueued_songs_to_playlist(model->library, model->playlist);
         reset_list_after_dequeuing_playing_song();
         sound_system_set_end_of_list_reached(sound_sys, true);
 
@@ -954,6 +952,7 @@ void state_init(void)
         state->ui.chroma_height = 0;
         state->ui.metadata_switched = 0;
         state->ui.decoder_switched = 0;
+        state->ui.naming_playlist = false;
         ps->lastPlayedId = -1;
         ps->nextSongNeedsRebuilding = false;
         ps->songHasErrors = false;

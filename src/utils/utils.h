@@ -306,4 +306,6 @@ void start_timer(void);
 
 void end_timer(void);
 
+int get_last_char_bytes(const char *str, int len);
+
 #endif

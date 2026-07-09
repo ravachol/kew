@@ -589,9 +589,15 @@ UpdateResult update(Model *model, struct Msg *msg)
                 dispatch_msg((struct Msg){.type = MSG_UPDATELIBRARY});
                 break;
 
-        case MSG_EXPORTPLAYLIST:
-                result.cmd.type = CMD_EXPORT_PLAYLIST;
-                dispatch_msg((struct Msg){.type = MSG_UPDATELIBRARY});
+        case MSG_SAVEPLAYLIST:
+                result.cmd.type = CMD_SAVEPLAYLIST;
+                break;
+
+        case MSG_NAMING_PLAYLIST:
+                if (!model->state.ui.naming_playlist)
+                {
+                        dispatch_msg((struct Msg){.type = MSG_UPDATELIBRARY});
+                }
                 break;
 
         case MSG_UPDATELIBRARY:

@@ -31,14 +31,11 @@ extern sound_system_t *sound_sys;
 #define ATTR_UNDERLINE (1 << 3)
 #define ATTR_BLINK (1 << 4)
 #define ATTR_REVERSE (1 << 5)
-
 #define MAX_PANES 100
 #define MAX_ROWS 100
-
 #define MAX_SEARCH_LEN 32
-
+#define MAX_PLAYLIST_NAME_LEN 256
 #define DISABLED_ROW -1000
-
 #define KEW_NAME_MAX 255
 
 typedef enum {
@@ -449,6 +446,7 @@ typedef struct
         FILE *logFile;
 
         char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
+        char playlist_name[MAX_PLAYLIST_NAME_LEN * 4 + 1];
 
         FileSystemEntry *current_lib_entry;
         FileSystemEntry *current_search_entry;
@@ -504,7 +502,8 @@ typedef struct
 
         volatile sig_atomic_t resumed;
         bool rendered;
-        bool resumed_in_background;
+        bool resu
+        bool naming_playlist;
 
         ColorPalette visualizer_palettes[7];
 } UIState;

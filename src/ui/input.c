@@ -1,4 +1,3 @@
-#include "utils/utils.h"
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
 #endif
@@ -32,10 +31,12 @@
 
 #include "ops/playback_clock.h"
 #include "ops/playback_state.h"
+#include "ops/playlist_ops.h"
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
 #include "utils/term.h"
+#include "utils/utils.h"
 
 #include <ctype.h>
 #include <gio/gio.h>
@@ -83,6 +84,51 @@ struct Msg map_tb_key_to_event(struct tb_event *ev)
                         c_strcpy(event.args, b->args, sizeof(event.args));
                         event.args[sizeof(event.args) - 1] = '\0';
                         break;
+                }
+        }
+
+        return event;
+}
+
+struct Msg handle_name_playlist_event(struct tb_event *ev)
+{
+        Model *model = get_model();
+        struct Msg event = {0};
+        event.type = MSG_NONE;
+
+        if (model->state.ui.naming_playlist) {
+
+                if (ev->key == TB_KEY_SPACE && ev->mod == 0)
+                        ev->ch = ' ';
+
+                // Backspace
+                if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2) {
+                        remove_from_playlist_name();
+                        event.type = MSG_NAMING_PLAYLIST;
+                }
+                // Printable character (not escape, enter, tab, carriage return)
+#if defined(__ANDROID__) || defined(__APPLE__)
+                else if ((ev->ch > 0 && ev->ch != '\033' && ev->ch != '\n' && ev->ch != '\t' && ev->ch != '\r') ||
+                         ev->ch == ' ') {
+                        if (ev->ch != 'Z' && ev->ch != 'X' && ev->ch != 'C' && ev->ch != 'V' && ev->ch != 'B' && ev->ch != 'N') {
+                                char keybuf[5] = {0};
+                                tb_utf8_unicode_to_char(keybuf, ev->ch);
+                                add_to_playlist_name(keybuf);
+                                event.type = MSG_NAMING_PLAYLIST;
+                        }
+                }
+#else
+                else if ((ev->ch > 0 && ev->ch != '\033' && ev->ch != '\n' && ev->ch != '\t' && ev->ch != '\r') ||
+                         ev->ch == ' ') {
+                        char keybuf[5] = {0};
+                        tb_utf8_unicode_to_char(keybuf, ev->ch);
+                        add_to_playlist_name(keybuf);
+                        event.type = MSG_NAMING_PLAYLIST;
+                }
+#endif
+                if (ev->key == TB_KEY_ENTER) {
+                        playlist_save();
+                        event.type = MSG_NAMING_PLAYLIST;
                 }
         }
 
@@ -547,7 +593,17 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 msg.key[0] = '\0';
 
                 AppState *state = get_app_state();
-                if (state->currentView == SEARCH_VIEW) {
+                if (state->ui.naming_playlist) {
+                        while (tb_peek_event(&ev, 0) == 0) {
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                if (!isMouseEvent) {
+                                        msg = handle_name_playlist_event(&ev);
+                                        if (msg.type == MSG_NONE)
+                                                msg = map_tb_key_to_event(&ev);
+                                }
+                        }
+
+                } else if (state->currentView == SEARCH_VIEW) {
                         // Process all characters in the buffer (e.g. IME commits
                         // multiple characters at once)
                         while (tb_peek_event(&ev, 0) == 0) {
@@ -704,7 +760,17 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 msg.key[0] = '\0';
 
                 AppState *state = get_app_state();
-                if (state->currentView == SEARCH_VIEW) {
+                if (state->ui.naming_playlist) {
+                        while (tb_peek_event(&ev, 0) == 0) {
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                if (!isMouseEvent) {
+                                        msg = handle_name_playlist_event(&ev);
+                                        if (msg.type == MSG_NONE)
+                                                msg = map_tb_key_to_event(&ev);
+                                }
+                        }
+
+                } else if (state->currentView == SEARCH_VIEW) {
                         // Process all characters in the buffer (e.g. IME commits
                         // multiple characters at once)
                         while (tb_peek_event(&ev, 0) == 0) {

@@ -1,5 +1,3 @@
-#include "utils/file.h"
-#include <libgen.h>
 #define _XOPEN_SOURCE 700
 
 #include "components.h"
@@ -17,6 +15,8 @@
 
 #include "ops/library_ops.h"
 #include "ops/playback_state.h"
+#include "ops/playlist_ops.h"
+
 
 #include "common_ui.h"
 #include "settings.h"
@@ -26,7 +26,9 @@
 
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/file.h"
 
+#include <libgen.h>
 #include <math.h>
 #include <stdio.h>
 #include <wchar.h>
@@ -582,11 +584,16 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 if (is_playing && !is_chosen)
                                         file_style.attrs |= ATTR_UNDERLINE;
 
+                                bool strip_unneeded_chars = true;
+                                bool strip_suffix = true;
+
                                 // playlist icon
                                 if (is_m3u_file(entry)) {
                                         draw_buffer_set_string(buf, draw_row, text_col, "♫ ", file_style);
                                         text_col += 2;
                                         name_width -= 2;
+                                        strip_unneeded_chars = false;
+                                        strip_suffix = false;
                                 }
 
                                 draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
@@ -599,9 +606,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 str_truncate_display_width(entry->name, filename, name_width);
 
                                 if (found_chosen != NULL)
-                                        process_name_scroll(model, entry->name, filename, name_width, true, true);
+                                        process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
                                 else
-                                        process_name(entry->name, filename, name_width, true, true);
+                                        process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
                         }
@@ -1445,6 +1452,17 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
         const UISettings *ui = &model->state.settings;
         CellStyle style = cell_style_plain();
 
+        if (model->state.ui.naming_playlist)
+        {
+                style = cell_style_from_theme(ui->theme.status_info);
+
+                char msg[256];
+                snprintf(msg, sizeof(msg), "Playlist name: %s█", get_playlist_name());
+                draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                                 msg, region.width, style);
+                return (ComponentMsg){0};
+        }
+
         if (!has_printed_error_message() && has_error_message()) {
                 style = cell_style_from_theme(ui->theme.status_error);
 
@@ -1677,13 +1695,13 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
                          get_binding_string(MSG_MOVESONGDOWN, true),
-                         get_binding_string(MSG_EXPORTPLAYLIST, true));
+                         get_binding_string(MSG_SAVEPLAYLIST, true));
 #else
                 snprintf(line2, sizeof(line2), _(" Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"),
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
                          get_binding_string(MSG_MOVESONGDOWN, true),
-                         get_binding_string(MSG_EXPORTPLAYLIST, true));
+                         get_binding_string(MSG_SAVEPLAYLIST, true));
 #endif
 
                 draw_buffer_set_string(buf, row, col, line1, style);
@@ -2871,7 +2889,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_CROSSFADE_SLOW, false));
 
         HELP_LINE(_(" · Export Playlist: %s (named after the first song)"),
-                  get_binding_string(MSG_EXPORTPLAYLIST, false));
+                  get_binding_string(MSG_SAVEPLAYLIST, false));
         HELP_LINE(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                   get_binding_string(MSG_ADDTOFAVORITESPLAYLIST, false));
 

@@ -269,4 +269,36 @@ void play_command_with_playlist(int argc, char **argv);
 
 Node *choose_next_song(void);
 
+/**
+ * @brief Adds a string to the playlist name.
+ *
+ * This function appends a string to the current playlist name buffer. If there is not enough
+ * space in the buffer, it will return without modifying the buffer.
+ *
+ * @param str The string to add to the playlist name.
+ * @return Returns 0 on success, or -1 if the string is NULL.
+ */
+int add_to_playlist_name(const char *str);
+
+/**
+ * @brief Removes the last character from the playlist name.
+ *
+ * This function removes the preceding character from playlist name, updating the buffer
+ * and adjusting the number of search letters accordingly.
+ *
+ *
+ * @return Returns 0 on success.
+ */
+int remove_from_playlist_name(void);
+
+/**
+ * @brief Saves the playlist.
+ *
+ */
+void playlist_save(void);
+
+void set_save_playlist_mode(void);
+
+char *get_playlist_name(void);
+
 #endif
