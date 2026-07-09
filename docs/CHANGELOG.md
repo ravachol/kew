@@ -2,26 +2,28 @@
 
 ## kew 4.2.0
 
-The big changes this release are clickable artists names that takes you to their homepages (this is mostly to support artists), mp4 support and always logging info not only when compiled with DEBUG=1.
+The big changes this release are a new repo kew-data that makes artists names clickable. Click on an artist in track vie to go to their homepage (this is mostly to support artists), mp4 support and always logging info not only when compiled with DEBUG=1.
 
-### Artist Database
+### Optional Extra Dependency: Artist Database
 
 - Click on an artist name in track view to open their homepage . By @ravachol.
 
-Artists that have a homepage listed on Wikipedia are now clickable links in track view. This is to enable listeners to connect to artists and also to help artists promote their music/tour/merch with few middle hands.
+Repo: https://codeberg.org/ravachol/kew-data
+
+Artists that have a homepage listed on Wikipedia can now be clickable links in track view if you install kew-data. This is to enable listeners to connect to artists and also to help artists promote their music/tour/merch with few middle hands.
 
 Database size: 9MB
 Homepage Urls: 162 000
 
-For Package Maintainers: All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
+#### For Package Maintainers
 
-if you don't want to use the database, set:
+This repo is a bonus for listeners and music artists and is recommended as an optional dependency to kew.
 
-useartistsdb=0
+All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
 
-Or compile kew with:
+#### Removing the database
 
-make install USE_DB=0 -j
+if you don't want to use the database, don't install it.
 
 kew works just as well without it.
 
