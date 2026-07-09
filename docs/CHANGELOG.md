@@ -2,6 +2,8 @@
 
 ## kew 4.2.0
 
+The big changes this release are clickable artists names that takes you to their homepages (this is mostly to support artists), mp4 support and always logging info not only when compiled with DEBUG=1.
+
 - Artist Database. Artists that have a homepage listed on Wikipedia are now clickable links in track view. This is to enable listeners to connect to artists and also to help artists promote their music/tour/merch with few middle hands.
 
 Database size: 9MB
@@ -23,6 +25,8 @@ We don't have the capacity to add other artists or indie artists unfortunately, 
 The data has been washed from 300k entries down to 162k but there's bound to still be bad data in there. Create an issue consisting of the artist name and accurate homepage, if you find a mistake.
 
 - Replace minimp4 with libmp4, because minimp4 has the wrong license for Fedora. libmp4 is vendored and under BSD-3-Clause license: https://github.com/Parrot-Developers/libmp4. By @ravachol. Suggested by @bkmgit.
+
+- Mp4 file support. A side effect of switching lib. By @ravachol.
 
 - Add ability to name playlist. By @ravachol.
 
