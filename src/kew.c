@@ -36,7 +36,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #endif
 
 #ifndef KEW_VERSION
-#define KEW_VERSION "4.1.8"
+#define KEW_VERSION "4.2.0"
 #endif
 
 #include "common/appstate.h"
@@ -74,6 +74,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
+#include "data/img_func.h"
 #include "data/theme.h"
 #include "data/img_func.h"
 
@@ -95,6 +96,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#include <windows.h>
+#define mkdir_p(path) _mkdir(path)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define mkdir_p(path) mkdir(path, 0755)
+#endif
 
 GMainLoop *main_loop;
 
@@ -192,18 +203,98 @@ void player_tick(Model *model, RenderContext *ctx)
         }
 }
 
+char *logging_get_error_log_path(void)
+{
+#ifdef _WIN32
+        const char *base = getenv("LOCALAPPDATA");
+        if (!base)
+                return NULL;
+
+        char dir[MAX_PATH];
+
+        if (snprintf(dir, sizeof(dir), "%s\\kew", base) >= (int)sizeof(dir))
+                return NULL;
+        mkdir_p(dir);
+
+        if (snprintf(dir, sizeof(dir), "%s\\kew\\logs", base) >= (int)sizeof(dir))
+                return NULL;
+        mkdir_p(dir);
+
+        size_t len = snprintf(NULL, 0, "%s\\kew\\logs\\error.log", base);
+        char *path = malloc(len + 1);
+        if (!path)
+                return NULL;
+
+        snprintf(path, len + 1, "%s\\kew\\logs\\error.log", base);
+        return path;
+
+#elif defined(__APPLE__)
+        const char *home = getenv("HOME");
+        if (!home)
+                return NULL;
+
+        char dir[PATH_MAX];
+
+        if (snprintf(dir, sizeof(dir), "%s/Library/Logs/kew", home) >= (int)sizeof(dir))
+                return NULL;
+        mkdir_p(dir);
+
+        size_t len = snprintf(NULL, 0, "%s/Library/Logs/kew/error.log", home);
+        char *path = malloc(len + 1);
+        if (!path)
+                return NULL;
+
+        snprintf(path, len + 1, "%s/Library/Logs/kew/error.log", home);
+        return path;
+
+#else
+        const char *state_dir = g_get_user_state_dir();
+
+        size_t dir_len = snprintf(NULL, 0, "%s/kew/logs", state_dir);
+        char *dir = malloc(dir_len + 1);
+        if (!dir)
+                return NULL;
+
+        snprintf(dir, dir_len + 1, "%s/kew/logs", state_dir);
+
+        if (g_mkdir_with_parents(dir, 0755) != 0) {
+                free(dir);
+                return NULL;
+        }
+
+        free(dir);
+
+        size_t len = snprintf(NULL, 0, "%s/kew/logs/error.log", state_dir);
+        char *path = malloc(len + 1);
+        if (!path)
+                return NULL;
+
+        snprintf(path, len + 1, "%s/kew/logs/error.log", state_dir);
+
+        return path;
+#endif
+}
+
 /**
  * @brief Initializes logging to error.log
  *
  */
 void logging_init(void)
 {
-        Model *model = get_model();
+        char *path = logging_get_error_log_path();
 
-        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-        model->state.ui.logFile = freopen("error.log", "w", stderr);
-        if (model->state.ui.logFile == NULL) {
-                fprintf(stdout, "Failed to redirect stderr to error.log\n");
+        if (path != NULL) {
+                Model *model = get_model();
+
+                g_mkdir_with_parents(path, 0755);
+
+                model->state.ui.logFile = freopen(path, "w", stderr);
+
+                if (model->state.ui.logFile == NULL) {
+                        //fprintf(stdout, "Failed to redirect stderr to %s\n", path);
+                }
+
+                free(path);
         }
 }
 
@@ -211,8 +302,10 @@ void logging_init(void)
  * @brief Shuts down logging to error.log
  *
  */
-void logging_shutdown(Model *model)
+void logging_shutdown(void)
 {
+        Model *model = get_model();
+
         if (model->state.ui.logFile)
                 fclose(model->state.ui.logFile);
 }
@@ -303,12 +396,11 @@ void kew_shutdown()
         ui_shutdown();
         visualizer_shutdown();
         playlists_shutdown();
-        logging_shutdown(model);
-#ifdef USE_DBUS
+        logging_shutdown();
         notifications_shutdown();
-#endif
         mutexes_shutdown();
         terminal_shutdown();
+        artists_db_shutdown();
 
         print_exit_errors(no_music_found);
 
@@ -339,7 +431,7 @@ void reinitialize()
         disable_terminal_line_input();
         set_term_size();
         enable_scrolling();
-        init_input();
+        input_init();
         enter_alternate_screen_buffer();
         clear_screen();
         set_dirty(DIRTY_ALL);
@@ -540,20 +632,18 @@ void auto_resume(double *seconds)
 void run(bool start_playing)
 {
         Model *model = get_model();
-        AppState *state = &model->state;
         PlayList *playlist = model->playlist;
-        PlaybackState *ps = &model->playbackState;
 
         deep_copy_list(playlist, &model->unshuffled_playlist);
 
-        if (state->settings.saveRepeatShuffleSettings) {
+        if (model->state.settings.saveRepeatShuffleSettings) {
 
-                if (state->settings.shuffle_enabled)
+                if (model->state.settings.shuffle_enabled)
                         toggle_shuffle(model);
         }
 
         if (playlist->head == NULL) {
-                state->currentView = LIBRARY_VIEW;
+                model->state.currentView = LIBRARY_VIEW;
         }
 
         double seconds = 0.0;
@@ -566,17 +656,15 @@ void run(bool start_playing)
                 }
         }
 
-        init_mpris();
-
-        if (state->settings.chromaPreset >= 0) {
-                chroma_set_current_preset(state->settings.chromaPreset);
-                state->settings.visualizations_instead_of_cover = true;
+        if (model->state.settings.chromaPreset >= 0) {
+                chroma_set_current_preset(model->state.settings.chromaPreset);
+                model->state.settings.visualizations_instead_of_cover = true;
         }
 
-        ps->loadedNextSong = false;
+        model->playbackState.loadedNextSong = false;
 
         if (start_playing)
-                ps->waitingForPlaylist = true;
+                model->playbackState.waitingForPlaylist = true;
 
         if (playlist->count != 0)
                 check_and_load_next_song(seconds);
@@ -637,17 +725,8 @@ void locale_init(void)
         textdomain("kew");
 }
 
-/**
- * @brief Initializes the application and sets up necessary states.
- *
- * This function sets the initial state of the application, initializes resources, and prepares
- * the environment for playback. It handles various settings, file paths, and library initialization.
- *
- * @param set_library_enqueued_status Flag indicating whether to set the library's enqueued status.
- */
-void kew_init(bool set_library_enqueued_status)
+void terminal_init(void)
 {
-        Model *model = get_model();
         save_terminal_mode();
         set_nonblocking_mode();
 
@@ -659,37 +738,49 @@ void kew_init(bool set_library_enqueued_status)
 #endif
 
         disable_terminal_line_input();
-
-        init_resize();
+        resize_init();
         set_term_size();
-
-        load_favorites_playlist(model->settings.path, &model->favorites_playlist);
-
         enable_scrolling();
+        input_init();
+        clear_screen();
+        hide_cursor();
+        fflush(stdout);
+}
 
-        init_input();
+void favorites_init(void)
+{
+        Model *model = get_model();
+        load_favorites_playlist(model->settings.path, &model->favorites_playlist);
+}
 
-        if (model->state.settings.discordRPCEnabled)
-                discord_rpc_init();
+void rand_init(void)
+{
+        unsigned int seed = (unsigned int)time(NULL);
+        srand(seed);
+}
 
-        // The (sometimes shuffled) sequence of songs that will be played
+/**
+ * @brief Initializes the application and sets up necessary states.
+ *
+ * This function sets the initial state of the application, initializes resources, and prepares
+ * the environment for playback. It handles various settings, file paths, and library initialization.
+ *
+ * @param set_library_enqueued_status Flag indicating whether to set the library's enqueued status.
+ */
+void kew_init(bool set_library_enqueued_status)
+{
+        terminal_init();
+        favorites_init();
+        discord_rpc_init();
+        rand_init();
+        library_init(set_library_enqueued_status);
+        artists_db_init();
+        mpris_init();
+        ui_init();
+
         start_playing(true);
 
-        unsigned int seed = (unsigned int)time(NULL);
-
-        srand(seed);
-
-        create_library(model, set_library_enqueued_status);
-        model->state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
-        clear_screen();
-
-        hide_cursor();
-
-        fflush(stdout);
-
-        ui_init(model);
-
-        if (create_sound_system() == -1)
+        if (sound_system_init() == -1)
                 quit();
 }
 
@@ -701,23 +792,16 @@ void kew_init(bool set_library_enqueued_status)
  */
 void default_state_init(void)
 {
+        Model *model = get_model();
         bool set_library_enqueued_status = true;
+
         kew_init(set_library_enqueued_status);
-
-        AppState *state = get_app_state();
-        FileSystemEntry *library = get_library();
-        PlayList *playlist = get_playlist();
-        PlaybackState *ps = get_playback_state();
-
-        add_enqueued_songs_to_playlist(library, playlist);
-
+        add_enqueued_songs_to_playlist(model->library, model->playlist);
         reset_list_after_dequeuing_playing_song();
-
-        start_playing(true);
         sound_system_set_end_of_list_reached(sound_sys, true);
-        ps->loadedNextSong = false;
 
-        state->currentView = LIBRARY_VIEW;
+        model->playbackState.loadedNextSong = false;
+        model->state.currentView = LIBRARY_VIEW;
 
         run(false);
 }
@@ -776,6 +860,7 @@ void state_init(void)
         state->settings.simpleTimeStatus = true;
         state->settings.quitAfterStopping = false;
         state->settings.hideGlimmeringText = false;
+        state->settings.useArtistsDb = false;
         state->settings.coverAnsi = false;
         state->settings.visualizer_mode = VIZ_KMEANS_CLUSTERING;
         state->settings.discordRPCEnabled = true;
@@ -868,6 +953,7 @@ void state_init(void)
         state->ui.chroma_height = 0;
         state->ui.metadata_switched = 0;
         state->ui.decoder_switched = 0;
+        state->ui.naming_playlist = false;
         ps->lastPlayedId = -1;
         ps->nextSongNeedsRebuilding = false;
         ps->songHasErrors = false;
@@ -886,7 +972,7 @@ void state_init(void)
         ps->notifySeek = false;
 
         reset_digits_pressed();
-        init_model();
+        model_init();
 }
 
 /**
@@ -1024,7 +1110,11 @@ int main(int argc, char *argv[])
         handle_play_command_playlist(argc, argv);
         enter_alternate_screen_buffer();
         register_singnal_handlers();
-        set_music_path();
+
+        if (model->settings.path[0] == '\0') {
+                set_music_path();
+        }
+
         transfer_args_to_settings(&argc, argv, &exact_search);
         ensure_default_themes();
         ensure_default_layouts();

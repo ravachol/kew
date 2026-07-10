@@ -648,3 +648,16 @@ void end_timer(void)
 
         fprintf(stderr, "Timer ended: %.6f seconds elapsed\n", elapsed);
 }
+
+// Determine the number of bytes in the last UTF-8 character
+int get_last_char_bytes(const char *str, int len)
+{
+        if (len == 0)
+                return 0;
+
+        int i = len - 1;
+        while (i >= 0 && (str[i] & 0xC0) == 0x80) {
+                i--;
+        }
+        return len - i;
+}

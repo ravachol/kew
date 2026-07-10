@@ -271,12 +271,11 @@ I am really enjoying Kew thank you so much for it!
 @tezoatlipoca
 hey. Im loving kew. best mp3 player. Just. Works. well done.
 
-@njrk@im-in\.space
-I’ve just discovered kew and I already love it, exactly what I was trying to do, albeit clumsily, with homemade scripts.
-Thanks for this great software!
-
 @Sunsfever83
 I love kew
 
 @YTriom1
 My beloved
+
+@njrk
+I no longer need to search for the perfect music player. :blobcheerbounce:

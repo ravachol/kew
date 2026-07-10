@@ -68,7 +68,7 @@ void press_digit(int digit);
  * This function sets up the input system, including initializing termbox and
  * enabling necessary input modes (e.g., mouse support).
  */
-void init_input(void);
+void input_init(void);
 
 /**
  * @brief Shuts down the input system.

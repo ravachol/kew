@@ -17,7 +17,6 @@ static char current_error_message[ERROR_MESSAGE_LENGTH];
 static bool has_printed_error = true;
 static volatile sig_atomic_t g_should_exit = 0;
 
-
 bool is_refresh_triggered(void)
 {
         Model *model = get_model();

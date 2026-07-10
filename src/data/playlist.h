@@ -21,8 +21,6 @@
 
 #define MAX_FILES 50000
 
-
-
 /**
  * @brief Clears the currently selected song.
  *
@@ -225,9 +223,9 @@ void write_m3u_file(const char *filename, const PlayList *playlist);
  *
  * @param path Destination directory.
  * @param playlist Playlist to export.
+ * @param playlist_name The name (without the extension) of the playlist.
  */
-void export_current_playlist(const char *path,
-                             const PlayList *playlist);
+void export_current_playlist(const char *path, const PlayList *playlist, char* playlist_name);
 
 /**
  * @brief Loads the favorites playlist from disk.

@@ -42,11 +42,10 @@ static ma_result init_ma_decoder_wrapper(
     ma_decoding_backend_config *config,
     void *decoder)
 {
-        ma_decoder_config decConfig =
-            ma_decoder_config_init(
-                config->preferredFormat,
-                0,
-                0);
+        ma_decoder_config decConfig;
+        memset(&decConfig, 0, sizeof(ma_decoder_config));
+        decConfig.seekPointCount = 128;
+        decConfig.format = config->preferredFormat;
 
         ma_result result =
             ma_decoder_init_file(
@@ -380,6 +379,18 @@ static const CodecEntry codec_ops_list[] = {
         .uninit           = (uninit_func)uninit_m4a_decoder
     }},
     {"aac", {
+        .get_file_info    = get_m4a_file_info,
+        .get_decoder_format = (decoder_format_func)m4a_decoder_ds_get_data_format,
+        .seek_to_pcm_frame  = m4a_seek_to_pcm_frame_wrapper,
+        .get_cursor       = m4a_get_cursor_in_pcm_frames_wrapper,
+        .decoder_type         = M4A,
+        .supportsGapless  = true,
+        .setup_decoder    = setup_m4a,
+        .decoderSize      = sizeof(m4a_decoder),
+        .init             = (init_func)init_m4a_decoder,
+        .uninit           = (uninit_func)uninit_m4a_decoder
+    }},
+    {"mp4", {
         .get_file_info    = get_m4a_file_info,
         .get_decoder_format = (decoder_format_func)m4a_decoder_ds_get_data_format,
         .seek_to_pcm_frame  = m4a_seek_to_pcm_frame_wrapper,

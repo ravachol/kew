@@ -5,6 +5,7 @@
 #include "loader/songdatatype.h"
 
 #include "data/playlist.h"
+#include "data/artists.h"
 
 #include "sound/sound_facade.h"
 
@@ -30,14 +31,11 @@ extern sound_system_t *sound_sys;
 #define ATTR_UNDERLINE (1 << 3)
 #define ATTR_BLINK (1 << 4)
 #define ATTR_REVERSE (1 << 5)
-
 #define MAX_PANES 100
 #define MAX_ROWS 100
-
 #define MAX_SEARCH_LEN 32
-
+#define MAX_PLAYLIST_NAME_LEN 256
 #define DISABLED_ROW -1000
-
 #define KEW_NAME_MAX 255
 
 typedef enum {
@@ -364,6 +362,7 @@ typedef struct
         bool quitAfterStopping;   /**< Exit application automatically after playback stops. */
         bool clearListClearsAll;  /**< Whether clearing the playlist also removes the currently playing song. */
         bool hideGlimmeringText;  /**< Disable animated/glimmering bottom row text. */
+        bool useArtistsDb;        /**< Whether to use the artists database that contains homepage URLs. */
         time_t last_time_app_ran; /**< Timestamp of last run, used to detect library changes. */
 
         int visualizer_bar_mode;        /**< 0=Thin bars, 1=Double width bars, 2=Auto (default). */
@@ -448,6 +447,7 @@ typedef struct
         FILE *logFile;
 
         char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
+        char playlist_name[MAX_PLAYLIST_NAME_LEN * 4 + 1];
 
         FileSystemEntry *current_lib_entry;
         FileSystemEntry *current_search_entry;
@@ -504,6 +504,7 @@ typedef struct
         volatile sig_atomic_t resumed;
         bool rendered;
         bool resumed_in_background;
+        bool naming_playlist;
 
         ColorPalette visualizer_palettes[7];
 } UIState;
@@ -638,6 +639,7 @@ typedef struct
         char quitAfterStopping[2];
         char clearListClearsAll[2];
         char hideGlimmeringText[2];
+        char useArtistsDb[2];
         char nextView[6];
         char prevView[6];
         char hardClearPlaylist[6];
@@ -801,6 +803,9 @@ typedef struct Model {
         Layout *track_landscape_layout;
         Layout *search_layout;
         Layout *help_layout;
+
+        bool hasArtistDb;
+        ArtistDb *db;
 
         volatile sig_atomic_t updating_library;
 } Model;

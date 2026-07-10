@@ -56,6 +56,8 @@ visualizer, progress, song, playlist, library, search, footer, layout
 
 ## Components
 
+NOTE: error_row is a required component. Otherwise you wont be able to visibly name a playlist.
+
 Every region that does anything is a component. The allowed components are:
 
 empty, logo, now_playing, now_playing_and_artist,

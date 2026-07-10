@@ -522,7 +522,7 @@ sig_atomic_t get_resize_flag()
         return resizeFlag;
 }
 
-void init_resize(void)
+void resize_init(void)
 {
 #ifndef _WIN32
         signal(SIGWINCH, handle_resize);

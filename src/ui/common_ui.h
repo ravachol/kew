@@ -53,7 +53,6 @@ void increment_update_counter(void);
  */
 void inverse_text(void);
 
-
 void apply_color(PixelData color);
 
 /**
@@ -311,7 +310,7 @@ int get_footer_text(char *restrict text, size_t size);
 int utf8_display_width(const char *s);
 
 void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
-                        char *url, char *title, CellStyle style);
+                        const char *url, char *title, CellStyle style);
 
 void free_link_payload(LinkPayload *link);
 

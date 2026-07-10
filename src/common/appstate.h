@@ -33,9 +33,13 @@
 #define ABSOLUTE_MIN_WIDTH 65
 #endif
 
-#define KEW_LAYOUT_VERSION 10
+#define KEW_LAYOUT_VERSION 11
 
 #define DEFAULT_NUM_PROGRESS_BARS 35
+
+#ifndef DATADIR
+#define DATADIR "/usr/local/share"
+#endif
 
 typedef struct {
 
@@ -61,7 +65,15 @@ void tty_init(void);
 /* ========================= CONSTRUCTOR ========================= */
 
 /**@brief initializes the model */
-void init_model(void);
+void model_init(void);
+
+/* ========================= ARTIST DB ========================= */
+
+/**@brief opens the database that contains urls to artists homepages */
+void artists_db_init(void);
+
+/**@brief closes the database that contains urls to artists homepages */
+void artists_db_shutdown(void);
 
 /* ========================= GETTERS ========================= */
 

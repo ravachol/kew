@@ -15,7 +15,7 @@ For macOS users it's available through [Homebrew](https://formulae.brew.sh/formu
 
 ## FREEBSD / NETBSD
 
-Avaiable through the package manager or [manual installation guide](https://codeberg.org/ravachol/kew/src/branch/main/docs/MANUAL-INSTALL-INSTRUCTIONS.md).
+Available through the package manager or [manual installation guide](https://codeberg.org/ravachol/kew/src/branch/main/docs/MANUAL-INSTALL-INSTRUCTIONS.md).
 
 ## WINDOWS
 

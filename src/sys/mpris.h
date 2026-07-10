@@ -21,7 +21,7 @@
  * It registers the media player with the D-Bus and prepares it for receiving
  * commands and emitting signals related to playback.
  */
-void init_mpris(void);
+void mpris_init(void);
 
 /**
  * @brief Emits a D-Bus signal to notify a change in a string property.

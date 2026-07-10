@@ -9,10 +9,14 @@
 
 #include "update/messages.h"
 
+#include "data/artists.h"
 #include "data/directorytree.h"
 #include "data/img_func.h"
+
 #include "ops/library_ops.h"
 #include "ops/playback_state.h"
+#include "ops/playlist_ops.h"
+
 
 #include "common_ui.h"
 #include "settings.h"
@@ -22,7 +26,9 @@
 
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/file.h"
 
+#include <libgen.h>
 #include <math.h>
 #include <stdio.h>
 #include <wchar.h>
@@ -578,11 +584,16 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 if (is_playing && !is_chosen)
                                         file_style.attrs |= ATTR_UNDERLINE;
 
+                                bool strip_unneeded_chars = true;
+                                bool strip_suffix = true;
+
                                 // playlist icon
                                 if (is_m3u_file(entry)) {
                                         draw_buffer_set_string(buf, draw_row, text_col, "♫ ", file_style);
                                         text_col += 2;
                                         name_width -= 2;
+                                        strip_unneeded_chars = false;
+                                        strip_suffix = false;
                                 }
 
                                 draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
@@ -595,9 +606,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 str_truncate_display_width(entry->name, filename, name_width);
 
                                 if (found_chosen != NULL)
-                                        process_name_scroll(model, entry->name, filename, name_width, true, true);
+                                        process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
                                 else
-                                        process_name(entry->name, filename, name_width, true, true);
+                                        process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
                         }
@@ -700,7 +711,7 @@ static void build_song_title(const Model *model, const UISettings *ui,
 {
         SongData *song_data = model->songdata;
 
-        if (!model->songdata_ok ||!song_data || !song_data->metadata) {
+        if (!model->songdata_ok || !song_data || !song_data->metadata) {
                 out[0] = '\0';
                 return;
         }
@@ -941,7 +952,7 @@ static int draw_cover_ascii(const TermSize *term_size, const char *path, int row
 
 ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
-        if(!model->songdata_ok)
+        if (!model->songdata_ok)
                 return (ComponentMsg){0};
 
         const AppState *state = &model->state;
@@ -1013,7 +1024,7 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
 {
         (void)dirty;
 
-        if(!model->songdata_ok)
+        if (!model->songdata_ok)
                 return (ComponentMsg){0};
 
         const AppState *state = &model->state;
@@ -1054,7 +1065,7 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 {
         (void)dirty;
 
-        if(!model->songdata_ok)
+        if (!model->songdata_ok)
                 return (ComponentMsg){0};
 
         const AppState *state = &model->state;
@@ -1090,7 +1101,7 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
 ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
-        if(!model->songdata_ok)
+        if (!model->songdata_ok)
                 return (ComponentMsg){0};
 
         const AppState *state = &model->state;
@@ -1441,6 +1452,17 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
         const UISettings *ui = &model->state.settings;
         CellStyle style = cell_style_plain();
 
+        if (model->state.ui.naming_playlist)
+        {
+                style = cell_style_from_theme(ui->theme.status_info);
+
+                char msg[256];
+                snprintf(msg, sizeof(msg), "Playlist name: %s█", get_playlist_name());
+                draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                                 msg, region.width, style);
+                return (ComponentMsg){0};
+        }
+
         if (!has_printed_error_message() && has_error_message()) {
                 style = cell_style_from_theme(ui->theme.status_error);
 
@@ -1673,13 +1695,13 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
                          get_binding_string(MSG_MOVESONGDOWN, true),
-                         get_binding_string(MSG_EXPORTPLAYLIST, true));
+                         get_binding_string(MSG_SAVEPLAYLIST, true));
 #else
                 snprintf(line2, sizeof(line2), _(" Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"),
                          get_binding_string(MSG_REMOVE, true),
                          get_binding_string(MSG_MOVESONGUP, true),
                          get_binding_string(MSG_MOVESONGDOWN, true),
-                         get_binding_string(MSG_EXPORTPLAYLIST, true));
+                         get_binding_string(MSG_SAVEPLAYLIST, true));
 #endif
 
                 draw_buffer_set_string(buf, row, col, line1, style);
@@ -1752,7 +1774,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 {
         (void)dirty;
 
-        if(!model->songdata_ok)
+        if (!model->songdata_ok)
                 return (ComponentMsg){0};
 
         const UISettings *ui = &model->state.settings;
@@ -1764,25 +1786,81 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
         TagSettings *metadata = songdata->metadata;
         int max_width = region.width; // -1 for the leading space
 
+        char expanded_path[KEW_PATH_MAX];
+        expand_path(model->settings.path, expanded_path, sizeof(expanded_path));
+
         if (dirty & DIRTY_SONG) {
 
                 // Artist
-                if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 && region.height >= 2) {
+                if (region.height >= 2) {
+
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_artist);
                         char line[METADATA_MAX_LENGTH + 2];
-                        snprintf(line, sizeof(line), "%s", metadata->artist);
+                        const ArtistRecord *record = NULL;
+                        const char *homepage = NULL;
+                        char *artist = NULL;
+                        char *artist_folder = NULL;
+                        char path_copy[4096];
+                        strcpy(path_copy, model->songdata->file_path);
+                        char *dir = dirname(path_copy);
 
-                        draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
-                                                         line, max_width, style);
+                        if (strcmp(dir, expanded_path) != 0) {
+                                dir = dirname(dir);
+                                artist_folder = basename(dir);
+                        }
+
+                        if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0) {
+
+                                snprintf(line, sizeof(line), "%s", metadata->artist);
+                                artist = metadata->artist;
+
+                        } else if (artist_folder) {
+                                snprintf(line, sizeof(line), "%s", artist_folder);
+                                artist = artist_folder;
+                        }
+
+                        if (artist) {
+                                if (model->hasArtistDb) {
+                                        record = db_find(model->db, artist);
+
+                                        if (record)
+                                                homepage = db_get_value(model->db, record);
+                                }
+
+                                if (homepage) {
+                                        draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
+                                                            homepage, artist, style);
+                                } else {
+                                        draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
+                                                                         line, max_width, style);
+                                }
+                        }
                 }
 
                 // Album
-                if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0 && region.height >= 3) {
+                if (region.height >= 3) {
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_album);
                         char line[METADATA_MAX_LENGTH + 2];
-                        snprintf(line, sizeof(line), "%s", metadata->album);
-                        draw_buffer_set_string_truncated(buf, region.row + 2, region.col,
-                                                         line, max_width, style);
+                        char path_copy2[4096];
+                        strcpy(path_copy2, model->songdata->file_path);
+                        char *dir = dirname(path_copy2); // Dirname can modify the string, so use a copy
+                        char *album = NULL;
+                        if (strcmp(dir, expanded_path) != 0) {
+                                album = basename(dir);
+                        }
+
+                        if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0) {
+
+                                snprintf(line, sizeof(line), "%s", metadata->album);
+
+                        } else if (album) {
+
+                                snprintf(line, sizeof(line), "%s", album);
+                        }
+
+                        if (line[0] != '\0')
+                                draw_buffer_set_string_truncated(buf, region.row + 2, region.col,
+                                                                 line, max_width, style);
                 }
 
                 // Year
@@ -1859,7 +1937,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
 
         double duration = 0.0;
 
-        if(model->songdata_ok && model->songdata)
+        if (model->songdata_ok && model->songdata)
                 duration = model->songdata->duration;
 
         int elapsed_bars = calc_elapsed_bars(model->elapsed_seconds, duration, region.width);
@@ -2701,6 +2779,15 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         // Theme line, split into segments with different colors
         char theme_line[512];
 
+        draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️ "), help_style);
+        draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️ ")), max_width,
+                                "https://kewplayer.com/donate.html", "Donate!", link_style);
+
+        row += 2;
+
+        if (row >= region.row + region.height)
+                return (ComponentMsg){0};
+
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
@@ -2743,7 +2830,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string_truncated(buf, row++, col, _line, max_width, help_style); \
         } while (0)
 
-        draw_buffer_set_string_truncated(buf, row++, col, _(" Basic"), max_width, header_style); \
+        draw_buffer_set_string_truncated(buf, row++, col, _(" Basic"), max_width, header_style);
         HELP_LINE(_(" · Play/Pause: %s"), get_binding_string(MSG_PLAY_PAUSE, false));
         HELP_LINE(_(" · Enqueue/Dequeue: %s"), get_binding_string(MSG_ENQUEUE, false));
         HELP_LINE(_(" · Immediate Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
@@ -2779,7 +2866,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
 
         HELP_LINE(" ");
-        draw_buffer_set_string_truncated(buf, row ++, col, _(" Advanced"), max_width, header_style);
+        draw_buffer_set_string_truncated(buf, row++, col, _(" Advanced"), max_width, header_style);
         HELP_LINE(_(" · Toggle Lyrics Page: %s"),
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Seek: %s and %s"),
@@ -2810,8 +2897,8 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_CROSSFADE_MEDIUM, false),
                   get_binding_string(MSG_CROSSFADE_SLOW, false));
 
-        HELP_LINE(_(" · Export Playlist: %s (named after the first song)"),
-                  get_binding_string(MSG_EXPORTPLAYLIST, false));
+        HELP_LINE(_(" · Export Playlist: %s"),
+                  get_binding_string(MSG_SAVEPLAYLIST, false));
         HELP_LINE(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                   get_binding_string(MSG_ADDTOFAVORITESPLAYLIST, false));
 
@@ -2822,23 +2909,26 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 return (ComponentMsg){0};
 
         // Project links
-        draw_buffer_set_string(buf, row, col, _(" Project URL: "), help_style);
-        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Project URL: ")),
+        draw_buffer_set_string(buf, row, col, _(" Homepage: "), help_style);
+        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Homepage: ")),
                                "https://www.kewplayer.com", link_style);
-        row++;
+
+        row += 2;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
-        draw_buffer_set_string(buf, row, col, _(" A $3 dollar donation is recommended: "), help_style);
-        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" A $3 dollar donation is recommended: ")),
-                               "https://ko-fi.com/ravachol", link_style);
+        // Wikidata license
+        draw_buffer_set_string_truncated(buf, row, col,
+                                         " Wikidata (https://www.wikidata.org/) License CC BY-SA 4.0",
+                                         max_width, text_style);
+
         row += 2;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
         // Copyright
         draw_buffer_set_string_truncated(buf, row, col,
-                                         " Copyright © 2022-2026 Ravachol",
+                                         " Copyright © 2022-2026 Ravachol. License GPLv2+",
                                          max_width, text_style);
 
         return (ComponentMsg){0};
@@ -2937,37 +3027,37 @@ void component_search_helper_collapse_view(Model *model, int diff_rows)
 
 size_t utf8_truncate(const char *s, int max_width)
 {
-    mbstate_t st = {0};
-    size_t pos = 0;
-    int width = 0;
+        mbstate_t st = {0};
+        size_t pos = 0;
+        int width = 0;
 
-    while (s[pos] != '\0') {
-        wchar_t wc;
+        while (s[pos] != '\0') {
+                wchar_t wc;
 
-        size_t len = mbrtowc(&wc, s + pos, MB_CUR_MAX, &st);
+                size_t len = mbrtowc(&wc, s + pos, MB_CUR_MAX, &st);
 
-        if (len == (size_t)-1 || len == (size_t)-2) {
-            /* invalid/incomplete UTF-8 */
-            break;
+                if (len == (size_t)-1 || len == (size_t)-2) {
+                        /* invalid/incomplete UTF-8 */
+                        break;
+                }
+
+                if (len == 0) {
+                        break;
+                }
+
+                int w = mk_wcwidth(wc);
+
+                if (w < 0)
+                        w = 0;
+
+                if (width + w > max_width)
+                        break;
+
+                width += w;
+                pos += len;
         }
 
-        if (len == 0) {
-            break;
-        }
-
-        int w = mk_wcwidth(wc);
-
-        if (w < 0)
-            w = 0;
-
-        if (width + w > max_width)
-            break;
-
-        width += w;
-        pos += len;
-    }
-
-    return pos; /* byte offset */
+        return pos; /* byte offset */
 }
 
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)

@@ -6,6 +6,7 @@
 
 #include "common/appstate.h"
 #include "common/model.h"
+#include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -29,6 +30,8 @@ RenderContext render_context;
 Model model;
 
 static const char LIBRARY_FILE[] = "library.dat";
+
+static const char ARTISTS_DB_FILE[] = "artists.db";
 
 static char library_real_path_if_diff[KEW_PATH_MAX] = {0};
 
@@ -72,6 +75,43 @@ void create_playlist(PlayList **playlist)
                 pthread_mutex_init(&(*playlist)->mutex, NULL);
         }
 }
+
+void artists_db_init(void)
+{
+        Model *model = get_model();
+
+        char filepath[PATH_MAX];
+
+        snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, ARTISTS_DB_FILE);
+
+        if (!exists_file(filepath))
+        {
+                snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", ARTISTS_DB_FILE);
+
+                if (!exists_file(filepath))
+                        return;
+        }
+
+        if (model->db)
+                free(model->db);
+
+        model->db = malloc(sizeof(ArtistDb));
+
+        if (db_open(model->db, filepath) == 0) {
+                model->hasArtistDb = true;
+        }
+}
+
+void artists_db_shutdown(void)
+{
+        Model *model = get_model();
+
+        db_close(model->db);
+
+        if (model->db)
+                free(model->db);
+}
+
 
 void get_tty_size(TermSize *term_size_out)
 {
@@ -148,7 +188,7 @@ void tty_init(void)
 
 // --- Constructor ---
 
-void init_model(void)
+void model_init(void)
 {
         model.playlist = NULL;
         model.unshuffled_playlist = NULL;
@@ -188,6 +228,7 @@ void init_model(void)
         model.state.ui.current_lib_entry = NULL;
         model.state.ui.chosen_dir = NULL;
         model.state.ui.playlist_node = NULL;
+        model.state.settings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
 
         model.state.ui.rendered = false;
 
@@ -196,6 +237,9 @@ void init_model(void)
 
         model.elapsed_seconds = 0.0;
         model.song_duration = 0.0;
+
+        model.hasArtistDb = false;
+        model.db = NULL;
 
         model.tick = 17;
 
@@ -214,7 +258,6 @@ Model *get_model()
 {
         return &model;
 }
-
 
 RenderContext *get_render_context()
 {

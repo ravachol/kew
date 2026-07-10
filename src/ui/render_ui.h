@@ -50,9 +50,8 @@ void draw_buffer_resize(int cols, int rows);
 /**
  * @brief Initializes the UI.
  *
- * @param model
  */
-void ui_init(Model *model);
+void ui_init(void);
 
 /**
  * @brief Shuts down the UI.

@@ -22,8 +22,14 @@
  */
 void reset_clock(void);
 
+/**
+* @brief Adds offset milliseconds to (song) start_time
+*/
 void clock_add_offset(long offset_ms);
 
+/**
+* @brief logs elapsed (song) seconds
+*/
 void clock_log_time(void);
 
 /**

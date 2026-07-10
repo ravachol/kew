@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## kew 4.2.0
+
+The big changes this release are:
+
+- A new repo [kew-data](https://codeberg.org/ravachol/kew-data) with a database which, if installed, makes artists names clickable. Click on an artist in track view to go to their homepage. Why? We are trying to find ways to support artists and bought music better. It's recommended that this becomes an optional dependency for kew packages. The data is sourced from Wikidata and is 9MB with 162 000 homepages.
+- Switched mp4 lib from minimp4 to libmp4.
+- .Mp4 file support.
+- Always logs errors to ~/.local/state/kew/logs/error.log.
+
+Thank you to new sponsors @mattdog, @ddogfoodd @Rick and @rei for their support!
+
+\- Ravachol
+
+#### Enhancements
+
+- (Optional) Click on an artist name in track view to open their homepage . By @ravachol. Repo: https://codeberg.org/ravachol/kew-data.
+
+- Always logs errors. Linux/FreeBSD: $HOME/.local/state/kew/logs. macOs: /Library/Logs/kew. Windows: LOCALAPPDATA/kew/logs. By @ravachol.
+
+- Replace minimp4 with libmp4, because minimp4 has the wrong license for Fedora. libmp4 is vendored and under BSD-3-Clause license: https://github.com/Parrot-Developers/libmp4. By @ravachol. Suggested by @bkmgit.
+
+- .Mp4 file support. A side effect of switching lib. By @ravachol.
+
+- Add ability to name playlist. By @ravachol.
+
+- Add support for parsing embedded lyrics from M4A files, By @Quillenar-dev.
+
+- When album and artist is missing, use folder names as fallback. By @ravachol. Suggested by @theDyze.
+
+- Remove number + g / number + ENTER for playing a numbered song on the playlist. It's just complicated to implement with termbox2.
+
+- Faster seek on very long files. By @ravachol. Reported by @theDyze.
+
 ## kew 4.1.8
 
 - Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
