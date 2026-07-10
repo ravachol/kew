@@ -54,6 +54,10 @@ Windows: LOCALAPPDATA/kew/logs
 
 - Remove number + g / number + ENTER for playing a numbered song on the playlist. it's just complicated to implement with termbox2.
 
+#### Sponsors
+
+Thank you to new sponsor @mattdog and @ddogfoodd for their support!
+
 ## kew 4.1.8
 
 - Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
