@@ -19,14 +19,14 @@ jobs:
           apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing sblg
 
       - name: Checkout
-        uses: https://code.forgejo.org/actions/checkout@v4
+        uses: https://code.forgejo.org/actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Build site
         working-directory: website
         run: make install PAGES_SRC_DIR=site_src
 
       - name: Deploy canonical (kewplayer.com)
-        uses: https://codeberg.org/git-pages/action@v2
+        uses: https://codeberg.org/git-pages/action@2b24bbb7ff943d3c8fe1df91326adec66daea6dd # v2.2.0
         with:
           server: codeberg.page
           site: 'https://kewplayer.com'
@@ -34,7 +34,7 @@ jobs:
           source: pages/
 
       - name: Deploy www.kewplayer.com
-        uses: https://codeberg.org/git-pages/action@v2
+        uses: https://codeberg.org/git-pages/action@2b24bbb7ff943d3c8fe1df91326adec66daea6dd # v2.2.0
         with:
           server: codeberg.page
           site: "https://www.kewplayer.com"
