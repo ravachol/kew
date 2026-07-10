@@ -2900,16 +2900,16 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 return (ComponentMsg){0};
 
         // Project links
-        draw_buffer_set_string(buf, row, col, _(" Project URL: "), help_style);
-        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Project URL: ")),
+        draw_buffer_set_string(buf, row, col, _(" Homepage: "), help_style);
+        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Homepage: ")),
                                "https://www.kewplayer.com", link_style);
         row++;
         if (row >= region.row + region.height)
                 return (ComponentMsg){0};
 
-        draw_buffer_set_string(buf, row, col, _(" A $3 dollar donation is recommended: "), help_style);
-        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" A $3 dollar donation is recommended: ")),
-                               "https://ko-fi.com/ravachol", link_style);
+        draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️ "), help_style);
+        draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️ ")), max_width,
+                                "https://kewplayer.com/donate.html", "Donate!", link_style);
 
         row += 2;
         if (row >= region.row + region.height)
