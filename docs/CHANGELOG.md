@@ -2,49 +2,26 @@
 
 ## kew 4.2.0
 
-The big changes this release are a new repo kew-data that makes artists names clickable. Click on an artist in track vie to go to their homepage (this is mostly to support artists), mp4 support and always logging info not only when compiled with DEBUG=1.
+The big changes this release are:
 
-### Optional Extra Dependency: Artist Database
+- A new repo [kew-data](https://codeberg.org/ravachol/kew-data) with a database which, if installed, makes artists names clickable. Click on an artist in track view to go to their homepage. Why? We are trying to find ways to support artists and bought music better. It's recommended that this becomes an optional dependency for kew packages. The data is sourced from Wikidata and is 9MB with 162 000 homepages.
+- Switched mp4 lib from minimp4 to libmp4.
+- .Mp4 file support.
+- Always logs errors to ~/.local/state/kew/logs/error.log.
 
-- Click on an artist name in track view to open their homepage . By @ravachol.
+Thank you to new sponsors @mattdog, @ddogfoodd @Rick and @rei for their support!
 
-Repo: https://codeberg.org/ravachol/kew-data
+\- Ravachol
 
-Artists that have a homepage listed on Wikipedia can now be clickable links in track view if you install kew-data. This is to enable listeners to connect to artists and also to help artists promote their music/tour/merch with few middle hands.
+#### Enhancements
 
-Database size: 9MB
-Homepage Urls: 162 000
+- (Optional) Click on an artist name in track view to open their homepage . By @ravachol. Repo: https://codeberg.org/ravachol/kew-data.
 
-#### For Package Maintainers
-
-This repo is a bonus for listeners and music artists and is recommended as an optional dependency to kew.
-
-All the stuff that's needed to reproduce the artists.db binary is included in the /data folder. .tsv file, scripts, the works. There's a guide on how to reproduce the exact same binary. Data License: WIKIDATA CC BY-SA 4.0.
-
-#### Removing the database
-
-if you don't want to use the database, don't install it.
-
-kew works just as well without it.
-
-We don't have the capacity to add other artists or indie artists unfortunately, and want the database to remain small.
-
-The data has been washed from 300k entries down to 162k but there's bound to still be bad data in there. Create an issue consisting of the artist name and accurate homepage, if you find a mistake.
-
-### Logging
-
-- Always produces a log, not only when compiled with DEBUG=1. By @ravachol.
-
-Log location:
-Linux/FreeBSD: $HOME/.local/state/kew/logs
-macOs: /Library/Logs/kew
-Windows: LOCALAPPDATA/kew/logs
-
-### Other Enhancements
+- Always logs errors. Linux/FreeBSD: $HOME/.local/state/kew/logs. macOs: /Library/Logs/kew. Windows: LOCALAPPDATA/kew/logs. By @ravachol.
 
 - Replace minimp4 with libmp4, because minimp4 has the wrong license for Fedora. libmp4 is vendored and under BSD-3-Clause license: https://github.com/Parrot-Developers/libmp4. By @ravachol. Suggested by @bkmgit.
 
-- Mp4 file support. A side effect of switching lib. By @ravachol.
+- .Mp4 file support. A side effect of switching lib. By @ravachol.
 
 - Add ability to name playlist. By @ravachol.
 
@@ -52,11 +29,9 @@ Windows: LOCALAPPDATA/kew/logs
 
 - When album and artist is missing, use folder names as fallback. By @ravachol. Suggested by @theDyze.
 
-- Remove number + g / number + ENTER for playing a numbered song on the playlist. it's just complicated to implement with termbox2.
+- Remove number + g / number + ENTER for playing a numbered song on the playlist. It's just complicated to implement with termbox2.
 
-#### Sponsors
-
-Thank you to new sponsor @mattdog, @ddogfoodd @Rick and @rei for their support!
+- Faster seek on very long files. By @ravachol. Reported by @theDyze.
 
 ## kew 4.1.8
 
