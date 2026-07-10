@@ -56,7 +56,7 @@ Windows: LOCALAPPDATA/kew/logs
 
 #### Sponsors
 
-Thank you to new sponsor @mattdog and @ddogfoodd for their support!
+Thank you to new sponsor @mattdog, @ddogfoodd @Rick and @rei for their support!
 
 ## kew 4.1.8
 
