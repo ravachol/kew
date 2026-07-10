@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 14:58+0200\n"
+"POT-Creation-Date: 2026-07-10 16:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -97,16 +97,6 @@ msgstr ""
 msgid ""
 "Type a path:\n"
 "\n"
-msgstr ""
-
-#: src/ui/render_ui.c:150
-#, c-format
-msgid "Run man kew for help.\n"
-msgstr ""
-
-#: src/ui/render_ui.c:275
-#, c-format
-msgid "   kew version: "
 msgstr ""
 
 #: src/ui/components.c:559
@@ -332,7 +322,7 @@ msgstr ""
 
 #: src/ui/components.c:2900
 #, c-format
-msgid " · Export Playlist: %s (named after the first song)"
+msgid " · Export Playlist: %s"
 msgstr ""
 
 #: src/ui/components.c:2902
@@ -347,6 +337,16 @@ msgstr ""
 #: src/ui/components.c:2989
 #, c-format
 msgid "Search:"
+msgstr ""
+
+#: src/ui/render_ui.c:150
+#, c-format
+msgid "Run man kew for help.\n"
+msgstr ""
+
+#: src/ui/render_ui.c:275
+#, c-format
+msgid "   kew version: "
 msgstr ""
 
 #: src/ui/settings.c:415

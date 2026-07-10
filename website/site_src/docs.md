@@ -105,7 +105,7 @@ artist folder->album folder(s)->track(s).
 #### Playlist
 
 * Remove: <kbd>Del</kbd>.
-* Save: <kbd>x</kbd> (places .m3u in your music folder, named after the first song).
+* Export Playlist: <kbd>x</kbd>.
 * Move songs: <kbd>f</kbd> <kbd>g</kbd>.
 
 #### General
