@@ -2897,7 +2897,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                   get_binding_string(MSG_CROSSFADE_MEDIUM, false),
                   get_binding_string(MSG_CROSSFADE_SLOW, false));
 
-        HELP_LINE(_(" · Export Playlist: %s (named after the first song)"),
+        HELP_LINE(_(" · Export Playlist: %s"),
                   get_binding_string(MSG_SAVEPLAYLIST, false));
         HELP_LINE(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                   get_binding_string(MSG_ADDTOFAVORITESPLAYLIST, false));
