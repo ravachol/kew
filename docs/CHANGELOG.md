@@ -9,7 +9,7 @@ The big changes this release are:
 - .Mp4 file support.
 - Always logs errors to ~/.local/state/kew/logs/error.log.
 
-Thank you to new sponsors @mattdog, @ddogfoodd @Rick and @rei for their support!
+Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 \- Ravachol
 
