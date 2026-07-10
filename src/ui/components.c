@@ -2779,6 +2779,15 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         // Theme line, split into segments with different colors
         char theme_line[512];
 
+        draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️ "), help_style);
+        draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️ ")), max_width,
+                                "https://kewplayer.com/donate.html", "Donate!", link_style);
+
+        row += 2;
+
+        if (row >= region.row + region.height)
+                return (ComponentMsg){0};
+
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
                 int c = col + utf8_display_width(_(" Theme: "));
@@ -2903,13 +2912,6 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         draw_buffer_set_string(buf, row, col, _(" Homepage: "), help_style);
         draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Homepage: ")),
                                "https://www.kewplayer.com", link_style);
-        row++;
-        if (row >= region.row + region.height)
-                return (ComponentMsg){0};
-
-        draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️ "), help_style);
-        draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️ ")), max_width,
-                                "https://kewplayer.com/donate.html", "Donate!", link_style);
 
         row += 2;
         if (row >= region.row + region.height)
@@ -2917,7 +2919,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         // Wikidata license
         draw_buffer_set_string_truncated(buf, row, col,
-                                         " Wikidata (https://www.wikidata.org/) license CC BY-SA 4.0",
+                                         " Wikidata (https://www.wikidata.org/) License CC BY-SA 4.0",
                                          max_width, text_style);
 
         row += 2;
@@ -2926,7 +2928,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         // Copyright
         draw_buffer_set_string_truncated(buf, row, col,
-                                         " Copyright © 2022-2026 Ravachol",
+                                         " Copyright © 2022-2026 Ravachol. License GPLv2+",
                                          max_width, text_style);
 
         return (ComponentMsg){0};
