@@ -12,8 +12,8 @@
 
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef _WIN32
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
 
 static UINT saved_console_output_cp;
 static UINT saved_console_input_cp;
@@ -47,18 +47,18 @@ Node *song_to_start_from = NULL;
 
 void free_playlist(PlayList **plist)
 {
-    if (!plist || !*plist)
-        return;
+        if (!plist || !*plist)
+                return;
 
-    PlayList *list = *plist;
+        PlayList *list = *plist;
 
-    empty_playlist(list);
+        empty_playlist(list);
 
-    pthread_mutex_destroy(&list->mutex);
+        pthread_mutex_destroy(&list->mutex);
 
-    free(list);
+        free(list);
 
-    *plist = NULL;
+        *plist = NULL;
 }
 
 void create_playlist(PlayList **playlist)
@@ -84,8 +84,7 @@ void artists_db_init(void)
 
         snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, ARTISTS_DB_FILE);
 
-        if (!exists_file(filepath))
-        {
+        if (!exists_file(filepath)) {
                 snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", ARTISTS_DB_FILE);
 
                 if (!exists_file(filepath))
@@ -112,53 +111,96 @@ void artists_db_shutdown(void)
                 free(model->db);
 }
 
-
 void get_tty_size(TermSize *term_size_out)
 {
-        TermSize term_size;
-
-        term_size.cols = term_size.rows = term_size.width_pixels = term_size.height_pixels = -1;
+        TermSize term_size = {
+            .cols = -1,
+            .rows = -1,
+            .width_pixels = -1,
+            .height_pixels = -1};
 
 #ifdef _WIN32
-        {
-                HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
-                CONSOLE_SCREEN_BUFFER_INFO csb_info;
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-                if (chd != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(chd, &csb_info)) {
-                        term_size.cols = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
-                        term_size.rows = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
+        if (hOut != INVALID_HANDLE_VALUE) {
+                CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+                if (GetConsoleScreenBufferInfo(hOut, &csbi)) {
+                        term_size.cols =
+                            csbi.srWindow.Right - csbi.srWindow.Left + 1;
+                        term_size.rows =
+                            csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
                 }
         }
-#else
-        {
-                struct winsize w;
-                gboolean have_winsz = FALSE;
 
-                if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDERR_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDIN_FILENO, TIOCGWINSZ, &w) >= 0)
-                        have_winsz = TRUE;
+        // Ask the terminal for its pixel size (XTWINOPS).
+        // Reply: ESC [ 4 ; height ; width t
 
-                if (have_winsz) {
-                        term_size.cols = w.ws_col;
-                        term_size.rows = w.ws_row;
-                        term_size.width_pixels = w.ws_xpixel;
-                        term_size.height_pixels = w.ws_ypixel;
+        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+
+        DWORD oldMode = 0;
+        GetConsoleMode(hIn, &oldMode);
+
+        SetConsoleMode(hIn,
+                       oldMode |
+                           ENABLE_VIRTUAL_TERMINAL_INPUT);
+
+        printf("\033[14t");
+        fflush(stdout);
+
+        char buf[128];
+        DWORD nread = 0;
+        size_t pos = 0;
+
+        while (pos < sizeof(buf) - 1) {
+                if (!ReadFile(hIn, buf + pos, 1, &nread, NULL) ||
+                    nread == 0)
+                        break;
+
+                if (buf[pos] == 't') {
+                        pos++;
+                        break;
                 }
+
+                pos++;
+        }
+
+        buf[pos] = '\0';
+
+        int h, w;
+
+        if (sscanf(buf, "\033[4;%d;%dt", &h, &w) == 2) {
+                term_size.width_pixels = w;
+                term_size.height_pixels = h;
+        }
+
+        SetConsoleMode(hIn, oldMode);
+
+#else
+        struct winsize ws;
+
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0 ||
+            ioctl(STDERR_FILENO, TIOCGWINSZ, &ws) == 0 ||
+            ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0) {
+
+                term_size.cols = ws.ws_col;
+                term_size.rows = ws.ws_row;
+                term_size.width_pixels = ws.ws_xpixel;
+                term_size.height_pixels = ws.ws_ypixel;
         }
 #endif
 
         if (term_size.cols <= 0)
                 term_size.cols = -1;
-        if (term_size.rows <= 2)
+
+        if (term_size.rows <= 0)
                 term_size.rows = -1;
 
-        /* If .ws_xpixel and .ws_ypixel are filled out, we can calculate
-         * aspect information for the font used. Sixel-capable terminals
-         * like mlterm set these fields, but most others do not. */
-
-        if (term_size.width_pixels <= 0 || term_size.height_pixels <= 0) {
+        if (term_size.width_pixels <= 0)
                 term_size.width_pixels = -1;
+
+        if (term_size.height_pixels <= 0)
                 term_size.height_pixels = -1;
-        }
 
         *term_size_out = term_size;
 }
@@ -349,7 +391,6 @@ void set_dirty(DirtyFlags dirty)
         }
         model.dirty |= dirty;
 }
-
 
 void set_pause_seconds(double seconds)
 {
