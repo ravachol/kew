@@ -654,6 +654,68 @@ uint32_t utf8_next(const char *s, int *bytes_consumed)
 
 int codepoint_display_width(uint32_t cp)
 {
+        switch (cp) {
+        // Stars
+        case 0x2B50:  // ⭐ White Medium Star
+        case 0x1F31F: // 🌟 Glowing Star
+
+        // Hearts
+        case 0x2764:  // ❤ Heart
+        case 0x1F493: // 💓 Beating Heart
+        case 0x1F494: // 💔 Broken Heart
+        case 0x1F495: // 💕 Two Hearts
+        case 0x1F496: // 💖 Sparkling Heart
+        case 0x1F497: // 💗 Growing Heart
+        case 0x1F498: // 💘 Heart with Arrow
+        case 0x1F499: // 💙 Blue Heart
+        case 0x1F49A: // 💚 Green Heart
+        case 0x1F49B: // 💛 Yellow Heart
+        case 0x1F49C: // 💜 Purple Heart
+        case 0x1F49D: // 💝 Heart with Ribbon
+        case 0x1F49E: // 💞 Revolving Hearts
+        case 0x1F49F: // 💟 Heart Decoration
+        case 0x1F5A4: // 🖤 Black Heart
+        case 0x1F90D: // 🤍 White Heart
+        case 0x1F90E: // 🤎 Brown Heart
+        case 0x1F9E1: // 🧡 Orange Heart
+        case 0x1FA75: // 🩵 Light Blue Heart
+        case 0x1FA76: // 🩶 Grey Heart
+        case 0x1FA77: // 🩷 Pink Heart
+
+        // Common emoji
+        case 0x1F525: // 🔥
+        case 0x1F44D: // 👍
+        case 0x1F44E: // 👎
+        case 0x1F389: // 🎉
+        case 0x1F680: // 🚀
+        case 0x1F4A9: // 💩
+        case 0x1F600: // 😀
+        case 0x1F601: // 😁
+        case 0x1F602: // 😂
+        case 0x1F603: // 😃
+        case 0x1F604: // 😄
+        case 0x1F605: // 😅
+        case 0x1F606: // 😆
+        case 0x1F609: // 😉
+        case 0x1F60A: // 😊
+        case 0x1F60D: // 😍
+        case 0x1F618: // 😘
+        case 0x1F622: // 😢
+        case 0x1F62D: // 😭
+        case 0x1F923: // 🤣
+        case 0x1F914: // 🤔
+        case 0x1F60E: // 😎
+        case 0x1F44F: // 👏
+        case 0x1F64F: // 🙏
+        case 0x1F44C: // 👌
+        case 0x1F44B: // 👋
+        case 0x1F44A: // 👊
+        case 0x1F917: // 🤗
+        case 0x1F92F: // 🤯
+        case 0x1F973: // 🥳
+                return 2;
+        }
+
         int w = mk_wcwidth((uint32_t)cp);
 
         if (w < 0)
@@ -752,6 +814,8 @@ void draw_buffer_set_string_truncated(
                 cell->style = style;
                 cell->attrs = style.attrs;
                 cell->kind = CELL_NORMAL;
+
+                fprintf(stderr, "U+%04X width=%d\n", cp, codepoint_display_width(cp));
 
                 if (w == 2) {
                         Cell *cont = cell + 1;
@@ -987,7 +1051,7 @@ bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
         if (model->state.currentView == SEARCH_VIEW)
                 region = model->state.ui.search_region;
 
-        if (mouse_y + 1 < region.row  || mouse_y + 1 > region.row + region.height)
+        if (mouse_y + 1 < region.row || mouse_y + 1 > region.row + region.height)
                 return false;
 
         return true;
@@ -1005,8 +1069,7 @@ void scrollbar_scroll(int pos)
 
         pos += 3;
 
-        if (model->state.currentView == PLAYLIST_VIEW)
-        {
+        if (model->state.currentView == PLAYLIST_VIEW) {
                 scrollbar = &model->state.ui.playlist_scrollbar;
                 height = model->state.ui.playlist_region.height;
                 row = model->state.ui.playlist_region.row;
@@ -1024,14 +1087,13 @@ void scrollbar_scroll(int pos)
                                                  : model->state.ui.chosen_row;
 
                 model->state.ui.chosen_row = (model->state.ui.chosen_row < 0)
-                        ? 0
-                        : model->state.ui.chosen_row;
+                                                 ? 0
+                                                 : model->state.ui.chosen_row;
 
                 set_dirty(DIRTY_PLAYLIST);
         }
 
-        if (model->state.currentView == LIBRARY_VIEW)
-        {
+        if (model->state.currentView == LIBRARY_VIEW) {
                 scrollbar = &model->state.ui.library_scrollbar;
                 height = model->state.ui.library_region.height;
                 row = model->state.ui.library_region.row;
@@ -1050,8 +1112,8 @@ void scrollbar_scroll(int pos)
                         : model->state.ui.chosen_lib_row;
 
                 model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row < 0)
-                        ? 0
-                        : model->state.ui.chosen_lib_row;
+                                                     ? 0
+                                                     : model->state.ui.chosen_lib_row;
 
                 model->state.ui.check_collapse_top_level = true;
 
@@ -1059,8 +1121,7 @@ void scrollbar_scroll(int pos)
                 component_library_helper_update_view_state(model);
         }
 
-        if (model->state.currentView == SEARCH_VIEW)
-        {
+        if (model->state.currentView == SEARCH_VIEW) {
                 scrollbar = &model->state.ui.search_scrollbar;
                 height = model->state.ui.search_region.height;
                 row = model->state.ui.search_region.row;
@@ -1079,8 +1140,8 @@ void scrollbar_scroll(int pos)
                         : model->state.ui.chosen_search_result_row;
 
                 model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row < 0)
-                        ? 0
-                        : model->state.ui.chosen_search_result_row;
+                                                               ? 0
+                                                               : model->state.ui.chosen_search_result_row;
 
                 model->state.ui.check_collapse_top_level = true;
 
