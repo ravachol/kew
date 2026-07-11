@@ -443,11 +443,6 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
         int is_playing = 0;
         int extra_indent = 0;
 
-        if (*iter >= ctx.start_lib_iter + model->state.ui.max_lib_rows) {
-                (*iter)++;
-                goto traverse_children;
-        }
-
         if (current != NULL &&
             strcmp(current->song.file_path, entry->full_path) == 0)
                 is_playing = 1;
@@ -470,6 +465,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
         }
 
         if (!show) {
+                return NULL;
+        }
+        else if (*iter >= ctx.start_lib_iter + model->state.ui.max_lib_rows) {
+                (*iter)++;
                 goto traverse_children;
         }
 

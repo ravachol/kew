@@ -427,6 +427,13 @@ void set_model_attributes(Pane *pane)
                 model->state.ui.playlist_region = pane->region;
                 model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
                 model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
+
+                double position =
+                        (double)model->state.ui.chosen_row /
+                        (double)model->unshuffled_playlist->count;
+
+                model->state.ui.playlist_scrollbar.position =
+                        (int) model->state.ui.playlist_region.row + (int)round(position * model->state.ui.playlist_region.height);
         }
 
         if (pane->fn == component_library_rows)
@@ -435,14 +442,27 @@ void set_model_attributes(Pane *pane)
                 model->state.ui.library_region = pane->region;
                 model->state.ui.library_scrollbar.position = model->state.ui.library_region.row;
                 model->state.ui.library_scrollbar.last_position = model->state.ui.library_region.row;
+
+                double position =
+                        (double)model->state.ui.chosen_lib_row /
+                        (double)model->state.ui.lib_row_count;
+
+                model->state.ui.library_scrollbar.position =
+                        (int) model->state.ui.library_region.row + (int)round(position * model->state.ui.library_region.height);
         }
 
         if (pane->fn == component_search_results) {
                 model->state.ui.search_region = pane->region;
                 model->state.ui.search_region = pane->region;
-                model->state.ui.search_scrollbar.position = model->state.ui.search_region.height;
+                model->state.ui.search_scrollbar.position = model->state.ui.search_region.row;
                 model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
 
+                double position =
+                        (double)model->state.ui.chosen_search_result_row /
+                        (double)model->state.ui.search_results_count;
+
+                model->state.ui.search_scrollbar.position =
+                        (int) model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
         }
 }
 
