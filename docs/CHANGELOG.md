@@ -11,6 +11,7 @@ The big changes this release are:
 - .Mp4 file support.
 - Always logs errors to ~/.local/state/kew/logs/error.log.
 - Fixed two bugs on windows, small images and resize crash.
+- Covers now correctly display non-square covers
 
 Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
@@ -42,7 +43,9 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 - Windows resize crash. By @ravachol.
 
-- Small cover images. By @ravachol
+- Windows: small cover images. By @ravachol
+
+- Displays non-square covers correctly, not small. By @ravachol.
 
 ## kew 4.1.8
 
