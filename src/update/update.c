@@ -240,7 +240,7 @@ void scroll_prev(Model *model)
 
                 model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row > 0) ? model->state.ui.chosen_search_result_row - 1 : 0;
 
-                if (model->state.ui.current_lib_entry && (model->state.ui.current_search_entry->parent &&
+                if (model->state.ui.current_lib_entry && (model->state.ui.current_search_entry && model->state.ui.current_search_entry->parent &&
                                                           (model->state.ui.current_search_entry == model->state.ui.current_search_entry->parent->children ||
                                                            (model->state.ui.chosen_search_dir && model->state.ui.current_search_entry->id == model->state.ui.chosen_search_dir->id))))
                         component_search_helper_collapse_view(model, -1);

@@ -57,7 +57,6 @@ void emit_image(ImagePayload *image,
                 if (*p == '\n')
                         p++;
         }
-
 }
 
 static inline void safe_putchar(int c)
@@ -270,6 +269,13 @@ void terminal_backend_commit(const DrawBuffer *buf,
                                 }
 
                         } else {
+
+                                // Continuation of Unicode char, already rendered, skip
+                                if (cell->kind == CELL_WIDE_CONT) {
+                                        col++;
+                                        cur_col++;
+                                        continue;
+                                }
 
                                 // Image anchor
                                 if (cell->kind == CELL_IMAGE_ANCHOR) {

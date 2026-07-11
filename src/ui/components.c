@@ -43,6 +43,9 @@ bool found_last_parent = false;
 
 void render_scroll_bar(DrawBuffer *buf, k_Rect region, k_ScrollBar scrollbar, CellStyle style)
 {
+        if (scrollbar.position < 0)
+                return;
+
         int row = scrollbar.position - 2;
 
         if (row > region.height + region.row - 3)
@@ -597,7 +600,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 else
                                         process_name(orig_name, dir_name, name_width, false, false);
 
-                                draw_buffer_set_string(buf, draw_row, text_col, dir_name, item_style);
+                                draw_buffer_set_string_truncated(buf, draw_row, text_col, dir_name, name_width, item_style);
 
                                 // File
                         } else {
