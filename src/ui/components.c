@@ -1659,9 +1659,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 for (int i = 0; i < spaces; i++) {
                         draw_buffer_set_string_truncated(buf, draw_row, col, " ", 1, cell_style_plain());
+                        col++;
                 }
-
-                col++;
 
                 // Title
                 bool is_chosen = (i == uis->chosen_row);
