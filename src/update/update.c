@@ -182,7 +182,7 @@ void scroll_next(Model *model)
                 model->state.ui.chosen_lib_row++;
 
                 if (model->state.ui.lib_row_count != 0 && model->state.ui.chosen_lib_row > model->state.ui.lib_row_count)
-                        model->state.ui.lib_row_count = model->state.ui.lib_row_count - 1;
+                        model->state.ui.chosen_lib_row = model->state.ui.lib_row_count - 1;
 
                 if ((model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
                      ((model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id != model->state.ui.treeCtx.chosen_dir->id)))) {
@@ -729,7 +729,10 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->state.ui.lib_row_count = msg->num_lib_rows;
 
                 if (model->state.ui.current_lib_entry && model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256))
+                {
                         model->name_scroll.active = false;
+                        set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
+                }
                 break;
 
         case MSG_SEARCH_ROW_SELECTED:

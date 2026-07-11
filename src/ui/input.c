@@ -59,7 +59,8 @@ struct timespec last_input_time;
 char digits_pressed[MAX_SEQ_LEN];
 int digits_pressed_count;
 double dragged_position_seconds = 0.0;
-bool dragging_progress_bar = false;
+bool dragging_progressbar = false;
+bool dragging_scrollbar = false;
 
 struct Msg map_tb_key_to_event(struct tb_event *ev)
 {
@@ -431,12 +432,13 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                         Model *model = get_model();
                         model->state.ui.link_clicked = true;
                 }
+        }
 
-                if (mouse_key == TB_KEY_MOUSE_RELEASE) {
-                        // Mouse moved outside progress bar area → stop dragging
-                        dragging_progress_bar = false;
-                        return true;
-                }
+        if (mouse_key == TB_KEY_MOUSE_RELEASE) {
+                // Mouse moved outside progress bar area → stop dragging
+                dragging_progressbar = false;
+                dragging_scrollbar = false;
+                return true;
         }
 
         // Progress bar click or hold-drag movement
@@ -447,13 +449,26 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
 
         if (inProgressBar) {
                 // Any left press or movement within bar = update
-                if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_progress_bar) {
-                        dragging_progress_bar = true;
+                if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_progressbar) {
+                        dragging_progressbar = true;
 
                         gint64 newPosUs = (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
                         set_position(newPosUs);
 
                         event->type = MSG_SEEK;
+
+                        return true;
+                }
+        }
+
+        bool inScrollBar = scrollbar_at_position(mouse_x, mouse_y, dragging_scrollbar);
+
+        if (inScrollBar) {
+                if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_scrollbar) {
+
+                        dragging_scrollbar = true;
+
+                        scrollbar_scroll(mouse_y);
 
                         return true;
                 }
@@ -486,7 +501,7 @@ void handle_cooldown(void)
         }
 
         if (cooldownElapsed) {
-                if (!dragging_progress_bar) {
+                if (!dragging_progressbar) {
                         if (flush_seek()) {
                                 AppState *state = get_app_state();
                                 state->ui.isFastForwarding = false;

@@ -5,10 +5,11 @@
 The big changes this release are:
 
 - A new repo [kew-data](https://codeberg.org/ravachol/kew-data) with a database which, if installed, makes artists names clickable. Click on an artist in track view to go to their homepage. Why? We are trying to find ways to support artists and bought music better. It's recommended that this becomes an optional dependency for kew packages. The data is sourced from Wikidata and is 9MB with 162 000 homepages.
+- Scrollbar!
+- Faster seek on long files.
 - Switched mp4 lib from minimp4 to libmp4 because Fedora doesn't accept the minimp4 license.
 - .Mp4 file support.
 - Always logs errors to ~/.local/state/kew/logs/error.log.
-- Faster seek on long files.
 
 Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
@@ -17,6 +18,8 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 #### Enhancements
 
 - (Optional) Click on an artist name in track view to open their homepage . By @ravachol. Repo: https://codeberg.org/ravachol/kew-data.
+
+- Scrollbar on playlist, library and search view. By @ravachol.
 
 - Always logs errors. Linux/FreeBSD: $HOME/.local/state/kew/logs. macOs: /Library/Logs/kew. Windows: LOCALAPPDATA/kew/logs. By @ravachol.
 

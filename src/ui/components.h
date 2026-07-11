@@ -31,6 +31,8 @@ ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBu
 
 ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
+void component_playlist_helper_reset(Model *model);
+
 void component_playlist_helper_update_view_state(Model *model);
 
 ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);

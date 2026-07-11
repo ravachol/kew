@@ -1176,7 +1176,7 @@ void save_playlist(const char *path, const PlayList *playlist)
         write_m3u_file(expanded_path, playlist);
 }
 
-void export_current_playlist(const char *path, const PlayList *playlist, char* playlist_name)
+void export_current_playlist(const char *path, const PlayList *playlist, char *playlist_name)
 {
         char m3u_filename[KEW_PATH_MAX];
         char expanded_path[KEW_PATH_MAX];

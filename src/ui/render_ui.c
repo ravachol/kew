@@ -418,6 +418,34 @@ void handle_layout_options(Model *model, Layout *layout, Pane *pane, int row_num
         }
 }
 
+void set_model_attributes(Pane *pane)
+{
+        Model *model = get_model();
+
+        if (pane->fn == component_playlist_rows) {
+                model->state.ui.playlist_region = pane->region;
+                model->state.ui.playlist_region = pane->region;
+                model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
+                model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
+        }
+
+        if (pane->fn == component_library_rows)
+        {
+                model->state.ui.library_region = pane->region;
+                model->state.ui.library_region = pane->region;
+                model->state.ui.library_scrollbar.position = model->state.ui.library_region.row;
+                model->state.ui.library_scrollbar.last_position = model->state.ui.library_region.row;
+        }
+
+        if (pane->fn == component_search_results) {
+                model->state.ui.search_region = pane->region;
+                model->state.ui.search_region = pane->region;
+                model->state.ui.search_scrollbar.position = model->state.ui.search_region.height;
+                model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
+
+        }
+}
+
 void layout_reflow(Model *model,
                    Layout *layout,
                    int total_cols,
@@ -606,10 +634,9 @@ void layout_reflow(Model *model,
 
                         // Final position
                         pane->region.row = origin_y + current_row + pane->offsetY;
-
                         pane->region.col = origin_x + current_col + pane->offsetX;
-
                         pane->region.height = row->resolved_height;
+                        pane->region.width -= pane->offsetX;
 
                         // Recurse into child layout
                         if (pane->child) {
@@ -624,6 +651,8 @@ void layout_reflow(Model *model,
                         }
 
                         current_col += pane->region.width;
+
+                        set_model_attributes(pane);
                 }
 
                 current_row += row->resolved_height;
@@ -1034,6 +1063,7 @@ void ui_init(void)
         model->track_landscape_layout = build_layout_by_name("track_landscape");
 
         component_library_helper_reset(model);
+        component_playlist_helper_reset(model);
 
         s_buf = draw_buffer_create(model->term_w, model->term_h);
 }
@@ -1067,6 +1097,7 @@ void ui_shutdown(void)
                 return;
 
         component_library_helper_reset(model);
+        component_playlist_helper_reset(model);
 
         layout_destroy(model->library_layout);
         layout_destroy(model->playlist_layout);
