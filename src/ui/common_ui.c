@@ -815,8 +815,6 @@ void draw_buffer_set_string_truncated(
                 cell->attrs = style.attrs;
                 cell->kind = CELL_NORMAL;
 
-                fprintf(stderr, "U+%04X width=%d\n", cp, codepoint_display_width(cp));
-
                 if (w == 2) {
                         Cell *cont = cell + 1;
 
