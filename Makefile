@@ -122,6 +122,7 @@ PKG_CFLAGS  = $(shell $(PKG_CONFIG) --cflags $(PKG_LIBS))
 PKG_LDFLAGS = $(shell $(PKG_CONFIG) --libs $(PKG_LIBS))
 
 COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
+COMMONFLAGS += -include include/compat/buildinfo.h
 
 ifeq ($(DEBUG), 1)
     SYMBOL_FLAGS := -g
@@ -141,7 +142,7 @@ else
 endif
 
 ifneq ($(strip $(KEW_VERSION)),)
-    COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
+    COMMONFLAGS += -DKEW_VERSION_RAW=$(KEW_VERSION)
 endif
 
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith -D__USE_MINGW_ANSI_STDIO=1
@@ -198,7 +199,7 @@ ifeq ($(USE_MACOS_MEDIA), 1)
   DEFINES += -DUSE_MACOS_MEDIA
 endif
 
-DEFINES += -DPREFIX=\"$(PREFIX)\"
+DEFINES += -DPREFIX_RAW=$(PREFIX)
 
 # Conditionally add faad2 support if USE_FAAD is enabled
 ifeq ($(USE_FAAD), 1)
@@ -246,16 +247,16 @@ WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
 MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
-DATADIR ?= $(PREFIX)/share
-LOCALEDIR ?= $(DATADIR)/locale
-THEMEDIR = $(DATADIR)/kew/themes
-THEMESRCDIR := $(CURDIR)/themes
-LAYOUTDIR = $(DATADIR)/kew/layouts
-LAYOUTSRCDIR := $(CURDIR)/layouts
+KEW_DATADIR ?= $(PREFIX)/share
+LOCALEDIR ?= $(KEW_DATADIR)/locale
+THEMEDIR = $(KEW_DATADIR)/kew/themes
+THEMESRCDIR := $(shell pwd)/themes
+LAYOUTDIR = $(KEW_DATADIR)/kew/layouts
+LAYOUTSRCDIR := $(shell pwd)/layouts
 
-DEFINES += -DLOCALEDIR=\"$(LOCALEDIR)\"
+DEFINES += -DLOCALEDIR_RAW=$(LOCALEDIR)
 
-CFLAGS += -DDATADIR=\"$(DATADIR)\"
+CFLAGS += -DKEW_DATADIR_RAW=$(KEW_DATADIR)
 
 all: kew
 
@@ -400,7 +401,7 @@ endif
 uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/bin/kew"
 	rm -f "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
-	rm -f "$(DESTDIR)$(DATADIR)/kew/artists.db"
+	rm -f "$(DESTDIR)$(KEW_DATADIR)/kew/artists.db"
 	rm -rf "$(DESTDIR)$(THEMEDIR)"
 	rm -rf "$(DESTDIR)$(LAYOUTDIR)"
 	rm -f "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"

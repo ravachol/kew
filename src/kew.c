@@ -38,6 +38,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define KEW_VERSION "4.2.0"
 #endif
 
+#ifndef PREFIX
+#define PREFIX "/usr/local"
+#endif
+
+#ifndef KEW_DATADIR
+#define KEW_DATADIR "/usr/local/share"
+#endif
+
 #include "common/appstate.h"
 #include "common/common.h"
 #include "common/events.h"
@@ -113,7 +121,7 @@ GMainLoop *main_loop;
 
 static struct timespec last_resize_time = {0};
 
-const int COOLDOWN_RESIZE_MS = 200;
+const int COOLDOWN_RESIZE_MS = 100;
 
 /**
  * @brief Updates last resize variable, which keeps track of when a resize happened

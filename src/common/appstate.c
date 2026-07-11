@@ -4,11 +4,9 @@
  *
  */
 
-#include "common/appstate.h"
-#include "common/model.h"
-#include "utils/file.h"
-#include "utils/term.h"
-#include "utils/utils.h"
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
 
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef _WIN32
@@ -22,6 +20,12 @@ static int win32_stdout_is_file = 0;
 #else
 #include <sys/ioctl.h> /* ioctl */
 #endif
+
+#include "common/appstate.h"
+#include "common/model.h"
+#include "utils/file.h"
+#include "utils/term.h"
+#include "utils/utils.h"
 
 sound_system_t *sound_sys = NULL;
 
@@ -82,7 +86,7 @@ void artists_db_init(void)
 
         char filepath[PATH_MAX];
 
-        snprintf(filepath, sizeof(filepath), "%s/kew/%s", DATADIR, ARTISTS_DB_FILE);
+        snprintf(filepath, sizeof(filepath), "%s/kew/%s", KEW_DATADIR, ARTISTS_DB_FILE);
 
         if (!exists_file(filepath)) {
                 snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", ARTISTS_DB_FILE);
@@ -111,72 +115,133 @@ void artists_db_shutdown(void)
                 free(model->db);
 }
 
-void get_tty_size(TermSize *term_size_out)
-{
-        TermSize term_size = {
-            .cols = -1,
-            .rows = -1,
-            .width_pixels = -1,
-            .height_pixels = -1};
-
 #ifdef _WIN32
-        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-        if (hOut != INVALID_HANDLE_VALUE) {
-                CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-                if (GetConsoleScreenBufferInfo(hOut, &csbi)) {
-                        term_size.cols =
-                            csbi.srWindow.Right - csbi.srWindow.Left + 1;
-                        term_size.rows =
-                            csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-                }
-        }
-
-        // Ask the terminal for its pixel size (XTWINOPS).
-        // Reply: ESC [ 4 ; height ; width t
-
+static bool get_windows_terminal_pixels(int *width, int *height)
+{
         HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
 
-        DWORD oldMode = 0;
-        GetConsoleMode(hIn, &oldMode);
+        if (hIn == INVALID_HANDLE_VALUE)
+                return false;
 
-        SetConsoleMode(hIn,
-                       oldMode |
-                           ENABLE_VIRTUAL_TERMINAL_INPUT);
+        DWORD oldMode;
+
+        if (!GetConsoleMode(hIn, &oldMode))
+                return false;
+
+        DWORD mode = oldMode |
+                     ENABLE_VIRTUAL_TERMINAL_INPUT;
+
+        // Disable cooked input
+        mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+
+        if (!SetConsoleMode(hIn, mode))
+                return false;
+
+        // Clear pending input
+        FlushConsoleInputBuffer(hIn);
 
         printf("\033[14t");
         fflush(stdout);
 
         char buf[128];
-        DWORD nread = 0;
-        size_t pos = 0;
+        DWORD read;
+        int pos = 0;
 
-        while (pos < sizeof(buf) - 1) {
-                if (!ReadFile(hIn, buf + pos, 1, &nread, NULL) ||
-                    nread == 0)
+        DWORD start = GetTickCount();
+
+        while (pos < (int)sizeof(buf) - 1) {
+
+                if (GetTickCount() - start > 500)
                         break;
 
-                if (buf[pos] == 't') {
-                        pos++;
+                if (!ReadFile(hIn,
+                              buf + pos,
+                              1,
+                              &read,
+                              NULL)) {
                         break;
                 }
 
-                pos++;
+                if (read == 1) {
+
+                        if (buf[pos] == 't') {
+                                pos++;
+                                break;
+                        }
+
+                        pos++;
+                }
         }
 
-        buf[pos] = '\0';
+        buf[pos] = 0;
 
-        int h, w;
+        int h = 0;
+        int w = 0;
 
-        if (sscanf(buf, "\033[4;%d;%dt", &h, &w) == 2) {
-                term_size.width_pixels = w;
-                term_size.height_pixels = h;
-        }
+        bool ok = sscanf(buf,
+                         "\033[4;%d;%dt",
+                         &h,
+                         &w) == 2;
 
         SetConsoleMode(hIn, oldMode);
 
+        if (ok) {
+                *width = w;
+                *height = h;
+                return true;
+        }
+
+        return false;
+}
+
+#endif
+
+void get_tty_size(TermSize *term_size_out)
+{
+        Model *model = get_model();
+        TermSize term_size = {
+            .cols = model->term_w,
+            .rows = model->term_h,
+            .width_pixels = -1,
+            .height_pixels = -1};
+
+#ifdef _WIN32
+
+        int width = 0;
+        int height = 0;
+
+        if (get_windows_terminal_pixels(&width, &height)) {
+                term_size.width_pixels = width;
+                term_size.height_pixels = height;
+                term_size.cell_width = width / model->term_w;
+                term_size.cell_height = height / model->term_h;
+        }
+
+        // Fallback
+        if ((term_size.width_pixels <= 0 ||
+            term_size.height_pixels <= 0) || (term_size.cell_width <= 0 ||  term_size.cell_height <= 0)) {
+
+                int cell_width = 10;
+                int cell_height = 20;
+
+                if (term_size.cell_width >  0)
+                        cell_width = term_size.cell_width;
+
+                if (term_size.cell_height >  0)
+                        cell_height = term_size.cell_height;
+
+                if (term_size.cols > 0 && term_size.rows > 0) {
+                        term_size.width_pixels =
+                            term_size.cols * cell_width;
+
+                        term_size.height_pixels =
+                            term_size.rows * cell_height;
+                }
+        }
+
 #else
+
         struct winsize ws;
 
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0 ||
@@ -188,6 +253,7 @@ void get_tty_size(TermSize *term_size_out)
                 term_size.width_pixels = ws.ws_xpixel;
                 term_size.height_pixels = ws.ws_ypixel;
         }
+
 #endif
 
         if (term_size.cols <= 0)

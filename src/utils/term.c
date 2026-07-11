@@ -8,6 +8,22 @@
 
 #include "term.h"
 
+#ifdef _WIN32
+#include <winsock2.h>  // Must be before windows.h and formt document can reorder things
+#endif
+
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+#else
+#include <pwd.h>
+#include <sys/ioctl.h> /* ioctl */
+#include <sys/select.h>
+#include <termios.h>
+
+static struct termios orig_termios;
+#endif
+
 #include "common/model.h"
 
 #include <fcntl.h>
@@ -17,18 +33,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-#include <winsock2.h>
-#else
-#include <pwd.h>
-#include <sys/ioctl.h> /* ioctl */
-#include <sys/select.h>
-#include <termios.h>
-
-static struct termios orig_termios;
-#endif
 
 static const int MAX_TERMINAL_ROWS = 9999;
 
