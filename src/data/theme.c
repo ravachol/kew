@@ -25,10 +25,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifndef PREFIX
-#define PREFIX "/usr/local"
-#endif
-
 #ifdef _WIN32
 #include <windows.h>
 #endif

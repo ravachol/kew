@@ -18,15 +18,15 @@ If you want to compile it yourself, follow the instructions below:
 ```sh
 pacman -Syu
 
-pacman -S --noconfirm --needed mingw-w64-ucrt-x86_64-pkg-config mingw-w64-ucrt-x86_64-faad2 mingw-w64-ucrt-x86_64-taglib mingw-w64-ucrt-x86_64-fftw mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-chafa mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-opus mingw-w64-ucrt-x86_64-opusfile mingw-w64-ucrt-x86_64-libvorbis mingw-w64-ucrt-x86_64-libogg git
+pacman -S --noconfirm --needed make mingw-w64-ucrt-x86_64-pkg-config mingw-w64-ucrt-x86_64-faad2 mingw-w64-ucrt-x86_64-taglib mingw-w64-ucrt-x86_64-fftw mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-chafa mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-opus mingw-w64-ucrt-x86_64-opusfile mingw-w64-ucrt-x86_64-libvorbis mingw-w64-ucrt-x86_64-libogg git
 
 git clone https://codeberg.org/ravachol/kew.git
 
 cd kew
 
-mingw32-make -j
+make -j
 
-mingw32-make install PREFIX=/ucrt64
+make install PREFIX=/ucrt64
 
 kew
 ```

@@ -472,10 +472,9 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
 float calc_aspect_ratio(void)
 {
-        TermSize term_size;
+        Model *model = get_model();
         gint cell_width = -1, cell_height = -1;
-
-        get_tty_size(&term_size);
+        TermSize term_size = model->term_size;
 
         if (term_size.cols > 0 && term_size.rows > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.cols;
@@ -493,10 +492,11 @@ float calc_aspect_ratio(void)
 
 float get_aspect_ratio()
 {
-        TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
-        get_tty_size(&term_size);
+        Model *model = get_model();
+
+        TermSize term_size = model->term_size;
 
         if (term_size.cols > 0 && term_size.rows > 0 &&
             term_size.width_pixels > 0 && term_size.height_pixels > 0) {
@@ -509,6 +509,12 @@ float get_aspect_ratio()
                 cell_width = 8;
                 cell_height = 16;
         }
+
+        if (cell_width < 4 || cell_width > 100)
+                cell_width = 8;
+
+        if (cell_height < 8 || cell_height > 100)
+                cell_height = 16;
 
         // Calculate corrected width based on aspect ratio correction
         return (float)cell_height / (float)cell_width;
@@ -533,30 +539,69 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         int cell_width = 8;
         int cell_height = 16;
 
-        printf("\033[%d;%dH", row, col);
-
+#ifdef _WIN32
+        // Use the default monospace cell ratio.
+        if ((term_size->cols > 0 && term_size->rows > 0) && (term_size->cell_width <= 0 || term_size->cell_height <= 0)) {
+                cell_width = 10;
+                cell_height = 20;
+        } else {
+                cell_width = term_size->cell_width;
+                cell_height = term_size->cell_height;
+        }
+#else
         if (term_size->cols > 0 && term_size->rows > 0 &&
-            term_size->width_pixels > 0 && term_size->height_pixels > 0) {
+            term_size->width_pixels > 0 &&
+            term_size->height_pixels > 0) {
+
                 cell_width = term_size->width_pixels / term_size->cols;
                 cell_height = term_size->height_pixels / term_size->rows;
         }
+#endif
 
-        if (cell_width == 0 || cell_height == 0) {
+        printf("\033[%d;%dH", row, col);
+
+        if (cell_width <= 0 || cell_height <= 0) {
                 set_error_message("Invalid cell dimensions.\n");
                 return;
         }
 
-        float aspect = (float)cell_height / (float)cell_width;
-        int corrected_width = (int)(base_height * aspect);
+        // Terminal cell aspect ratio
+        // Terminal cell correction
+        float cell_ratio = (float)cell_height / (float)cell_width;
 
-        if (corrected_width > max_width)
+        // Source image aspect
+        float image_ratio = (float)width / (float)height;
+
+        // Keep requested height
+        int corrected_height = base_height;
+
+        // Calculate width in terminal cells
+        int corrected_width = (int)(corrected_height *
+                                    image_ratio *
+                                    cell_ratio);
+
+        // If too wide, limit width and reduce height
+        if (corrected_width > max_width) {
+
                 corrected_width = max_width;
+
+                corrected_height = (int)(corrected_width /
+                                         (image_ratio * cell_ratio));
+        }
+
+        // Minimum size
+        if (corrected_width < 1)
+                corrected_width = 1;
+
+        if (corrected_height < 1)
+                corrected_height = 1;
 
         if (term_size->cols > 0 && corrected_width > term_size->cols) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
-        if (term_size->rows > 0 && base_height > term_size->rows) {
+
+        if (term_size->rows > 0 && corrected_height > term_size->rows) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
@@ -569,8 +614,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         Model *model = get_model();
         pthread_mutex_lock(&(model->state.drawbuffer_mutex));
 
-        if (anchor->image && anchor->kind == CELL_IMAGE_ANCHOR)
-        {
+        if (anchor->image && anchor->kind == CELL_IMAGE_ANCHOR) {
                 free_image_payload(anchor->image);
                 anchor->image = NULL;
         }
@@ -586,9 +630,9 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         img->protocol = IMAGE_SIXEL;
         img->pixel_w = corrected_width * cell_width;
-        img->pixel_h = base_height * cell_height;
+        img->pixel_h = corrected_height * cell_height;
         img->id = img_hash;
-        img->screen_h = base_height;
+        img->screen_h = corrected_height;
         img->screen_w = corrected_width;
 
         anchor->kind = CELL_IMAGE_ANCHOR;
@@ -624,7 +668,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                     pixels, width, height,
                     width * 4,
                     CHAFA_PIXEL_RGBA8_UNASSOCIATED,
-                    corrected_width, base_height,
+                    corrected_width, corrected_height,
                     cell_width, cell_height, cover_style);
 
                 if (!printable)
