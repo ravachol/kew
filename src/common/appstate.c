@@ -21,8 +21,6 @@ static int win32_stdout_is_file = 0;
 #include <sys/ioctl.h> /* ioctl */
 #endif
 
-#include "appstate.h"
-
 #include "common/appstate.h"
 #include "common/model.h"
 #include "utils/file.h"
