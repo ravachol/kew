@@ -28,7 +28,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef __USE_POSIX
 #define __USE_POSIX
-#include "data/img_func.h"
 #endif
 
 #ifdef __FreeBSD__
@@ -43,6 +42,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "common/common.h"
 #include "common/events.h"
 #include "common/model.h"
+
+#include "data/img_func.h"
 
 #include "sys/discord_rpc.h"
 #include "sys/mpris.h"
@@ -88,6 +89,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <glib-unix.h>
 #endif
 #include <glib.h>
+#include <libgen.h>
 #include <libintl.h>
 #include <locale.h>
 #include <pthread.h>
@@ -286,7 +288,9 @@ void logging_init(void)
         if (path != NULL) {
                 Model *model = get_model();
 
-                g_mkdir_with_parents(path, 0755);
+                char *folder = basename(path);
+
+                g_mkdir_with_parents(folder, 0755);
 
                 model->state.ui.logFile = freopen(path, "w", stderr);
 
@@ -954,6 +958,12 @@ void state_init(void)
         state->ui.metadata_switched = 0;
         state->ui.decoder_switched = 0;
         state->ui.naming_playlist = false;
+        state->ui.playlist_scrollbar.position = 0;
+        state->ui.playlist_scrollbar.last_position = 0;
+        state->ui.library_scrollbar.position = 0;
+        state->ui.library_scrollbar.last_position = 0;
+        state->ui.search_scrollbar.position = 0;
+        state->ui.search_scrollbar.last_position = 0;
         ps->lastPlayedId = -1;
         ps->nextSongNeedsRebuilding = false;
         ps->songHasErrors = false;

@@ -1,4 +1,3 @@
-#include "ui/components.h"
 #define _XOPEN_SOURCE 700
 
 /**
@@ -17,10 +16,14 @@
 
 #include "data/theme.h"
 
+#include "ui/components.h"
+
 #include "utils/term.h"
 #include "utils/utils.h"
 
 #include <glib.h>
+#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -964,4 +967,126 @@ void switch_view(ViewState view_to_show)
         }
 
         view_changed(model);
+}
+
+bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
+{
+        Model *model = get_model();
+
+        if (!dragging && mouse_x != model->term_w)
+                return false;
+
+        k_Rect region = {0};
+
+        if (model->state.currentView == PLAYLIST_VIEW)
+                region = model->state.ui.playlist_region;
+
+        if (model->state.currentView == LIBRARY_VIEW)
+                region = model->state.ui.library_region;
+
+        if (model->state.currentView == SEARCH_VIEW)
+                region = model->state.ui.search_region;
+
+        if (mouse_y + 1 < region.row  || mouse_y + 1 > region.row + region.height)
+                return false;
+
+        return true;
+}
+
+void scrollbar_scroll(int pos)
+{
+        Model *model = get_model();
+
+        k_ScrollBar *scrollbar = NULL;
+        int height = 0;
+        int row = 0;
+        int numRows = 0;
+        long long delta_row = 0;
+
+        pos += 3;
+
+        if (model->state.currentView == PLAYLIST_VIEW)
+        {
+                scrollbar = &model->state.ui.playlist_scrollbar;
+                height = model->state.ui.playlist_region.height;
+                row = model->state.ui.playlist_region.row;
+                numRows = (int)model->unshuffled_playlist->count;
+                delta_row = (long long)pos - (long long)row;
+
+                if (delta_row <= 3)
+                        delta_row = 0;
+
+                double position = (double)delta_row / (double)height;
+
+                model->state.ui.chosen_row = round(numRows * position);
+                model->state.ui.chosen_row = (model->state.ui.chosen_row >= model->unshuffled_playlist->count)
+                                                 ? model->unshuffled_playlist->count - 1
+                                                 : model->state.ui.chosen_row;
+
+                model->state.ui.chosen_row = (model->state.ui.chosen_row < 0)
+                        ? 0
+                        : model->state.ui.chosen_row;
+
+                set_dirty(DIRTY_PLAYLIST);
+        }
+
+        if (model->state.currentView == LIBRARY_VIEW)
+        {
+                scrollbar = &model->state.ui.library_scrollbar;
+                height = model->state.ui.library_region.height;
+                row = model->state.ui.library_region.row;
+                numRows = model->state.ui.lib_row_count;
+                delta_row = (long long)pos - (long long)row;
+
+                if (delta_row <= 3)
+                        delta_row = 0;
+
+                double position = (double)delta_row / (double)height;
+                model->state.ui.chosen_lib_row = round(numRows * position);
+
+                model->state.ui.chosen_lib_row =
+                    (model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count)
+                        ? model->state.ui.lib_row_count - 1
+                        : model->state.ui.chosen_lib_row;
+
+                model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row < 0)
+                        ? 0
+                        : model->state.ui.chosen_lib_row;
+
+                model->state.ui.check_collapse_top_level = true;
+
+                set_dirty(DIRTY_LIBRARY);
+                component_library_helper_update_view_state(model);
+        }
+
+        if (model->state.currentView == SEARCH_VIEW)
+        {
+                scrollbar = &model->state.ui.search_scrollbar;
+                height = model->state.ui.search_region.height;
+                row = model->state.ui.search_region.row;
+                numRows = model->state.ui.search_results_count;
+                delta_row = (long long)pos - (long long)row;
+
+                if (delta_row <= 3)
+                        delta_row = 0;
+
+                double position = (double)delta_row / (double)height;
+                model->state.ui.chosen_search_result_row = round(numRows * position);
+
+                model->state.ui.chosen_search_result_row =
+                    (model->state.ui.chosen_search_result_row >= model->state.ui.search_results_count)
+                        ? model->state.ui.lib_row_count - 1
+                        : model->state.ui.chosen_search_result_row;
+
+                model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row < 0)
+                        ? 0
+                        : model->state.ui.chosen_search_result_row;
+
+                model->state.ui.check_collapse_top_level = true;
+
+                set_dirty(DIRTY_SEARCH);
+        }
+
+        scrollbar->last_position = scrollbar->position;
+        scrollbar->position = pos;
 }

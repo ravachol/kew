@@ -294,6 +294,8 @@ void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
 void reset_search_result(Model *model)
 {
         model->state.ui.chosen_search_result_row = 0;
+        model->state.ui.search_scrollbar.position = 0;
+        model->state.ui.search_scrollbar.last_position = 0;
 }
 
 int add_to_search_text(Model *model, const char *str)

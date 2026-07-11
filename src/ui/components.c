@@ -42,6 +42,21 @@ const char *LOGO[] =  {"  __",
 
 bool found_last_parent = false;
 
+void render_scroll_bar(DrawBuffer *buf, k_Rect region, k_ScrollBar scrollbar, CellStyle style)
+{
+        int row = scrollbar.position - 2;
+
+        if (row > region.height + region.row - 3)
+                row = region.height + region.row - 3;
+
+        if (row < region.row)
+                row = region.row;
+
+        draw_buffer_set_string_truncated(buf, row, region.col + region.width - 1, "█", 1, style);
+        draw_buffer_set_string_truncated(buf, row+1, region.col + region.width - 1, "█", 1, style);
+        draw_buffer_set_string_truncated(buf, row+2, region.col + region.width - 1, "█", 1, style);
+}
+
 void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
 {
         if (node == NULL || buffer == NULL || node->song.file_path == NULL ||
@@ -399,6 +414,12 @@ void component_library_helper_reset(Model *model)
         model->state.ui.chosen_search_dir = NULL;
         model->state.ui.chosen_dir = NULL;
         model->state.ui.last_search_parent = NULL;
+
+        model->state.ui.library_scrollbar.position = model->state.ui.library_region.row;
+        model->state.ui.library_scrollbar.last_position = model->state.ui.library_region.row;
+        model->state.ui.search_scrollbar.position = model->state.ui.search_region.row;
+        model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
+
         reset_msg_queue_pointers();
 }
 
@@ -1527,6 +1548,12 @@ void component_playlist_helper_update_view_state(Model *model)
         }
 }
 
+void component_playlist_helper_reset(Model *model)
+{
+        model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
+        model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
+}
+
 ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -1668,6 +1695,9 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 node = node->next;
                 printed++;
         }
+
+        CellStyle plain_style = cell_style_plain();
+        render_scroll_bar(buf, region, model->state.ui.playlist_scrollbar, plain_style);
 
         return (ComponentMsg){0};
 }
@@ -2943,7 +2973,7 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         if (model->library == NULL)
                 return result;
 
-        int max_name_width = region.width - 2;
+        int max_name_width = region.width - 3;
         if (max_name_width < 0)
                 max_name_width = 0;
 
@@ -2957,6 +2987,9 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         for (int i = row_count; i < region.height; i++) {
                 draw_buffer_set_string(buf, region.row + i, region.col, "", empty);
         }
+
+        CellStyle plain_style = cell_style_plain();
+        render_scroll_bar(buf, region, model->state.ui.library_scrollbar, plain_style);
 
         int chosen_row = model->state.ui.chosen_lib_row;
         if (chosen_row > iter) {
@@ -3228,6 +3261,9 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                                                  "", region.width, plain);
                 printed_rows++;
         }
+
+        CellStyle plain_style = cell_style_plain();
+        render_scroll_bar(buf, region, model->state.ui.search_scrollbar, plain_style);
 
         result.has_msg = true;
         result.msg = (struct Msg){

@@ -44,7 +44,7 @@ static ma_result init_ma_decoder_wrapper(
 {
         ma_decoder_config decConfig;
         memset(&decConfig, 0, sizeof(ma_decoder_config));
-        decConfig.seekPointCount = 128;
+        decConfig.seekPointCount = 256;
         decConfig.format = config->preferredFormat;
 
         ma_result result =

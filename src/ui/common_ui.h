@@ -320,4 +320,12 @@ void view_changed(Model *model);
 
 void switch_view(ViewState view_to_show);
 
+void render_scroll_bar(DrawBuffer *buf, k_Rect region, k_ScrollBar scrollbar, CellStyle style);
+
+bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging);
+
+void scrollbar_scroll(int pos);
+
+void scrollbar_reset(k_ScrollBar scrollbar);
+
 #endif

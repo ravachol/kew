@@ -79,6 +79,11 @@ typedef struct {
 } k_Rect;
 
 typedef struct {
+        int position;
+        int last_position;
+} k_ScrollBar;
+
+typedef struct {
         PixelData fg;
         PixelData bg;
         int fgAnsi;
@@ -507,6 +512,14 @@ typedef struct
         bool naming_playlist;
 
         ColorPalette visualizer_palettes[7];
+
+        k_ScrollBar playlist_scrollbar;
+        k_ScrollBar library_scrollbar;
+        k_ScrollBar search_scrollbar;
+
+        k_Rect playlist_region;
+        k_Rect library_region;
+        k_Rect search_region;
 } UIState;
 
 /**
