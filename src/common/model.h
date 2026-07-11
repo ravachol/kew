@@ -741,6 +741,7 @@ typedef struct
 {
         gint cols, rows;
         gint width_pixels, height_pixels;
+        gint cell_width, cell_height;
 } TermSize;
 
 typedef struct SearchResult {

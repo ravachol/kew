@@ -1003,6 +1003,10 @@ static DWORD WINAPI win_input_thread(void *arg)
                         break;
                 }
 
+                case WINDOW_BUFFER_SIZE_EVENT: {
+                        break;
+                }
+
                 case KEY_EVENT: {
 
                         if (!rec.Event.KeyEvent.bKeyDown)
@@ -1077,6 +1081,7 @@ void input_init(void)
         mode &= ~ENABLE_QUICK_EDIT_MODE; // Disable QuickEdit
         mode |= ENABLE_EXTENDED_FLAGS;   // Required
         mode |= ENABLE_MOUSE_INPUT;
+        mode |= ENABLE_WINDOW_INPUT;
 
         SetConsoleMode(global.hin, mode);
         SetConsoleCtrlHandler(ctrl_handler, TRUE);

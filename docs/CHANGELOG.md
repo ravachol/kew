@@ -10,6 +10,7 @@ The big changes this release are:
 - Switched mp4 lib from minimp4 to libmp4 because Fedora doesn't accept the minimp4 license.
 - .Mp4 file support.
 - Always logs errors to ~/.local/state/kew/logs/error.log.
+- Fixed two bugs on windows, small images and resize crash.
 
 Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
@@ -36,6 +37,12 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 - Remove number + g / number + ENTER for playing a numbered song on the playlist. It's just complicated to implement with termbox2.
 
 - Faster seek on very long files. By @ravachol. Reported by @theDyze.
+
+#### Bug fixes
+
+- Windows resize crash. By @ravachol.
+
+- Small cover images. By @ravachol
 
 ## kew 4.1.8
 
