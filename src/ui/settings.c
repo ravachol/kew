@@ -2767,30 +2767,7 @@ Layout *load_layout_from_config(const char *layout_name)
 
 const char *get_system_data_dir(void)
 {
-#ifdef _WIN32
-    // Get the directory where the executable lives, then go up to find share/
-    static char data_dir[KEW_PATH_MAX];
-    if (data_dir[0] != '\0')
-        return data_dir;
-
-    char exe_path[KEW_PATH_MAX];
-    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
-
-    // Convert backslashes to forward slashes
-    for (char *p = exe_path; *p; p++)
-        if (*p == '\\') *p = '/';
-
-    // exe is at <prefix>/bin/kew.exe, so go up two levels
-    char *bin = strrchr(exe_path, '/');
-    if (bin) *bin = '\0';
-    char *prefix = strrchr(exe_path, '/');
-    if (prefix) *prefix = '\0';
-
-    snprintf(data_dir, sizeof(data_dir), "%s/share/kew", exe_path);
-    return data_dir;
-#else
     return PREFIX "/share/kew";
-#endif
 }
 
 static bool copy_layout_file(const char *src_name,

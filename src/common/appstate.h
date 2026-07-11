@@ -37,10 +37,6 @@
 
 #define DEFAULT_NUM_PROGRESS_BARS 35
 
-#ifndef DATADIR
-#define DATADIR "/usr/local/share"
-#endif
-
 typedef struct {
 
     bool render_often;

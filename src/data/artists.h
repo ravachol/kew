@@ -7,13 +7,18 @@
 #ifndef ARTISTS_H
 #define ARTISTS_H
 
-#include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#endif
 
 #define DB_MAGIC 0x4B455744 /* "KEWD" */
 
@@ -30,6 +35,10 @@ typedef struct {
 } Header;
 
 typedef struct {
+#ifdef _WIN32
+    HANDLE file;
+    HANDLE mapping_handle;
+#endif
     int fd;
     size_t size;
     void *mapping;
