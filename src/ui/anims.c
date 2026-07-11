@@ -62,32 +62,44 @@ void advance_name_scroll_anim(Model *model)
         if (!(model->state.currentView == PLAYLIST_VIEW || model->state.currentView == LIBRARY_VIEW))
                 return;
 
-        if (model->state.currentView == PLAYLIST_VIEW)
-        {
+        if (model->state.currentView == PLAYLIST_VIEW) {
                 previous = &uis->previous_chosen_song;
                 chosen = &uis->chosen_row;
-
         }
 
         same_name = (*previous == *chosen);
-
-        if (model->name_scroll.pre_anim_delay_frame < start_scrolling_delay)
-                model->name_scroll.pre_anim_delay_frame++;
-        else
-        {
-                if (num_skips > skips_per_frame)
-                {
-                        num_skips = 0;
-                        model->name_scroll.frame++;
-                }
-                else
-                        num_skips++;
-        }
 
         if (!same_name) {
                 *previous = *chosen;
                 reset_animation(&model->name_scroll);
                 model->name_scroll.active = true;
+        }
+
+        if (!model->name_scroll.active)
+                return;
+
+        if (model->name_scroll.pre_anim_delay_frame < start_scrolling_delay)
+                model->name_scroll.pre_anim_delay_frame++;
+        else {
+                if (num_skips > skips_per_frame) {
+                        num_skips = 0;
+                        model->name_scroll.frame++;
+                } else
+                        num_skips++;
+        }
+
+        if (model->state.currentView == LIBRARY_VIEW) {
+                if (model->state.ui.current_lib_entry && model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256)) {
+                        model->name_scroll.active = false;
+                        set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
+                }
+        }
+
+        if (model->state.currentView == PLAYLIST_VIEW) {
+                if (model->name_scroll.frame > 256) {
+                        model->name_scroll.active = false;
+                        set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
+                }
         }
 
         if (model->name_scroll.active)
