@@ -17,16 +17,15 @@
 #include "ops/playback_state.h"
 #include "ops/playlist_ops.h"
 
-
 #include "common_ui.h"
 #include "settings.h"
 #include "sound/audiotypes.h"
 #include "ui/playlist_ui.h"
 #include "visuals.h"
 
+#include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
-#include "utils/file.h"
 
 #include <libgen.h>
 #include <math.h>
@@ -53,8 +52,8 @@ void render_scroll_bar(DrawBuffer *buf, k_Rect region, k_ScrollBar scrollbar, Ce
                 row = region.row;
 
         draw_buffer_set_string_truncated(buf, row, region.col + region.width - 1, "█", 1, style);
-        draw_buffer_set_string_truncated(buf, row+1, region.col + region.width - 1, "█", 1, style);
-        draw_buffer_set_string_truncated(buf, row+2, region.col + region.width - 1, "█", 1, style);
+        draw_buffer_set_string_truncated(buf, row + 1, region.col + region.width - 1, "█", 1, style);
+        draw_buffer_set_string_truncated(buf, row + 2, region.col + region.width - 1, "█", 1, style);
 }
 
 void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
@@ -446,7 +445,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
         if (*iter >= ctx.start_lib_iter + model->state.ui.max_lib_rows) {
                 (*iter)++;
-                return NULL;
+                goto traverse_children;
         }
 
         if (current != NULL &&
@@ -470,8 +469,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         ((entry->is_directory && strcmp(artist->full_path, entry_artist->full_path) == 0) || (strcmp(artist->full_path, entry->parent->full_path) == 0)));
         }
 
-        if (!show)
-                return NULL;
+        if (!show) {
+                goto traverse_children;
+        }
 
         // Colors
         PixelData track_color = {ui->default_color, ui->default_color, ui->default_color, 255};
@@ -516,8 +516,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                 if (*iter >= ctx.start_lib_iter) {
                         int draw_row = region.row + *row_count;
 
-                        if (draw_row >= region.row + region.height)
-                                return NULL;
+                        if (draw_row >= region.row + region.height) {
+                                (*iter)++;
+                                goto traverse_children;
+                        }
 
                         // Extra indent for deep nesting
                         if (depth >= 2)
@@ -640,7 +642,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                 (*iter)++;
         }
 
-        // Call render_tree_node recursively
+traverse_children: { // Call render_tree_node recursively
         FileSystemEntry *child = entry->children;
         while (child != NULL) {
 
@@ -654,7 +656,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                 child = child->next;
         }
-
+}
         return found_chosen;
 }
 
@@ -1473,8 +1475,7 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
         const UISettings *ui = &model->state.settings;
         CellStyle style = cell_style_plain();
 
-        if (model->state.ui.naming_playlist)
-        {
+        if (model->state.ui.naming_playlist) {
                 style = cell_style_from_theme(ui->theme.status_info);
 
                 char msg[256];
@@ -2811,7 +2812,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️ "), help_style);
         draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️ ")), max_width,
-                                "https://kewplayer.com/donate.html", "Donate!", link_style);
+                            "https://kewplayer.com/donate.html", "Donate!", link_style);
 
         row += 2;
 
