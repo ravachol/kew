@@ -123,6 +123,7 @@ PKG_LDFLAGS = $(shell $(PKG_CONFIG) --libs $(PKG_LIBS))
 
 COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 COMMONFLAGS += -include include/compat/buildinfo.h
+COMMONFLAGS += -include compat_errno.h
 
 ifeq ($(DEBUG), 1)
     SYMBOL_FLAGS := -g
