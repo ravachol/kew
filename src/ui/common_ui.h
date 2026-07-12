@@ -328,4 +328,6 @@ void scrollbar_scroll(int pos);
 
 void scrollbar_reset(k_ScrollBar scrollbar);
 
+void register_click(int mouse_x, int mouse_y, int mouse_key);
+
 #endif

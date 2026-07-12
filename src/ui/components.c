@@ -29,6 +29,7 @@
 
 #include <libgen.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <wchar.h>
 
@@ -427,7 +428,7 @@ void component_library_helper_reset(Model *model)
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
                                                              int max_list_size, int max_name_width,
-                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter)
+                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, bool *clicked_song)
 {
         if (entry == NULL)
                 return NULL;
@@ -469,8 +470,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
         if (!show) {
                 return NULL;
-        }
-        else if (*iter >= ctx.start_lib_iter + model->state.ui.max_lib_rows) {
+        } else if (*iter >= ctx.start_lib_iter + model->state.ui.max_lib_rows) {
                 (*iter)++;
                 goto traverse_children;
         }
@@ -531,8 +531,20 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                         int draw_col = region.col;
 
-                        bool is_chosen = (uis->chosen_lib_row == *iter);
+                        bool is_chosen = false;
 
+                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                                is_chosen = (model->mouse_y >= region.row &&
+                                             model->mouse_y <= region.row + region.height) &&
+                                            (model->mouse_x >= region.col &&
+                                             model->mouse_x <= region.col + region.width - 1) &&
+                                            *row_count == model->mouse_y - region.row - 1;
+
+                                if (is_chosen)
+                                        *clicked_song = true;
+                        } else {
+                                is_chosen = (uis->chosen_lib_row == *iter);
+                        }
                         // Chosen row state update
                         if (is_chosen) {
                                 found_chosen = entry;
@@ -651,7 +663,7 @@ traverse_children: { // Call render_tree_node recursively
                 FileSystemEntry *result;
 
                 result = component_library_helper_render_node(model, child, depth + 1, max_list_size,
-                                                              max_name_width, region, buf, row_count, iter);
+                                                              max_name_width, region, buf, row_count, iter, clicked_song);
 
                 if (result && !found_chosen)
                         found_chosen = result;
@@ -1576,8 +1588,11 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int start_iter = model->state.ui.start_iter;
 
         int printed = 0;
+        int chosen_row = 0;
+        bool clicked_song = false;
 
         Node *node = model->state.ui.playlist_node;
+        Node *chosen_node = NULL;
         CellStyle header = cell_style_from_theme(ui->theme.header);
         CellStyle playing_style = cell_style_from_theme(ui->theme.playlist_playing);
 
@@ -1666,7 +1681,24 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 }
 
                 // Title
-                bool is_chosen = (i == uis->chosen_row);
+                bool is_chosen = false;
+
+                if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                        is_chosen = (model->mouse_y >= region.row &&
+                                     model->mouse_y <= region.row + region.height) &&
+                                    (model->mouse_x >= region.col &&
+                                     model->mouse_x <= region.col + region.width - 1) &&
+                                    i - start_iter == model->mouse_y - region.row - 2;
+
+                        if (is_chosen) {
+                                clicked_song = true;
+                                chosen_node = node;
+                                chosen_row = i;
+                        }
+                } else {
+                        is_chosen = (i == uis->chosen_row);
+                }
+
                 bool is_playing = false;
 
                 Node *current = get_current_song();
@@ -1701,7 +1733,16 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         CellStyle plain_style = cell_style_plain();
         render_scroll_bar(buf, region, model->state.ui.playlist_scrollbar, plain_style);
 
-        return (ComponentMsg){0};
+        ComponentMsg result = (ComponentMsg){0};
+        result.has_msg = true;
+        result.msg = (struct Msg){
+            .type = MSG_PLAYLIST_ROW_SELECTED,
+            .chosen_song = chosen_node,
+            .chosen_row = chosen_row,
+            .clicked_song = clicked_song};
+
+
+        return result;
 }
 
 ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
@@ -2981,8 +3022,9 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
 
         int row_count = 0;
         int iter = 0;
+        bool clicked_chosen = false;
 
-        FileSystemEntry *current_lib_entry = component_library_helper_render_node(model, model->library, 0, region.height, max_name_width, region, buf, &row_count, &iter);
+        FileSystemEntry *chosen_lib_entry = component_library_helper_render_node(model, model->library, 0, region.height, max_name_width, region, buf, &row_count, &iter, &clicked_chosen);
 
         // Clear remaining rows
         CellStyle empty = cell_style_plain();
@@ -3001,8 +3043,9 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         result.has_msg = true;
         result.msg = (struct Msg){
             .type = MSG_LIBRARY_ROW_SELECTED,
-            .current_lib_entry = current_lib_entry,
+            .current_lib_entry = chosen_lib_entry,
             .chosen_lib_row = chosen_row,
+            .clicked_song = clicked_chosen,
             .num_lib_rows = iter};
 
         return result;
@@ -3165,6 +3208,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
         int printed_rows = 0;
         int draw_row = region.row;
         bool is_chosen = false;
+        bool clicked_song = false;
 
         for (int i = start_search_iter; i < total_rows; i++) {
 
@@ -3181,7 +3225,19 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                         chosen_row = iter;
                 }
 
-                is_chosen = (chosen_row == iter);
+                if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                        is_chosen = (model->mouse_y >= region.row &&
+                                     model->mouse_y <= region.row + region.height) &&
+                                    (model->mouse_x >= region.col &&
+                                     model->mouse_x <= region.col + region.width - 1) &&
+                                    printed_rows == model->mouse_y - region.row - 1;
+
+                        if (is_chosen) {
+                                clicked_song = true;
+                        }
+                } else {
+                        is_chosen = (chosen_row == iter);
+                }
 
                 if (is_chosen)
                         current_search_entry = model->search_results[i].entry;
@@ -3271,7 +3327,8 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
         result.msg = (struct Msg){
             .type = MSG_SEARCH_ROW_SELECTED,
             .current_search_entry = current_search_entry,
-            .chosen_search_result_row = chosen_row};
+            .chosen_search_result_row = chosen_row,
+            .clicked_song = clicked_song};
 
         return result;
 }

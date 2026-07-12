@@ -23,6 +23,7 @@
 #include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/visuals.h"
+#include "ui/termbox2_input.h"
 
 #include "utils/utils.h"
 
@@ -704,10 +705,39 @@ UpdateResult update(Model *model, struct Msg *msg)
                 result.cmd.type = CMD_SORT_LIBRARY;
                 break;
 
+        case MSG_PLAYLIST_ROW_SELECTED:
+
+                if (msg->clicked_song)
+                {
+                        model->state.ui.chosen_row = msg->chosen_row;
+                        if (msg->chosen_song)
+                                model->state.ui.chosen_node_id = msg->chosen_song->id;
+
+                        if (model->mouse_key == TB_KEY_MOUSE_LEFT || model->mouse_key == TB_KEY_MOUSE_MIDDLE)
+                                dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
+                }
+
+                model->mouse_x = -1;
+                model->mouse_y = -1;
+                model->mouse_key = -1;
+
+                break;
+
         case MSG_LIBRARY_ROW_SELECTED:
 
                 model->state.ui.current_lib_entry = msg->current_lib_entry;
                 model->state.ui.chosen_lib_row = msg->chosen_lib_row;
+
+                if (msg->clicked_song) {
+                        if (model->mouse_key == TB_KEY_MOUSE_LEFT)
+                                dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
+                        else if (model->mouse_key == TB_KEY_MOUSE_MIDDLE)
+                                dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
+                }
+
+                model->mouse_x = -1;
+                model->mouse_y = -1;
+                model->mouse_key = -1;
 
                 if (model->state.ui.check_collapse_top_level) {
 
@@ -736,8 +766,23 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_SEARCH_ROW_SELECTED:
-                model->state.ui.chosen_search_result_row = msg->chosen_search_result_row;
+
                 model->state.ui.current_search_entry = msg->current_search_entry;
+
+                if (msg->clicked_song) {
+                        if (model->mouse_key == TB_KEY_MOUSE_LEFT)
+                                dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
+                        else if (model->mouse_key == TB_KEY_MOUSE_MIDDLE)
+                                dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
+                }
+                else {
+                        model->state.ui.chosen_search_result_row = msg->chosen_search_result_row;
+                }
+
+                model->mouse_x = -1;
+                model->mouse_y = -1;
+                model->mouse_key = -1;
+
                 break;
 
         case MSG_PROGRESS_ROW_SET:
