@@ -30,6 +30,8 @@
 
 static unsigned int update_counter = 0;
 
+#define SCROLLBAR_HEIGHT 3
+
 void set_RGB(PixelData p)
 {
         // ANSI escape code for setting RGB foreground
@@ -1055,7 +1057,7 @@ bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
         return true;
 }
 
-void scrollbar_scroll(int pos)
+void scrollbar_scroll(int mouse_y, bool dragging)
 {
         Model *model = get_model();
 
@@ -1064,8 +1066,7 @@ void scrollbar_scroll(int pos)
         int row = 0;
         int numRows = 0;
         long long delta_row = 0;
-
-        pos += 3;
+        long long pos = mouse_y + 1;
 
         if (model->state.currentView == PLAYLIST_VIEW) {
                 scrollbar = &model->state.ui.playlist_scrollbar;
@@ -1074,20 +1075,23 @@ void scrollbar_scroll(int pos)
                 numRows = (int)model->unshuffled_playlist->count;
                 delta_row = (long long)pos - (long long)row;
 
-                if (delta_row <= 3)
-                        delta_row = 0;
+                if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
-                double position = (double)delta_row / (double)height;
+                        if (delta_row < 0)
+                                delta_row = 0;
 
-                model->state.ui.chosen_row = round(numRows * position);
-                model->state.ui.chosen_row = (model->state.ui.chosen_row >= model->unshuffled_playlist->count)
-                                                 ? model->unshuffled_playlist->count - 1
-                                                 : model->state.ui.chosen_row;
+                        double position = (double)delta_row / (double)height;
 
-                model->state.ui.chosen_row = (model->state.ui.chosen_row < 0)
-                                                 ? 0
-                                                 : model->state.ui.chosen_row;
+                        model->state.ui.chosen_row = round(numRows * position);
+                        model->state.ui.chosen_row = (model->state.ui.chosen_row >= model->unshuffled_playlist->count)
+                                                         ? model->unshuffled_playlist->count - 1
+                                                         : model->state.ui.chosen_row;
 
+                        model->state.ui.chosen_row = (model->state.ui.chosen_row < 0)
+                                                         ? 0
+                                                         : model->state.ui.chosen_row;
+                }
+                
                 set_dirty(DIRTY_PLAYLIST);
         }
 
@@ -1098,25 +1102,26 @@ void scrollbar_scroll(int pos)
                 numRows = model->state.ui.lib_row_count;
                 delta_row = (long long)pos - (long long)row;
 
-                if (delta_row <= 3)
-                        delta_row = 0;
+                if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
-                double position = (double)delta_row / (double)height;
-                model->state.ui.chosen_lib_row = round(numRows * position);
+                        if (delta_row < 0)
+                                delta_row = 0;
 
-                model->state.ui.chosen_lib_row =
-                    (model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count)
-                        ? model->state.ui.lib_row_count - 1
-                        : model->state.ui.chosen_lib_row;
+                        double position = (double)delta_row / (double)height;
 
-                model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row < 0)
-                                                     ? 0
-                                                     : model->state.ui.chosen_lib_row;
+                        model->state.ui.chosen_lib_row = round(numRows * position);
 
-                model->state.ui.check_collapse_top_level = true;
+                        model->state.ui.chosen_lib_row =
+                            (model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count)
+                                ? model->state.ui.lib_row_count - 1
+                                : model->state.ui.chosen_lib_row;
+
+                        model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row < 0)
+                                                             ? 0
+                                                             : model->state.ui.chosen_lib_row;
+                }
 
                 set_dirty(DIRTY_LIBRARY);
-                component_library_helper_update_view_state(model);
         }
 
         if (model->state.currentView == SEARCH_VIEW) {
@@ -1126,28 +1131,29 @@ void scrollbar_scroll(int pos)
                 numRows = model->state.ui.search_results_count;
                 delta_row = (long long)pos - (long long)row;
 
-                if (delta_row <= 3)
-                        delta_row = 0;
+                if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
-                double position = (double)delta_row / (double)height;
-                model->state.ui.chosen_search_result_row = round(numRows * position);
+                        if (delta_row < 0)
+                                delta_row = 0;
 
-                model->state.ui.chosen_search_result_row =
-                    (model->state.ui.chosen_search_result_row >= model->state.ui.search_results_count)
-                        ? model->state.ui.lib_row_count - 1
-                        : model->state.ui.chosen_search_result_row;
+                        double position = (double)delta_row / (double)height;
+                        model->state.ui.chosen_search_result_row = round(numRows * position);
 
-                model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row < 0)
-                                                               ? 0
-                                                               : model->state.ui.chosen_search_result_row;
+                        model->state.ui.chosen_search_result_row =
+                            (model->state.ui.chosen_search_result_row >= model->state.ui.search_results_count)
+                                ? model->state.ui.lib_row_count - 1
+                                : model->state.ui.chosen_search_result_row;
 
-                model->state.ui.check_collapse_top_level = true;
+                        model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row < 0)
+                                                                       ? 0
+                                                                       : model->state.ui.chosen_search_result_row;
+                }
 
                 set_dirty(DIRTY_SEARCH);
         }
 
         scrollbar->last_position = scrollbar->position;
-        scrollbar->position = pos;
+        scrollbar->position = mouse_y;
 }
 
 void register_click(int mouse_x, int mouse_y, int mouse_key)
