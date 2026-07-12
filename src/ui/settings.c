@@ -903,7 +903,7 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->progressBarCurrentEvenChar));
         c_strcpy(settings->progressBarCurrentOddChar, "━",
                  sizeof(settings->progressBarCurrentOddChar));
-        c_strcpy(settings->saveRepeatShuffleSettings, "1",
+        c_strcpy(settings->saveRepeatShuffleSettings, "0",
                  sizeof(settings->saveRepeatShuffleSettings));
         c_strcpy(settings->trackTitleAsWindowTitle, "1",
                  sizeof(settings->trackTitleAsWindowTitle));

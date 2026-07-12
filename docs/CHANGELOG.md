@@ -43,6 +43,8 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 - Faster seek on very long files. By @ravachol. Reported by @theDyze.
 
+- Set save repeat/shuffle settings default to off. By @ravachol. Suggested by @werdahias.
+
 #### Bug fixes
 
 - Windows resize crash. By @ravachol.
