@@ -324,7 +324,7 @@ void render_scroll_bar(DrawBuffer *buf, k_Rect region, k_ScrollBar scrollbar, Ce
 
 bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging);
 
-void scrollbar_scroll(int pos);
+void scrollbar_scroll(int mouse_y, bool dragging);
 
 void scrollbar_reset(k_ScrollBar scrollbar);
 

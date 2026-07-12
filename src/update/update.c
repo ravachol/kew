@@ -22,8 +22,8 @@
 #include "ui/common_ui.h"
 #include "ui/components.h"
 #include "ui/control_ui.h"
-#include "ui/visuals.h"
 #include "ui/termbox2_input.h"
+#include "ui/visuals.h"
 
 #include "utils/utils.h"
 
@@ -320,46 +320,51 @@ void flip_prev_page(Model *model)
 void set_scrollbar_positions()
 {
         Model *model = get_model();
+        int new_pos = 0;
 
         if (model->state.currentView == PLAYLIST_VIEW) {
-                model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
-                model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
-
                 if (model->state.ui.chosen_row >= 0 && (double)model->unshuffled_playlist->count > 0) {
                         double position =
                             (double)model->state.ui.chosen_row /
                             (double)model->unshuffled_playlist->count;
 
-                        model->state.ui.playlist_scrollbar.position =
-                            (int)model->state.ui.playlist_region.row + (int)round(position * model->state.ui.playlist_region.height);
+                        new_pos = (int)model->state.ui.playlist_region.row + (int)round(position * model->state.ui.playlist_region.height);
+
+                        model->state.ui.playlist_scrollbar.position = new_pos;
+
+                        if (new_pos != model->state.ui.playlist_scrollbar.position)
+                                set_dirty(DIRTY_PLAYLIST);
                 }
         }
 
         if (model->state.currentView == LIBRARY_VIEW) {
-                model->state.ui.library_scrollbar.position = model->state.ui.library_region.row;
-                model->state.ui.library_scrollbar.last_position = model->state.ui.library_region.row;
-
                 if (model->state.ui.chosen_lib_row >= 0 && (double)model->state.ui.lib_row_count > 0) {
                         double position =
                             (double)model->state.ui.chosen_lib_row /
                             (double)model->state.ui.lib_row_count;
 
-                        model->state.ui.library_scrollbar.position =
-                            (int)model->state.ui.library_region.row + (int)round(position * model->state.ui.library_region.height);
+                        new_pos = (int)model->state.ui.library_region.row + (int)round(position * model->state.ui.library_region.height);
+
+                        model->state.ui.library_scrollbar.position = new_pos;
+
+                        if (new_pos != model->state.ui.library_scrollbar.position)
+                                set_dirty(DIRTY_LIBRARY);
                 }
         }
 
         if (model->state.currentView == SEARCH_VIEW) {
-                model->state.ui.search_scrollbar.position = model->state.ui.search_region.row;
-                model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
-
                 if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_results_count > 0) {
-                double position =
-                    (double)model->state.ui.chosen_search_result_row /
-                    (double)model->state.ui.search_results_count;
+                        double position =
+                            (double)model->state.ui.chosen_search_result_row /
+                            (double)model->state.ui.search_results_count;
 
-                model->state.ui.search_scrollbar.position =
-                    (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
+                        new_pos = (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
+
+                        model->state.ui.search_scrollbar.position = new_pos;
+
+                        if (new_pos != model->state.ui.search_scrollbar.position)
+                                set_dirty(DIRTY_SEARCH);
+
                 }
         }
 }
@@ -645,8 +650,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_NAMING_PLAYLIST:
-                if (!model->state.ui.naming_playlist)
-                {
+                if (!model->state.ui.naming_playlist) {
                         dispatch_msg((struct Msg){.type = MSG_UPDATELIBRARY});
                 }
                 break;
@@ -757,8 +761,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_PLAYLIST_ROW_SELECTED:
 
-                if (msg->clicked_song)
-                {
+                if (msg->clicked_song) {
                         model->state.ui.chosen_row = msg->chosen_row;
                         if (msg->chosen_song)
                                 model->state.ui.chosen_node_id = msg->chosen_song->id;
@@ -770,6 +773,13 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->mouse_x = -1;
                 model->mouse_y = -1;
                 model->mouse_key = -1;
+
+                if (model->name_scroll.active &&
+                        model->state.ui.current_search_entry &&
+                        model->name_scroll.frame > KEW_NAME_MAX) {
+                        model->name_scroll.active = false;
+                        set_dirty(DIRTY_LIBRARY);
+                }
 
                 break;
 
@@ -783,35 +793,36 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
                         else if (model->mouse_key == TB_KEY_MOUSE_MIDDLE)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
+                } else {
+                        if (model->state.ui.check_collapse_top_level) {
+
+                                FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
+                                FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
+
+                                bool same_parent = first_parent && entry_first_parent &&
+                                                   strcmp(first_parent->full_path, entry_first_parent->full_path) == 0;
+
+                                if (!same_parent) {
+                                        if (model->state.settings.collapseTopLevel)
+                                                library_collapse_directory(model, 1);
+                                        else
+                                                library_collapse_view(model, 1);
+                                }
+                                model->state.ui.check_collapse_top_level = false;
+                        }
                 }
 
                 model->mouse_x = -1;
                 model->mouse_y = -1;
                 model->mouse_key = -1;
 
-                if (model->state.ui.check_collapse_top_level) {
-
-                        FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
-                        FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
-
-                        bool same_parent = first_parent && entry_first_parent &&
-                                           strcmp(first_parent->full_path, entry_first_parent->full_path) == 0;
-
-                        if (!same_parent) {
-                                if (model->state.settings.collapseTopLevel)
-                                        library_collapse_directory(model, 1);
-                                else
-                                        library_collapse_view(model, 1);
-                        }
-                        model->state.ui.check_collapse_top_level = false;
-                }
-
                 model->state.ui.lib_row_count = msg->num_lib_rows;
 
-                if (model->state.ui.current_lib_entry && model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256))
-                {
+                if (model->name_scroll.active &&
+                        model->state.ui.current_lib_entry &&
+                        model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256)) {
                         model->name_scroll.active = false;
-                        set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
+                        set_dirty(DIRTY_LIBRARY);
                 }
                 break;
 
@@ -824,14 +835,20 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
                         else if (model->mouse_key == TB_KEY_MOUSE_MIDDLE)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
-                }
-                else {
+                } else {
                         model->state.ui.chosen_search_result_row = msg->chosen_search_result_row;
                 }
 
                 model->mouse_x = -1;
                 model->mouse_y = -1;
                 model->mouse_key = -1;
+
+                if (model->name_scroll.active &&
+                        model->state.ui.current_search_entry &&
+                        model->name_scroll.frame > (int)strnlen(model->state.ui.current_search_entry->name, 256)) {
+                        model->name_scroll.active = false;
+                        set_dirty(DIRTY_LIBRARY);
+                }
 
                 break;
 

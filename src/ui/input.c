@@ -466,9 +466,9 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         if (inScrollBar) {
                 if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_scrollbar) {
 
-                        dragging_scrollbar = true;
+                        scrollbar_scroll(mouse_y, dragging_scrollbar);
 
-                        scrollbar_scroll(mouse_y);
+                        dragging_scrollbar = true;
 
                         return true;
                 }
@@ -732,6 +732,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
         bool cooldown2Elapsed = false;
 
         Model *model = get_model();
+        bool old_dragging = dragging_scrollbar;
 
         if (is_cooldown_elapsed(COOLDOWN2_MS))
                 cooldown2Elapsed = true;
@@ -819,6 +820,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                 return TRUE;
 
                         // Process only the last event
+                        dragging_scrollbar = old_dragging;
                         bool isMouseEvent = handle_mouse_event(&last_ev, &msg);
                         if (!isMouseEvent) {
 
