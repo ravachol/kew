@@ -227,7 +227,8 @@ void *update_library_thread(void *arg)
 
         FileSystemEntry *old = model->library;
 
-        copy_is_enqueued(old, tmp);
+        if (model->unshuffled_playlist->count > 0)
+                copy_is_enqueued(old, tmp);
 
         model->library = tmp;
 
