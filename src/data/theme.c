@@ -369,8 +369,6 @@ bool ensure_default_themes(void)
                         struct stat src_st, dst_st;
                         if (stat(src, &src_st) == 0 && stat(dst, &dst_st) == 0) {
                                 if (difftime(src_st.st_mtime, dst_st.st_mtime) <= 0) {
-                                        // Destination is newer or same → no need to copy
-                                        fprintf(stderr, "ensure_default_themes: destination is newer or same: %s\n", dst);
                                         need_copy = false;
                                 }
                         }
