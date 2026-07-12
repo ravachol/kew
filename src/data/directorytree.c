@@ -1258,7 +1258,7 @@ void copy_is_enqueued(FileSystemEntry *library, FileSystemEntry *tmp)
         if (library->is_enqueued) {
                 FileSystemEntry *tmp_entry =
                     find_corresponding_entry(tmp, library->full_path);
-                if (tmp_entry != NULL) {
+                if (tmp_entry != NULL && library->is_enqueued > 0 && library->is_enqueued < 1000000) { // safety
                         tmp_entry->is_enqueued = library->is_enqueued;
                 }
         }
