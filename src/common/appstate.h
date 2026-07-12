@@ -15,6 +15,10 @@
 
 #include "common/path_max.h"
 
+#ifndef KEW_DATADIR
+#define KEW_DATADIR "/usr/local/share"
+#endif
+
 #include <gio/gio.h>
 #include <glib.h>
 #include <libintl.h>

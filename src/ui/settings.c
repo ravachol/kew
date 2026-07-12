@@ -41,6 +41,10 @@
 #include <windows.h>
 #endif
 
+#ifndef PREFIX
+#define PREFIX "/usr/local"
+#endif
+
 const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
 const char LAYOUT_FILE[] = "/layouts/current.layout";
@@ -144,6 +148,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {TB_KEY_DELETE, 0, 0, MSG_REMOVE, ""},
 
     // Mouse events
+    {TB_KEY_MOUSE_LEFT, 0, 0, MSG_ENQUEUE, ""},
     {TB_KEY_MOUSE_MIDDLE, 0, 0, MSG_ENQUEUEANDPLAY, ""},
     {TB_KEY_MOUSE_RIGHT, 0, 0, MSG_PLAY_PAUSE, ""},
     {TB_KEY_MOUSE_WHEEL_DOWN, 0, 0, MSG_SCROLLDOWN, ""},

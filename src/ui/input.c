@@ -44,7 +44,7 @@
 #include <wchar.h> // Needed for netbsd
 
 #define MAX_TMP_SEQ_LEN 256
-#define NUM_KEY_MAPPINGS 68
+#define NUM_KEY_MAPPINGS 69
 
 const int COOLDOWN_MS = 500;
 const int COOLDOWN2_MS = 100;
@@ -472,6 +472,10 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
 
                         return true;
                 }
+        }
+        else if (mouse_key == TB_KEY_MOUSE_LEFT || mouse_key == TB_KEY_MOUSE_MIDDLE  || mouse_key == TB_KEY_MOUSE_RIGHT) {
+                register_click(mouse_x, mouse_y, mouse_key);
+                return true;
         }
 
         return false;
