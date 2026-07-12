@@ -28,6 +28,7 @@
 #include "utils/utils.h"
 
 #include <ctype.h>
+#include <math.h>
 
 // kew uses the Model-View-Update pattern.
 //
@@ -316,6 +317,53 @@ void flip_prev_page(Model *model)
         }
 }
 
+void set_scrollbar_positions()
+{
+        Model *model = get_model();
+
+        if (model->state.currentView == PLAYLIST_VIEW) {
+                model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
+                model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
+
+                if (model->state.ui.chosen_row >= 0 && (double)model->unshuffled_playlist->count > 0) {
+                        double position =
+                            (double)model->state.ui.chosen_row /
+                            (double)model->unshuffled_playlist->count;
+
+                        model->state.ui.playlist_scrollbar.position =
+                            (int)model->state.ui.playlist_region.row + (int)round(position * model->state.ui.playlist_region.height);
+                }
+        }
+
+        if (model->state.currentView == LIBRARY_VIEW) {
+                model->state.ui.library_scrollbar.position = model->state.ui.library_region.row;
+                model->state.ui.library_scrollbar.last_position = model->state.ui.library_region.row;
+
+                if (model->state.ui.chosen_lib_row >= 0 && (double)model->state.ui.lib_row_count > 0) {
+                        double position =
+                            (double)model->state.ui.chosen_lib_row /
+                            (double)model->state.ui.lib_row_count;
+
+                        model->state.ui.library_scrollbar.position =
+                            (int)model->state.ui.library_region.row + (int)round(position * model->state.ui.library_region.height);
+                }
+        }
+
+        if (model->state.currentView == SEARCH_VIEW) {
+                model->state.ui.search_scrollbar.position = model->state.ui.search_region.row;
+                model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
+
+                if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_results_count > 0) {
+                double position =
+                    (double)model->state.ui.chosen_search_result_row /
+                    (double)model->state.ui.search_results_count;
+
+                model->state.ui.search_scrollbar.position =
+                    (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
+                }
+        }
+}
+
 UpdateResult update(Model *model, struct Msg *msg)
 {
         UpdateResult result;
@@ -423,6 +471,8 @@ UpdateResult update(Model *model, struct Msg *msg)
 
                 if (model->playbackState.notifySwitch)
                         model->state.ui.chosen_lyrics_row = 0;
+
+                dispatch_msg((struct Msg){.type = MSG_PRE_RENDER});
 
                 result.cmd.type = CMD_TICK;
                 break;
@@ -809,6 +859,10 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_LYRICS_UPDATED:
                 model->state.ui.chosen_lyrics_row = msg->lyrics_offset;
+                break;
+
+        case MSG_PRE_RENDER:
+                set_scrollbar_positions();
                 break;
 
         default:
