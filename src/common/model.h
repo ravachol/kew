@@ -166,6 +166,9 @@ struct Msg {
         char key[MAX_SEQ_LEN]; // To store multi-byte characters
         char args[32];
 
+        int chosen_row;
+        Node *chosen_song;
+
         int chosen_lib_row;
         FileSystemEntry *current_lib_entry;
         int num_lib_rows;
@@ -177,6 +180,8 @@ struct Msg {
         int footer_row;
 
         k_Rect region;
+
+        bool clicked_song;
 
         int lyrics_offset;
 };
@@ -820,6 +825,11 @@ typedef struct Model {
 
         bool hasArtistDb;
         ArtistDb *db;
+
+        // Click
+        int mouse_x;
+        int mouse_y;
+        int mouse_key;
 
         volatile sig_atomic_t updating_library;
 } Model;

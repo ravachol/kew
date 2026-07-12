@@ -1149,3 +1149,14 @@ void scrollbar_scroll(int pos)
         scrollbar->last_position = scrollbar->position;
         scrollbar->position = pos;
 }
+
+void register_click(int mouse_x, int mouse_y, int mouse_key)
+{
+        Model *model = get_model();
+
+        model->mouse_x = mouse_x;
+        model->mouse_y = mouse_y;
+        model->mouse_key = mouse_key;
+
+        set_dirty(DIRTY_PLAYLIST | DIRTY_LIBRARY | DIRTY_SEARCH);
+}
