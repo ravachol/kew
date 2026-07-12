@@ -473,7 +473,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                         return true;
                 }
         }
-        else if (mouse_key == TB_KEY_MOUSE_LEFT || mouse_key == TB_KEY_MOUSE_MIDDLE  || mouse_key == TB_KEY_MOUSE_RIGHT) {
+        else if (mouse_key == TB_KEY_MOUSE_LEFT || mouse_key == TB_KEY_MOUSE_MIDDLE) {
                 register_click(mouse_x, mouse_y, mouse_key);
                 return true;
         }
