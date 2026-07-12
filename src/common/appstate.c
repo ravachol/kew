@@ -21,6 +21,8 @@ static int win32_stdout_is_file = 0;
 #include <sys/ioctl.h> /* ioctl */
 #endif
 
+#include "appstate.h"
+
 #include "common/appstate.h"
 #include "common/model.h"
 #include "utils/file.h"
@@ -350,6 +352,10 @@ void model_init(void)
         model.db = NULL;
 
         model.tick = 17;
+
+        model.mouse_x = -1;
+        model.mouse_y = -1;
+        model.mouse_key = -1;
 
         pthread_mutex_init(&(model.playbackState.switch_mutex), NULL);
         pthread_mutex_init(&(model.state.library_mutex), NULL);

@@ -77,8 +77,9 @@ artist folder->album folder(s)->track(s).
 
 ### Basic
 
-* Play/Enqueue/Dequeue: <kbd>Enter</kbd> or middle mouse.
-* Toggle Play/Pause: <kbd>Space</kbd>, <kbd>p</kbd> or right mouse.
+* Play/Enqueue/Dequeue: <kbd>Enter</kbd> or mouse left.
+* Immediate Play: <kbd>Alt+Enter</kbd> <kbd>Ctrl+g</kbd> or mouse middle.
+* Toggle Play/Pause: <kbd>Space</kbd>, <kbd>p</kbd> or mouse right.
 * Volume: <kbd>+</kbd> <kbd>-</kbd> (alt: <kbd>=</kbd> <kbd>-</kbd>).
 * Switch Track: <kbd>←</kbd> <kbd>→</kbd> (alt: <kbd>h</kbd> <kbd>l</kbd>).
 * Switch View: <kbd>F2-F6</kbd>, (macOS/Android: <kbd>Shift+z,+x,+c,+v,+b</kbd>), Tab or click the footer.
