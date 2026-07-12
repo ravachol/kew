@@ -24,6 +24,7 @@
 #include "ui/control_ui.h"
 #include "ui/termbox2_input.h"
 #include "ui/visuals.h"
+#include "ui/termbox2_input.h"
 
 #include "utils/utils.h"
 
