@@ -79,7 +79,6 @@ jobs:
         run: |
           mkdir -p stage/docs
 
-          cp docs/0-README_WINDOWS.txt stage/docs/
           cp PRIVACY_POLICY.md stage/docs/
           cp TERMS.md stage/docs/
           cp LICENSE stage/docs/
