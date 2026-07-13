@@ -54,6 +54,9 @@ sound_result_t sound_system_create(sound_system_t **out_system)
         atomic_store_explicit(&sound_s->fade_boundary_reached, false, memory_order_release);
         atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
 
+        pthread_mutex_init(&sound_s->decoder_mutex, NULL);
+        pthread_cond_init(&sound_s->decoder_cond, NULL);
+
         sound_result_t sound_result = sound_create_audio_device();
 
         if (sound_result < 0) {
