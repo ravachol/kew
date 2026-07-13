@@ -55,6 +55,8 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 - Fixes error.log produced in the wrong directory. By @ravachol. Found by @C0LD-96.
 
+- Better fix for end of list crash on Ubuntu/Wezterm 4.1.7, the previous one could break gapless playback. By @ravachol.
+
 ## kew 4.1.8
 
 - Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
