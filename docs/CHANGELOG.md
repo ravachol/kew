@@ -14,6 +14,7 @@ The big changes this release are:
 - Fixed two bugs on windows, small images and resize crash.
 - Non-square covers are now correctly displayed.
 - Fixed regression bug that affected gapless playback introduced in 4.1.8.
+- Reduced the max limit of files to sort when there's no song number from 256 to 100. This should make playing directories faster for people with huge folders of unsorted files.
 
 Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
@@ -45,6 +46,8 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 - Faster seek on very long files. By @ravachol. Reported by @theDyze.
 
 - Set save repeat/shuffle settings default to off. By @ravachol. Suggested by @werdahias.
+
+- Reduced the max limit of files to sort when there's no song number from 256 to 100. This should make playing directories faster for people with huge folders of unsorted files. By @ravachol. Reported by @Senal-D-A-Gunaratna.
 
 #### Bug fixes
 
