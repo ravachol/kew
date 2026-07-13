@@ -2,6 +2,10 @@
 
 ## kew 4.2.1
 
+- Windows: Fix Esc being sent on resize, which led to the app sometimes quitting.
+
+## kew 4.2.1
+
 - Fixed regression bug that affected gapless playback introduced in 4.1.8.
 
 - Lowered MAX_SORT_SIZE to 40.
