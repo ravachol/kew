@@ -6,6 +6,8 @@
 
 - Lowered MAX_SORT_SIZE to 40.
 
+- logs to the correct directory, doesn't create a folder.
+
 ## kew 4.2.0
 
 The big changes this release are:
