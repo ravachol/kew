@@ -4,6 +4,8 @@
 
 - Fixed regression bug that affected gapless playback introduced in 4.1.8.
 
+- Lowered MAX_SORT_SIZE to 40.
+
 ## kew 4.2.0
 
 The big changes this release are:
