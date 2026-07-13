@@ -245,8 +245,10 @@ void switch_metadata(sound_system_t *sound)
 
         long long fade_boundary = atomic_load_explicit(&sound->fade_boundary, memory_order_acquire);
 
-        if (fade_boundary < 0) // if there's no fade going on we want to switch decoder after this
+        if (fade_boundary < 0 && !sound->decoder_switched) // if there's no fade going on we want to switch decoder after this
                 set_switch_decoder(true);
+
+        sound->decoder_switched = false;
 
         atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
         atomic_store_explicit(&sound_s->clock_reset_ms, sound_s->fade_enter_song_ms, memory_order_relaxed);
@@ -541,6 +543,7 @@ void *decode_loop(void *arg)
         sound->fade_frames = (sound->always_fade_ms * sound->sample_rate) / 1000;
         sound->fade_current_frame = 0;
         sound->fade_enter_song_ms = 0;
+        sound->decoder_switched = false;
         atomic_store_explicit(&sound->fade_boundary, -1, memory_order_release);
         atomic_store_explicit(&sound->clock_reset_ms, 0, memory_order_relaxed);
 
@@ -556,7 +559,6 @@ void *decode_loop(void *arg)
 
                 // Handle file switch
                 if (atomic_load_explicit(&sound->request_switch_decoder, memory_order_acquire)) {
-                        atomic_store_explicit(&sound->decode_finished, false, memory_order_release);
 
                         if (!pb_is_paused()) {
 
@@ -755,6 +757,8 @@ void *decode_loop(void *arg)
                         write_to_ring_buffer(sound, frames_to_read, mixed_buf);
                 }
 
+                bool finished = atomic_load_explicit(&sound->decode_finished, memory_order_relaxed);
+
                 if (sound->fade_requested && (sound->fade_current_frame >=
                                                   sound->fade_frames ||
                                               frames_to_read == 0)) {
@@ -762,6 +766,11 @@ void *decode_loop(void *arg)
                         sound->fade_requested = false;
                         sound->fade_seek_performed = false;
 
+                        set_switch_decoder(true);
+                }
+                else if (!sound->fade_requested && finished && !sound->decoder_switched)
+                {
+                        sound->decoder_switched = true;
                         set_switch_decoder(true);
                 }
         }
