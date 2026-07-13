@@ -53,6 +53,8 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 - Displays non-square covers correctly, not small. By @ravachol.
 
+- Fixes error.log produced in the wrong directory. By @ravachol. Found by @C0LD-96.
+
 ## kew 4.1.8
 
 - Fixes end of list crash on Ubuntu/Wezterm. By @ravachol. Reported by @gedankenstuecke. Thanks also to @petoem.
