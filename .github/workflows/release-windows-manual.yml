@@ -46,7 +46,7 @@ jobs:
       - name: Build
         shell: msys2 {0}
         run: |
-          mingw-w64-ucrt-x86_64-make -j$(nproc)
+          mingw32-make -j$(nproc)
 
       # -------------------------
       # STAGE INSTALL
@@ -56,7 +56,7 @@ jobs:
         run: |
           rm -rf stage
           mkdir -p stage
-          mingw-w64-ucrt-x86_64-make install DESTDIR=stage PREFIX=
+          mingw32-make install DESTDIR=stage PREFIX=
 
       # -------------------------
       # COLLECT DLLs + EXE
