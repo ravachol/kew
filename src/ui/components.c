@@ -2854,7 +2854,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️ "), help_style);
         draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️ ")), max_width,
-                            "https://kewplayer.com/donate.html", "Donate!", link_style);
+                            "https://kewplayer.com/donate.html", " Donate!", link_style);
 
         row += 2;
 
