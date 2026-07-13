@@ -33,7 +33,6 @@ struct sound_system {
         ma_device *device;
 
         bool audio_thread_priority_set;
-        bool decoder_switched;
         int replay_gain_check_first; // 0 = track, 1 = album, 2 = disabled
         float gain_linear;
 
@@ -88,6 +87,9 @@ struct sound_system {
         ma_uint64 fade_current_frame;
         ma_uint64 fade_total_frames;
         ma_uint64 fade_frames;
+
+        pthread_mutex_t decoder_mutex;
+        pthread_cond_t  decoder_cond;
 };
 
 enum decoder_type_t {

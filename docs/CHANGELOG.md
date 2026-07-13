@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.2.1
+
+- Fixed regression bug that affected gapless playback introduced in 4.1.8.
+
 ## kew 4.2.0
 
 The big changes this release are:
@@ -14,8 +18,7 @@ The big changes this release are:
 - Fixed two bugs on windows, small images and resize crash.
 - Non-square covers are now correctly displayed.
 - Fixed regression bug that affected gapless playback introduced in 4.1.8.
-- Reduced the max limit of files to sort when there's no song number from 256 to 100. This should make playing directories faster for people with huge folders of unsorted files.
-
+- Starts playing directories faster for people with big folders with unsorted files.
 Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 \- Ravachol
@@ -47,7 +50,7 @@ Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
 - Set save repeat/shuffle settings default to off. By @ravachol. Suggested by @werdahias.
 
-- Reduced the max limit of files to sort when there's no song number from 256 to 100. This should make playing directories faster for people with huge folders of unsorted files. By @ravachol. Reported by @Senal-D-A-Gunaratna.
+- Reduced the max limit of files to sort when there's no song number, from 256 to 100. This should make playing directories faster for people with vig folders of unsorted files. By @ravachol. Reported by @Senal-D-A-Gunaratna.
 
 #### Bug fixes
 
