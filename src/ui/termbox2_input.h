@@ -2128,9 +2128,7 @@ static int encode_win_key_to_ansi(const KEY_EVENT_RECORD *k,
                 return 1;
 
         case VK_ESCAPE:
-                if (k->wVirtualKeyCode == VK_ESCAPE) {
-                        buf[0] = 0x1b;
-                }
+                buf[0] = 0x1b;
                 return 1;
 
         case VK_CANCEL:

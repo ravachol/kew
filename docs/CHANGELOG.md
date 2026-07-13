@@ -8,6 +8,18 @@
 
 ## kew 4.2.2
 
+- Windows: Fix Esc being sent on resize, which led to the app sometimes quitting.
+
+## kew 4.2.1
+
+- Fixed regression bug that affected gapless playback introduced in 4.1.8.
+
+- Lowered MAX_SORT_SIZE to 40.
+
+- logs to the correct directory, doesn't create a folder.
+
+## kew 4.2.0
+
 The big changes this release are:
 
 - A new repo [kew-data](https://codeberg.org/ravachol/kew-data) with a database which, if installed, makes artists names clickable. Click on an artist in track view to go to their homepage. Why? We are trying to find ways to support artists and bought music better. It's recommended that this becomes an optional dependency for kew packages. The data is sourced from Wikidata and is 9MB with 162 000 homepages.
