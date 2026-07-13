@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## kew 4.2.1
+## kew 4.2.2
 
 The big changes this release are:
 
