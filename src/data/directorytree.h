@@ -42,7 +42,7 @@ typedef struct FileSystemEntry {
 typedef void (*SlowloadingCallback)(void);
 #endif
 
-#define MAX_SORT_SIZE 256
+#define MAX_SORT_SIZE 100
 #define MAX_DISKS 16
 
 /**
