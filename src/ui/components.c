@@ -537,7 +537,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 is_chosen = (model->mouse_y >= region.row &&
                                              model->mouse_y <= region.row + region.height) &&
                                             (model->mouse_x >= region.col &&
-                                             model->mouse_x <= region.col + region.width - 1) &&
+                                             model->mouse_x <= region.col + region.width - 3) &&
                                             *row_count == model->mouse_y - region.row - 1;
 
                                 if (is_chosen)
@@ -582,7 +582,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         if (is_chosen)
                                 item_style.attrs |= ATTR_REVERSE;
 
-                        int name_width = max_name_width - extra_indent;
+                        int name_width = max_name_width - extra_indent - strnlen(prefix, sizeof(prefix));
+                        if (name_width < 0)
+                                name_width = 0;
 
                         // Directory
                         if (entry->is_directory) {
@@ -1687,7 +1689,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         is_chosen = (model->mouse_y >= region.row &&
                                      model->mouse_y <= region.row + region.height) &&
                                     (model->mouse_x >= region.col &&
-                                     model->mouse_x <= region.col + region.width - 1) &&
+                                     model->mouse_x <= region.col + region.width - 3) &&
                                     i - start_iter == model->mouse_y - region.row - 2;
 
                         if (is_chosen) {
@@ -1705,7 +1707,9 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (current != NULL)
                         is_playing = (current->id == node->id);
 
-                int max_name_width = region.width - (col - region.col);
+                int max_name_width = region.width - (col - region.col) - 2;
+                if (max_name_width < 0)
+                        max_name_width = 0;
 
                 if (is_chosen) {
                         process_name_scroll(model, buffer, filename, max_name_width, true, true);
@@ -1725,6 +1729,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         title_style.attrs |= ATTR_UNDERLINE;
 
                 draw_buffer_set_string_truncated(buf, draw_row, col, filename, region.width, title_style);
+
+                draw_buffer_set_string_truncated(buf, draw_row, col, filename, max_name_width, title_style);
 
                 node = node->next;
                 printed++;
@@ -3229,7 +3235,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                         is_chosen = (model->mouse_y >= region.row &&
                                      model->mouse_y <= region.row + region.height) &&
                                     (model->mouse_x >= region.col &&
-                                     model->mouse_x <= region.col + region.width - 1) &&
+                                     model->mouse_x <= region.col + region.width - 3) &&
                                     printed_rows == model->mouse_y - region.row - 1;
 
                         if (is_chosen) {
@@ -3244,7 +3250,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
                 int depth = determine_depth(model->search_results[i].entry);
                 int extra_indent = depth;
-                int name_width = max_name_width - extra_indent;
+                int name_width = max_name_width - extra_indent - 2;
                 if (name_width < 0)
                         name_width = 0;
 
