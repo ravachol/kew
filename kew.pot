@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 16:38+0200\n"
+"POT-Creation-Date: 2026-07-13 13:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/common/appstate.c:231
+#: src/common/appstate.c:341
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr ""
 
@@ -99,246 +99,6 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/components.c:559
-msgid "─ MUSIC LIBRARY ─"
-msgstr ""
-
-#: src/ui/components.c:1554
-msgid "─ PLAYLIST ─"
-msgstr ""
-
-#: src/ui/components.c:1689
-#, c-format
-msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
-msgstr ""
-
-#: src/ui/components.c:1694
-#, c-format
-msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s. Save:%s"
-msgstr ""
-
-#: src/ui/components.c:1700
-#, c-format
-msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"
-msgstr ""
-
-#: src/ui/components.c:1731
-#, c-format
-msgid " Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."
-msgstr ""
-
-#: src/ui/components.c:1736
-#, c-format
-msgid " Scroll:Fn+↑/↓. Update:%s. Sort:%s."
-msgstr ""
-
-#: src/ui/components.c:1738
-#, c-format
-msgid " Scroll:PgUp/PgDn. Update:%s. Sort:%s."
-msgstr ""
-
-#: src/ui/components.c:1763
-#, c-format
-msgid "Select:↑/↓. Enqueue:%s. Play:%s."
-msgstr ""
-
-#: src/ui/components.c:2424
-#, c-format
-msgid "No lyrics available. Press %s to go back."
-msgstr ""
-
-#: src/ui/components.c:2754
-msgid "kew version: "
-msgstr ""
-
-#: src/ui/components.c:2782 src/ui/components.c:2783
-msgid " Love kew? ❤️ "
-msgstr ""
-
-#: src/ui/components.c:2792 src/ui/components.c:2793 src/ui/components.c:2800
-#: src/ui/components.c:2801 src/ui/components.c:2808
-#, c-format
-msgid " Theme: "
-msgstr ""
-
-#: src/ui/components.c:2794 src/ui/components.c:2795 src/ui/components.c:2802
-#: src/ui/components.c:2803
-msgid "Using "
-msgstr ""
-
-#: src/ui/components.c:2796 src/ui/components.c:2797
-msgid "One Color "
-msgstr ""
-
-#: src/ui/components.c:2798 src/ui/components.c:2806
-msgid "From Track Covers"
-msgstr ""
-
-#: src/ui/components.c:2804 src/ui/components.c:2805
-msgid "Colors "
-msgstr ""
-
-#: src/ui/components.c:2814 src/ui/components.c:2815
-msgid " Author: "
-msgstr ""
-
-#: src/ui/components.c:2833
-msgid " Basic"
-msgstr ""
-
-#: src/ui/components.c:2834
-#, c-format
-msgid " · Play/Pause: %s"
-msgstr ""
-
-#: src/ui/components.c:2835
-#, c-format
-msgid " · Enqueue/Dequeue: %s"
-msgstr ""
-
-#: src/ui/components.c:2836
-#, c-format
-msgid " · Immediate Play: %s"
-msgstr ""
-
-#: src/ui/components.c:2837
-#, c-format
-msgid " · Switch tracks: %s and %s"
-msgstr ""
-
-#: src/ui/components.c:2840
-#, c-format
-msgid " · Volume: %s and %s"
-msgstr ""
-
-#: src/ui/components.c:2843
-#, c-format
-msgid " · Shuffle: %s"
-msgstr ""
-
-#: src/ui/components.c:2844
-#, c-format
-msgid " · Repeat: %s (repeat/repeat list/off)"
-msgstr ""
-
-#: src/ui/components.c:2846
-#, c-format
-msgid " · Clear Playlist: %s"
-msgstr ""
-
-#: src/ui/components.c:2847
-#, c-format
-msgid " · Scroll: %s, %s"
-msgstr ""
-
-#: src/ui/components.c:2850
-#, c-format
-msgid " · Stop: %s"
-msgstr ""
-
-#: src/ui/components.c:2856
-#, c-format
-msgid " · Change View: %s or %s, %s, %s, %s, %s or click the footer"
-msgstr ""
-
-#: src/ui/components.c:2866
-#, c-format
-msgid " · Quit: %s"
-msgstr ""
-
-#: src/ui/components.c:2869
-msgid " Advanced"
-msgstr ""
-
-#: src/ui/components.c:2870
-#, c-format
-msgid " · Toggle Lyrics Page: %s"
-msgstr ""
-
-#: src/ui/components.c:2872
-#, c-format
-msgid " · Seek: %s and %s"
-msgstr ""
-
-#: src/ui/components.c:2875
-#, c-format
-msgid " · Update Library: %s"
-msgstr ""
-
-#: src/ui/components.c:2876
-#, c-format
-msgid " · Sort Library: %s"
-msgstr ""
-
-#: src/ui/components.c:2877
-#, c-format
-msgid " · Move songs: %s/%s"
-msgstr ""
-
-#: src/ui/components.c:2880
-#, c-format
-msgid " · Delete from Playlist: %s"
-msgstr ""
-
-#: src/ui/components.c:2881
-#, c-format
-msgid " · Cycle Color Mode: %s"
-msgstr ""
-
-#: src/ui/components.c:2883
-#, c-format
-msgid " · Cycle Themes: %s"
-msgstr ""
-
-#: src/ui/components.c:2884
-#, c-format
-msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
-msgstr ""
-
-#: src/ui/components.c:2886
-#, c-format
-msgid " · Cycle Visualizer Mode: %s"
-msgstr ""
-
-#: src/ui/components.c:2888
-#, c-format
-msgid " · Toggle ASCII Cover: %s (disables Chroma)"
-msgstr ""
-
-#: src/ui/components.c:2890
-#, c-format
-msgid " · Toggle Notifications: %s"
-msgstr ""
-
-#: src/ui/components.c:2892
-#, c-format
-msgid " · Toggle Crossfade (experimental) On: %s"
-msgstr ""
-
-#: src/ui/components.c:2895
-#, c-format
-msgid " · Crossfade (experimental): quick %s medium %s slow %s"
-msgstr ""
-
-#: src/ui/components.c:2900
-#, c-format
-msgid " · Export Playlist: %s"
-msgstr ""
-
-#: src/ui/components.c:2902
-#, c-format
-msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
-msgstr ""
-
-#: src/ui/components.c:2912 src/ui/components.c:2913
-msgid " Homepage: "
-msgstr ""
-
-#: src/ui/components.c:2989
-#, c-format
-msgid "Search:"
-msgstr ""
-
 #: src/ui/render_ui.c:150
 #, c-format
 msgid "Run man kew for help.\n"
@@ -349,32 +109,272 @@ msgstr ""
 msgid "   kew version: "
 msgstr ""
 
-#: src/ui/settings.c:415
+#: src/ui/settings.c:420
 #, c-format
 msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
 msgstr ""
 
-#: src/kew.c:329
-#, c-format
-msgid "No Music found.\n"
+#: src/ui/components.c:596
+msgid "─ MUSIC LIBRARY ─"
 msgstr ""
 
-#: src/kew.c:330
-#, c-format
-msgid "Please make sure the path is set correctly. \n"
+#: src/ui/components.c:1599
+msgid "─ PLAYLIST ─"
 msgstr ""
 
-#: src/kew.c:331
+#: src/ui/components.c:1762
 #, c-format
-msgid "To set it type: kew path \"/path/to/Music\". \n"
+msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
+msgstr ""
+
+#: src/ui/components.c:1767
+#, c-format
+msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s. Save:%s"
+msgstr ""
+
+#: src/ui/components.c:1773
+#, c-format
+msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"
+msgstr ""
+
+#: src/ui/components.c:1804
+#, c-format
+msgid " Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."
+msgstr ""
+
+#: src/ui/components.c:1809
+#, c-format
+msgid " Scroll:Fn+↑/↓. Update:%s. Sort:%s."
+msgstr ""
+
+#: src/ui/components.c:1811
+#, c-format
+msgid " Scroll:PgUp/PgDn. Update:%s. Sort:%s."
+msgstr ""
+
+#: src/ui/components.c:1836
+#, c-format
+msgid "Select:↑/↓. Enqueue:%s. Play:%s."
+msgstr ""
+
+#: src/ui/components.c:2497
+#, c-format
+msgid "No lyrics available. Press %s to go back."
+msgstr ""
+
+#: src/ui/components.c:2827
+msgid "kew version: "
+msgstr ""
+
+#: src/ui/components.c:2855 src/ui/components.c:2856
+msgid " Love kew? ❤️  "
+msgstr ""
+
+#: src/ui/components.c:2865 src/ui/components.c:2866 src/ui/components.c:2873
+#: src/ui/components.c:2874 src/ui/components.c:2881
+#, c-format
+msgid " Theme: "
+msgstr ""
+
+#: src/ui/components.c:2867 src/ui/components.c:2868 src/ui/components.c:2875
+#: src/ui/components.c:2876
+msgid "Using "
+msgstr ""
+
+#: src/ui/components.c:2869 src/ui/components.c:2870
+msgid "One Color "
+msgstr ""
+
+#: src/ui/components.c:2871 src/ui/components.c:2879
+msgid "From Track Covers"
+msgstr ""
+
+#: src/ui/components.c:2877 src/ui/components.c:2878
+msgid "Colors "
+msgstr ""
+
+#: src/ui/components.c:2887 src/ui/components.c:2888
+msgid " Author: "
+msgstr ""
+
+#: src/ui/components.c:2906
+msgid " Basic"
+msgstr ""
+
+#: src/ui/components.c:2907
+#, c-format
+msgid " · Play/Pause: %s"
+msgstr ""
+
+#: src/ui/components.c:2908
+#, c-format
+msgid " · Enqueue/Dequeue: %s"
+msgstr ""
+
+#: src/ui/components.c:2909
+#, c-format
+msgid " · Immediate Play: %s"
+msgstr ""
+
+#: src/ui/components.c:2910
+#, c-format
+msgid " · Switch tracks: %s and %s"
+msgstr ""
+
+#: src/ui/components.c:2913
+#, c-format
+msgid " · Volume: %s and %s"
+msgstr ""
+
+#: src/ui/components.c:2916
+#, c-format
+msgid " · Shuffle: %s"
+msgstr ""
+
+#: src/ui/components.c:2917
+#, c-format
+msgid " · Repeat: %s (repeat/repeat list/off)"
+msgstr ""
+
+#: src/ui/components.c:2919
+#, c-format
+msgid " · Clear Playlist: %s"
+msgstr ""
+
+#: src/ui/components.c:2920
+#, c-format
+msgid " · Scroll: %s, %s"
+msgstr ""
+
+#: src/ui/components.c:2923
+#, c-format
+msgid " · Stop: %s"
+msgstr ""
+
+#: src/ui/components.c:2929
+#, c-format
+msgid " · Change View: %s or %s, %s, %s, %s, %s or click the footer"
+msgstr ""
+
+#: src/ui/components.c:2939
+#, c-format
+msgid " · Quit: %s"
+msgstr ""
+
+#: src/ui/components.c:2942
+msgid " Advanced"
+msgstr ""
+
+#: src/ui/components.c:2943
+#, c-format
+msgid " · Toggle Lyrics Page: %s"
+msgstr ""
+
+#: src/ui/components.c:2945
+#, c-format
+msgid " · Seek: %s and %s"
+msgstr ""
+
+#: src/ui/components.c:2948
+#, c-format
+msgid " · Update Library: %s"
+msgstr ""
+
+#: src/ui/components.c:2949
+#, c-format
+msgid " · Sort Library: %s"
+msgstr ""
+
+#: src/ui/components.c:2950
+#, c-format
+msgid " · Move songs: %s/%s"
+msgstr ""
+
+#: src/ui/components.c:2953
+#, c-format
+msgid " · Delete from Playlist: %s"
+msgstr ""
+
+#: src/ui/components.c:2954
+#, c-format
+msgid " · Cycle Color Mode: %s"
+msgstr ""
+
+#: src/ui/components.c:2956
+#, c-format
+msgid " · Cycle Themes: %s"
+msgstr ""
+
+#: src/ui/components.c:2957
+#, c-format
+msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
+msgstr ""
+
+#: src/ui/components.c:2959
+#, c-format
+msgid " · Cycle Visualizer Mode: %s"
+msgstr ""
+
+#: src/ui/components.c:2961
+#, c-format
+msgid " · Toggle ASCII Cover: %s (disables Chroma)"
+msgstr ""
+
+#: src/ui/components.c:2963
+#, c-format
+msgid " · Toggle Notifications: %s"
+msgstr ""
+
+#: src/ui/components.c:2965
+#, c-format
+msgid " · Toggle Crossfade (experimental) On: %s"
+msgstr ""
+
+#: src/ui/components.c:2968
+#, c-format
+msgid " · Crossfade (experimental): quick %s medium %s slow %s"
+msgstr ""
+
+#: src/ui/components.c:2973
+#, c-format
+msgid " · Export Playlist: %s"
+msgstr ""
+
+#: src/ui/components.c:2975
+#, c-format
+msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
+msgstr ""
+
+#: src/ui/components.c:2985 src/ui/components.c:2986
+msgid " Homepage: "
+msgstr ""
+
+#: src/ui/components.c:3067
+#, c-format
+msgid "Search:"
 msgstr ""
 
 #: src/kew.c:333
 #, c-format
-msgid "Music not found.\n"
+msgid "No Music found.\n"
+msgstr ""
+
+#: src/kew.c:334
+#, c-format
+msgid "Please make sure the path is set correctly. \n"
+msgstr ""
+
+#: src/kew.c:335
+#, c-format
+msgid "To set it type: kew path \"/path/to/Music\". \n"
 msgstr ""
 
 #: src/kew.c:337
+#, c-format
+msgid "Music not found.\n"
+msgstr ""
+
+#: src/kew.c:341
 #, c-format
 msgid "%s\n"
 msgstr ""
