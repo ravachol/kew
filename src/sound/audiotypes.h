@@ -33,7 +33,6 @@ struct sound_system {
         ma_device *device;
 
         bool audio_thread_priority_set;
-        bool decoder_switched;
         int replay_gain_check_first; // 0 = track, 1 = album, 2 = disabled
         float gain_linear;
 

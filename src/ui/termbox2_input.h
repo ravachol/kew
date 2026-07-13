@@ -2083,220 +2083,218 @@ static int encode_win_key_to_ansi(const KEY_EVENT_RECORD *k,
                                   char *buf,
                                   size_t bufsz)
 {
-    if (!k || !buf || bufsz == 0)
+        if (!k || !buf || bufsz == 0)
+                return 0;
+
+        DWORD vk = k->wVirtualKeyCode;
+        DWORD state = k->dwControlKeyState;
+
+        int ctrl = (state & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+        int alt = (state & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+
+        int len;
+
+        // Handle special keys first.
+        // Some Windows key events also contain UnicodeChar values,
+        // so virtual key handling must happen before text handling.
+
+        switch (vk) {
+
+        case VK_BACK:
+                // Terminal backspace is usually DEL (^?)
+                buf[0] = 0x7f;
+                return 1;
+
+        case VK_RETURN:
+                // Alt+Enter becomes ESC CR (Meta+Enter)
+                if (alt) {
+                        buf[0] = 0x1b;
+                        buf[1] = '\r';
+                        return 2;
+                }
+
+                buf[0] = '\r';
+                return 1;
+
+        case VK_TAB:
+                // Alt+Tab becomes ESC TAB
+                if (alt) {
+                        buf[0] = 0x1b;
+                        buf[1] = '\t';
+                        return 2;
+                }
+
+                buf[0] = '\t';
+                return 1;
+
+        case VK_ESCAPE:
+                if (k->wVirtualKeyCode == VK_ESCAPE) {
+                        buf[0] = 0x1b;
+                }
+                return 1;
+
+        case VK_CANCEL:
+                // Ctrl+C
+                buf[0] = 3;
+                return 1;
+
+        // Navigation keys (xterm)
+        case VK_LEFT:
+                memcpy(buf, "\x1b[D", 3);
+                return 3;
+
+        case VK_RIGHT:
+                memcpy(buf, "\x1b[C", 3);
+                return 3;
+
+        case VK_UP:
+                memcpy(buf, "\x1b[A", 3);
+                return 3;
+
+        case VK_DOWN:
+                memcpy(buf, "\x1b[B", 3);
+                return 3;
+
+        case VK_HOME:
+                memcpy(buf, "\x1b[H", 3);
+                return 3;
+
+        case VK_END:
+                memcpy(buf, "\x1b[F", 3);
+                return 3;
+
+        case VK_PRIOR:
+                memcpy(buf, "\x1b[5~", 4);
+                return 4;
+
+        case VK_NEXT:
+                memcpy(buf, "\x1b[6~", 4);
+                return 4;
+
+        case VK_DELETE:
+                memcpy(buf, "\x1b[3~", 4);
+                return 4;
+
+        case VK_INSERT:
+                memcpy(buf, "\x1b[2~", 4);
+                return 4;
+
+        case VK_CLEAR:
+                memcpy(buf, "\x1b[Z", 3);
+                return 3;
+
+        // Function keys F1-F12
+        case VK_F1 ... VK_F12: {
+                int f = vk - VK_F1 + 1;
+                int code = fkey_code(f);
+
+                if (!code)
+                        return 0;
+
+                int mod = 0;
+
+                if (state & SHIFT_PRESSED)
+                        mod |= 1;
+
+                if (ctrl)
+                        mod |= 2;
+
+                if (alt)
+                        mod |= 4;
+
+                int xmod = 0;
+
+                switch (mod) {
+                case 1:
+                        xmod = 2;
+                        break;
+
+                case 2:
+                        xmod = 5;
+                        break;
+
+                case 3:
+                        xmod = 6;
+                        break;
+
+                case 4:
+                        xmod = 3;
+                        break;
+
+                case 5:
+                        xmod = 4;
+                        break;
+
+                case 6:
+                        xmod = 7;
+                        break;
+
+                case 7:
+                        xmod = 8;
+                        break;
+                }
+
+                if (xmod)
+                        len = snprintf(buf, bufsz,
+                                       "\x1b[%d;%d~",
+                                       code,
+                                       xmod);
+                else
+                        len = snprintf(buf, bufsz,
+                                       "\x1b[%d~",
+                                       code);
+
+                return len;
+        }
+        }
+
+        // Ctrl+A-Z produces ASCII control codes
+        if (ctrl && vk >= 'A' && vk <= 'Z') {
+                buf[0] = (char)(vk - 'A' + 1);
+                return 1;
+        }
+
+        // Alt+printable sends ESC prefix (Meta key)
+        if (alt && k->uChar.UnicodeChar != 0) {
+
+                WCHAR wc = k->uChar.UnicodeChar;
+
+                buf[0] = 0x1b;
+
+                len = WideCharToMultiByte(
+                    CP_UTF8,
+                    0,
+                    &wc,
+                    1,
+                    buf + 1,
+                    (int)bufsz - 1,
+                    NULL,
+                    NULL);
+
+                return len > 0 ? len + 1 : 0;
+        }
+
+        // Normal Unicode input
+        if (k->uChar.UnicodeChar != 0 && k->uChar.UnicodeChar != 27 && k->wVirtualKeyCode != 0) {
+
+                WCHAR wc = k->uChar.UnicodeChar;
+
+
+
+                len = WideCharToMultiByte(
+                    CP_UTF8,
+                    0,
+                    &wc,
+                    1,
+                    buf,
+                    (int)bufsz,
+                    NULL,
+                    NULL);
+
+                return len > 0 ? len : 0;
+        }
+
         return 0;
-
-    DWORD vk = k->wVirtualKeyCode;
-    DWORD state = k->dwControlKeyState;
-
-    int ctrl = (state & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-    int alt  = (state & (LEFT_ALT_PRESSED  | RIGHT_ALT_PRESSED)) != 0;
-
-    int len;
-
-    // Handle special keys first.
-    // Some Windows key events also contain UnicodeChar values,
-    // so virtual key handling must happen before text handling.
-
-    switch (vk) {
-
-    case VK_BACK:
-        // Terminal backspace is usually DEL (^?)
-        buf[0] = 0x7f;
-        return 1;
-
-    case VK_RETURN:
-        // Alt+Enter becomes ESC CR (Meta+Enter)
-        if (alt) {
-            buf[0] = 0x1b;
-            buf[1] = '\r';
-            return 2;
-        }
-
-        buf[0] = '\r';
-        return 1;
-
-    case VK_TAB:
-        // Alt+Tab becomes ESC TAB
-        if (alt) {
-            buf[0] = 0x1b;
-            buf[1] = '\t';
-            return 2;
-        }
-
-        buf[0] = '\t';
-        return 1;
-
-    case VK_ESCAPE:
-        buf[0] = 0x1b;
-        return 1;
-
-    case VK_CANCEL:
-        // Ctrl+C
-        buf[0] = 3;
-        return 1;
-
-
-    // Navigation keys (xterm)
-    case VK_LEFT:
-        memcpy(buf, "\x1b[D", 3);
-        return 3;
-
-    case VK_RIGHT:
-        memcpy(buf, "\x1b[C", 3);
-        return 3;
-
-    case VK_UP:
-        memcpy(buf, "\x1b[A", 3);
-        return 3;
-
-    case VK_DOWN:
-        memcpy(buf, "\x1b[B", 3);
-        return 3;
-
-    case VK_HOME:
-        memcpy(buf, "\x1b[H", 3);
-        return 3;
-
-    case VK_END:
-        memcpy(buf, "\x1b[F", 3);
-        return 3;
-
-    case VK_PRIOR:
-        memcpy(buf, "\x1b[5~", 4);
-        return 4;
-
-    case VK_NEXT:
-        memcpy(buf, "\x1b[6~", 4);
-        return 4;
-
-    case VK_DELETE:
-        memcpy(buf, "\x1b[3~", 4);
-        return 4;
-
-    case VK_INSERT:
-        memcpy(buf, "\x1b[2~", 4);
-        return 4;
-
-    case VK_CLEAR:
-        memcpy(buf, "\x1b[Z", 3);
-        return 3;
-
-
-    // Function keys F1-F12
-    case VK_F1 ... VK_F12:
-    {
-        int f = vk - VK_F1 + 1;
-        int code = fkey_code(f);
-
-        if (!code)
-            return 0;
-
-        int mod = 0;
-
-        if (state & SHIFT_PRESSED)
-            mod |= 1;
-
-        if (ctrl)
-            mod |= 2;
-
-        if (alt)
-            mod |= 4;
-
-        int xmod = 0;
-
-        switch (mod) {
-        case 1:
-            xmod = 2;
-            break;
-
-        case 2:
-            xmod = 5;
-            break;
-
-        case 3:
-            xmod = 6;
-            break;
-
-        case 4:
-            xmod = 3;
-            break;
-
-        case 5:
-            xmod = 4;
-            break;
-
-        case 6:
-            xmod = 7;
-            break;
-
-        case 7:
-            xmod = 8;
-            break;
-        }
-
-        if (xmod)
-            len = snprintf(buf, bufsz,
-                           "\x1b[%d;%d~",
-                           code,
-                           xmod);
-        else
-            len = snprintf(buf, bufsz,
-                           "\x1b[%d~",
-                           code);
-
-        return len;
-    }
-    }
-
-
-    // Ctrl+A-Z produces ASCII control codes
-    if (ctrl && vk >= 'A' && vk <= 'Z') {
-        buf[0] = (char)(vk - 'A' + 1);
-        return 1;
-    }
-
-
-    // Alt+printable sends ESC prefix (Meta key)
-    if (alt && k->uChar.UnicodeChar != 0) {
-
-        WCHAR wc = k->uChar.UnicodeChar;
-
-        buf[0] = 0x1b;
-
-        len = WideCharToMultiByte(
-            CP_UTF8,
-            0,
-            &wc,
-            1,
-            buf + 1,
-            (int)bufsz - 1,
-            NULL,
-            NULL);
-
-        return len > 0 ? len + 1 : 0;
-    }
-
-
-    // Normal Unicode input
-    if (k->uChar.UnicodeChar != 0) {
-
-        WCHAR wc = k->uChar.UnicodeChar;
-
-        len = WideCharToMultiByte(
-            CP_UTF8,
-            0,
-            &wc,
-            1,
-            buf,
-            (int)bufsz,
-            NULL,
-            NULL);
-
-        return len > 0 ? len : 0;
-    }
-
-    return 0;
 }
 
 static int win_wait_event(struct tb_event *event, int timeout_ms)
