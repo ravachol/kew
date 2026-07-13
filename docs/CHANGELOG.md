@@ -13,6 +13,7 @@ The big changes this release are:
 - Always logs errors to ~/.local/state/kew/logs/error.log.
 - Fixed two bugs on windows, small images and resize crash.
 - Non-square covers are now correctly displayed.
+- Fixed regression bug that affected gapless playback introduced in 4.1.8.
 
 Thank you to new sponsors @mattfoo, @ddogfoodd @Rick and @rei for their support!
 
