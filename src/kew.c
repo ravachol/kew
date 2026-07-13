@@ -288,7 +288,7 @@ void logging_init(void)
         if (path != NULL) {
                 Model *model = get_model();
 
-                char *folder = basename(path);
+                char *folder = dirname(path);
 
                 g_mkdir_with_parents(folder, 0755);
 
