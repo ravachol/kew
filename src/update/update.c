@@ -789,7 +789,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_LIBRARY_ROW_SELECTED:
 
-                if(!msg->found_chosen && model->state.ui.chosen_lib_row != msg->chosen_row) {
+                if(!msg->found_chosen && (model->state.ui.chosen_lib_row != msg->chosen_row || model->mouse_y >= 0)) {
                         set_dirty(DIRTY_LIBRARY);
                         model->state.ui.rendered = false; // re-render;
                 }
@@ -843,8 +843,16 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_SEARCH_ROW_SELECTED:
 
-                model->state.ui.current_search_entry = msg->current_search_entry;
-                model->state.ui.chosen_search_result_row = msg->chosen_row;
+                if(!msg->found_chosen && (model->state.ui.chosen_search_result_row != msg->chosen_row || model->mouse_y >= 0)) {
+                        set_dirty(DIRTY_SEARCH);
+                        model->state.ui.rendered = false; // re-render;
+                }
+
+                if (msg->current_search_entry)
+                {
+                        model->state.ui.current_search_entry = msg->current_search_entry;
+                        model->state.ui.chosen_search_result_row = msg->chosen_row;
+                }
 
                 model->state.ui.search_visible_count = msg->num_rows;
 
