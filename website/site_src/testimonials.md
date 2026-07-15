@@ -279,3 +279,6 @@ My beloved
 
 @njrk
 I no longer need to search for the perfect music player. :blobcheerbounce:
+
+@djenzar
+@ravachol Cool, thank you, I love this soft :blobaww:
