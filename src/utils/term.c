@@ -459,7 +459,7 @@ int str_calculate_display_width(const char *str)
         return width;
 }
 
-void str_truncate_display_width(const char *str, char *dst, int max_width)
+long str_truncate_display_width(const char *str, char *dst, int max_width)
 {
         const char *end = str;
         int width = 0;
@@ -480,6 +480,8 @@ void str_truncate_display_width(const char *str, char *dst, int max_width)
         }
 
         gchar *tmp = g_utf8_substring(str, 0, g_utf8_pointer_to_offset(str, end));
-        g_utf8_strncpy(dst, tmp, g_utf8_strlen(tmp, -1));
+        glong len = g_utf8_strlen(tmp, -1);
+        g_utf8_strncpy(dst, tmp, len);
         g_free(tmp);
+        return (long)len;
 }

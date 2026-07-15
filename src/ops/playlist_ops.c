@@ -404,7 +404,7 @@ void switch_to_next_song(void)
         }
 
         if (is_shuffle_enabled())
-                component_playlist_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, false);
 
         double total_pause_seconds = get_total_pause_seconds();
         double pause_seconds = get_total_pause_seconds();
