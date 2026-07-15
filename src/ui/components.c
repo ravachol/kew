@@ -598,13 +598,14 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                         if (model->mouse_x >= 0 && model->mouse_y >= 0) {
 
-                                is_chosen = (model->mouse_y >= region.row &&
+                                bool clicked_row = (model->mouse_y >= region.row &&
                                              model->mouse_y <= region.row + region.height) &&
                                             (model->mouse_x > region.col + (entry->is_enqueued ? 0 : prefix_len) + extra_indent &&
                                              model->mouse_x <= region.col + extra_indent + prefix_len + *chosen_name_len + 3) && // 3 = "└─ "
-                                            *row_count == model->mouse_y - region.row - 1;
+                                            *row_count == model->mouse_y - 1 - region.row;
 
-                                if (is_chosen) {
+                                if (clicked_row) {
+                                        is_chosen = true;
                                         *clicked_song = true;
                                         *chosen_row = -1;
                                 }
@@ -3074,7 +3075,7 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
                 if (model->mouse_y < region.row) {
                         chosen_lib_entry = first;
                         chosen_row = 0;
-                } else {
+                } else if (model->mouse_y > region.row + region.height) {
                         chosen_lib_entry = last;
                         chosen_row = iter - 1;
                 }
