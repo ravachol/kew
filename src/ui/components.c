@@ -24,7 +24,6 @@
 #include "visuals.h"
 
 #include "utils/file.h"
-#include "utils/term.h"
 #include "utils/utils.h"
 
 #include <libgen.h>
