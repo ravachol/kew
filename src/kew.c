@@ -35,7 +35,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #endif
 
 #ifndef KEW_VERSION
-#define KEW_VERSION "4.2.3"
+#define KEW_VERSION "4.2.4"
 #endif
 
 #include "common/appstate.h"
