@@ -401,12 +401,12 @@ void process_name_strip_unneeded_chars(char *str)
         g_strstrip(str);
 }
 
-void process_name(const char *name, char *output, int max_width,
+long process_name(const char *name, char *output, int max_width,
                   bool strip_unneeded_chars, bool strip_suffix)
 {
         if (!name) {
                 output[0] = '\0';
-                return;
+                return 0;
         }
 
         if (strip_suffix)
@@ -420,6 +420,8 @@ void process_name(const char *name, char *output, int max_width,
         g_strstrip(output);
 
         str_truncate_display_width(output, output, max_width);
+
+        return (long)g_utf8_strlen(output, -1);
 }
 
 int process_name_scroll(const Model *model, const char *name, char *output, int max_width,
@@ -1010,7 +1012,7 @@ void view_changed(Model *model)
         model->title_delay.active = false;
 
         if (model->state.currentView == PLAYLIST_VIEW)
-                component_playlist_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, true);
 
         if (model->state.currentView == LIBRARY_VIEW)
                 component_library_helper_update_view_state(model);
@@ -1051,7 +1053,7 @@ bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
         if (model->state.currentView == SEARCH_VIEW)
                 region = model->state.ui.search_region;
 
-        if (mouse_y + 1 < region.row || mouse_y + 1 > region.row + region.height)
+        if (mouse_y + 1 < region.row || mouse_y > region.row + region.height)
                 return false;
 
         return true;
@@ -1091,7 +1093,8 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                                                          ? 0
                                                          : model->state.ui.chosen_row;
                 }
-                
+
+                component_playlist_helper_update_view_state(model, false);
                 set_dirty(DIRTY_PLAYLIST);
         }
 
@@ -1121,6 +1124,7 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                                                              : model->state.ui.chosen_lib_row;
                 }
 
+                component_library_helper_update_view_state(model);
                 set_dirty(DIRTY_LIBRARY);
         }
 
@@ -1128,7 +1132,7 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 scrollbar = &model->state.ui.search_scrollbar;
                 height = model->state.ui.search_region.height;
                 row = model->state.ui.search_region.row;
-                numRows = model->state.ui.search_results_count;
+                numRows = model->state.ui.search_visible_count;
                 delta_row = (long long)pos - (long long)row;
 
                 if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
@@ -1140,8 +1144,8 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                         model->state.ui.chosen_search_result_row = round(numRows * position);
 
                         model->state.ui.chosen_search_result_row =
-                            (model->state.ui.chosen_search_result_row >= model->state.ui.search_results_count)
-                                ? model->state.ui.lib_row_count - 1
+                            (model->state.ui.chosen_search_result_row >= model->state.ui.search_visible_count)
+                                ? model->state.ui.search_visible_count - 1
                                 : model->state.ui.chosen_search_result_row;
 
                         model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row < 0)

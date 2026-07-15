@@ -152,8 +152,11 @@ int determine_depth(FileSystemEntry *entry)
         if (entry->parent && model->state.ui.last_search_parent && entry->parent->id == model->state.ui.last_search_parent->id) {
                 found_parent = found_last_parent;
         } else {
+
                 for (int i = 0; i < model->state.ui.search_results_count; i++) {
-                        if (entry->parent && model->search_results[i].entry->id == entry->parent->id) {
+                        FileSystemEntry *tmp = model->search_results[i].entry;
+
+                        if (entry->parent && tmp && tmp->id == entry->parent->id) {
                                 found_parent = true;
                                 model->state.ui.last_search_parent = entry->parent;
                         }
@@ -428,7 +431,7 @@ void component_library_helper_reset(Model *model)
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
                                                              int max_list_size, int max_name_width,
-                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, bool *clicked_song)
+                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
 {
         if (entry == NULL)
                 return NULL;
@@ -443,6 +446,8 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
         Node *current = get_current_song();
 
         FileSystemEntry *found_chosen = NULL;
+
+        *last = entry;
 
         int is_playing = 0;
         int extra_indent = 0;
@@ -523,33 +528,15 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 goto traverse_children;
                         }
 
+                        if (*first == NULL)
+                                *first = entry;
+
                         // Extra indent for deep nesting
                         if (depth >= 2)
                                 extra_indent += 2;
 
                         extra_indent += (depth - 2 <= 0) ? 0 : depth - 2;
-
                         int draw_col = region.col;
-
-                        bool is_chosen = false;
-
-                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
-                                is_chosen = (model->mouse_y >= region.row &&
-                                             model->mouse_y <= region.row + region.height) &&
-                                            (model->mouse_x >= region.col &&
-                                             model->mouse_x <= region.col + region.width - 3) &&
-                                            *row_count == model->mouse_y - region.row - 1;
-
-                                if (is_chosen)
-                                        *clicked_song = true;
-                        } else {
-                                is_chosen = (uis->chosen_lib_row == *iter);
-                        }
-                        // Chosen row state update
-                        if (is_chosen) {
-                                found_chosen = entry;
-                        }
-
                         CellStyle item_style = cell_style_plain();
 
                         if (entry->is_enqueued || (depth <= 1 && entry->is_directory))
@@ -567,39 +554,82 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         draw_buffer_set_string(buf, draw_row, draw_col, empty_space, item_style);
 
                         char prefix[8];
+                        int prefix_len = (int)strnlen(prefix, sizeof(prefix));
                         snprintf(prefix, sizeof(prefix), "%s",
                                  entry->is_enqueued ? " * " : "   ");
-
-                        if (is_chosen && entry->is_enqueued)
-                                item_style.attrs |= ATTR_REVERSE;
-
-                        draw_buffer_set_string(buf, draw_row, draw_col + extra_indent, prefix, item_style);
-                        int text_col = draw_col + extra_indent + 3;
 
                         if (max_name_width < extra_indent)
                                 max_name_width = extra_indent;
 
-                        if (is_chosen)
-                                item_style.attrs |= ATTR_REVERSE;
-
-                        int name_width = max_name_width - extra_indent - strnlen(prefix, sizeof(prefix));
+                        int name_width = max_name_width - extra_indent - prefix_len;
                         if (name_width < 0)
                                 name_width = 0;
 
-                        // Directory
+                        char dir_name[256];
+                        char orig_name[256];
+                        dir_name[0] = '\0';
+                        char filename[name_width * 4 + 1];
+                        filename[0] = '\0';
+                        bool strip_unneeded_chars = true;
+                        bool strip_suffix = true;
+                        int text_col = draw_col + extra_indent + 3;
+
+                        // playlist icon
+                        if (is_m3u_file(entry)) {
+                                strip_unneeded_chars = false;
+                                strip_suffix = false;
+                        }
+
                         if (entry->is_directory) {
-                                char dir_name[256];
-                                char orig_name[256];
-                                dir_name[0] = '\0';
 
                                 snprintf(orig_name, sizeof(orig_name), "%s", entry->name);
 
                                 if (strcmp(orig_name, "root") == 0) {
                                         snprintf(orig_name, sizeof(orig_name), "%s", _("─ MUSIC LIBRARY ─"));
                                         item_style = cell_style_from_theme(ui->theme.header);
-                                        if (is_chosen)
-                                                item_style.attrs |= ATTR_REVERSE;
                                 }
+
+                                *chosen_name_len = (int)g_utf8_strlen(orig_name, KEW_PATH_MAX);
+                        } else {
+                                *chosen_name_len = (int)process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
+                        }
+
+                        bool is_chosen = false;
+
+                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+
+                                is_chosen = (model->mouse_y >= region.row &&
+                                             model->mouse_y <= region.row + region.height) &&
+                                            (model->mouse_x > region.col + (entry->is_enqueued ? 0 : prefix_len) + extra_indent &&
+                                             model->mouse_x <= region.col + extra_indent + prefix_len + *chosen_name_len + 3) && // 3 = "└─ "
+                                            *row_count == model->mouse_y - region.row - 1;
+
+                                if (is_chosen) {
+                                        *clicked_song = true;
+                                        *chosen_row = -1;
+                                }
+                        } else {
+                                is_chosen = ((uis->chosen_lib_row >= 0 && uis->chosen_lib_row == *iter) ||
+                                             (uis->chosen_lib_row < 0 && entry == model->state.ui.current_lib_entry));
+                                if (is_chosen)
+                                        *chosen_row = *iter;
+                        }
+
+                        // Chosen row state update
+                        if (is_chosen) {
+                                found_chosen = entry;
+                        }
+
+                        if (is_chosen && entry->is_enqueued)
+                                item_style.attrs |= ATTR_REVERSE;
+
+                        draw_buffer_set_string(buf, draw_row, draw_col + extra_indent, prefix, item_style);
+
+                        if (is_chosen)
+                                item_style.attrs |= ATTR_REVERSE;
+
+                        // Directory
+                        if (entry->is_directory) {
 
                                 if (depth == 1) {
                                         char *upper = string_to_upper(orig_name);
@@ -622,32 +652,17 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 CellStyle file_style = item_style;
                                 if (is_playing && !is_chosen)
                                         file_style.attrs |= ATTR_UNDERLINE;
-
-                                bool strip_unneeded_chars = true;
-                                bool strip_suffix = true;
-
                                 // playlist icon
                                 if (is_m3u_file(entry)) {
                                         draw_buffer_set_string(buf, draw_row, text_col, "♫ ", file_style);
                                         text_col += 2;
                                         name_width -= 2;
-                                        strip_unneeded_chars = false;
-                                        strip_suffix = false;
                                 }
-
                                 draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
                                 text_col += 3;
-                                name_width -= 3;
-
-                                char filename[name_width * 4 + 1];
-                                filename[0] = '\0';
-
-                                str_truncate_display_width(entry->name, filename, name_width);
 
                                 if (found_chosen != NULL)
                                         process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
-                                else
-                                        process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
                         }
@@ -665,7 +680,7 @@ traverse_children: { // Call render_tree_node recursively
                 FileSystemEntry *result;
 
                 result = component_library_helper_render_node(model, child, depth + 1, max_list_size,
-                                                              max_name_width, region, buf, row_count, iter, clicked_song);
+                                                              max_name_width, region, buf, row_count, iter, chosen_row, chosen_name_len, clicked_song, first, last);
 
                 if (result && !found_chosen)
                         found_chosen = result;
@@ -694,8 +709,6 @@ void component_library_helper_update_view_state(Model *model)
 
         if (model->state.ui.chosen_lib_row < 0)
                 ctx->start_lib_iter = model->state.ui.chosen_lib_row = 0;
-
-        model->state.ui.chosen_dir = ctx->chosen_dir;
 }
 
 int get_year(const char *date_string)
@@ -1535,13 +1548,13 @@ void move_start_node_into_position(Model *model, int found_at, Node **start_node
         }
 }
 
-void component_playlist_helper_update_view_state(Model *model)
+void component_playlist_helper_update_view_state(Model *model, bool center)
 {
         model->state.ui.playlist_node = determine_start_node(model->unshuffled_playlist->head, &model->state.ui.current_at_row, model->unshuffled_playlist->count);
         model->state.ui.start_iter = determine_playlist_start(&model->state.ui.start_iter,
                                                               model->state.ui.current_at_row, model->state.ui.max_playlist_rows, &model->state.ui.chosen_row,
                                                               model->state.ui.resetPlaylistDisplay,
-                                                              sound_system_is_end_of_list_reached(sound_sys));
+                                                              sound_system_is_end_of_list_reached(sound_sys), center);
 
         if (!model->state.ui.playlist_node)
                 return;
@@ -1590,8 +1603,9 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int start_iter = model->state.ui.start_iter;
 
         int printed = 0;
-        int chosen_row = 0;
+        int chosen_row = -1;
         bool clicked_song = false;
+        long chosen_name_len = 0;
 
         Node *node = model->state.ui.playlist_node;
         Node *chosen_node = NULL;
@@ -1601,6 +1615,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         draw_buffer_set_string(buf, row_offset, region.col, _("─ PLAYLIST ─"), header);
 
         row_offset++;
+
+        bool found_chosen = false;
 
         for (int i = start_iter; i < start_iter + max_rows; i++) {
 
@@ -1682,24 +1698,34 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         col++;
                 }
 
-                // Title
-                bool is_chosen = false;
+                int max_name_width = region.width - (col - region.col) - 2;
+                if (max_name_width < 0)
+                        max_name_width = 0;
 
-                if (model->mouse_x >= 0 && model->mouse_y >= 0) {
-                        is_chosen = (model->mouse_y >= region.row &&
-                                     model->mouse_y <= region.row + region.height) &&
-                                    (model->mouse_x >= region.col &&
-                                     model->mouse_x <= region.col + region.width - 3) &&
-                                    i - start_iter == model->mouse_y - region.row - 2;
+                chosen_name_len = process_name(buffer, filename, max_name_width, true, true);
 
-                        if (is_chosen) {
-                                clicked_song = true;
-                                chosen_node = node;
-                                chosen_row = i;
+                int is_chosen = false;
+                if (!found_chosen) {
+                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                                is_chosen = model->mouse_y >= region.row &&
+                                            model->mouse_x > region.col &&
+                                            model->mouse_x <= region.col + rownum_len + spaces + chosen_name_len &&
+                                            i - start_iter == model->mouse_y - region.row - 2;
+
+                                if (is_chosen) {
+                                        clicked_song = true;
+                                }
+
+                                if (model->mouse_y <= region.row)
+                                        is_chosen = true; // Choose the first one if we are above the region
+
+                        } else {
+                                is_chosen = (i == uis->chosen_row);
                         }
-                } else {
-                        is_chosen = (i == uis->chosen_row);
                 }
+
+                if (node->next == NULL && !found_chosen)
+                        is_chosen = found_chosen = true; // Chose the last one if none has been found
 
                 bool is_playing = false;
 
@@ -1707,14 +1733,11 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (current != NULL)
                         is_playing = (current->id == node->id);
 
-                int max_name_width = region.width - (col - region.col) - 2;
-                if (max_name_width < 0)
-                        max_name_width = 0;
-
                 if (is_chosen) {
                         process_name_scroll(model, buffer, filename, max_name_width, true, true);
-                } else {
-                        process_name(buffer, filename, max_name_width, true, true);
+                        chosen_row = i;
+                        chosen_node = node;
+                        found_chosen = true;
                 }
 
                 if (is_playing) {
@@ -1730,8 +1753,6 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 draw_buffer_set_string_truncated(buf, draw_row, col, filename, region.width, title_style);
 
-                draw_buffer_set_string_truncated(buf, draw_row, col, filename, max_name_width, title_style);
-
                 node = node->next;
                 printed++;
         }
@@ -1745,8 +1766,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
             .type = MSG_PLAYLIST_ROW_SELECTED,
             .chosen_song = chosen_node,
             .chosen_row = chosen_row,
+            .chosen_name_len = (int)chosen_name_len,
             .clicked_song = clicked_song};
-
 
         return result;
 }
@@ -3022,15 +3043,20 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         if (model->library == NULL)
                 return result;
 
-        int max_name_width = region.width - 3;
+        int max_name_width = region.width - 2;
         if (max_name_width < 0)
                 max_name_width = 0;
 
         int row_count = 0;
         int iter = 0;
         bool clicked_chosen = false;
+        int chosen_row = model->state.ui.chosen_lib_row;
+        int chosen_name_len = 0;
+        bool found_chosen = true;
+        FileSystemEntry *first = NULL;
+        FileSystemEntry *last = NULL;
 
-        FileSystemEntry *chosen_lib_entry = component_library_helper_render_node(model, model->library, 0, region.height, max_name_width, region, buf, &row_count, &iter, &clicked_chosen);
+        FileSystemEntry *chosen_lib_entry = component_library_helper_render_node(model, model->library, 0, region.height, max_name_width, region, buf, &row_count, &iter, &chosen_row, &chosen_name_len, &clicked_chosen, &first, &last);
 
         // Clear remaining rows
         CellStyle empty = cell_style_plain();
@@ -3041,18 +3067,31 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         CellStyle plain_style = cell_style_plain();
         render_scroll_bar(buf, region, model->state.ui.library_scrollbar, plain_style);
 
-        int chosen_row = model->state.ui.chosen_lib_row;
-        if (chosen_row > iter) {
-                chosen_row = iter--;
+        if (chosen_row > iter)
+                chosen_row = iter - 1;
+
+        if (!chosen_lib_entry) {
+                if (model->mouse_y < region.row) {
+                        chosen_lib_entry = first;
+                        chosen_row = 0;
+                } else {
+                        chosen_lib_entry = last;
+                        chosen_row = iter - 1;
+                }
+
+                chosen_name_len = max_name_width;
+                found_chosen = false;
         }
 
         result.has_msg = true;
         result.msg = (struct Msg){
             .type = MSG_LIBRARY_ROW_SELECTED,
             .current_lib_entry = chosen_lib_entry,
-            .chosen_lib_row = chosen_row,
+            .chosen_row = chosen_row,
             .clicked_song = clicked_chosen,
-            .num_lib_rows = iter};
+            .chosen_name_len = chosen_name_len,
+            .num_rows = iter,
+            .found_chosen = found_chosen};
 
         return result;
 }
@@ -3155,7 +3194,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
         const UIState *uis = &state->ui;
 
         int max_list_size = region.height;
-        int max_name_width = region.width - 5;
+        int max_name_width = region.width - 2;
 
         if (!ui->hideSideCover)
                 max_name_width -= region.col / 4;
@@ -3213,8 +3252,10 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
         // Second pass, use total_rows as upper bound, not results_count
         int printed_rows = 0;
         int draw_row = region.row;
-        bool is_chosen = false;
         bool clicked_song = false;
+        int chosen_name_len = 0;
+        bool found_chosen = false;
+        int visible_count = total_rows;
 
         for (int i = start_search_iter; i < total_rows; i++) {
 
@@ -3231,99 +3272,116 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                         chosen_row = iter;
                 }
 
-                if (model->mouse_x >= 0 && model->mouse_y >= 0) {
-                        is_chosen = (model->mouse_y >= region.row &&
-                                     model->mouse_y <= region.row + region.height) &&
-                                    (model->mouse_x >= region.col &&
-                                     model->mouse_x <= region.col + region.width - 3) &&
-                                    printed_rows == model->mouse_y - region.row - 1;
-
-                        if (is_chosen) {
-                                clicked_song = true;
-                        }
-                } else {
-                        is_chosen = (chosen_row == iter);
-                }
-
-                if (is_chosen)
-                        current_search_entry = model->search_results[i].entry;
-
-                int depth = determine_depth(model->search_results[i].entry);
+                FileSystemEntry *entry = model->search_results[i].entry;
+                int depth = determine_depth(entry);
                 int extra_indent = depth;
-                int name_width = max_name_width - extra_indent - 2;
+                int name_width = max_name_width - extra_indent;
                 if (name_width < 0)
                         name_width = 0;
-
-                Node *current = get_current_song();
-                bool is_playing = current != NULL && strcmp(current->song.file_path,
-                                                            model->search_results[i].entry->full_path) == 0;
-
                 // Build display name
                 char name[KEW_PATH_MAX];
                 name[0] = '\0';
 
                 char tmp[1024];
 
-                if (model->search_results[i].entry->is_directory) {
+                if (entry->is_directory) {
 
-                        if (model->search_results[i].entry->parent != NULL &&
-                            model->search_results[i].entry->parent->parent == NULL) {
+                        if (entry->parent != NULL &&
+                            entry->parent->parent == NULL) {
 
                                 char *upper = string_to_upper(
-                                    model->search_results[i].entry->name);
+                                    entry->name);
 
                                 snprintf(tmp, sizeof(tmp), "%s", upper);
                                 free(upper);
 
                         } else {
                                 snprintf(tmp, sizeof(tmp), "[%s]",
-                                         model->search_results[i].entry->name);
+                                         entry->name);
                         }
 
                 } else {
                         snprintf(tmp, sizeof(tmp), "%s [%s]",
-                                 model->search_results[i].entry->name,
-                                 model->search_results[i].entry->parent != NULL
-                                     ? model->search_results[i].entry->parent->name
+                                 entry->name,
+                                 entry->parent != NULL
+                                     ? entry->parent->name
                                      : "Root");
                 }
 
-                size_t n = utf8_truncate(tmp, name_width);
-                memcpy(name, tmp, n);
-                name[n] = '\0';
+                int length = (int)utf8_truncate(tmp, name_width);
 
-                draw_search_row(buf, draw_row, region.col, region.width,
-                                name, extra_indent,
-                                model->search_results[i].entry, ui, is_chosen, is_playing);
+                bool is_chosen = false;
+                if (!found_chosen) {
+                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                                is_chosen = (model->mouse_y >= region.row &&
+                                             model->mouse_y <= region.row + region.height) &&
+                                            (model->mouse_x > region.col + extra_indent + (entry->is_enqueued ? 0 : 3) &&
+                                             model->mouse_x <= region.col + extra_indent + 3 + length) &&
+                                            printed_rows == model->mouse_y - region.row - 1;
 
-                draw_row++;
-                printed_rows++;
+                                if (is_chosen) {
+                                        clicked_song = true;
+                                }
+
+                                if (model->mouse_y < region.row)
+                                        is_chosen = true;
+                        } else {
+                                is_chosen = (chosen_row == iter);
+                        }
+                }
 
                 // Skip children of collapsed directory
-                if (model->search_results[i].entry->is_directory &&
-                    model->search_results[i].entry->parent != NULL &&
-                    model->search_results[i].entry->parent->parent != NULL &&
-                    (!uis->allowChooseSearchSongs || (chosen_dir && model->search_results[i].entry->id != chosen_dir->id))) {
+                if (entry->is_directory &&
+                    entry->parent != NULL &&
+                    entry->parent->parent != NULL &&
+                    (!uis->allowChooseSearchSongs || (chosen_dir && entry->id != chosen_dir->id))) {
 
-                        FileSystemEntry *child = model->search_results[i].entry->children;
+                        FileSystemEntry *child = entry->children;
 
                         int count = model->state.ui.search_results_count;
                         while (child != NULL) {
                                 if (!child->is_directory && i + 1 < count && model->search_results[i + 1].entry->id == child->id)
+                                {
                                         i++;
+                                        visible_count--;
+                                }
                                 child = child->next;
                         }
                 }
+
+                if (!found_chosen && start_search_iter + printed_rows + 1 >= visible_count)
+                        is_chosen = true; // Select the last one if none was found
+
+                if (is_chosen) {
+                        current_search_entry = entry;
+                        chosen_name_len = length;
+                        found_chosen = true;
+                }
+
+                Node *current = get_current_song();
+                bool is_playing = current != NULL && strcmp(current->song.file_path,
+                                                            entry->full_path) == 0;
+
+                memcpy(name, tmp, length);
+                name[length] = '\0';
+
+                draw_search_row(buf, draw_row, region.col, region.width,
+                                name, extra_indent,
+                                entry, ui, is_chosen, is_playing);
+
+                draw_row++;
+                printed_rows++;
 
                 iter++;
         }
 
         // Blank remaining rows
         CellStyle plain = cell_style_plain();
-        while (printed_rows < max_list_size) {
+        int empty_rows = 0;
+        while (empty_rows < max_list_size - printed_rows) {
                 draw_buffer_set_string_truncated(buf, draw_row++, region.col,
                                                  "", region.width, plain);
-                printed_rows++;
+                empty_rows++;
         }
 
         CellStyle plain_style = cell_style_plain();
@@ -3333,8 +3391,10 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
         result.msg = (struct Msg){
             .type = MSG_SEARCH_ROW_SELECTED,
             .current_search_entry = current_search_entry,
-            .chosen_search_result_row = chosen_row,
-            .clicked_song = clicked_song};
+            .chosen_row = chosen_row,
+            .chosen_name_len = chosen_name_len,
+            .clicked_song = clicked_song,
+            .num_rows = visible_count};
 
         return result;
 }

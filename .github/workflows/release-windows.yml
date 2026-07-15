@@ -23,7 +23,6 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
-            make
             mingw-w64-ucrt-x86_64-pkg-config
             mingw-w64-ucrt-x86_64-faad2
             mingw-w64-ucrt-x86_64-taglib
@@ -44,7 +43,7 @@ jobs:
       - name: Build
         shell: msys2 {0}
         run: |
-          make -j$(nproc)
+          mingw32-make -j$(nproc)
 
       # -------------------------
       # STAGE INSTALL
@@ -54,7 +53,7 @@ jobs:
         run: |
           rm -rf stage
           mkdir -p stage
-          make install DESTDIR=stage PREFIX=
+          mingw32-make install DESTDIR=stage PREFIX=
 
       # -------------------------
       # COLLECT DLLs + EXE

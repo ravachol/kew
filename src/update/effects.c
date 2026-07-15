@@ -157,7 +157,7 @@ void run_tick_commands(Model *model)
         if (ps->notifySwitch) {
                 ps->notifySwitch = false;
 
-                component_playlist_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, false);
 
                 if (model->songdata_ok && model->songdata) {
                         notify_mpris_switch(model->songdata);
@@ -274,15 +274,14 @@ void run_command(UpdateResult result)
         case CMD_NEXT:
                 switch_to_next_song();
                 model->songdata = get_current_song_data(model->songdata);
-                model->state.ui.resetPlaylistDisplay = true;
-                component_playlist_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, false);
                 break;
 
         case CMD_PREV:
                 switch_to_prev_song();
                 model->songdata = get_current_song_data(model->songdata);
-                model->state.ui.resetPlaylistDisplay = true;
-                component_playlist_helper_update_view_state(model);
+
+                component_playlist_helper_update_view_state(model, false);
                 break;
 
         case CMD_SEEK_BACK:
@@ -314,14 +313,14 @@ void run_command(UpdateResult result)
         case CMD_REMOVE:
                 handle_remove(model->state.ui.chosen_row);
                 reset_list_after_dequeuing_playing_song();
-                component_playlist_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, false);
                 model->songdata = get_current_song_data(model->songdata);
                 break;
 
         case CMD_CLEAR_PLAYLIST: {
                 clear_playlist();
                 model->state.ui.resetPlaylistDisplay = true;
-                component_playlist_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, false);
                 model->songdata = get_current_song_data(model->songdata);
                 break;
         }
