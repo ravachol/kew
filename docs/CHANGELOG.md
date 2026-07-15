@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## kew 4.2.1
+## kew 4.2.3
+
+- Add polish to scrollbar and mouse navigation, because it was just too crude in the first version. By @ravachol.
+
+## kew 4.2.2
 
 The big changes this release are:
 

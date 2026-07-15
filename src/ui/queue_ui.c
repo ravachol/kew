@@ -109,7 +109,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
         UIState *uis = &(state->ui);
         PlaybackState *ps = get_playback_state();
         Node *first_enqueued_node = NULL;
-        bool has_enqueued = false;
+        int num_enqueued = false;
         bool is_root = false;
 
         if (entry != NULL) {
@@ -125,7 +125,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                                         bool sort = !(count_music_files_in_directory(entry) > MAX_SORT_SIZE ||
                                                       check_songs_for_track_number(entry) // songs are already ordered if track number is in name
                                         );
-                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry, sort);
+                                        num_enqueued = enqueue_children(entry->children, &first_enqueued_entry, sort);
 
                                         ps->nextSongNeedsRebuilding = true;
                                 } else if (!dont_dequeue) {
@@ -156,7 +156,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                                 enqueue_song(entry);
                                 set_childrens_queued_status_on_parents(entry->parent, true);
 
-                                has_enqueued = true;
+                                num_enqueued = 1;
                         } else {
                                 set_next_song(NULL);
                                 ps->nextSongNeedsRebuilding = true;
@@ -171,12 +171,12 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                 }
         }
 
-        if (has_enqueued && first_enqueued_entry) {
+        if (num_enqueued && first_enqueued_entry) {
                 autostart_if_stopped(first_enqueued_entry->full_path);
                 first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, model->playlist);
         }
 
-        if (is_shuffle_enabled() && !is_root && has_enqueued) {
+        if (is_shuffle_enabled() && !is_root && num_enqueued) {
 
                 if (first_enqueued_node)
                         shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
@@ -184,7 +184,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                         shuffle_playlist(model->playlist);
         }
 
-        if (is_root && has_enqueued) {
+        if (is_root && num_enqueued) {
                 shuffle_playlist(model->playlist);
                 set_song_to_start_from(NULL);
                 first_enqueued_node = NULL;
@@ -304,7 +304,7 @@ Node *enqueue(FileSystemEntry *entry, bool dont_dequeue)
         first_enqueued_node = enqueue_songs(entry, &chosen_dir, dont_dequeue);
 
         if (state->currentView == LIBRARY_VIEW)
-                model->state.ui.chosen_dir = chosen_dir;
+                model->state.ui.treeCtx.chosen_dir = model->state.ui.chosen_dir = chosen_dir;
 
         if (state->currentView == SEARCH_VIEW)
                 model->state.ui.chosen_search_dir = chosen_dir;
@@ -365,7 +365,7 @@ void view_enqueue(bool play_immediately)
                 if (is_digits_pressed() == 0) {
                         playlist_play(playlist);
                 } else {
-                        component_playlist_helper_update_view_state(model);
+                        component_playlist_helper_update_view_state(model, true);
                         int song_number = get_number_from_string(get_digits_pressed());
                         reset_digits_pressed();
 
@@ -399,8 +399,6 @@ void view_enqueue(bool play_immediately)
                 }
 
                 set_dirty(DIRTY_LIBRARY | DIRTY_SEARCH);
-
-                component_library_helper_update_view_state(model);
         }
 
         if (!first_enqueued_node && entry && entry->is_enqueued)

@@ -606,9 +606,9 @@ void dequeue_children(FileSystemEntry *parent)
 
 int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry **first_enqueued)
 {
-        int has_enqueued = 0;
+        int num_enqueued = 0;
         if (firstChild == NULL)
-                return has_enqueued;
+                return num_enqueued;
 
         FileSystemEntry *entry = firstChild;
         int numberOfEntries = 0;
@@ -637,44 +637,56 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry **first_enqueued)
 
         for (int i = 0; i < numberOfEntries; i++) {
                 if (!discArray[i]->is_enqueued)
+                {
                         enqueue_song(discArray[i]);
+                        num_enqueued++;
+                }
         }
 
-        has_enqueued = 1;
-        return has_enqueued;
+        return num_enqueued;
 }
 
 int enqueue_children(FileSystemEntry *child,
                      FileSystemEntry **first_enqueued_entry,
                      bool sort)
 {
-        int has_enqueued = 0;
+        int num_enqueued = 0;
 
         if (!child)
-                return has_enqueued;
+                return num_enqueued;
 
         FileSystemEntry *parent = child->parent;
 
         while (child != NULL) {
                 if (child->is_directory) {
                         if (child->children != NULL) {
-                                child->is_enqueued = enqueue_children(child->children, first_enqueued_entry, sort);
+                                int num_enq_children = enqueue_children(child->children, first_enqueued_entry, sort);
 
-                                if (child->is_enqueued >= 1)
-                                        has_enqueued = 1;
+                                if (num_enq_children >= 1)
+                                        child->is_enqueued = 1;
+
+                                num_enqueued += num_enq_children;
                         }
                 } else if (!is_m3u_file(child)) {
 
                         if (*first_enqueued_entry == NULL && !sort)
                                 *first_enqueued_entry = child;
 
-                        if (sort)
-                                enqueue_album(child, first_enqueued_entry);
-                        else
-                                if (!child->is_enqueued)
-                                        enqueue_song(child);
+                        int num_enq_files = 0;
 
-                        has_enqueued = 1;
+                        if (sort)
+                        {
+                                num_enq_files = enqueue_album(child, first_enqueued_entry);
+                        }
+                        else {
+                                if (!child->is_enqueued)
+                                {
+                                        enqueue_song(child);
+                                        num_enq_files = 1;
+                                }
+                        }
+
+                        num_enqueued += num_enq_files;
                 }
 
                 child = child->next;
@@ -682,7 +694,7 @@ int enqueue_children(FileSystemEntry *child,
 
         set_childrens_queued_status_on_parents(parent, true);
 
-        return has_enqueued;
+        return num_enqueued;
 }
 
 bool has_song_children(FileSystemEntry *entry)

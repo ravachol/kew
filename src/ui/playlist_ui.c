@@ -60,7 +60,7 @@ void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list)
 }
 
 int determine_playlist_start(int *previous_start_iter, int found_at, int max_list_size,
-                             int *chosen_song, bool reset, bool end_of_list_reached)
+                             int *chosen_song, bool reset, bool end_of_list_reached, bool center)
 {
         int start_iter = 0;
 
@@ -68,16 +68,45 @@ int determine_playlist_start(int *previous_start_iter, int found_at, int max_lis
                          ? found_at
                          : start_iter;
 
-        if (*previous_start_iter <= found_at &&
-            found_at < *previous_start_iter + max_list_size)
-                start_iter = *previous_start_iter;
+        if (!center) {
+                if (*previous_start_iter <= found_at &&
+                    found_at < *previous_start_iter + max_list_size)
+                        start_iter = *previous_start_iter;
 
-        if (*chosen_song < start_iter) {
-                start_iter = *chosen_song;
+                if (*chosen_song < start_iter) {
+
+                        start_iter = *chosen_song;
+                }
         }
 
-        if (*chosen_song > start_iter + max_list_size - floor(max_list_size / 2)) {
-                start_iter = *chosen_song - max_list_size + floor(max_list_size / 2);
+        int half = max_list_size - floor(max_list_size / 2);
+
+        if (start_iter < half)
+                start_iter = 0;
+
+        if (center) {
+                start_iter = *previous_start_iter;
+
+                if (*chosen_song >= start_iter) {
+
+                        if (start_iter >= *chosen_song - half)
+                                start_iter--;
+
+                        if (start_iter < *chosen_song - half)
+                                start_iter++;
+                }
+
+                if (*chosen_song < start_iter)
+                        start_iter = *chosen_song - half;
+
+        }
+
+
+        if (*chosen_song > start_iter + max_list_size) {
+                start_iter = *previous_start_iter;
+
+                if (*chosen_song < start_iter || *chosen_song > start_iter + max_list_size)
+                        start_iter = *chosen_song - half;
         }
 
         if (reset && !end_of_list_reached) {
@@ -86,6 +115,10 @@ int determine_playlist_start(int *previous_start_iter, int found_at, int max_lis
                 else
                         start_iter = *chosen_song = 0;
         }
+
+
+        if (start_iter < 0)
+                start_iter = 0;
 
         return start_iter;
 }

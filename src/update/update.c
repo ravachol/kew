@@ -353,10 +353,10 @@ void set_scrollbar_positions()
         }
 
         if (model->state.currentView == SEARCH_VIEW) {
-                if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_results_count > 0) {
+                if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_visible_count > 0) {
                         double position =
                             (double)model->state.ui.chosen_search_result_row /
-                            (double)model->state.ui.search_results_count;
+                            (double)model->state.ui.search_visible_count;
 
                         new_pos = (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
 
@@ -407,12 +407,6 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 switch_view(LIBRARY_VIEW);
                         }
                 }
-
-                if (model->state.currentView == PLAYLIST_VIEW)
-                        component_playlist_helper_update_view_state(model);
-
-                if (model->state.currentView == LIBRARY_VIEW)
-                        component_library_helper_update_view_state(model);
 
                 model->is_paused = is_paused();
                 model->is_stopped = is_stopped();
@@ -592,11 +586,13 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_SCROLLDOWN:
                 scroll_next(model);
                 component_library_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, true);
                 break;
 
         case MSG_SCROLLUP:
                 scroll_prev(model);
                 component_library_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, true);
                 break;
 
         case MSG_VOLUME_UP:
@@ -665,11 +661,13 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_NEXT_PAGE:
                 flip_next_page(model);
                 component_library_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, true);
                 break;
 
         case MSG_PREV_PAGE:
                 flip_prev_page(model);
                 component_library_helper_update_view_state(model);
+                component_playlist_helper_update_view_state(model, true);
                 break;
         case MSG_REMOVE:
                 result.cmd.type = CMD_REMOVE;
@@ -761,8 +759,14 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_PLAYLIST_ROW_SELECTED:
 
-                if (msg->clicked_song) {
+                if (msg->chosen_row >= 0)
                         model->state.ui.chosen_row = msg->chosen_row;
+
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.playlist_region.width))
+                        model->name_scroll.active = false;
+
+                if (msg->clicked_song) {
+
                         if (msg->chosen_song)
                                 model->state.ui.chosen_node_id = msg->chosen_song->id;
 
@@ -786,7 +790,15 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_LIBRARY_ROW_SELECTED:
 
                 model->state.ui.current_lib_entry = msg->current_lib_entry;
-                model->state.ui.chosen_lib_row = msg->chosen_lib_row;
+                model->state.ui.chosen_lib_row = msg->chosen_row;
+
+                if(!msg->found_chosen) {
+                        set_dirty(DIRTY_LIBRARY);
+                        model->state.ui.rendered = false; // re-render;
+                }
+
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.library_region.width))
+                        model->name_scroll.active = false;
 
                 if (msg->clicked_song) {
                         if (model->mouse_key == TB_KEY_MOUSE_LEFT)
@@ -816,7 +828,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->mouse_y = -1;
                 model->mouse_key = -1;
 
-                model->state.ui.lib_row_count = msg->num_lib_rows;
+                model->state.ui.lib_row_count = msg->num_rows;
 
                 if (model->name_scroll.active &&
                         model->state.ui.current_lib_entry &&
@@ -829,14 +841,18 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_SEARCH_ROW_SELECTED:
 
                 model->state.ui.current_search_entry = msg->current_search_entry;
+                model->state.ui.chosen_search_result_row = msg->chosen_row;
+
+                model->state.ui.search_visible_count = msg->num_rows;
+
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.search_region.width))
+                        model->name_scroll.active = false;
 
                 if (msg->clicked_song) {
                         if (model->mouse_key == TB_KEY_MOUSE_LEFT)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
                         else if (model->mouse_key == TB_KEY_MOUSE_MIDDLE)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
-                } else {
-                        model->state.ui.chosen_search_result_row = msg->chosen_search_result_row;
                 }
 
                 model->mouse_x = -1;

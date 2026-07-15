@@ -167,13 +167,14 @@ struct Msg {
         char args[32];
 
         int chosen_row;
+        int chosen_name_len;
+        bool found_chosen;
+
         Node *chosen_song;
 
-        int chosen_lib_row;
         FileSystemEntry *current_lib_entry;
-        int num_lib_rows;
+        int num_rows;
 
-        int chosen_search_result_row;
         FileSystemEntry *current_search_entry;
 
         int progress_bar_row;
@@ -471,6 +472,7 @@ typedef struct
         int current_at_row;
 
         int search_results_count;
+        int search_visible_count;
 
         float aspect_ratio;
 

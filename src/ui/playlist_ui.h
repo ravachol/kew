@@ -19,7 +19,7 @@
  * Should be called after determine_start_node.
  */
 int determine_playlist_start(int *previous_start_iter, int found_at, int max_list_size,
-                             int *chosen_song, bool reset, bool end_of_list_reached);
+                             int *chosen_song, bool reset, bool end_of_list_reached, bool center);
 
 /**
  * @brief Returns the node that the playlist should start showing.
