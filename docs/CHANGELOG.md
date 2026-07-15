@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.2.4
+
+- Better fix of freeze issue. From orbit. By @ravachol.
+
 ## kew 4.2.3
 
 - Add polish to scrollbar and mouse navigation, because it was just too crude in the first version. By @ravachol.

@@ -528,7 +528,7 @@ void *decode_loop(void *arg)
         float *next_buf = NULL;
 
         if (!memalign_buffers(&current_buf, &next_buf, &mixed_buf, buf_size)) {
-                sound->decode_thread_running = false;
+                atomic_store(&sound->decode_thread_running, false);
                 return NULL;
         }
 
@@ -664,6 +664,7 @@ void *decode_loop(void *arg)
                                 pthread_mutex_lock(&sound->decoder_mutex);
 
                                 while (atomic_load_explicit(&sound->decode_finished, memory_order_acquire) &&
+                                        atomic_load_explicit(&sound->decode_thread_running, memory_order_acquire) &&
                                         !atomic_load_explicit(&sound->request_switch_metadata, memory_order_acquire)) {
                                         pthread_cond_wait(&sound->decoder_cond,
                                                           &sound->decoder_mutex);
