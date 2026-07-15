@@ -3053,7 +3053,6 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         bool clicked_chosen = false;
         int chosen_row = model->state.ui.chosen_lib_row;
         int chosen_name_len = 0;
-        bool found_chosen = true;
         FileSystemEntry *first = NULL;
         FileSystemEntry *last = NULL;
 
@@ -3079,7 +3078,7 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
             .clicked_song = clicked_chosen,
             .chosen_name_len = chosen_name_len,
             .num_rows = iter,
-            .found_chosen = found_chosen};
+            .found_chosen = (chosen_lib_entry != NULL)};
 
         return result;
 }
@@ -3337,9 +3336,6 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                         }
                 }
 
-                if (!found_chosen && start_search_iter + printed_rows + 1 >= visible_count)
-                        is_chosen = true; // Select the last one if none was found
-
                 if (is_chosen) {
                         current_search_entry = entry;
                         chosen_name_len = length;
@@ -3382,7 +3378,8 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
             .chosen_row = chosen_row,
             .chosen_name_len = chosen_name_len,
             .clicked_song = clicked_song,
-            .num_rows = visible_count};
+            .num_rows = visible_count,
+            .found_chosen = found_chosen};
 
         return result;
 }
