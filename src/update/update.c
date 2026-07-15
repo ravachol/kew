@@ -789,12 +789,15 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_LIBRARY_ROW_SELECTED:
 
-                model->state.ui.current_lib_entry = msg->current_lib_entry;
-                model->state.ui.chosen_lib_row = msg->chosen_row;
-
-                if(!msg->found_chosen) {
+                if(!msg->found_chosen && model->state.ui.chosen_lib_row != msg->chosen_row) {
                         set_dirty(DIRTY_LIBRARY);
                         model->state.ui.rendered = false; // re-render;
+                }
+
+                if (msg->current_lib_entry)
+                {
+                        model->state.ui.current_lib_entry = msg->current_lib_entry;
+                        model->state.ui.chosen_lib_row = msg->chosen_row;
                 }
 
                 if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.library_region.width))
