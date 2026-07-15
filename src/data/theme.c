@@ -325,9 +325,9 @@ bool ensure_default_themes(void)
         DIR *dir = opendir(system_themes);
         if (!dir) {
                 snprintf(system_themes, sizeof(system_themes), "/usr/share/kew/themes");
+                dir = opendir(system_themes);
         }
 
-        dir = opendir(system_themes);
         if (!dir) {
                 fprintf(stderr, "ensure_default_themes: failed to copy themes, system themes dir not found\n");
                 free(config_path);

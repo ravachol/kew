@@ -2790,9 +2790,9 @@ static bool copy_layout_file(const char *src_name,
         DIR *dir = opendir(system_layouts);
         if (!dir) {
                 snprintf(system_layouts, sizeof(system_layouts), "/usr/share/kew/layouts");
+                dir = opendir(system_layouts);
         }
 
-        dir = opendir(system_layouts);
         if (!dir) {
                 free(config_path);
                 return false;
