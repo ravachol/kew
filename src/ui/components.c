@@ -3071,19 +3071,6 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         if (chosen_row > iter)
                 chosen_row = iter - 1;
 
-        if (!chosen_lib_entry) {
-                if (model->mouse_y < region.row) {
-                        chosen_lib_entry = first;
-                        chosen_row = 0;
-                } else if (model->mouse_y > region.row + region.height) {
-                        chosen_lib_entry = last;
-                        chosen_row = iter - 1;
-                }
-
-                chosen_name_len = max_name_width;
-                found_chosen = false;
-        }
-
         result.has_msg = true;
         result.msg = (struct Msg){
             .type = MSG_LIBRARY_ROW_SELECTED,
