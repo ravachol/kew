@@ -4,6 +4,8 @@
 
 - Add polish to scrollbar and mouse navigation, because it was just too crude in the first version. By @ravachol.
 
+- Fix freeze issue, regression due to gapless playback fix in 4.2.2.
+
 ## kew 4.2.2
 
 The big changes this release are:
