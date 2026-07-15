@@ -93,8 +93,10 @@ void reset_color(void);
  * @param max_width The maximum width for the name.
  * @param strip_unneeded_chars Flag indicating whether unneeded characters should be stripped.
  * @param strip_suffix Flag indicating whether the suffix (e.g., file extension) should be stripped.
+ * @return The length of the string.
  */
-void process_name(const char *name, char *output, int max_width, bool strip_unneeded_chars, bool strip_suffix);
+long process_name(const char *name, char *output, int max_width,
+                  bool strip_unneeded_chars, bool strip_suffix);
 
 /**
  * @brief Transfers application settings to the UI settings.

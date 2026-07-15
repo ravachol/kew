@@ -308,10 +308,11 @@ int str_calculate_display_width(const char *str);
  * @param str       Source string to truncate (null-terminated).
  * @param dst       Destination buffer where truncated string is written.
  * @param max_width Maximum display width in characters.
+ * @return the length of the string.
  *
  * @note Caller must ensure @dst is large enough to hold the result.
  */
-void str_truncate_display_width(const char *str, char *dst, int max_width);
+long str_truncate_display_width(const char *str, char *dst, int max_width);
 
 // FIXME document
 void save_terminal_mode();
