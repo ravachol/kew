@@ -34,7 +34,7 @@ extern "C" {
  *         or memory allocation failed. The returned structure
  *         must be freed with freeLyrics().
  */
-Lyrics *loadLyricsFromLRC(const char *path,SongData *songdata);
+Lyrics *loadLyricsFromLRC(const char *path);
 
 /**
  * Frees a Lyrics structure and all associated memory.

@@ -586,29 +586,7 @@ SongData *song_data_clone(const SongData *src)
         }
 
         // Metadata
-        if (src->metadata) {
-                dst->metadata = malloc(sizeof(*dst->metadata));
-                if (!dst->metadata)
-                        goto error;
-
-                *dst->metadata = *src->metadata;
-        }
-
-        // Deep-copy cover bitmap (must be RGBA)
-        if (src->cover &&
-            src->coverWidth > 0 &&
-            src->coverHeight > 0) {
-
-                size_t cover_size =
-                        (size_t)src->coverWidth *
-                        (size_t)src->coverHeight * 4;
-
-                dst->cover = malloc(cover_size);
-                if (!dst->cover)
-                        goto error;
-
-                memcpy(dst->cover, src->cover, cover_size);
-        }
+        load_meta_data(dst);
 
         // Deep-copy lyrics
         if (src->lyrics) {
@@ -671,8 +649,7 @@ SongData *load_song_data(char *file_path)
         songdata->avg_bit_rate = 0;
         songdata->lyrics = NULL;
         c_strcpy(songdata->file_path, file_path, sizeof(songdata->file_path));
-        load_meta_data(songdata); // loading two times meta_data may cause errors, but it is necessary to get the title for loading lyrics
-        songdata->lyrics = loadLyricsFromLRC(songdata->file_path,songdata);
+        songdata->lyrics = loadLyricsFromLRC(songdata->file_path);
         load_meta_data(songdata);
         load_color(songdata);
         load_kmeans_palette(songdata->cover, songdata->coverWidth, songdata->coverHeight, songdata->kmeans_palette);

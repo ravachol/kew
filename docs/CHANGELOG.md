@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.2.5
+
+- Revert PR "Improve LRC file lookup with fallback substring matching" #198 which caused a memory leak when switching songs.
+
 ## kew 4.2.4
 
 - Better fix of freeze issue. From orbit. By @ravachol.
