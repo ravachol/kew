@@ -1754,8 +1754,6 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 draw_buffer_set_string_truncated(buf, draw_row, col, filename, region.width, title_style);
 
-                draw_buffer_set_string_truncated(buf, draw_row, col, filename, max_name_width, title_style);
-
                 node = node->next;
                 printed++;
         }
@@ -3264,7 +3262,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                 FileSystemEntry *entry = model->search_results[i].entry;
                 int depth = determine_depth(entry);
                 int extra_indent = depth;
-                int name_width = max_name_width - extra_indent - 2;
+                int name_width = max_name_width - extra_indent;
                 if (name_width < 0)
                         name_width = 0;
                 // Build display name
