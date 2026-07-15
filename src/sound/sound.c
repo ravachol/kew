@@ -769,6 +769,7 @@ void *decode_loop(void *arg)
         aligned64_free(mixed_buf);
         aligned64_free(current_buf);
         aligned64_free(next_buf);
+
         atomic_store(&sound->decode_thread_running, false);
         atomic_store(&sound->drain_callbacks_remaining, 0);
         atomic_store(&sound->request_pause, false);
