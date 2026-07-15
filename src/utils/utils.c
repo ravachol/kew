@@ -123,7 +123,7 @@ char *string_to_upper(const char *str)
                 return NULL;
         }
 
-        size_t length = strnlen(str, KEW_PATH_MAX);
+        glong length = g_utf8_strlen(str, KEW_PATH_MAX);
 
         return g_utf8_strup(str, length);
 }

@@ -33,7 +33,7 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
 
 void component_playlist_helper_reset(Model *model);
 
-void component_playlist_helper_update_view_state(Model *model);
+void component_playlist_helper_update_view_state(Model *model, bool center);
 
 ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 

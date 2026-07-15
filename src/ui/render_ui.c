@@ -460,10 +460,10 @@ void set_model_attributes(Pane *pane)
                 model->state.ui.search_scrollbar.position = model->state.ui.search_region.row;
                 model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
 
-                if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_results_count > 0) {
+                if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_visible_count > 0) {
                 double position =
                     (double)model->state.ui.chosen_search_result_row /
-                    (double)model->state.ui.search_results_count;
+                    (double)model->state.ui.search_visible_count;
 
                 model->state.ui.search_scrollbar.position =
                     (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
