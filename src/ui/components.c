@@ -553,9 +553,11 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         draw_buffer_set_string(buf, draw_row, draw_col, empty_space, item_style);
 
                         char prefix[8];
-                        int prefix_len = (int)strnlen(prefix, sizeof(prefix));
+
                         snprintf(prefix, sizeof(prefix), "%s",
                                  entry->is_enqueued ? " * " : "   ");
+
+                        int prefix_len = (int)strnlen(prefix, sizeof(prefix));
 
                         if (max_name_width < extra_indent)
                                 max_name_width = extra_indent;
