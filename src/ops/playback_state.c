@@ -15,6 +15,10 @@
 
 #include "loader/song_loader.h"
 
+#ifdef DEBUG
+#include "utils/k_log.h"
+#endif
+
 int shuffle_enabled;
 
 bool is_shuffle_enabled(void)
@@ -152,5 +156,9 @@ SongData *get_current_song_data(SongData *previous_songdata)
         Model *model = get_model();
         model->playbackState.notifySwitch = 1;
 
+#ifdef DEBUG
+        // Log basic stats
+        k_log("New songdata: %s duration: %f", song_data->file_path, song_data->duration);
+#endif
         return songdata_clone(song_data);
 }
