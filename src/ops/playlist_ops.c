@@ -1014,10 +1014,6 @@ void play_command_with_playlist(int argc, char **argv)
         for (int i = 2; i < argc; i++) {
                 build_playlist_recursive(argv[i], allowed_extensions, playlist);
         }
-
-        if (playlist->count == 0) {
-                quit();
-        }
 }
 
 int add_to_playlist_name(const char *str)

@@ -77,7 +77,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "data/img_func.h"
 #include "data/theme.h"
-#include "data/img_func.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -814,30 +813,27 @@ void default_state_init(void)
  * @brief Handles the "play" command from the playlist.
  *
  * This function validates paths and processes the playlist for playback. It checks if the
- * provided paths exist and are valid, then initiates the playback with the playlist.
+ * provided paths exist and are valid
  *
  * @param argc Pointer to the argument count.
  * @param argv Array of argument strings.
  *
  * @return bool Returns true if the command is valid, false otherwise.
  */
-static void handle_play_command_playlist(int argc, char **argv)
+static bool handle_play_command_playlist(int argc, char **argv)
 {
-        if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
-                char de_expanded[KEW_PATH_MAX];
-                // Working with multiple files
-                //validate all paths
+        char de_expanded[KEW_PATH_MAX];
+        // Working with multiple files
+        //validate all paths
 
-                for (int i = 2; i < argc; i++) {
-                        if ((expand_path(argv[i], de_expanded, KEW_PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
-                                return;
-                        }
+        for (int i = 2; i < argc; i++) {
+                if ((expand_path(argv[i], de_expanded, KEW_PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
+                        return false;
                 }
-                play_command_with_playlist(argc, argv);
-
-                kew_init(false);
-                run(true);
         }
+        play_command_with_playlist(argc, argv);
+
+        return true;
 }
 
 /**
@@ -1117,7 +1113,6 @@ int main(int argc, char *argv[])
         transfer_settings_to_ui();
         key_mappings_init(&model->settings);
         save_terminal_window_title();
-        handle_play_command_playlist(argc, argv);
         enter_alternate_screen_buffer();
         register_singnal_handlers();
 
@@ -1129,6 +1124,15 @@ int main(int argc, char *argv[])
         ensure_default_themes();
         ensure_default_layouts();
         themes_init(argc, argv);
+
+        if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
+                 if (handle_play_command_playlist(argc, argv))
+                 {
+                        kew_init(false);
+                        run(true);
+                        return 0;
+                 }
+        }
 
         if (argc == 1) {
                 default_state_init();
