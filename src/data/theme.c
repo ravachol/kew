@@ -331,8 +331,10 @@ bool ensure_default_themes(void)
         }
 
         if (!dir) {
-                k_log("ensure_default_themes: failed to copy themes, system themes dir not found\n");
+                k_log("ensure_default_themes: failed to copy themes, system themes dir couldn't be opened: %s\n", system_themes);
                 free(config_path);
+                set_error_message("Couldn't copy themes. The directory wasn't found or kew doesn't have permissions to read from it.");
+                quit();
                 return false;
         }
 
