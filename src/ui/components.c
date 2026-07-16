@@ -655,13 +655,18 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 if (is_playing && !is_chosen)
                                         file_style.attrs |= ATTR_UNDERLINE;
                                 // playlist icon
+
+                                if (!entry->next)
+                                        draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
+                                else
+                                        draw_buffer_set_string(buf, draw_row, text_col, "├─ ", file_style);
+                                text_col += 3;
+
                                 if (is_m3u_file(entry)) {
                                         draw_buffer_set_string(buf, draw_row, text_col, "♫ ", file_style);
                                         text_col += 2;
                                         name_width -= 2;
                                 }
-                                draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
-                                text_col += 3;
 
                                 if (found_chosen != NULL)
                                         process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
