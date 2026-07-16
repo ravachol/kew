@@ -36,6 +36,7 @@
 #include <miniaudio.h>
 
 #include <fcntl.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdatomic.h>
@@ -637,7 +638,12 @@ void *decode_loop(void *arg)
                 void *next_decoder = get_other_decoder();
 
                 if (sound->total_song_frames == 0)
+                {
                         ma_data_source_get_length_in_pcm_frames(decoder, &sound->total_song_frames);
+#ifdef DEBUG
+                        k_log("Frame count: %" PRIu64, sound->total_song_frames);
+#endif
+                }
 
                 ma_uint64 frames_remaining = sound->total_song_frames - sound->current_frame;
 
@@ -680,6 +686,12 @@ void *decode_loop(void *arg)
                                                 atomic_store_explicit(&sound->decode_thread_running,
                                                                       false,
                                                                       memory_order_release);
+
+#ifdef DEBUG
+                                                uint64_t played = atomic_load_explicit(&sound_s->track_frames_sent, memory_order_relaxed);
+                                                uint64_t boundary = atomic_load_explicit(&sound_s->track_end_frame, memory_order_relaxed);
+                                                k_log("Played: %" PRIu64 "Boundary: %" PRIu64,played, boundary);
+#endif
                                                 break;
                                         }
                                 }
@@ -860,26 +872,26 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                     sound_s->fade_boundary <= (long long)played + framesToCopy &&
                     !sound_s->clock_reset_done) {
 
+                        atomic_store_explicit(&sound_s->fade_boundary_reached, true, memory_order_relaxed);
+                        atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
+
                         pthread_mutex_lock(&sound_s->decoder_mutex);
                         pthread_cond_signal(&sound_s->decoder_cond);
                         pthread_mutex_unlock(&sound_s->decoder_mutex);
-
-                        atomic_store_explicit(&sound_s->fade_boundary_reached, true, memory_order_relaxed);
-                        atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
                 }
 
                 if (!boundary_handled &&
                     played + framesToCopy >= boundary &&
                     atomic_load_explicit(&sound_s->decode_finished, memory_order_acquire)) {
 
-                        pthread_mutex_lock(&sound_s->decoder_mutex);
-                        pthread_cond_signal(&sound_s->decoder_cond);
-                        pthread_mutex_unlock(&sound_s->decoder_mutex);
-
                         // Only copy up to the track boundary
                         framesToCopy = (ma_uint32)(boundary - played);
                         atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
                         boundary_handled = true;
+
+                        pthread_mutex_lock(&sound_s->decoder_mutex);
+                        pthread_cond_signal(&sound_s->decoder_cond);
+                        pthread_mutex_unlock(&sound_s->decoder_mutex);
                 }
 
                 // Copy frames
