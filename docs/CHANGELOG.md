@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.2.6
+
+- Fix a case where if current song was null, the current songdata clone didn't get unloaded.
+
 ## kew 4.2.5
 
 - Revert PR "Improve LRC file lookup with fallback substring matching" #198 which caused a memory leak when switching songs.

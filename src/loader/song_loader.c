@@ -83,6 +83,8 @@ void unload_song_data(SongData **songdata)
 
         SongData *data = *songdata;
 
+        data->magic = 0;
+
         if (data->cover != NULL) {
                 stbi_image_free(data->cover);
                 data->cover = NULL;
@@ -95,8 +97,6 @@ void unload_song_data(SongData **songdata)
         }
 
         unload_lyrics(data);
-
-        data->magic = 0;
 
         free(data->metadata);
         free(data->track_id);

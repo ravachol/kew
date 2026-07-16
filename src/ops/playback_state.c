@@ -111,26 +111,39 @@ void set_volume(int vol)
 SongData *get_current_song_data(SongData *previous_songdata)
 {
         if (get_current_song() == NULL)
+        {
+                unload_song_data(&previous_songdata);
                 return NULL;
-
+        }
         if (is_current_song_deleted())
+        {
+                unload_song_data(&previous_songdata);
                 return NULL;
+        }
 
         bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
 
         if (isDeleted && !sound_system_no_song_loaded(sound_sys))
                 sound_system_switch_song_immediate(sound_sys);
         if (isDeleted)
+        {
+                unload_song_data(&previous_songdata);
                 return NULL;
+        }
 
         SongData *song_data = NULL;
         song_data = sound_system_get_current_song(sound_sys);
 
         if (!is_valid_song(song_data))
+        {
+                unload_song_data(&previous_songdata);
                 return NULL;
+        }
 
         if (previous_songdata && strcmp(previous_songdata->track_id, song_data->track_id) == 0)
+        {
                 return previous_songdata;
+        }
         else
                 unload_song_data(&previous_songdata);
 
