@@ -15,11 +15,13 @@
 #include "common/events.h"
 
 #include "data/theme.h"
+#include "data/img_func.h"
 
 #include "ui/components.h"
 
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <glib.h>
 #include <math.h>
@@ -847,18 +849,19 @@ void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
         draw_buffer_set_string_truncated(buf, row, col, str, max_width, style);
 }
 
-void free_link_payload(LinkPayload *link)
+void free_link_payload(LinkPayload **link)
 {
-        if (!link)
+        if (!*link)
                 return;
 
-        if (link->title)
-                free(link->title);
+        if ((*link)->title)
+                free((*link)->title);
 
-        if (link->url)
-                free(link->url);
+        if ((*link)->url)
+                free((*link)->url);
 
-        free(link);
+        free(*link);
+        *link = NULL;
 }
 
 void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
@@ -877,7 +880,7 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
         bool draw_title = true;
         bool draw_url = true;
 
-        if (anchor->kind == CELL_LINK) {
+        if (anchor->kind == CELL_LINK && anchor->link) {
                 if (strcmp(anchor->link->title, title) == 0) {
                         draw_title = false;
                 } else if (anchor->link->title != NULL) {
@@ -891,8 +894,13 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
                         free(anchor->link->url);
                         anchor->link->url = NULL;
                 }
-        } else {
+        } else if (anchor->kind != CELL_LINK || !anchor->link) {
                 LinkPayload *link = calloc(1, sizeof(LinkPayload));
+
+                if (!link) {
+                        k_log("draw_link_to_buffer: failed to allocate LinkPayload");
+                        return;
+                }
                 anchor->link = link;
         }
 
@@ -918,6 +926,10 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
         for (int c = col_occupied; c < col_end; c++) {
                 if (c == col)
                         continue;
+
+                free_link_payload(&buf->cells[row * buf->cols + c].link);
+                free_image_payload(&buf->cells[row * buf->cols + c].image);
+
                 buf->cells[row * buf->cols + c].kind = CELL_OCCUPIED;
         }
 }

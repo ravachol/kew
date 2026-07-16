@@ -152,5 +152,5 @@ SongData *get_current_song_data(SongData *previous_songdata)
         Model *model = get_model();
         model->playbackState.notifySwitch = 1;
 
-        return song_data_clone(song_data);
+        return songdata_clone(song_data);
 }

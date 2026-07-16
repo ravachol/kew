@@ -8,6 +8,8 @@
 
 #### Bug fixes:
 
+- Fix issue with resize.
+
 - Fix a case where if current song was null, the current songdata clone didn't get unloaded.
 
 - Fixed issue with kew play <path> command, where it wouldn't return from the function when it should.

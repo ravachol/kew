@@ -11,6 +11,10 @@
 #include "common/common.h"
 #include "common/model.h"
 
+#include "ui/common_ui.h"
+
+#include "utils/k_log.h"
+
 #include "img_func.h"
 
 #include <stdbool.h>
@@ -520,15 +524,16 @@ float get_aspect_ratio()
         return (float)cell_height / (float)cell_width;
 }
 
-void free_image_payload(ImagePayload *img)
+void free_image_payload(ImagePayload **img)
 {
-        if (!img)
+        if (!*img)
                 return;
 
-        if (img->data)
-                free(img->data);
+        if ((*img)->data)
+                free((*img)->data);
 
-        free(img);
+        free(*img);
+        *img = NULL;
 }
 
 void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
@@ -558,10 +563,17 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         }
 #endif
 
-        printf("\033[%d;%dH", row, col);
+#ifdef DEBUG
+        k_log("img_func entered");
+#endif
 
         if (cell_width <= 0 || cell_height <= 0) {
-                set_error_message("Invalid cell dimensions.\n");
+                k_log("Invalid cell dimensions.");
+                return;
+        }
+
+        if (width == 0 || height == 0 || !pixels) {
+                k_log("Invalid image dimensions / no pixels.");
                 return;
         }
 
@@ -597,30 +609,25 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 corrected_height = 1;
 
         if (term_size->cols > 0 && corrected_width > term_size->cols) {
-                set_error_message("Invalid terminal dimensions.\n");
+                k_log("Invalid terminal dimensions.\n");
                 return;
         }
 
         if (term_size->rows > 0 && corrected_height > term_size->rows) {
-                set_error_message("Invalid terminal dimensions.\n");
+                k_log("Invalid terminal dimensions.\n");
                 return;
         }
 
         if (centered && term_size->cols > 0)
                 col = ((term_size->cols - corrected_width) / 2) + 1;
 
-        Cell *anchor = &buf->cells[row * buf->cols + col];
-
-        Model *model = get_model();
-        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
-
-        if (anchor->image && anchor->kind == CELL_IMAGE_ANCHOR) {
-                free_image_payload(anchor->image);
-                anchor->image = NULL;
+        // Bounds check
+        if (row < 0 || row >= buf->rows || col < 0 || col >= buf->cols) {
+                k_log("Bounds check failed.\n");
+                return;
         }
 
-        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
-
+        Model *model = get_model();
         // Store the encoded blob in an ImagePayload and place it in the buffer.
         // The terminal backend emits it verbatim at commit time — same as sixels.
         ImagePayload *img = calloc(1, sizeof(ImagePayload));
@@ -635,34 +642,6 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         img->screen_h = corrected_height;
         img->screen_w = corrected_width;
 
-        anchor->kind = CELL_IMAGE_ANCHOR;
-        anchor->image = img;
-
-        // Place anchor cell
-        if (row < 0 || row >= buf->rows || col < 0 || col >= buf->cols) {
-                free(img->data);
-                free(img);
-                return;
-        }
-
-        if (draw_occupied_markers) {
-                int rows = MIN(row + base_height, buf->rows);
-                int cols = MIN(col + corrected_width, buf->cols);
-
-                // Mark occupied region
-                for (int r = row; r < rows; r++) {
-                        for (int c = col; c < cols; c++) {
-                                if (r == row && c == col)
-                                        continue;
-                                buf->cells[r * buf->cols + c].kind = CELL_OCCUPIED;
-                        }
-                }
-        }
-
-        if (width == 0 || height == 0 || !pixels) {
-                return;
-        }
-
         if (!just_mark_cover) {
                 GString *printable = convert_image(
                     pixels, width, height,
@@ -671,12 +650,55 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                     corrected_width, corrected_height,
                     cell_width, cell_height, cover_style);
 
-                if (!printable)
+                if (!printable) {
+                        free(img);
                         return;
+                }
 
                 img->data_len = printable->len;
                 img->data = (uint8_t *)g_string_free(printable, FALSE);
         }
+
+        printf("\033[%d;%dH", row, col);
+
+        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
+
+        Cell *anchor = &buf->cells[row * buf->cols + col];
+
+        anchor->kind = CELL_NORMAL;
+
+        if (anchor->image)
+                free_image_payload(&anchor->image);
+
+        if (anchor->link)
+                free_link_payload(&anchor->link);
+
+        anchor->kind = CELL_IMAGE_ANCHOR;
+        anchor->image = img;
+        anchor->link = NULL;
+
+        if (draw_occupied_markers) {
+                int rows = MIN(row + corrected_height, buf->rows);
+                int cols = MIN(col + corrected_width, buf->cols);
+
+                for (int r = row; r < rows; r++) {
+                        for (int c = col; c < cols; c++) {
+                                if (r == row && c == col)
+                                        continue;
+
+                                Cell *cell = &buf->cells[r * buf->cols + c];
+
+                                free_link_payload(&cell->link);
+                                free_image_payload(&cell->image);
+
+                                cell->kind = CELL_OCCUPIED;
+                                cell->image = NULL;
+                                cell->link = NULL;
+                        }
+                }
+        }
+
+        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 }
 
 void chafa_shutdown(void)

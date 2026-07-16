@@ -34,6 +34,7 @@
 #include "data/playlist.h"
 
 #include "utils/img_utils.h"
+#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -299,38 +300,84 @@ static inline Cell cell_blank(void)
         return c;
 }
 
+#ifdef DEBUG
+static void cell_validate(Cell *cell, int index)
+{
+        switch (cell->kind) {
+
+        case CELL_IMAGE_ANCHOR:
+                if (!cell->image || cell->link) {
+                        k_log("INVALID IMAGE CELL %d: image=%p link=%p",
+                              index,
+                              (void *)cell->image,
+                              (void *)cell->link);
+                }
+                break;
+
+        case CELL_LINK:
+                if (!cell->link || cell->image) {
+                        k_log("INVALID LINK CELL %d: image=%p link=%p",
+                              index,
+                              (void *)cell->image,
+                              (void *)cell->link);
+                }
+                break;
+
+        case CELL_OCCUPIED:
+        default:
+                if (cell->image || cell->link) {
+                        k_log("INVALID PAYLOAD CELL %d kind=%d image=%p link=%p",
+                              index,
+                              cell->kind,
+                              (void *)cell->image,
+                              (void *)cell->link);
+                }
+                break;
+        }
+}
+#endif
+
 void draw_buffer_clear(DrawBuffer *buf)
 {
-        if (!buf)
+#ifdef DEBUG
+        k_log("draw_buffer_clear: enter buf=%p", (void *)buf);
+#endif
+
+        if (!buf) {
                 return;
+        }
 
-        Model *model = get_model();
+        if (buf->cols <= 0 || buf->rows <= 0) {
+                k_log("draw_buffer_clear: invalid dimensions cols=%d rows=%d",
+                      buf->cols,
+                      buf->rows);
+                return;
+        }
 
-        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
+        if (!buf->cells) {
+                k_log("draw_buffer_clear: cells is NULL, returning");
+                return;
+        }
 
         Cell blank = cell_blank();
-        blank.style = cell_style_plain();
 
         int total = buf->cols * buf->rows;
 
+#ifdef DEBUG
+        for (int i = 0; i < total; i++) {
+                cell_validate(&buf->cells[i], i);
+        }
+#endif
+
         for (int i = 0; i < total; i++) {
 
-                if (buf->cells[i].kind == CELL_IMAGE_ANCHOR && buf->cells[i].image) {
-                        free_image_payload(buf->cells[i].image);
-                        buf->cells[i].image = NULL;
-                }
-
-                if (buf->cells[i].kind == CELL_LINK && buf->cells[i].link) {
-                        free_link_payload(buf->cells[i].link);
-                        buf->cells[i].link = NULL;
-                }
+                free_image_payload(&buf->cells[i].image);
+                free_link_payload(&buf->cells[i].link);
         }
 
         for (int i = 0; i < total; i++) {
                 buf->cells[i] = blank;
         }
-
-        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 }
 
 void layout_offset(Layout *layout, int dx, int dy)
@@ -464,12 +511,12 @@ void set_model_attributes(Pane *pane)
                 model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
 
                 if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_visible_count > 0) {
-                double position =
-                    (double)model->state.ui.chosen_search_result_row /
-                    (double)model->state.ui.search_visible_count;
+                        double position =
+                            (double)model->state.ui.chosen_search_result_row /
+                            (double)model->state.ui.search_visible_count;
 
-                model->state.ui.search_scrollbar.position =
-                    (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
+                        model->state.ui.search_scrollbar.position =
+                            (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
                 }
         }
 }
@@ -773,25 +820,48 @@ Layout *build_help_layout(Model *model)
 
 void draw_buffer_resize(int cols, int rows)
 {
+        Model *model = get_model();
         DrawBuffer *buf = s_buf;
+
         if (!buf)
                 return;
 
-        Cell *new_cells = realloc(buf->cells, rows * cols * sizeof(Cell));
-        bool *new_dirty = realloc(buf->dirty_rows, rows * sizeof(bool));
+        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
 
-        if (!new_cells || !new_dirty) {
+        // Free any payloads owned by the current buffer.
+        draw_buffer_clear(buf);
+
+        size_t total = (size_t)cols * rows;
+
+        Cell *new_cells = realloc(buf->cells, total * sizeof(Cell));
+        if (!new_cells) {
+                pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
+                return;
+        }
+
+        bool *new_dirty = realloc(buf->dirty_rows, rows * sizeof(bool));
+        if (!new_dirty) {
+                // dirty_rows is unchanged, so leave cols/rows unchanged too.
+                buf->cells = new_cells;
+                pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
                 return;
         }
 
         buf->cells = new_cells;
         buf->dirty_rows = new_dirty;
-
         buf->cols = cols;
         buf->rows = rows;
 
-        // initialize new regions
-        memset(buf->dirty_rows, 0, rows * sizeof(bool));
+        // Set blank cells
+        Cell blank = cell_blank();
+        for (size_t i = 0; i < total; i++)
+                buf->cells[i] = blank;
+
+        // Set everything row as dirty
+        for (int r = 0; r < rows; r++)
+                buf->dirty_rows[r] = true;
+
+        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 }
 
 DrawBuffer *draw_buffer_create(int cols, int rows)
@@ -812,17 +882,8 @@ void draw_buffer_destroy(DrawBuffer *buf)
         int total = buf->rows * buf->cols;
 
         for (int i = 0; i < total; i++) {
-                Cell *cell = &buf->cells[i];
-
-                if (cell->kind == CELL_IMAGE_ANCHOR && cell->image) {
-                        free_image_payload(cell->image);
-                        cell->image = NULL;
-                }
-
-                if (cell->kind == CELL_LINK && cell->link) {
-                        free_link_payload(cell->link);
-                        cell->link = NULL;
-                }
+                free_image_payload(&buf->cells[i].image);
+                free_link_payload(&buf->cells[i].link);
         }
 
         free(buf->cells);
@@ -1012,7 +1073,11 @@ void rebuild_layout(Model *model)
 
         rebuilding = true;
 
+        pthread_mutex_lock(&(model->state.drawbuffer_mutex));
+
         draw_buffer_clear(s_buf);
+
+        pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 
         switch (model->state.currentView) {
 
