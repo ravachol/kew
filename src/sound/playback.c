@@ -280,9 +280,9 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
 
 void stop_decode_thread(void)
 {
-        atomic_store(&sound_s->decode_thread_running, false);
-
         pthread_mutex_lock(&sound_s->decoder_mutex);
+
+        atomic_store(&sound_s->decode_thread_running, false);
         pthread_cond_signal(&sound_s->decoder_cond);
         pthread_mutex_unlock(&sound_s->decoder_mutex);
 

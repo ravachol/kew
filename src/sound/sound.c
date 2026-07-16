@@ -799,6 +799,7 @@ void *decode_loop(void *arg)
         aligned64_free(next_buf);
 
         pthread_mutex_lock(&sound_s->decoder_mutex);
+        atomic_store(&sound->decode_thread_running, false);
         pthread_cond_signal(&sound_s->decoder_cond);
         pthread_mutex_unlock(&sound_s->decoder_mutex);
 
@@ -873,10 +874,11 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                     sound_s->fade_boundary <= (long long)played + framesToCopy &&
                     !sound_s->clock_reset_done) {
 
+                        pthread_mutex_lock(&sound_s->decoder_mutex);
+
                         atomic_store_explicit(&sound_s->fade_boundary_reached, true, memory_order_relaxed);
                         atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
 
-                        pthread_mutex_lock(&sound_s->decoder_mutex);
                         pthread_cond_signal(&sound_s->decoder_cond);
                         pthread_mutex_unlock(&sound_s->decoder_mutex);
                 }
@@ -885,12 +887,13 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                     played + framesToCopy >= boundary &&
                     atomic_load_explicit(&sound_s->decode_finished, memory_order_acquire)) {
 
+                        pthread_mutex_lock(&sound_s->decoder_mutex);
+
                         // Only copy up to the track boundary
                         framesToCopy = (ma_uint32)(boundary - played);
                         atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
                         boundary_handled = true;
-
-                        pthread_mutex_lock(&sound_s->decoder_mutex);
+                        
                         pthread_cond_signal(&sound_s->decoder_cond);
                         pthread_mutex_unlock(&sound_s->decoder_mutex);
                 }
