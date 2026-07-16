@@ -2796,6 +2796,9 @@ static bool copy_layout_file(const char *src_name,
 
         if (!dir) {
                 free(config_path);
+                k_log("inacessible system_layouts dir: %s", system_layouts);
+                set_error_message("Couldn't copy layouts. Directory wasn't found or kew doesn't have permissions to read from it.");
+                quit();
                 return false;
         }
 
