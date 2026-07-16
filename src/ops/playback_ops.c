@@ -25,6 +25,7 @@
 #include "sys/mpris.h"
 
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 void resume_playback(double seconds)
 {
@@ -144,7 +145,7 @@ int play_song(Node *node)
         PlaybackState *ps = get_playback_state();
 
         if (!is_valid_audio_node(node)) {
-                fprintf(stderr, "Song is invalid.\n");
+                k_log("Song is invalid.\n");
                 return -1;
         }
 

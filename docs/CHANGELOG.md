@@ -2,6 +2,12 @@
 
 ## kew 4.2.6
 
+#### Enhancements:
+
+- Use a logger instead of fprintf(stderr,... statements and make sure it flushes to stderr every time.
+
+#### Bug fixes:
+
 - Fix a case where if current song was null, the current songdata clone didn't get unloaded.
 
 - Fixed issue with kew play <path> command, where it wouldn't return from the function when it should.

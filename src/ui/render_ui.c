@@ -301,6 +301,9 @@ static inline Cell cell_blank(void)
 
 void draw_buffer_clear(DrawBuffer *buf)
 {
+        if (!buf)
+                return;
+
         Model *model = get_model();
 
         pthread_mutex_lock(&(model->state.drawbuffer_mutex));

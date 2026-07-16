@@ -342,6 +342,8 @@ void model_init(void)
 
         model.state.ui.rendered = false;
 
+        model.state.ui.logfile_path = NULL;
+
         model.glimmer.active = false;
         model.title_delay.active = false;
 

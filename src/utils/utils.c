@@ -7,6 +7,7 @@
  */
 
 #include "utils.h"
+#include "k_log.h"
 
 #include <ctype.h>
 #include <fcntl.h>
@@ -155,7 +156,7 @@ char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len)
 int match_regex(const regex_t *regex, const char *ext)
 {
         if (regex == NULL || ext == NULL) {
-                fprintf(stderr, "Invalid arguments\n");
+                k_log("Invalid arguments\n");
                 return 1;
         }
 
@@ -167,7 +168,7 @@ int match_regex(const regex_t *regex, const char *ext)
         } else if (ret == 0) {
                 return 0;
         } else {
-                fprintf(stderr, "match_regex: Regex match failed");
+                k_log("match_regex: Regex match failed");
 
                 return 1;
         }
@@ -568,7 +569,7 @@ int copy_file(const char *src, const char *dst)
 {
     if (src == NULL || dst == NULL)
     {
-        fprintf(stderr, "copy_file: one or both of the inputs are null\n");
+        k_log("copy_file: one or both of the inputs are null\n");
         return -1;
     }
 
@@ -578,7 +579,7 @@ int copy_file(const char *src, const char *dst)
     if (CopyFileA(src, dst, FALSE))
         return 0;
 
-    fprintf(stderr, "copy_file: CopyFileA failed.\n");
+    k_log("copy_file: CopyFileA failed.\n");
     return -1;
 
 #else
@@ -594,7 +595,7 @@ int copy_file(const char *src, const char *dst)
         execlp("cp", "cp", "--", src, dst, (char *)NULL);
 
         // Exec failed
-        fprintf(stderr, "copy_file: execlp(cp, src, dst), failed.\n");
+        k_log("copy_file: execlp(cp, src, dst), failed.\n");
 
         _exit(127);
     }
@@ -634,7 +635,7 @@ int get_number_from_string(const char *str)
 void start_timer(void)
 {
         clock_gettime(CLOCK_MONOTONIC, &timer_start);
-        fprintf(stderr, "Timer started\n");
+        k_log("Timer started\n");
 }
 
 void end_timer(void)
@@ -646,7 +647,7 @@ void end_timer(void)
             (timer_end.tv_sec - timer_start.tv_sec) +
             (timer_end.tv_nsec - timer_start.tv_nsec) / 1e9;
 
-        fprintf(stderr, "Timer ended: %.6f seconds elapsed\n", elapsed);
+        k_log("Timer ended: %.6f seconds elapsed\n", elapsed);
 }
 
 // Determine the number of bytes in the last UTF-8 character

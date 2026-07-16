@@ -12,7 +12,7 @@
 
 #include "common/path_max.h"
 
-#include <stdio.h>
+#include "utils/k_log.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -21,7 +21,7 @@ Cache *create_cache()
 {
         Cache *cache = malloc(sizeof(Cache));
         if (cache == NULL) {
-                fprintf(stderr, "create_cache: malloc\n");
+                k_log("create_cache: malloc\n");
                 return NULL;
         }
         cache->head = NULL;
@@ -31,29 +31,29 @@ Cache *create_cache()
 void add_to_cache(Cache *cache, const char *file_path)
 {
         if (cache == NULL) {
-                fprintf(stderr, "Cache is null.\n");
+                k_log("Cache is null.\n");
                 return;
         }
 
         if (file_path == NULL || *file_path == '\0') {
-                fprintf(stderr, "Invalid file_path.\n");
+                k_log("Invalid file_path.\n");
                 return;
         }
 
         if (strnlen(file_path, KEW_PATH_MAX + 1) >= KEW_PATH_MAX) {
-                fprintf(stderr, "File path too long.\n");
+                k_log("File path too long.\n");
                 return;
         }
 
         CacheNode *new_node = malloc(sizeof(CacheNode));
         if (new_node == NULL) {
-                fprintf(stderr, "add_to_cache: malloc\n");
+                k_log("add_to_cache: malloc\n");
                 return;
         }
 
         new_node->file_path = strdup(file_path);
         if (new_node->file_path == NULL) {
-                fprintf(stderr, "add_to_cache: strdup\n");
+                k_log("add_to_cache: strdup\n");
                 free(new_node); // prevent memory leak
                 return;
         }
@@ -65,7 +65,7 @@ void add_to_cache(Cache *cache, const char *file_path)
 void delete_cache(Cache *cache)
 {
         if (cache == NULL) {
-                fprintf(stderr, "delete_cache: Cache is null.\n");
+                k_log("delete_cache: Cache is null.\n");
                 return;
         }
 
@@ -87,7 +87,7 @@ bool exists_in_cache(Cache *cache, char *file_path)
                 return false;
 
         if (cache == NULL) {
-                fprintf(stderr, "exists_in_cache: Cache is null.\n");
+                k_log("exists_in_cache: Cache is null.\n");
                 return false;
         }
 

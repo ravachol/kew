@@ -1112,7 +1112,7 @@ int init_ring_buffer(sound_system_t *sound)
                                             NULL,
                                             &pcm_rb);
         if (rbResult != MA_SUCCESS) {
-                fprintf(stderr, "Failed to initialize PCM ring buffer: %d\n", rbResult);
+                k_log("Failed to initialize PCM ring buffer: %d\n", rbResult);
                 return -1;
         }
 

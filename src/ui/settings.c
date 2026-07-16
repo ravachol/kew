@@ -24,6 +24,7 @@
 
 #include "utils/file.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include "update/messages.h"
 
@@ -440,7 +441,7 @@ char *get_settings_file_path(const char *dir, const char *filename)
 
         int written = snprintf(filepath, KEW_PATH_MAX, "%s/%s", dir, filename);
         if (written < 0 || written >= KEW_PATH_MAX) {
-                fprintf(stderr, "Error: filepath truncated.\n");
+                k_log("Error: filepath truncated.\n");
                 free(filepath);
                 quit();
         }
@@ -1971,7 +1972,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         FILE *file = fopen(filepath, "w");
         if (file == NULL) {
-                fprintf(stderr, "Error opening file: %s\n", filepath);
+                k_log("Error opening file: %s\n", filepath);
                 free(filepath);
                 free(configdir);
                 return;
@@ -2106,7 +2107,7 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         FILE *file = fopen(filepath, "w");
         if (file == NULL) {
-                fprintf(stderr, "Error opening file: %s\n", filepath);
+                k_log("Error opening file: %s\n", filepath);
                 free(filepath);
                 free(configdir);
                 return;

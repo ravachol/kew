@@ -81,6 +81,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <fcntl.h>
 #include <gio/gio.h>
@@ -204,115 +205,6 @@ void player_tick(Model *model, RenderContext *ctx)
         }
 }
 
-char *logging_get_error_log_path(void)
-{
-#ifdef _WIN32
-        const char *base = getenv("LOCALAPPDATA");
-        if (!base)
-                return NULL;
-
-        char dir[MAX_PATH];
-
-        if (snprintf(dir, sizeof(dir), "%s\\kew", base) >= (int)sizeof(dir))
-                return NULL;
-        mkdir_p(dir);
-
-        if (snprintf(dir, sizeof(dir), "%s\\kew\\logs", base) >= (int)sizeof(dir))
-                return NULL;
-        mkdir_p(dir);
-
-        size_t len = snprintf(NULL, 0, "%s\\kew\\logs\\error.log", base);
-        char *path = malloc(len + 1);
-        if (!path)
-                return NULL;
-
-        snprintf(path, len + 1, "%s\\kew\\logs\\error.log", base);
-        return path;
-
-#elif defined(__APPLE__)
-        const char *home = getenv("HOME");
-        if (!home)
-                return NULL;
-
-        char dir[PATH_MAX];
-
-        if (snprintf(dir, sizeof(dir), "%s/Library/Logs/kew", home) >= (int)sizeof(dir))
-                return NULL;
-        mkdir_p(dir);
-
-        size_t len = snprintf(NULL, 0, "%s/Library/Logs/kew/error.log", home);
-        char *path = malloc(len + 1);
-        if (!path)
-                return NULL;
-
-        snprintf(path, len + 1, "%s/Library/Logs/kew/error.log", home);
-        return path;
-
-#else
-        const char *state_dir = g_get_user_state_dir();
-
-        size_t dir_len = snprintf(NULL, 0, "%s/kew/logs", state_dir);
-        char *dir = malloc(dir_len + 1);
-        if (!dir)
-                return NULL;
-
-        snprintf(dir, dir_len + 1, "%s/kew/logs", state_dir);
-
-        if (g_mkdir_with_parents(dir, 0755) != 0) {
-                free(dir);
-                return NULL;
-        }
-
-        free(dir);
-
-        size_t len = snprintf(NULL, 0, "%s/kew/logs/error.log", state_dir);
-        char *path = malloc(len + 1);
-        if (!path)
-                return NULL;
-
-        snprintf(path, len + 1, "%s/kew/logs/error.log", state_dir);
-
-        return path;
-#endif
-}
-
-/**
- * @brief Initializes logging to error.log
- *
- */
-void logging_init(void)
-{
-        char *path = logging_get_error_log_path();
-
-        if (path != NULL) {
-                Model *model = get_model();
-
-                char *folder = dirname(path);
-
-                g_mkdir_with_parents(folder, 0755);
-
-                model->state.ui.logFile = freopen(path, "w", stderr);
-
-                if (model->state.ui.logFile == NULL) {
-                        //fprintf(stdout, "Failed to redirect stderr to %s\n", path);
-                }
-
-                free(path);
-        }
-}
-
-/**
- * @brief Shuts down logging to error.log
- *
- */
-void logging_shutdown(void)
-{
-        Model *model = get_model();
-
-        if (model->state.ui.logFile)
-                fclose(model->state.ui.logFile);
-}
-
 void terminal_shutdown(void)
 {
         set_default_text_color();
@@ -399,7 +291,7 @@ void kew_shutdown()
         ui_shutdown();
         visualizer_shutdown();
         playlists_shutdown();
-        logging_shutdown();
+        k_log_shutdown();
         notifications_shutdown();
         mutexes_shutdown();
         terminal_shutdown();
@@ -509,14 +401,14 @@ gboolean mainloop_callback(gpointer data)
         int mutex_result = pthread_mutex_trylock(&(model->state.library_mutex));
 
         if (mutex_result != 0) {
-                fprintf(stderr, "Failed to lock library mutex.\n");
+                k_log("Failed to lock library mutex.\n");
                 return TRUE;
         }
 
         int mutex_result2 = pthread_mutex_trylock(&(model->playbackState.switch_mutex));
 
         if (mutex_result2 != 0) {
-                fprintf(stderr, "Failed to lock switch mutex.\n");
+                k_log("Failed to lock switch mutex.\n");
                 pthread_mutex_unlock(&(model->state.library_mutex));
                 return TRUE;
         }
@@ -820,7 +712,7 @@ void default_state_init(void)
  *
  * @return bool Returns true if the command is valid, false otherwise.
  */
-static bool handle_play_command_playlist(int argc, char **argv)
+static bool make_playlist_from_paths(int argc, char **argv)
 {
         char de_expanded[KEW_PATH_MAX];
         // Working with multiple files
@@ -1103,7 +995,7 @@ int main(int argc, char *argv[])
 
         tty_init();
         state_init();
-        logging_init();
+        k_log_init();
         locale_init();
         show_help_and_exit(argc, argv);
         show_version_and_exit(argc, argv);
@@ -1126,13 +1018,13 @@ int main(int argc, char *argv[])
         themes_init(argc, argv);
 
         if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
-                 if (handle_play_command_playlist(argc, argv))
+                 if (make_playlist_from_paths(argc, argv))
                  {
                         kew_init(false);
                         run(true);
                         return 0;
                  }
-                 // If path not found, load songs or dirs named "play" etc
+                 // If paths not found, load songs or dirs named "play" etc
         }
 
         if (argc == 1) {

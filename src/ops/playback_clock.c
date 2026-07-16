@@ -16,7 +16,9 @@
 #include "sound/sound_facade.h"
 
 #include "sys/sys_integration.h"
+
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <math.h>
 
@@ -50,7 +52,7 @@ void clock_add_offset(long offset_ms)
 
 void fprintf_timespec(const struct timespec *ts)
 {
-        fprintf(stderr, "tv_sec = %lld, tv_nsec = %ld\n",
+        k_log("tv_sec = %lld, tv_nsec = %ld\n",
                 (long long)ts->tv_sec,
                 ts->tv_nsec);
 }
@@ -61,7 +63,7 @@ void clock_log_time(void)
         fprintf_timespec(&current_time);
 
         Model *model = get_model();
-        fprintf(stderr, "elapsed seconds: %f\n", model->elapsed_seconds);
+        k_log("elapsed seconds: %f\n", model->elapsed_seconds);
 }
 
 void reset_clock(void)

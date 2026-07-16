@@ -13,9 +13,12 @@
 #include "common/common.h"
 
 #include "common/model.h"
+
 #include "ui/settings.h"
+
 #include "utils/file.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <ctype.h>
 #include <dirent.h>
@@ -147,7 +150,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
         memset(current_theme, 0, sizeof(Theme));
 
         if (!themes_dir || !filename) {
-                fprintf(stderr, "Theme directory or filename is NULL.\n");
+                k_log("Theme directory or filename is NULL.\n");
                 set_error_message("Theme directory or filename is NULL.");
                 return 0;
         }
@@ -155,13 +158,13 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
         char path[512];
         if (snprintf(path, sizeof(path), "%s/%s", themes_dir, filename) >=
             (int)sizeof(path)) {
-                fprintf(stderr, "Theme path too long.\n");
+                k_log("Theme path too long.\n");
                 return 0;
         }
 
         FILE *file = fopen(path, "r");
         if (!file) {
-                fprintf(stderr, "Failed to open theme file.\n");
+                k_log("Failed to open theme file.\n");
                 char line[KEW_PATH_MAX + 100];
                 snprintf(line, sizeof(line), "Failed to open theme file: %s", filename);
                 set_error_message(line);
@@ -279,8 +282,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                                 ColorValue color = {0};
 
                                 if (!parse_color_value(value, &color)) {
-                                        fprintf(stderr,
-                                                "Invalid color value at line "
+                                        k_log("Invalid color value at line "
                                                 "%d: %s\n",
                                                 line_num, value);
                                 } else {
@@ -315,7 +317,7 @@ bool ensure_default_themes(void)
                 // Directory doesn't exist → create it
                 if (create_directory(themes_path) == -1) {
                         free(config_path);
-                        fprintf(stderr, "ensure_default_themes: failed to create themes directory.\n");
+                        k_log("ensure_default_themes: failed to create themes directory.\n");
                         return false;
                 }
         }
@@ -329,7 +331,7 @@ bool ensure_default_themes(void)
         }
 
         if (!dir) {
-                fprintf(stderr, "ensure_default_themes: failed to copy themes, system themes dir not found\n");
+                k_log("ensure_default_themes: failed to copy themes, system themes dir not found\n");
                 free(config_path);
                 return false;
         }
@@ -348,18 +350,18 @@ bool ensure_default_themes(void)
 
                         if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))
                         {
-                                fprintf(stderr, "ensure_default_themes: system_themes larger than src\n");
+                                k_log("ensure_default_themes: system_themes larger than src\n");
                                 continue;
                         }
                         if (snprintf(dst, sizeof(dst), "%s/%s", themes_path, entry->d_name) >= (int)sizeof(dst))
                         {
-                                fprintf(stderr, "ensure_default_themes: themes_path larger than dst\n");
+                                k_log("ensure_default_themes: themes_path larger than dst\n");
                                 continue;
                         }
 
                         if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(bak))
                         {
-                                fprintf(stderr, "ensure_default_themes: bak path larger than dst\n");
+                                k_log("ensure_default_themes: bak path larger than dst\n");
                                 continue;
                         }
 

@@ -17,6 +17,7 @@
 
 #include "utils/file.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <dirent.h>
 #include <glib.h>
@@ -212,7 +213,7 @@ FileSystemEntry *create_entry(const char *name, int is_directory,
                 new_entry->name = strdup(name);
 
                 if (new_entry->name == NULL) {
-                        fprintf(stderr, "create_entry: name is null\n");
+                        k_log("create_entry: name is null\n");
                         free(new_entry);
                         return NULL;
                 }
@@ -294,8 +295,7 @@ void set_full_path(FileSystemEntry *entry,
 
         if (parentLen > KEW_PATH_MAX || nameLen > KEW_PATH_MAX) {
 
-                fprintf(stderr,
-                        "Parent or entry name too long or not null-terminated.\n");
+                k_log("Parent or entry name too long or not null-terminated.\n");
 
                 return;
         }
@@ -318,8 +318,7 @@ void set_full_path(FileSystemEntry *entry,
 
         if (needed > KEW_PATH_MAX) {
 
-                fprintf(stderr,
-                        "Path too long, rejecting.\n");
+                k_log("Path too long, rejecting.\n");
 
                 return;
         }
@@ -354,8 +353,7 @@ void set_full_path(FileSystemEntry *entry,
             strstr(entry->full_path, "\\..\\") ||
             strstr(entry->full_path, "/..\\") ||
             strstr(entry->full_path, "\\../")) {
-                fprintf(stderr,
-                        "Path traversal attempt detected in full_path: '%s'\n",
+                k_log("Path traversal attempt detected in full_path: '%s'\n",
                         entry->full_path);
 
                 free(entry->full_path);

@@ -23,6 +23,7 @@
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include "gio/gio.h"
 #include "math.h"
@@ -399,8 +400,7 @@ void restart_kew(char *argv[])
 
                         // Ask old instance to shut down cleanly
                         if (kill(oldpid, SIGUSR1) != 0) {
-                                fprintf(stderr,
-                                        "Failed to signal old kew (pid %d): %s\n",
+                                k_log("Failed to signal old kew (pid %d): %s\n",
                                         oldpid, strerror(errno));
                         } else {
                                 // Wait up to 5 seconds for it to exit
@@ -415,8 +415,7 @@ void restart_kew(char *argv[])
 
                                 // If still running, force kill
                                 if (kill(oldpid, 0) == 0) {
-                                        fprintf(stderr,
-                                                "Old kew (pid %d) did not exit in time. Forcing termination.\n",
+                                        k_log("Old kew (pid %d) did not exit in time. Forcing termination.\n",
                                                 oldpid);
 
                                         kill(oldpid, SIGKILL);
@@ -426,10 +425,9 @@ void restart_kew(char *argv[])
                                 }
                         }
                 } else if (errno == ESRCH) {
-                        fprintf(stderr, "No running kew process found.\n");
+                        k_log("No running kew process found.\n");
                 } else {
-                        fprintf(stderr,
-                                "Error checking old kew (pid %d): %s\n",
+                        k_log("Error checking old kew (pid %d): %s\n",
                                 oldpid, strerror(errno));
                 }
 
@@ -440,8 +438,7 @@ void restart_kew(char *argv[])
         execvp("kew", argv);
 
         // Only reached if exec fails
-        fprintf(stderr,
-                "Failed to restart kew via execvp: %s\n",
+        k_log("Failed to restart kew via execvp: %s\n",
                 strerror(errno));
         _exit(1);
 #endif
