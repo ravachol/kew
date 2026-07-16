@@ -633,6 +633,9 @@ error:
 
 SongData *load_song_data(char *file_path)
 {
+#ifdef DEBUB
+        k_log("loading %s", file_path);
+#endif
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
         songdata->magic = SONG_MAGIC;
