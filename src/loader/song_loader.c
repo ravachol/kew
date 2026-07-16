@@ -633,7 +633,7 @@ error:
 
 SongData *load_song_data(char *file_path)
 {
-#ifdef DEBUB
+#ifdef DEBUG
         k_log("loading %s", file_path);
 #endif
         SongData *songdata = NULL;
