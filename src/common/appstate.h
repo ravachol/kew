@@ -53,6 +53,13 @@ typedef struct {
 
 } RenderContext;
 
+
+
+/* ========================= CONSTRUCTORS ========================= */
+
+/**@brief initializes the model */
+void model_init(void);
+
 /**
  * Initializes TTY-specific settings.
  *
@@ -62,15 +69,14 @@ typedef struct {
  */
 void tty_init(void);
 
-/* ========================= CONSTRUCTOR ========================= */
-
-/**@brief initializes the model */
-void model_init(void);
-
-/* ========================= ARTIST DB ========================= */
-
 /**@brief opens the database that contains urls to artists homepages */
 void artists_db_init(void);
+
+/* ========================= DESTRUCTORS ========================= */
+
+void model_shutdown(void);
+
+void tty_shutdown(void);
 
 /**@brief closes the database that contains urls to artists homepages */
 void artists_db_shutdown(void);

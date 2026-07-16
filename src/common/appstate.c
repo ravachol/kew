@@ -296,6 +296,19 @@ void tty_init(void)
 #endif
 }
 
+void tty_shutdown(void)
+{
+#ifdef _WIN32
+        HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        if (chd != INVALID_HANDLE_VALUE && saved_console_mode_valid)
+                SetConsoleMode(chd, saved_console_output_mode);
+
+        SetConsoleOutputCP(saved_console_output_cp);
+        SetConsoleCP(saved_console_input_cp);
+#endif
+}
+
 // --- Constructor ---
 
 void model_init(void)
@@ -366,6 +379,30 @@ void model_init(void)
         create_playlist(&model.playlist);
         create_playlist(&model.unshuffled_playlist);
         create_playlist(&model.favorites_playlist);
+}
+
+// --- Destructor ---
+
+void playlists_shutdown(void)
+{
+        Model *model = get_model();
+        free_playlist(&model->playlist);
+        free_playlist(&model->unshuffled_playlist);
+        free_playlist(&model->favorites_playlist);
+}
+
+void mutexes_shutdown(void)
+{
+        Model *model = get_model();
+        pthread_mutex_destroy(&(model->playbackState.switch_mutex));
+        pthread_mutex_destroy(&(model->state.library_mutex));
+        pthread_mutex_destroy(&(model->state.drawbuffer_mutex));
+}
+
+void model_shutdown(void)
+{
+        mutexes_shutdown();
+        playlists_shutdown();
 }
 
 // --- Getters ---

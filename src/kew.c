@@ -207,6 +207,7 @@ void player_tick(Model *model, RenderContext *ctx)
 
 void terminal_shutdown(void)
 {
+        tty_shutdown();
         set_default_text_color();
         show_cursor();
         exit_alternate_screen_buffer();
@@ -245,22 +246,6 @@ void settings_shutdown(void)
         free_layout_config();
 }
 
-void playlists_shutdown(void)
-{
-        Model *model = get_model();
-        free_playlist(&model->playlist);
-        free_playlist(&model->unshuffled_playlist);
-        free_playlist(&model->favorites_playlist);
-}
-
-void mutexes_shutdown(void)
-{
-        Model *model = get_model();
-        pthread_mutex_destroy(&(model->playbackState.switch_mutex));
-        pthread_mutex_destroy(&(model->state.library_mutex));
-        pthread_mutex_destroy(&(model->state.drawbuffer_mutex));
-}
-
 void songdata_shutdown(void)
 {
         Model *model = get_model();
@@ -290,10 +275,9 @@ void kew_shutdown()
         library_shutdown();
         ui_shutdown();
         visualizer_shutdown();
-        playlists_shutdown();
         k_log_shutdown();
         notifications_shutdown();
-        mutexes_shutdown();
+        model_shutdown();
         terminal_shutdown();
         artists_db_shutdown();
 
@@ -949,6 +933,9 @@ void show_version_and_exit(int argc, char *argv[])
                 state->settings.colorMode = COLOR_MODE_ALBUM_ONE;
                 state->settings.color = state->settings.defaultColorRGB;
                 print_about_for_version(model);
+                tty_shutdown();
+                k_log_shutdown();
+                model_shutdown();
                 exit(0);
         }
 }
@@ -959,6 +946,9 @@ void show_help_and_exit(int argc, char *argv[])
              ((strcmp(argv[1], "--help") == 0) ||
               (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0)))) {
                 print_help();
+                tty_shutdown();
+                k_log_shutdown();
+                model_shutdown();
                 exit(0);
         }
 }
@@ -972,6 +962,9 @@ void set_path_and_exit(int argc, char *argv[])
                 collapse_path(argv[2], de_expanded, KEW_PATH_MAX);
                 c_strcpy(model->settings.path, de_expanded, sizeof(model->settings.path));
                 set_path(model->settings.path);
+                tty_shutdown();
+                k_log_shutdown();
+                model_shutdown();
                 exit(0);
         }
 }
