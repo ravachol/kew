@@ -771,9 +771,14 @@ void *decode_loop(void *arg)
         aligned64_free(current_buf);
         aligned64_free(next_buf);
 
+        pthread_mutex_lock(&sound_s->decoder_mutex);
+        pthread_cond_signal(&sound_s->decoder_cond);
+        pthread_mutex_unlock(&sound_s->decoder_mutex);
+
         atomic_store(&sound->decode_thread_running, false);
         atomic_store(&sound->drain_callbacks_remaining, 0);
         atomic_store(&sound->request_pause, false);
+
         return NULL;
 }
 

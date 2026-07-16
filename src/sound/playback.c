@@ -291,6 +291,10 @@ void stop_decode_thread(void)
 
 void cleanup_playback_device(void)
 {
+        pthread_mutex_lock(&sound_s->decoder_mutex);
+        pthread_cond_signal(&sound_s->decoder_cond);
+        pthread_mutex_unlock(&sound_s->decoder_mutex);
+
         if (!device_initialized)
                 return;
 
