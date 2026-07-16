@@ -99,16 +99,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-#ifdef _WIN32
-#include <direct.h>
-#include <windows.h>
-#define mkdir_p(path) _mkdir(path)
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#define mkdir_p(path) mkdir(path, 0755)
-#endif
-
 GMainLoop *main_loop;
 
 static struct timespec last_resize_time = {0};

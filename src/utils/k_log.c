@@ -7,6 +7,17 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#include <windows.h>
+#define mkdir_p(path) _mkdir(path)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define mkdir_p(path) mkdir(path, 0755)
+#endif
+
+
 char *k_log_get_error_log_path(void)
 {
 #ifdef _WIN32
