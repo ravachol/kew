@@ -15,6 +15,8 @@
 
 static UINT saved_console_output_cp;
 static UINT saved_console_input_cp;
+static DWORD saved_console_output_mode;
+static BOOL saved_console_mode_valid = FALSE;
 static int win32_stdout_is_file = 0;
 
 #else
