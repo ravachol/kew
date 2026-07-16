@@ -32,6 +32,7 @@
 
 #include "utils/file.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <miniaudio.h>
 
