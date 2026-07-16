@@ -656,7 +656,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                         file_style.attrs |= ATTR_UNDERLINE;
                                 // playlist icon
 
-                                if (!entry->next)
+                                if (!entry->next || entry->next->is_directory)
                                         draw_buffer_set_string(buf, draw_row, text_col, "└─ ", file_style);
                                 else
                                         draw_buffer_set_string(buf, draw_row, text_col, "├─ ", file_style);
