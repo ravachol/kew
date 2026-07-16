@@ -117,7 +117,7 @@ int song_loader_init(void);
  *
  * @note This assumes that the cover is loaded using 4 byes (RGBA).
  */
-SongData *song_data_clone(const SongData *src);
+SongData *songdata_clone(const SongData *src);
 
 /**
  * @brief Destroys the song loader module and releases allocated resources.

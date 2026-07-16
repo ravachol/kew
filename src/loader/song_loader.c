@@ -556,7 +556,7 @@ void load_meta_data(SongData *songdata)
                        &(songdata->coverHeight));
 }
 
-SongData *song_data_clone(const SongData *src)
+SongData *songdata_clone(const SongData *src)
 {
         if (!src)
                 return NULL;

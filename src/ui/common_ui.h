@@ -314,7 +314,7 @@ int utf8_display_width(const char *s);
 void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
                         const char *url, char *title, CellStyle style);
 
-void free_link_payload(LinkPayload *link);
+void free_link_payload(LinkPayload **link);
 
 int mk_wcwidth(uint32_t ucs);
 
