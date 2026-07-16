@@ -669,7 +669,7 @@ void *decode_loop(void *arg)
                                 pthread_mutex_lock(&sound->decoder_mutex);
 
                                 struct timespec ts;
-                                clock_gettime(CLOCK_MONOTONIC, &ts);
+                                clock_gettime(CLOCK_REALTIME, &ts);
                                 ts.tv_sec += 10;
 
                                 while (atomic_load_explicit(&sound->decode_finished, memory_order_acquire) &&
@@ -893,7 +893,7 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                         framesToCopy = (ma_uint32)(boundary - played);
                         atomic_store_explicit(&sound_s->request_switch_metadata, true, memory_order_relaxed);
                         boundary_handled = true;
-                        
+
                         pthread_cond_signal(&sound_s->decoder_cond);
                         pthread_mutex_unlock(&sound_s->decoder_mutex);
                 }

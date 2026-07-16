@@ -56,11 +56,7 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         pthread_mutex_init(&sound_s->decoder_mutex, NULL);
 
-        pthread_condattr_t attr;
-        pthread_condattr_init(&attr);
-        pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
-        pthread_cond_init(&sound_s->decoder_cond, &attr);
-        pthread_condattr_destroy(&attr);
+        pthread_cond_init(&sound_s->decoder_cond, NULL);
 
         sound_result_t sound_result = sound_create_audio_device();
 
