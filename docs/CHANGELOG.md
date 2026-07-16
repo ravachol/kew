@@ -4,6 +4,8 @@
 
 - Fix a case where if current song was null, the current songdata clone didn't get unloaded.
 
+- Fixed issue with kew play <path> command, where it wouldn't return from the function when it should.
+
 ## kew 4.2.5
 
 - Revert PR "Improve LRC file lookup with fallback substring matching" #198 which caused a memory leak when switching songs.

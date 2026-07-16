@@ -1132,6 +1132,7 @@ int main(int argc, char *argv[])
                         run(true);
                         return 0;
                  }
+                 // If path not found, load songs or dirs named "play" etc
         }
 
         if (argc == 1) {
