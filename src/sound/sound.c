@@ -669,31 +669,16 @@ void *decode_loop(void *arg)
                         if (finished) {
                                 pthread_mutex_lock(&sound->decoder_mutex);
 
-                                struct timespec ts;
+                                struct timespec ts = {0};
                                 clock_gettime(CLOCK_MONOTONIC, &ts);
                                 ts.tv_sec += 10;
 
+
                                 while (atomic_load_explicit(&sound->decode_finished, memory_order_acquire) &&
-                                       atomic_load_explicit(&sound->decode_thread_running, memory_order_acquire) &&
-                                       !atomic_load_explicit(&sound->request_switch_metadata, memory_order_acquire)) {
-
-                                        int rc = pthread_cond_timedwait(&sound->decoder_cond,
-                                                                        &sound->decoder_mutex,
-                                                                        &ts);
-
-                                        if (rc == ETIMEDOUT) {
-                                                k_log("Decoder thread timed out waiting for condition.");
-                                                atomic_store_explicit(&sound->decode_thread_running,
-                                                                      false,
-                                                                      memory_order_release);
-
-#ifdef DEBUG
-                                                uint64_t played = atomic_load_explicit(&sound_s->track_frames_sent, memory_order_relaxed);
-                                                uint64_t boundary = atomic_load_explicit(&sound_s->track_end_frame, memory_order_relaxed);
-                                                k_log("Played: %" PRIu64 "Boundary: %" PRIu64,played, boundary);
-#endif
-                                                break;
-                                        }
+                                        atomic_load_explicit(&sound->decode_thread_running, memory_order_acquire) &&
+                                        !atomic_load_explicit(&sound->request_switch_metadata, memory_order_acquire)) {
+                                        pthread_cond_wait(&sound->decoder_cond,
+                                                          &sound->decoder_mutex);
                                 }
 
                                 pthread_mutex_unlock(&sound->decoder_mutex);
