@@ -23,6 +23,8 @@
 
 #include "lyrics.h"
 
+#include "utils/k_log.h"
+
 #include <ogg/ogg.h>
 #include <taglib/apefooter.h>
 #include <taglib/apeitem.h>
@@ -242,6 +244,7 @@ std::string toLower(const std::string &str)
 
 extern "C" {
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 // Function to read a 32-bit unsigned integer from buffer in big-endian
 // format
@@ -974,9 +977,8 @@ bool extractCoverArtFromMp4(TagLib::FileRef *f,
                                 fclose(coverFile);
                                 return true; // Success
                         } else {
-                                fprintf(
-                                    stderr,
-                                    "Could not open output file '%s'\n",
+                               fprintf(
+                                    stderr, "Could not open output file '%s'\n",
                                     coverFilePath.c_str());
                                 return false; // Failed to open the
                                               // output file
@@ -1469,8 +1471,7 @@ void getTrackInfo(const char *filepath, uint32_t *track, uint32_t *disc)
 #endif
 
         if (file.isNull() || !file.file()) {
-                fprintf(stderr,
-                        "FileRef is null or file could not be opened: "
+                fprintf(stderr, "FileRef is null or file could not be opened: "
                         "'%s'\n",
                         filepath);
 
@@ -1479,7 +1480,7 @@ void getTrackInfo(const char *filepath, uint32_t *track, uint32_t *disc)
 
         const TagLib::Tag *tag = file.tag();
         if (!tag) {
-                fprintf(stderr, "Tag is null for file '%s'\n",
+                k_log("Tag is null for file '%s'\n",
                         filepath);
                 return;
         }
@@ -1534,8 +1535,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
 #endif
 
         if (f.isNull() || !f.file()) {
-                fprintf(stderr,
-                        "FileRef is null or file could not be opened: "
+                fprintf(stderr, "FileRef is null or file could not be opened: "
                         "'%s'\n",
                         input_file);
 
@@ -1619,8 +1619,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                 *duration = f.audioProperties()->lengthInSeconds();
         } else {
                 *duration = 0.0;
-                fprintf(stderr,
-                        "No audio properties found for file '%s'\n",
+                fprintf(stderr, "No audio properties found for file '%s'\n",
                         input_file);
                 return -2;
         }

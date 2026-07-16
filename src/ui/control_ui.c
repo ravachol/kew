@@ -24,6 +24,7 @@
 #include "data/theme.h"
 
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <miniaudio.h>
 
@@ -458,7 +459,7 @@ int load_theme(const char *theme_name,
         if (has_extension) {
                 if (snprintf(filename, sizeof(filename), "%s", theme_name) >=
                     (int)sizeof(filename)) {
-                        fprintf(stderr, "Theme filename is too long\n");
+                        k_log("Theme filename is too long\n");
                         set_error_message("Theme filename is too long");
                         free(config_path);
                         return 0;
@@ -466,7 +467,7 @@ int load_theme(const char *theme_name,
         } else {
                 if (snprintf(filename, sizeof(filename), "%s.theme",
                              theme_name) >= (int)sizeof(filename)) {
-                        fprintf(stderr, "Theme filename is too long\n");
+                        k_log("Theme filename is too long\n");
                         set_error_message("Theme filename is too long");
                         free(config_path);
                         return 0;
@@ -477,7 +478,7 @@ int load_theme(const char *theme_name,
         char themes_dir[KEW_PATH_MAX];
         if (snprintf(themes_dir, sizeof(themes_dir), "%s/themes", config_path) >=
             (int)sizeof(themes_dir)) {
-                fprintf(stderr, "Themes path is too long\n");
+                k_log("Themes path is too long\n");
                 set_error_message("Themes path is too long");
                 free(config_path);
                 return 0;

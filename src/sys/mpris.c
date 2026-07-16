@@ -20,6 +20,8 @@
 
 #include "update/messages.h"
 
+#include "utils/k_log.h"
+
 #include "ops/playback_clock.h"
 #include "ops/playback_state.h"
 #include "ops/playlist_ops.h"
@@ -544,7 +546,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
         int mutex_result = pthread_mutex_lock(&(model->playbackState.switch_mutex));
 
         if (mutex_result != 0) {
-                fprintf(stderr, "get_metadata: Failed to lock switch mutex.\n");
+                k_log("get_metadata: Failed to lock switch mutex.\n");
                 return FALSE;
         }
 

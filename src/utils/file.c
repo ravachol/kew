@@ -13,6 +13,7 @@
 #include "file.h"
 
 #include "utils.h"
+#include "k_log.h"
 
 #include <dirent.h>
 #include <glib.h>
@@ -62,7 +63,7 @@ void get_directory_from_path(const char *path, char *directory)
 
         char *tmp = malloc(len + 1);
         if (!tmp) {
-                fprintf(stderr, "Out of memory while processing path\n");
+                k_log("Out of memory while processing path\n");
                 return;
         }
 
@@ -134,18 +135,18 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
            const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth)
 {
         if (depth > MAX_RECURSION_DEPTH) {
-                fprintf(stderr, "Maximum recursion depth exceeded\n");
+                k_log("Maximum recursion depth exceeded\n");
                 return 1;
         }
 
         if (!start_path || !low_case_searching || !result || !allowed_extensions) {
-                fprintf(stderr, "Invalid arguments to walker\n");
+                k_log("Invalid arguments to walker\n");
                 return 1;
         }
 
         struct stat path_stat;
         if (stat(start_path, &path_stat) != 0) {
-                fprintf(stderr, "Cannot stat path '%s': %s\n", start_path, strerror(errno));
+                k_log("Cannot stat path '%s': %s\n", start_path, strerror(errno));
                 return 1;
         }
 
@@ -156,13 +157,13 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
         DIR *d = opendir(start_path);
         if (!d) {
-                fprintf(stderr, "Failed to open directory '%s': %s\n", start_path, strerror(errno));
+                k_log("Failed to open directory '%s': %s\n", start_path, strerror(errno));
                 return 1;
         }
 
         regex_t regex;
         if (regcomp(&regex, allowed_extensions, REG_EXTENDED) != 0) {
-                fprintf(stderr, "Failed to compile regex\n");
+                k_log("Failed to compile regex\n");
                 closedir(d);
                 return 1;
         }
@@ -179,7 +180,7 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                 // Build full path for entry
                 char entry_path[KEW_PATH_MAX];
                 if (snprintf(entry_path, sizeof(entry_path), "%s/%s", start_path, entry->d_name) >= (int)sizeof(entry_path)) {
-                        fprintf(stderr, "Path too long: %s/%s\n", start_path, entry->d_name);
+                        k_log("Path too long: %s/%s\n", start_path, entry->d_name);
                         continue;
                 }
 

@@ -527,6 +527,8 @@ typedef struct
         k_Rect playlist_region;
         k_Rect library_region;
         k_Rect search_region;
+
+        char *logfile_path;
 } UIState;
 
 /**

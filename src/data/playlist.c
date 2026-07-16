@@ -17,11 +17,14 @@
 #include "common/common.h"
 
 #include "directorytree.h"
+
 #include "ops/library_ops.h"
 
 #include "loader/tagLibWrapper.h"
+
 #include "utils/file.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <dirent.h>
 #include <glib.h>
@@ -335,8 +338,7 @@ void destroy_node(Node *node)
 void exit_if_overflow(int counter)
 {
         if (counter == INT_MAX) {
-                fprintf(stderr,
-                        "Error: Node ID overflow. Max node limit reached.\n");
+                k_log("Error: Node ID overflow. Max node limit reached.\n");
                 quit();
         }
 }
@@ -652,7 +654,7 @@ void build_playlist_recursive(const char *directory_path,
                 size_t nameLen = strnlen(entry->d_name, KEW_NAME_MAX);
 
                 if (pathLen + 1 + nameLen >= KEW_PATH_MAX) {
-                        fprintf(stderr, "Path too long: %s/%s\n", expanded_path, entry->d_name);
+                        k_log("Path too long: %s/%s\n", expanded_path, entry->d_name);
                         continue;
                 }
 

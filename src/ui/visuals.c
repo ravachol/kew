@@ -28,6 +28,7 @@
 #include "common/model.h"
 #include "loader/songdatatype.h"
 #include "utils/img_utils.h"
+#include "utils/k_log.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -712,7 +713,7 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
                 return;
 
         if (!audio_buffer) {
-                fprintf(stderr, "Audio buffer is NULL.\n");
+                k_log("Audio buffer is NULL.\n");
                 return;
         }
 

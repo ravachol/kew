@@ -14,6 +14,7 @@
 #include "utils/file.h"
 #include "utils/img_utils.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include "stb_image.h"
 #include "tagLibWrapper.h"
@@ -394,7 +395,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
 {
         DIR *directory = opendir(directory_path);
         if (directory == NULL) {
-                fprintf(stderr, "Failed to open directory: %s\n",
+                k_log("Failed to open directory: %s\n",
                         directory_path);
                 return largest_image_file;
         }
@@ -464,8 +465,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
 
                                         largest_image_file = strdup(resolved_path);
                                         if (largest_image_file == NULL) {
-                                                fprintf(stderr,
-                                                        "Memory allocation "
+                                                k_log("Memory allocation "
                                                         "failure\n");
                                                 // Return early or continue
                                                 // depending on desired behavior

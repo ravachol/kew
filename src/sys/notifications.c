@@ -8,6 +8,8 @@
 
 #include "notifications.h"
 
+#include "utils/k_log.h"
+
 #include <fcntl.h>
 #include <glib.h>
 #include <pthread.h>
@@ -163,7 +165,7 @@ static void on_dbus_call_complete(GObject *source_object,
         GVariant *result = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source_object), res, &error);
 
         if (error) {
-                fprintf(stderr, "D-Bus call failed or timed out: %s\n", error->message);
+                k_log("D-Bus call failed or timed out: %s\n", error->message);
                 g_error_free(error);
                 return;
         }
@@ -206,7 +208,7 @@ static void on_close_notification_complete(GObject *source_object,
         GVariant *result = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source_object), res, &error);
 
         if (error) {
-                fprintf(stderr, "Failed to close notification: %s\n", error->message);
+                k_log("Failed to close notification: %s\n", error->message);
                 g_error_free(error);
         } else if (result) {
                 g_variant_unref(result);
@@ -242,7 +244,7 @@ static gboolean on_timeout(gpointer user_data)
         BusConnectionData *data = (BusConnectionData *)user_data;
 
         if (!data->connected) {
-                fprintf(stderr, "D-Bus connection timed out.\n");
+                k_log("D-Bus connection timed out.\n");
                 data->timeout_triggered = TRUE;
                 g_main_loop_quit(data->loop);
         }
@@ -261,7 +263,7 @@ static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpoin
 
         data->connection = g_bus_get_finish(res, &error);
         if (error) {
-                fprintf(stderr, "Failed to connect to D-Bus: %s\n", error->message);
+                k_log("Failed to connect to D-Bus: %s\n", error->message);
                 g_error_free(error);
         } else {
                 data->connected = TRUE;
@@ -337,7 +339,7 @@ int display_song_notification(const char *artist, const char *title, const char 
                 connection = get_dbus_connection_with_timeout(G_BUS_TYPE_SESSION, 100);
 
                 if (connection == NULL) {
-                        fprintf(stderr, "Failed to connect to session bus\n");
+                        k_log("Failed to connect to session bus\n");
                         return -1;
                 }
 
