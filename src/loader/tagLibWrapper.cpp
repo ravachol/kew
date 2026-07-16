@@ -23,8 +23,6 @@
 
 #include "lyrics.h"
 
-#include "utils/k_log.h"
-
 #include <ogg/ogg.h>
 #include <taglib/apefooter.h>
 #include <taglib/apeitem.h>
@@ -244,7 +242,6 @@ std::string toLower(const std::string &str)
 
 extern "C" {
 #include "utils/utils.h"
-#include "utils/k_log.h"
 
 // Function to read a 32-bit unsigned integer from buffer in big-endian
 // format
@@ -1480,7 +1477,7 @@ void getTrackInfo(const char *filepath, uint32_t *track, uint32_t *disc)
 
         const TagLib::Tag *tag = file.tag();
         if (!tag) {
-                k_log("Tag is null for file '%s'\n",
+                fprintf(stderr, "Tag is null for file '%s'\n",
                         filepath);
                 return;
         }

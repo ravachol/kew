@@ -852,8 +852,12 @@ void free_link_payload(LinkPayload *link)
         if (!link)
                 return;
 
-        free(link->title);
-        free(link->url);
+        if (link->title)
+                free(link->title);
+
+        if (link->url)
+                free(link->url);
+
         free(link);
 }
 
