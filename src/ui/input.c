@@ -392,14 +392,14 @@ enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
                 else
                         is_space = true;
 
-                if (wc == L'▶') // occupies two cells
+                if (w == 2) // occupies two cells
                         count_next = true;
 
                 col_index += w;
                 text += bytes;
         }
 
-        // "⏮  ▶  ⏭  ∅"
+        // "⏮  ▶  ⏭  +  -  ∅"
 
         if (is_space)
                 return MSG_NONE;
@@ -415,6 +415,12 @@ enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
                 result = MSG_NEXT;
                 break;
         case 4:
+                result = MSG_VOLUME_UP;
+                break;
+        case 5:
+                result = MSG_VOLUME_DOWN;
+                break;
+        case 6:
                 result = MSG_CLEARPLAYLIST;
                 break;
         default:
@@ -503,13 +509,24 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                 return true;
         }
 
+        MinicontrolMode mode;
+        if (model->miniControls.width >= 16) {
+                mode = MINICONTROLS_FULL;
+        } else if (model->miniControls.width >= 13) {
+                mode = MINICONTROLS_NAV_VOL;
+        } else if (model->miniControls.width >= 7) {
+                mode = MINICONTROLS_NAV;
+        } else {
+                mode = MINICONTROLS_NAV;
+        }
+
         char minicontrols_text[100];
-        get_minicontrols_text(minicontrols_text, sizeof(minicontrols_text));
+        get_minicontrols_text(minicontrols_text, sizeof(minicontrols_text), mode);
 
         // MiniControls click
         if ((mouse_y == model->miniControls.row && model->miniControls.row > 0 &&
              mouse_x - model->miniControls.col >= 0 &&
-             mouse_x - model->miniControls.col < (int)strlen(minicontrols_text)) &&
+             mouse_x - model->miniControls.col < model->miniControls.width) &&
             mouse_key != TB_KEY_MOUSE_RELEASE) {
                 event->type = get_mouse_minicontrols_event(mouse_x - model->miniControls.col + 1, minicontrols_text);
                 return true;

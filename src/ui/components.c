@@ -600,10 +600,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         if (model->mouse_x >= 0 && model->mouse_y >= 0) {
 
                                 bool clicked_row = (model->mouse_y >= region.row &&
-                                             model->mouse_y <= region.row + region.height) &&
-                                            (model->mouse_x > region.col + (entry->is_enqueued ? 0 : prefix_len) + extra_indent &&
-                                             model->mouse_x <= region.col + extra_indent + prefix_len + *chosen_name_len + 3) && // 3 = "└─ "
-                                            *row_count == model->mouse_y - 1 - region.row;
+                                                    model->mouse_y <= region.row + region.height) &&
+                                                   (model->mouse_x > region.col + (entry->is_enqueued ? 0 : prefix_len) + extra_indent &&
+                                                    model->mouse_x <= region.col + extra_indent + prefix_len + *chosen_name_len + 3) && // 3 = "└─ "
+                                                   *row_count == model->mouse_y - 1 - region.row;
 
                                 if (clicked_row) {
                                         is_chosen = true;
@@ -1067,29 +1067,50 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         } else {
 
                 corrected_height = draw_square_bitmap_to_buf(buf,
-                                          row, col,
-                                          songdata->cover,
-                                          songdata->coverWidth,
-                                          songdata->coverHeight,
-                                          corrected_width,
-                                          target_height,
-                                          term_size,
-                                          false,
-                                          model->current_hash,
-                                          ui->coverStyle, false, true) + 1;
+                                                             row, col,
+                                                             songdata->cover,
+                                                             songdata->coverWidth,
+                                                             songdata->coverHeight,
+                                                             corrected_width,
+                                                             target_height,
+                                                             term_size,
+                                                             false,
+                                                             model->current_hash,
+                                                             ui->coverStyle, false, true) +
+                                   1;
         }
-
-        char controls[KEW_PATH_MAX + 1];
-
-        get_minicontrols_text(controls, KEW_PATH_MAX);
-
-        int width = g_utf8_strlen(controls, KEW_PATH_MAX + 1);
 
         ComponentMsg result = (ComponentMsg){0};
         CellStyle style = cell_style_from_theme(ui->theme.logo);
-        if (corrected_width >= 5)
-        {
-                draw_buffer_set_string_truncated(buf, row + corrected_height, col, controls, width, style);
+        MinicontrolMode mode;
+        int width;
+
+        if (corrected_width >= 16) {
+                mode = MINICONTROLS_FULL;
+                width = 16;
+        } else if (corrected_width >= 13) {
+                mode = MINICONTROLS_NAV_VOL;
+                width = 13;
+        } else if (corrected_width >= 7) {
+                mode = MINICONTROLS_NAV;
+                width = 7;
+        } else {
+                mode = MINICONTROLS_NAV;
+                width = 0;
+        }
+
+        char controls[100];
+        if (width > 0)
+                get_minicontrols_text(controls, sizeof controls, mode);
+        else
+                controls[0] = '\0';
+
+        draw_buffer_set_string_truncated(buf,
+                               row + corrected_height,
+                               col,
+                               controls,
+                               width,
+                               style);
 
         result.has_msg = true;
         result.msg = (struct Msg){
@@ -1097,8 +1118,8 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
             .region = region,
             .minicontrols_row = row + corrected_height + 1,
             .minicontrols_col = col + 1,
-            .minicontrols_width = width};
-        }
+            .minicontrols_width = width,
+        };
 
         return result;
 }
@@ -3356,8 +3377,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
                         int count = model->state.ui.search_results_count;
                         while (child != NULL) {
-                                if (!child->is_directory && i + 1 < count && model->search_results[i + 1].entry->id == child->id)
-                                {
+                                if (!child->is_directory && i + 1 < count && model->search_results[i + 1].entry->id == child->id) {
                                         i++;
                                         visible_count--;
                                 }
