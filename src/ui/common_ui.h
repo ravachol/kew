@@ -310,7 +310,8 @@ int get_footer_text(char *restrict text, size_t size);
  * @param size The max size of the text.
  * @return An int indicating whether the footer was copied to text successfully
  */
-int get_minicontrols_text(char *restrict text, size_t size);
+
+int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode);
 
 /**
  * @brief Returns the display width of a UTF-8 string.

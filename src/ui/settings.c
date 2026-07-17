@@ -407,20 +407,33 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
         return buf;
 }
 
-int get_minicontrols_text(char *restrict text, size_t size)
-{
-        Model *model = get_model();
 
-        const char *state_icon= "⏸";
+int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
+{
+    Model *model = get_model();
+
+    const char *state_icon = "⏸";
 
 #if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
-        state_icon = "။";
+    state_icon = "။";
 #endif
 
-        if (model->is_stopped || model->is_paused)
-                return snprintf(text, size, "⏮  ▶  ⏭  ∅");
-        else
-                return snprintf(text, size, "⏮  %s  ⏭  ∅", state_icon);
+    const char *play = (model->is_stopped || model->is_paused)
+        ? "▶"
+        : state_icon;
+
+    switch (mode)
+    {
+    case MINICONTROLS_NAV:
+        return snprintf(text, size, "⏮  %s  ⏭", play);
+
+    case MINICONTROLS_NAV_VOL:
+        return snprintf(text, size, "⏮  %s  ⏭  +  -", play);
+
+    case MINICONTROLS_FULL:
+    default:
+        return snprintf(text, size, "⏮  %s  ⏭  +  -  ∅", play);
+    }
 }
 
 int get_footer_text(char *restrict text, size_t size)

@@ -58,6 +58,12 @@ typedef enum {
 } DirtyFlags;
 
 typedef enum {
+    MINICONTROLS_NAV,
+    MINICONTROLS_NAV_VOL,
+    MINICONTROLS_FULL,
+} MinicontrolMode;
+
+typedef enum {
         CELL_NORMAL,        // regular character cell
         CELL_WIDE_CONT,     // right half of a double-width character, backend skips it
         CELL_IMAGE_ANCHOR,  // top-left cell of an image region, backend emits the image here
