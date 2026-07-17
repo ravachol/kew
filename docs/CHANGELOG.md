@@ -10,9 +10,6 @@
 
 - Re-enable desktop notifications.
 
-
-\- Ravachol
-
 ## kew 4.2.6
 
 #### Enhancements:
