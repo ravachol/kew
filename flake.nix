@@ -21,28 +21,28 @@
         in
         with nixpkgs.lib;
         {
-          default = pkgs.stdenv.mkDerivation (finalAttrs: 
+          default = pkgs.stdenv.mkDerivation (finalAttrs:
             let
-              uppercaseFirst = x: 
+              uppercaseFirst = x:
                 (toUpper (substring 0 1 x)) + (substring 1 ((strings.stringLength x) - 1) x);
             in
             {
               pname = "kew";
               version = kew-src.shortRev or "dev";
               src = kew-src;
-              
+
               postPatch = ''
                 substituteInPlace Makefile \
                   --replace-fail '$(shell uname -s)' '${uppercaseFirst pkgs.stdenv.hostPlatform.parsed.kernel.name}' \
                   --replace-fail '$(shell uname -m)' '${pkgs.stdenv.hostPlatform.parsed.cpu.name}'
               '';
-              
+
               nativeBuildInputs = with pkgs; [
                 pkg-config
               ] ++ optionals pkgs.stdenv.hostPlatform.isLinux [
                 autoPatchelfHook
               ];
-              
+
               buildInputs = with pkgs; [
                 fftwFloat.dev
                 chafa
@@ -56,23 +56,23 @@
                 faad2
                 libogg
               ];
-              
+
               runtimeDependencies = with pkgs; [
                 libpulseaudio
                 alsa-lib
               ];
-              
+
               enableParallelBuilding = true;
-              
-              installFlags = [
+
+              makeFlags = [
                 "MAN_DIR=${placeholder "out"}/share/man"
                 "PREFIX=${placeholder "out"}"
               ];
-              
+
               nativeInstallCheckInputs = [ pkgs.versionCheckHook ];
               versionCheckProgramArg = "--version";
               doInstallCheck = false;
-              
+
               meta = {
                 description = ''
                   Command-line music player for Linux
