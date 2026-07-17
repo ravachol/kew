@@ -418,9 +418,9 @@ int get_minicontrols_text(char *restrict text, size_t size)
 #endif
 
         if (model->is_stopped || model->is_paused)
-                return snprintf(text, KEW_PATH_MAX + 1, "⏮  ▶  ⏭  ∅");
+                return snprintf(text, size, "⏮  ▶  ⏭  ∅");
         else
-                return snprintf(text, KEW_PATH_MAX + 1, "⏮  %s  ⏭  ∅", state_icon);
+                return snprintf(text, size, "⏮  %s  ⏭  ∅", state_icon);
 }
 
 int get_footer_text(char *restrict text, size_t size)
