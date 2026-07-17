@@ -132,18 +132,17 @@ void determine_song_and_notify(void)
 {
         Model *model = get_model();
         AppState *state = &model->state;
-        SongData *current_song_data = NULL;
         bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
         Node *current = get_current_song();
         model->songdata = get_current_song_data(model->songdata);
 
-        if (current_song_data && current) {
-                current->song.duration = current_song_data->duration;
+        if (model->songdata && current) {
+                current->song.duration = model->songdata->duration;
         }
 
-        if (state->ui.lastNotifiedId != current->id) {
+        if (state->ui.lastNotifiedId != current->id  && model->songdata_ok && model->songdata) {
                 if (!isDeleted) {
-                        notify_song_switch(current_song_data);
+                        notify_song_switch(model->songdata);
                 }
         } else
                 get_playback_state()->notifySwitch = true;
