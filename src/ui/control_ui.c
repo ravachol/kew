@@ -339,7 +339,7 @@ void toggle_repeat(void)
 
 void toggle_pause()
 {
-        if (is_stopped()) {
+        if (is_stopped() && get_current_song() == NULL) {
                 view_enqueue(false);
         } else if (is_paused() && get_current_song() == NULL) {
                 PlayList *playlist = get_playlist();

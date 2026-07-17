@@ -180,6 +180,10 @@ struct Msg {
         int progress_bar_row;
         int footer_row;
 
+        int minicontrols_row;
+        int minicontrols_col;
+        int minicontrols_width;
+
         k_Rect region;
 
         bool clicked_song;
@@ -710,6 +714,16 @@ typedef struct
 } ProgressBar;
 
 /**
+ * @brief Describes a mini-controls position and size.
+ */
+typedef struct
+{
+        int row;    /**< Terminal row. */
+        int col;    /**< Terminal column. */
+        int width; /**< Width in characters. */
+} MiniControls;
+
+/**
  * @brief Runtime playback state.
  */
 typedef struct
@@ -766,6 +780,7 @@ typedef struct Model {
         AppSettings settings;
         PlaybackState playbackState;
         ProgressBar progressBar;
+        MiniControls miniControls;
 
         PlayList *playlist;
         PlayList *unshuffled_playlist;

@@ -1107,6 +1107,8 @@ void rebuild_layout(Model *model)
         model->state.ui.footer_col = DISABLED_ROW;
         model->progressBar.row = DISABLED_ROW;
         model->progressBar.col = DISABLED_ROW;
+        model->miniControls.row = DISABLED_ROW;
+        model->miniControls.col = DISABLED_ROW;
 
         rebuilding = false;
 }

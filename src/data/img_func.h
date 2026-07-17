@@ -55,7 +55,7 @@ int get_cover_color(unsigned char *pixels,
  * @param just_mark_cover  Whether to just mark the x, y of the cover with an empty image
  * @param draw_occupied_markers Whether to mark cells as occupied
  */
-void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
+int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                unsigned char *pixels, int width, int height, int max_width,
                                int base_height, const TermSize *term_size, bool centered, size_t img_hash,
                                const char *cover_style, int just_mark_cover, bool draw_occupied_markers);

@@ -1057,13 +1057,16 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         if (corrected_width <= 0 || target_height <= 0)
                 return (ComponentMsg){0};
 
+        int corrected_height = 0;
+
         if (ui->coverAnsi) {
                 draw_cover_ascii(term_size, songdata->cover_art_path,
                                  row, col, target_height,
                                  false, buf, dirty);
+                corrected_height = target_height + 1;
         } else {
 
-                draw_square_bitmap_to_buf(buf,
+                corrected_height = draw_square_bitmap_to_buf(buf,
                                           row, col,
                                           songdata->cover,
                                           songdata->coverWidth,
@@ -1073,10 +1076,31 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                           term_size,
                                           false,
                                           model->current_hash,
-                                          ui->coverStyle, false, true);
+                                          ui->coverStyle, false, true) + 1;
         }
 
-        return (ComponentMsg){0};
+        char controls[KEW_PATH_MAX + 1];
+
+        get_minicontrols_text(controls, KEW_PATH_MAX);
+
+        int width = g_utf8_strlen(controls, KEW_PATH_MAX + 1);
+
+        ComponentMsg result = (ComponentMsg){0};
+        CellStyle style = cell_style_from_theme(ui->theme.logo);
+        if (corrected_width >= 5)
+        {
+                draw_buffer_set_string_truncated(buf, row + corrected_height, col, controls, width, style);
+
+        result.has_msg = true;
+        result.msg = (struct Msg){
+            .type = MSG_MINICONTROLS_SET,
+            .region = region,
+            .minicontrols_row = row + corrected_height + 1,
+            .minicontrols_col = col + 1,
+            .minicontrols_width = width};
+        }
+
+        return result;
 }
 
 ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
@@ -1115,7 +1139,6 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
                                   false,
                                   model->current_hash,
                                   state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
-        ;
 
         return (ComponentMsg){0};
 }

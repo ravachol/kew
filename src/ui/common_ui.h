@@ -304,6 +304,15 @@ CellStyle cell_style_from_theme(ColorValue theme);
 int get_footer_text(char *restrict text, size_t size);
 
 /**
+ * @brief Returns the minicontrols text.
+
+ * @param text The text that we get.
+ * @param size The max size of the text.
+ * @return An int indicating whether the footer was copied to text successfully
+ */
+int get_minicontrols_text(char *restrict text, size_t size);
+
+/**
  * @brief Returns the display width of a UTF-8 string.
 
  * @param s the string

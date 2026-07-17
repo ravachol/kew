@@ -536,7 +536,7 @@ void free_image_payload(ImagePayload **img)
         *img = NULL;
 }
 
-void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
+int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                unsigned char *pixels, int width, int height, int max_width,
                                int base_height, const TermSize *term_size, bool centered, size_t img_hash,
                                const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
@@ -569,12 +569,12 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         if (cell_width <= 0 || cell_height <= 0) {
                 k_log("Invalid cell dimensions.");
-                return;
+                return 0;
         }
 
         if (width == 0 || height == 0 || !pixels) {
                 k_log("Invalid image dimensions / no pixels.");
-                return;
+                return 0;
         }
 
         // Terminal cell aspect ratio
@@ -610,12 +610,12 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         if (term_size->cols > 0 && corrected_width > term_size->cols) {
                 k_log("Invalid terminal dimensions.\n");
-                return;
+                return 0;
         }
 
         if (term_size->rows > 0 && corrected_height > term_size->rows) {
                 k_log("Invalid terminal dimensions.\n");
-                return;
+                return 0;
         }
 
         if (centered && term_size->cols > 0)
@@ -624,7 +624,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         // Bounds check
         if (row < 0 || row >= buf->rows || col < 0 || col >= buf->cols) {
                 k_log("Bounds check failed.\n");
-                return;
+                return 0;
         }
 
         Model *model = get_model();
@@ -632,7 +632,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         // The terminal backend emits it verbatim at commit time — same as sixels.
         ImagePayload *img = calloc(1, sizeof(ImagePayload));
         if (!img) {
-                return;
+                return 0;
         }
 
         img->protocol = IMAGE_SIXEL;
@@ -652,7 +652,7 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
                 if (!printable) {
                         free(img);
-                        return;
+                        return 0;
                 }
 
                 img->data_len = printable->len;
@@ -699,6 +699,8 @@ void draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         }
 
         pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
+
+        return corrected_height;
 }
 
 void chafa_shutdown(void)
