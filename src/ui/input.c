@@ -351,6 +351,19 @@ enum MsgType get_mouse_last_row_event(int mouse_x_on_last_row, const char *foote
         return result;
 }
 
+static bool is_ignored_wc(wchar_t wc)
+{
+        // Variation selectors (VS15/VS16)
+        if (wc >= 0xFE00 && wc <= 0xFE0F)
+                return true;
+
+        // Combining marks (covers many zero-width Unicode marks)
+        if (mk_wcwidth(wc) == 0)
+                return true;
+
+        return false;
+}
+
 enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
 {
         enum MsgType result = MSG_NONE;
@@ -380,17 +393,17 @@ enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
                 if (col_index + w > mouse_x_on_text)
                         break; // cursor is inside this character
 
-                if (count_next)
-                {
+                if (count_next) {
                         is_space = false;
                         count_next = false;
-                } else if (wc != L' ')
-                {
+                } else if (is_ignored_wc(wc)) {
+                        // Don't count VS15, VS16, or other zero-width characters
+                } else if (wc != L' ') {
                         view_clicked++;
                         is_space = false;
-                }
-                else
+                } else {
                         is_space = true;
+                }
 
                 if (w == 2) // occupies two cells
                         count_next = true;
