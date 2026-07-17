@@ -526,7 +526,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         // MiniControls click
         if ((mouse_y == model->miniControls.row && model->miniControls.row > 0 &&
              mouse_x - model->miniControls.col >= 0 &&
-             mouse_x - model->miniControls.col < model->miniControls.width) &&
+             mouse_x - model->miniControls.col <= model->miniControls.width) &&
             mouse_key != TB_KEY_MOUSE_RELEASE) {
                 event->type = get_mouse_minicontrols_event(mouse_x - model->miniControls.col + 1, minicontrols_text);
                 return true;
