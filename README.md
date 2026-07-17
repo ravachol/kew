@@ -49,6 +49,17 @@ https://kewplayer.com
 
 \* kew can display your listening status in Discord, but this is now opt-in by popular demand.
 
+## Supported formats
+
+Supported: m4a, raw aac, mp3, flac, wav, webm, mp4, opus, ogg.
+
+#### With caveats, not supported:
+- Fragmented mp4.
+- HE-AAC.
+- E-AC-3.
+- Alac.
+
+
 ## License
 
 Licensed under GPLv2+. [See LICENSE for more information](./LICENSE).

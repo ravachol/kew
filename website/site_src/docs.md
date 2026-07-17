@@ -72,7 +72,6 @@ artist folder->album folder(s)->track(s).
  kew path "/home/you/Music/" (changes the path)
  ```
 
-
 ## Key Bindings
 
 ### Basic
@@ -123,6 +122,16 @@ artist folder->album folder(s)->track(s).
 * Quick: <kbd>Shift+d</kbd>.
 * Medium: <kbd>Shift+f</kbd>.
 * Slow: <kbd>Shift+g</kbd>.
+
+## Supported formats
+
+Supported: m4a, raw aac, mp3, flac, wav, webm, mp4, opus, ogg.
+
+#### With caveats, not supported:
+- Fragmented mp4.
+- HE-AAC.
+- E-AC-3.
+- Alac.
 
 ## Configuration
 
