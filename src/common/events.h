@@ -70,7 +70,8 @@ enum MsgType {
         MSG_CROSSFADE_MEDIUM,
         MSG_CROSSFADE_SLOW,
         MSG_TOGGLECROSSFADE,
-        MSG_PLAY
+        MSG_PLAY,
+        MSG_MINICONTROLS_SET
 };
 
 typedef struct

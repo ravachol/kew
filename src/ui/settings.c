@@ -407,6 +407,22 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
         return buf;
 }
 
+int get_minicontrols_text(char *restrict text, size_t size)
+{
+        Model *model = get_model();
+
+        const char *state_icon= "⏸";
+
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
+        state_icon = "။";
+#endif
+
+        if (model->is_stopped || model->is_paused)
+                return snprintf(text, KEW_PATH_MAX + 1, "⏮  ▶  ⏭  ∅");
+        else
+                return snprintf(text, KEW_PATH_MAX + 1, "⏮  %s  ⏭  ∅", state_icon);
+}
+
 int get_footer_text(char *restrict text, size_t size)
 {
         char playlist[32], library[32], track[32], search[32], help[32];
@@ -2589,7 +2605,6 @@ static const ComponentEntry component_registry[] = {
     {"volume", component_volume},
     {"cover", component_cover},
     {"cover_centered", component_cover_centered},
-    {"side_cover", component_side_cover},
     {"logo", component_logo},
     {"logo_art", component_logo_art},
     {"now_playing", component_now_playing},

@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## kew 4.2.7
+
+#### Enhancements:
+
+- Mini-controls. The idea here is that you will be able to do all the basic operations and will be able to sit a whole session of listening to music, without ever using a keyboard.
+
+#### Bug Fixes:
+
+- Re-enable desktop notifications.
+
+There were a few lingering issues and hickups after 4.1, which lead to a string of small releases. It was a bit painful, but at the same time, I'm glad the bugs were fixed fast as they were discovered, and it's also not like we're going to rewrite the UI system from scratch every week or anything. It's just had to be done because most of what we had was quick, prototype level code.
+
+\- Ravachol
+
 ## kew 4.2.6
 
 #### Enhancements:

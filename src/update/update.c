@@ -710,7 +710,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_CLEARPLAYLIST:
                 model->playbackState.waitingForPlaylist = true;
-                if (model->state.currentView == TRACK_VIEW)
+                if (model->state.currentView == TRACK_VIEW || model->state.currentView == PLAYLIST_VIEW)
                         switch_view(LIBRARY_VIEW);
                 result.cmd.type = CMD_CLEAR_PLAYLIST;
                 break;
@@ -894,6 +894,14 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (msg->footer_row != DISABLED_ROW) {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
+                }
+                break;
+
+        case MSG_MINICONTROLS_SET:
+                if (msg->minicontrols_row != DISABLED_ROW) {
+                        model->miniControls.row = msg->minicontrols_row;
+                        model->miniControls.col = msg->minicontrols_col;
+                        model->miniControls.width = msg->minicontrols_width;
                 }
                 break;
 

@@ -351,6 +351,88 @@ enum MsgType get_mouse_last_row_event(int mouse_x_on_last_row, const char *foote
         return result;
 }
 
+enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
+{
+        enum MsgType result = MSG_NONE;
+
+        if (!text || mouse_x_on_text < 0)
+                return MSG_NONE;
+
+        int view_clicked = 0; // Which section is clicked
+        int col_index = 0;    // terminal column position
+        bool is_space = false;
+        bool count_next = false;
+        mbstate_t mbs;
+        memset(&mbs, 0, sizeof(mbs));
+
+        while (*text) {
+                wchar_t wc;
+                size_t bytes = mbrtowc(&wc, text, MB_CUR_MAX, &mbs);
+                if (bytes == (size_t)-1 || bytes == (size_t)-2) {
+                        bytes = 1;
+                        wc = (unsigned char)*text;
+                }
+
+                int w = mk_wcwidth(wc); // number of terminal columns this char takes
+                if (w < 0)
+                        w = 0;
+
+                if (col_index + w > mouse_x_on_text)
+                        break; // cursor is inside this character
+
+                if (count_next)
+                {
+                        is_space = false;
+                        count_next = false;
+                } else if (wc != L' ')
+                {
+                        view_clicked++;
+                        is_space = false;
+                }
+                else
+                        is_space = true;
+
+                if (wc == L'▶') // occupies two cells
+                        count_next = true;
+
+                col_index += w;
+                text += bytes;
+        }
+
+        // "⏮  ▶  ⏭  ∅"
+
+        if (is_space)
+                return MSG_NONE;
+
+        switch (view_clicked) {
+        case 1:
+                result = MSG_PREV;
+                break;
+        case 2:
+                result = MSG_PLAY_PAUSE;
+                break;
+        case 3:
+                result = MSG_NEXT;
+                break;
+        case 4:
+                result = MSG_CLEARPLAYLIST;
+                break;
+        default:
+                result = MSG_NONE;
+                break;
+        }
+
+        if (result != MSG_NONE)
+                set_dirty(DIRTY_SONG);
+
+        Model *model = get_model();
+        if (result == MSG_PLAY_PAUSE && model->songdata == NULL) {
+                result = MSG_PLAY;
+        }
+
+        return result;
+}
+
 int get_footer_row(void)
 {
         Model *model = get_model();
@@ -388,10 +470,11 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         if (ev->type != TB_EVENT_MOUSE)
                 return false;
 
+        Model *model = get_model();
         int mouse_x = ev->x + 1;
         int mouse_y = ev->y + 1;
         uint16_t mouse_key = ev->key;
-        ProgressBar *progress_bar = get_progress_bar();
+        ProgressBar *progress_bar = &model->progressBar;
 
         // Calculate where the user clicked on the progress bar
         if (progress_bar->length > 0) {
@@ -399,8 +482,6 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
 
                 if (delta_col >= 0 && delta_col <= (long long)progress_bar->length) {
                         double position = (double)delta_col / (double)progress_bar->length;
-
-                        Model *model = get_model();
                         double duration = model->song_duration;
 
                         dragged_position_seconds = duration * position;
@@ -422,7 +503,18 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
                 return true;
         }
 
-        Model *model = get_model();
+        char minicontrols_text[100];
+        get_minicontrols_text(minicontrols_text, sizeof(minicontrols_text));
+
+        // MiniControls click
+        if ((mouse_y == model->miniControls.row && model->miniControls.row > 0 &&
+             mouse_x - model->miniControls.col >= 0 &&
+             mouse_x - model->miniControls.col < (int)strlen(minicontrols_text)) &&
+            mouse_key != TB_KEY_MOUSE_RELEASE) {
+                event->type = get_mouse_minicontrols_event(mouse_x - model->miniControls.col + 1, minicontrols_text);
+                return true;
+        }
+
         if (!model->state.ui.link_clicked) {
                 char *link = url_at_pos(mouse_y - 1, mouse_x - 1);
 
@@ -472,8 +564,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
 
                         return true;
                 }
-        }
-        else if (mouse_key == TB_KEY_MOUSE_LEFT || mouse_key == TB_KEY_MOUSE_MIDDLE) {
+        } else if (mouse_key == TB_KEY_MOUSE_LEFT || mouse_key == TB_KEY_MOUSE_MIDDLE) {
                 register_click(mouse_x, mouse_y, mouse_key);
                 return true;
         }
