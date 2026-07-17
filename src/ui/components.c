@@ -1076,8 +1076,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                                              term_size,
                                                              false,
                                                              model->current_hash,
-                                                             ui->coverStyle, false, true) +
-                                   1;
+                                                             ui->coverStyle, false, true) + 1;
         }
 
         ComponentMsg result = (ComponentMsg){0};
@@ -1106,11 +1105,11 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                 controls[0] = '\0';
 
         draw_buffer_set_string_truncated(buf,
-                               row + corrected_height,
-                               col,
-                               controls,
-                               width,
-                               style);
+                                         row + corrected_height,
+                                         col,
+                                         controls,
+                                         width,
+                                         style);
 
         result.has_msg = true;
         result.msg = (struct Msg){
