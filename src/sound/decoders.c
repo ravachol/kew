@@ -41,11 +41,15 @@ static ma_result init_ma_decoder_wrapper(
     const char *filepath,
     ma_decoding_backend_config *config,
     void *decoder)
+
 {
-        ma_decoder_config decConfig;
-        memset(&decConfig, 0, sizeof(ma_decoder_config));
+        ma_decoder_config decConfig =
+            ma_decoder_config_init(
+                config->preferredFormat,
+                0,
+                0);
+
         decConfig.seekPointCount = 256;
-        decConfig.format = config->preferredFormat;
 
         ma_result result =
             ma_decoder_init_file(
