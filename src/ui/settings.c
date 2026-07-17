@@ -407,32 +407,40 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
         return buf;
 }
 
+// To Append: U+FE0E (Variation Selector-15) Force text representation of unicode symbols
+#define VS15 "\xEF\xB8\x8E" /* U+FE0E: text presentation (not colored emoji style on macos/android/windows */
 
 int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 {
     Model *model = get_model();
 
-    const char *state_icon = "⏸";
-
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
-    state_icon = "။";
-#endif
-
     const char *play = (model->is_stopped || model->is_paused)
-        ? "▶"
-        : state_icon;
+        ? "▶" VS15
+        : "⏸" VS15;
 
     switch (mode)
     {
     case MINICONTROLS_NAV:
-        return snprintf(text, size, "⏮  %s  ⏭", play);
+        return snprintf(
+            text, size,
+            "⏮" VS15 "  %s  ⏭" VS15,
+            play
+        );
 
     case MINICONTROLS_NAV_VOL:
-        return snprintf(text, size, "⏮  %s  ⏭  +  -", play);
+        return snprintf(
+            text, size,
+            "⏮" VS15 "  %s  ⏭" VS15 "  +  -",
+            play
+        );
 
     case MINICONTROLS_FULL:
     default:
-        return snprintf(text, size, "⏮  %s  ⏭  +  -  ∅", play);
+        return snprintf(
+            text, size,
+            "⏮" VS15 "  %s  ⏭" VS15 "  +  -  ∅",
+            play
+        );
     }
 }
 
