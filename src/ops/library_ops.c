@@ -425,6 +425,10 @@ void library_init(bool set_enqueued_status)
 
         expand_path(settings->path, expanded, KEW_PATH_MAX);
 
+        size_t len = strlen(expanded);
+        if (len > 1 && (expanded[len - 1] == '/' || expanded[len - 1] == '\\') )
+                expanded[len - 1] = '\0';
+
         char *lib_path = get_library_file_path();
 
         library = read_tree_from_binary(

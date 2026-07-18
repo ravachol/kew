@@ -74,7 +74,7 @@ void set_prefs(AppSettings *settings, UISettings *ui);
  *
  * @param path The path to set.
  */
-void set_path(const char *path);
+void set_path(char *path);
 
 /**
  * @brief Maps the application's settings to event mappings.

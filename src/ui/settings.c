@@ -2582,13 +2582,17 @@ int update_rc(const char *path, const char *key, const char *value)
         return 0;
 }
 
-void set_path(const char *path)
+void set_path(char *path)
 {
         char *configdir = NULL;
         char *config_file_path = NULL;
 
         configdir = get_config_path();
         config_file_path = get_settings_file_path(configdir, SETTINGS_FILE);
+
+        size_t len = strlen(path);
+        if (len > 1 && (path[len - 1] == '/' || path[len - 1] == '\\') )
+                path[len - 1] = '\0';
 
         update_rc(config_file_path, "path", path);
 
