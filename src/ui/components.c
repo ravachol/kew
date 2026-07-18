@@ -1113,14 +1113,19 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
 
 
         int minicontrols_row = model->miniControls.row - 1;
+        int minicontrols_col = model->miniControls.col - 1;;
 
-        if (dirty & DIRTY_SONG)
+        if (dirty & DIRTY_SONG) {
                 minicontrols_row = row + corrected_height;
-
+                if (corrected_width > width)
+                        minicontrols_col = col + ((corrected_width - width) / 2);
+                else
+                        minicontrols_col = col;
+        }
 
         draw_buffer_set_string_truncated(buf,
                                          minicontrols_row,
-                                         col,
+                                         minicontrols_col,
                                          controls,
                                          width,
                                          style);
@@ -1129,8 +1134,8 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                 result.msg = (struct Msg){
                     .type = MSG_MINICONTROLS_SET,
                     .region = region,
-                    .minicontrols_row = row + corrected_height + 1,
-                    .minicontrols_col = col + 1,
+                    .minicontrols_row = minicontrols_row + 1,
+                    .minicontrols_col = minicontrols_col + 1,
                     .minicontrols_width = width,
                 };
         }
