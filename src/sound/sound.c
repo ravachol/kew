@@ -1407,12 +1407,12 @@ void *song_data_reader_thread(void *arg)
 
         int result = assign_loaded_data();
 
-        loader_data->loadInSlotA = !loader_data->loadInSlotA;
-
-        pthread_mutex_unlock(&(loader_data->mutex));
-
         if (result == -1)
                 songdata->hasErrors = true;
+        else
+                loader_data->loadInSlotA = !loader_data->loadInSlotA;
+
+        pthread_mutex_unlock(&(loader_data->mutex));
 
         if (songdata == NULL || songdata->hasErrors) {
                 ps->songHasErrors = true;

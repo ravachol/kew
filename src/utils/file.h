@@ -198,4 +198,7 @@ int exists_file(const char *fname);
 
 char *path_realpath(const char *path, char *out);
 
+bool paths_equal(const char *a, const char *b);
+
+
 #endif
