@@ -862,6 +862,14 @@ static PixelData interpolate_color(PixelData a, PixelData b, float t)
             .a = 255};
 }
 
+static float color_brightness(PixelData c)
+{
+        // Approximate perceived brightness (human eye sensitivity)
+        return (0.299f * c.r) +
+               (0.587f * c.g) +
+               (0.114f * c.b);
+}
+
 /*
 # Visualizer Palettes — Implementation Details
 
@@ -959,6 +967,14 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 return;
         }
 
+        bool color_is_brighter = color_brightness(color2) < color_brightness(color);
+
+        if (color_is_brighter) {
+                PixelData tmp = color;
+                color = color2;
+                color2 = tmp;
+        }
+
         bool brailleMode = ui->visualizerBrailleMode;
         bool is_playing = (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING);
         bool wide_bar = (visualizer_bar_mode == 1 ||
@@ -1002,8 +1018,8 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                                         t = 1.0f;
 
                                 row_color = interpolate_color(
-                                    color,
                                     color2,
+                                    color,
                                     t);
                         } else if (ui->visualizer_mode == VIZ_LIGHTEN) {
 
