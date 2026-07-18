@@ -426,7 +426,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
     switch (mode)
     {
     case MINICONTROLS_NAV:
-#if defined(__ANDROID__) || defined(__APPLE__)
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
         return snprintf(
             text, size,
             "<  %s  >",
@@ -440,7 +440,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
         );
 #endif
     case MINICONTROLS_NAV_VOL:
-#if defined(__ANDROID__) || defined(__APPLE__)
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
         return snprintf(
             text, size,
              "<  %s  >  +  -",
@@ -456,7 +456,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 
     case MINICONTROLS_FULL:
     default:
-#if defined(__ANDROID__) || defined(__APPLE__)
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
         return snprintf(
             text, size,
             "<  %s  >  +  -  ∅",
