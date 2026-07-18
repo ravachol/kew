@@ -1267,6 +1267,12 @@ void layout_render_dirty(const Layout *layout,
                                     (pane->redraws_on & model->dirty) != 0;
                         }
 
+                        if (pane->fn == component_side_cover)
+                        {
+                                if (!should_draw)
+                                        should_draw = model->state.ui.play_pause_toggled;
+                        }
+
                         if (should_draw) {
 
                                 // Tells main loop to render these components more often

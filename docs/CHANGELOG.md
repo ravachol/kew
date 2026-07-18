@@ -4,7 +4,7 @@
 
 #### Enhancements:
 
-- Mini-controls. The idea here is that you will be able to do all the basic operations and will be able to sit a whole session of listening to music, without ever using a keyboard.
+- Added mini-controls. The idea here is that you will be able to do all the basic operations and will be able to sit a whole session of listening to music, without ever using a keyboard. Well, you still need to quit the app using the keyboard.
 
 - Added a new visualizer mode with a two color gradient.
 

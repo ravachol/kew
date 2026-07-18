@@ -410,6 +410,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
                 model->is_paused = is_paused();
                 model->is_stopped = is_stopped();
+
                 model->state.ui.resizeFlag = get_resize_flag();
 
                 model->current_path = model->songdata ? model->songdata->cover_art_path : NULL;
@@ -482,12 +483,16 @@ UpdateResult update(Model *model, struct Msg *msg)
                 RenderContext *ctx = get_render_context();
                 model->state.ui.render_often = ctx->render_often;
                 model->state.ui.render_search = ctx->render_search;
+                model->state.ui.play_pause_toggled = false;
+
                 if (model->state.ui.rendered) {
                         set_dirty(DIRTY_NONE);
                 } else {
                         set_dirty(DIRTY_ALL);
                 }
+
                 result.cmd.type = CMD_RENDERED;
+
                 break;
 
         case MSG_LOAD_WAITING_MUSIC:
@@ -839,6 +844,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->name_scroll.active = false;
                         set_dirty(DIRTY_LIBRARY);
                 }
+
                 break;
 
         case MSG_SEARCH_ROW_SELECTED:
@@ -888,6 +894,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
                 }
+
                 break;
 
         case MSG_FOOTER_ROW_SET:
@@ -895,6 +902,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
                 }
+
                 break;
 
         case MSG_MINICONTROLS_SET:
@@ -903,18 +911,29 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->miniControls.col = msg->minicontrols_col;
                         model->miniControls.width = msg->minicontrols_width;
                 }
+
                 break;
 
         case MSG_START_TITLE_ANIM:
                 start_title_delay(model);
+
                 break;
 
         case MSG_LYRICS_UPDATED:
                 model->state.ui.chosen_lyrics_row = msg->lyrics_offset;
+
                 break;
 
         case MSG_PRE_RENDER:
                 set_scrollbar_positions();
+
+                if (model->is_paused != model->state.ui.last_pause_state ||
+                    model->is_stopped != model->state.ui.last_stop_state)
+                        model->state.ui.play_pause_toggled = true;
+
+                model->state.ui.last_pause_state = model->is_paused;
+                model->state.ui.last_stop_state = model->is_stopped;
+
                 break;
 
         default:
