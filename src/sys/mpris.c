@@ -38,7 +38,6 @@
 static guint registration_id;
 static guint bus_name_id;
 static guint player_registration_id;
-static const gchar *loop_status = "None";
 static gdouble rate = 1.0;
 static gdouble volume = 0.5;
 static gdouble minimum_rate = 1.0;
@@ -491,7 +490,25 @@ static gboolean get_loop_status(GDBusConnection *connection,
         (void)error;
         (void)user_data;
 
-        *value = g_variant_new_string(loop_status);
+        Model *model = get_model();
+
+        switch(model->state.settings.repeatState)
+        {
+                case SOUND_STATE_REPEAT_OFF:
+                        *value = g_variant_new_string("None");
+                        break;
+                case SOUND_STATE_REPEAT:
+                        *value = g_variant_new_string("Track");
+                        break;
+                case SOUND_STATE_REPEAT_LIST:
+                        *value = g_variant_new_string("Track");
+                        break;
+                default:
+                        *value = g_variant_new_string("None");
+                        break;
+
+        }
+
         return TRUE;
 }
 
