@@ -1,4 +1,4 @@
-version=11
+version=12
 
 [footer_pane]
 
@@ -68,7 +68,7 @@ width=auto
 
 row
 height=fixed:2
-col=indent
+col=indent_normal
 
 pane
 layout=footer_pane
@@ -121,7 +121,7 @@ width=auto
 
 row
 height=fixed:2
-col=indent
+col=indent_normal
 
 pane
 layout=footer_pane
@@ -148,7 +148,7 @@ width=auto
 
 row
 height=fixed:2
-col=indent
+col=indent_normal
 
 pane
 layout=footer_pane
@@ -240,7 +240,7 @@ width=auto
 
 row
 height=fixed:2
-col=indent
+col=indent_normal
 
 pane
 layout=footer_pane
@@ -293,7 +293,7 @@ width=auto
 
 row
 height=fixed:2
-col=indent
+col=indent_normal
 
 pane
 layout=footer_pane
