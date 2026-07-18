@@ -1092,7 +1092,7 @@ void mpris_init(void)
         if (!conn) {
                 g_printerr("%s\n", error->message);
                 k_log("%s", error->message);
-                k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
+                k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew 4) run: doas setcap -r /usr/local/bin/kew");
                 g_error_free(error);
                 g_dbus_node_info_unref(introspection_data);
                 set_error_message(error->message);
@@ -1104,7 +1104,7 @@ void mpris_init(void)
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
                 k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
-                set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
+                set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew 4) run: doas setcap -r /usr/local/bin/kew");
                 quit();
         }
 
