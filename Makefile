@@ -407,7 +407,8 @@ uninstall:
 	rm -rf "$(DESTDIR)$(LAYOUTDIR)"
 	rm -f "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
 	rm -f "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo"
-
+	rm -f "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
+	rm -f "$(DESTDIR)$(PREFIX)/share/applications/kew.desktop"
 .PHONY: clean
 clean:
 	rm -rf $(OBJDIR) kew
