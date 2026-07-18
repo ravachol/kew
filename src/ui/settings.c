@@ -427,7 +427,6 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
     {
     case MINICONTROLS_NAV:
 #if defined(__ANDROID__) || defined(__APPLE__)
-                        state_icon = " ။ ";
         return snprintf(
             text, size,
             "<<  %s  >>",
