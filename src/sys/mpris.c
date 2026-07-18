@@ -501,7 +501,7 @@ static gboolean get_loop_status(GDBusConnection *connection,
                         *value = g_variant_new_string("Track");
                         break;
                 case SOUND_STATE_REPEAT_LIST:
-                        *value = g_variant_new_string("Track");
+                        *value = g_variant_new_string("Playlist");
                         break;
                 default:
                         *value = g_variant_new_string("None");
