@@ -33,4 +33,14 @@ kew is designed for those who want:
  - Auto-Resume.
  - Available on Linux, FreeBSD, Android, macOS, Windows and others.
 
+ ## Supported formats
+
+Supported: m4a, raw aac, mp3, flac, wav, webm, mp4, opus, ogg.
+
+#### With caveats, not supported:
+- Fragmented mp4.
+- HE-AAC.
+- E-AC-3.
+- Alac.
+
 [^1]: kew can display your listening status in Discord, but this is now opt-in by popular demand.
