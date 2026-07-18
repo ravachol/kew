@@ -33,7 +33,7 @@ kew is designed for those who want:
  - Auto-Resume.
  - Available on Linux, FreeBSD, Android, macOS, Windows and others.
 
- ## Supported formats
+## Supported formats
 
 Supported: m4a, raw aac, mp3, flac, wav, webm, mp4, opus, ogg.
 
