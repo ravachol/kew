@@ -18,9 +18,9 @@
 #define _GNU_SOURCE
 #endif
 
-#define MUSIC_FILE_EXTENSIONS "(m4a|mp4|aac|mp3|ogg|flac|wav|aiff|opus|webm)$"
+#define MUSIC_FILE_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|aiff|opus|webm)$"
 
-#define AUDIO_EXTENSIONS "(m4a|mp4|aac|mp3|ogg|flac|wav|aiff|opus|webm|m3u|m3u8)$"
+#define AUDIO_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|aiff|opus|webm|m3u|m3u8)$"
 
 enum SearchType {
         SearchAny = 0,

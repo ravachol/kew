@@ -10,6 +10,8 @@
 
 - The visualizer and footer are now under the cover in track view and don't move around depending on metadata position.
 
+- Removed mp4 support, since it's not fully supported. Fragmented mp4s that are used in streaming are not supported.
+
 #### Bug Fixes:
 
 - Fix freeze if the first played song was in an unsupported format. By @ravachol. Found by @Erwin-Iosef. @Crimson72. Thank you also to @petoem for helping identifying what caused the bug.
