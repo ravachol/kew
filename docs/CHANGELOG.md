@@ -18,7 +18,7 @@
 
 - Fixed an issue on Nix and with the flake.nix. By: @manuwul.
 
-- Don't search for covers in sub-folders if the cover is in the root library path.
+- Don't search for covers in sub-folders if the song is in the root library path.
 
 - Fixed bug where the root library path was used as artist and album fallback if it didn't contain a '/' at the end.
 
