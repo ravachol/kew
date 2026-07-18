@@ -331,7 +331,7 @@ void set_full_path(FileSystemEntry *entry,
         if (nameLen == 0) {
 
                 snprintf(entry->full_path,
-                         KEW_PATH_MAX,
+                         needed,
                          "%s",
                          parent_path);
 
