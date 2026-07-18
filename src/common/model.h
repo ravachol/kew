@@ -530,6 +530,9 @@ typedef struct
         bool rendered;
         bool resumed_in_background;
         bool naming_playlist;
+        bool play_pause_toggled;
+        bool last_pause_state;
+        bool last_stop_state;
 
         ColorPalette visualizer_palettes[8];
 

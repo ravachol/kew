@@ -368,6 +368,8 @@ void model_init(void)
         model.hasArtistDb = false;
         model.db = NULL;
 
+        model.state.ui.play_pause_toggled = false;
+
         model.tick = 17;
 
         model.mouse_x = -1;

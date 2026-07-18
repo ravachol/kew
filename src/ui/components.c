@@ -1062,24 +1062,28 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
 
         int corrected_height = 0;
 
-        if (ui->coverAnsi) {
-                draw_cover_ascii(term_size, songdata->cover_art_path,
-                                 row, col, target_height,
-                                 false, buf, dirty);
-                corrected_height = target_height + 1;
-        } else {
+        if (dirty & DIRTY_SONG) {
 
-                corrected_height = draw_square_bitmap_to_buf(buf,
-                                                             row, col,
-                                                             songdata->cover,
-                                                             songdata->coverWidth,
-                                                             songdata->coverHeight,
-                                                             corrected_width,
-                                                             target_height,
-                                                             term_size,
-                                                             false,
-                                                             model->current_hash,
-                                                             ui->coverStyle, false, true) + 1;
+                if (ui->coverAnsi) {
+                        draw_cover_ascii(term_size, songdata->cover_art_path,
+                                         row, col, target_height,
+                                         false, buf, dirty);
+                        corrected_height = target_height + 1;
+                } else {
+
+                        corrected_height = draw_square_bitmap_to_buf(buf,
+                                                                     row, col,
+                                                                     songdata->cover,
+                                                                     songdata->coverWidth,
+                                                                     songdata->coverHeight,
+                                                                     corrected_width,
+                                                                     target_height,
+                                                                     term_size,
+                                                                     false,
+                                                                     model->current_hash,
+                                                                     ui->coverStyle, false, true) +
+                                           1;
+                }
         }
 
         ComponentMsg result = (ComponentMsg){0};
@@ -1107,22 +1111,29 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         else
                 controls[0] = '\0';
 
+
+        int minicontrols_row = model->miniControls.row - 1;
+
+        if (dirty & DIRTY_SONG)
+                minicontrols_row = row + corrected_height;
+
+
         draw_buffer_set_string_truncated(buf,
-                                         row + corrected_height,
+                                         minicontrols_row,
                                          col,
                                          controls,
                                          width,
                                          style);
-
-        result.has_msg = true;
-        result.msg = (struct Msg){
-            .type = MSG_MINICONTROLS_SET,
-            .region = region,
-            .minicontrols_row = row + corrected_height + 1,
-            .minicontrols_col = col + 1,
-            .minicontrols_width = width,
-        };
-
+        if (dirty & DIRTY_SONG) {
+                result.has_msg = true;
+                result.msg = (struct Msg){
+                    .type = MSG_MINICONTROLS_SET,
+                    .region = region,
+                    .minicontrols_row = row + corrected_height + 1,
+                    .minicontrols_col = col + 1,
+                    .minicontrols_width = width,
+                };
+        }
         return result;
 }
 
