@@ -18,6 +18,8 @@
 
 - Fixed crash on loading Enhanced AC3 files and added proper handling of unsupported files in general.
 
+- Implemented mpris/dbus get_loop_status. Reported by: @eidola-clone
+
 ## kew 4.2.6
 
 #### Enhancements:
