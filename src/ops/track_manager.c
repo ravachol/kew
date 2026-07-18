@@ -98,7 +98,6 @@ int load_first(Node *song)
 
         if (ps->songHasErrors) {
                 // Couldn't play any of the songs
-                sound_system_unload_songs(sound_sys);
                 set_current_song(NULL);
                 ps->songHasErrors = false;
                 return -1;

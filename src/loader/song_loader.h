@@ -178,3 +178,7 @@ void song_loader_assign_slot_A(SongData *songdata);
  *       or replaced depending on internal loader state.
  */
 void song_loader_assign_slot_B(SongData *songdata);
+
+void song_loader_unload_song_A(void);
+
+void song_loader_unload_song_B(void);
