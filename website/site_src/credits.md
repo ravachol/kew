@@ -32,6 +32,7 @@
 * John Lakeman @j-lakeman
 * LeahTheSlug (Advisor) https://slugmail.quest
 * @noiamnote
+* @manuwul
 * Martin Kollár @Kolby11
 * Matthias Geiger @werdahias
 * Michael Petö @petoem (Technical advisor) https://petoe.me
