@@ -20,7 +20,10 @@
 #include "common_ui.h"
 #include "settings.h"
 #include "sound/audiotypes.h"
+
 #include "ui/playlist_ui.h"
+#include "ui/render_ui.h"
+
 #include "visuals.h"
 
 #include "utils/file.h"
@@ -2834,11 +2837,12 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
                 component_timestamped_lyrics(model, lyrics_rect, buf, dirty);
 
         ComponentMsg result = (ComponentMsg){0};
+        int indent = calc_indent_normal();
 
         // Visualizer
         k_Rect viz_rect = {
             .row = meta_row + metadata_height + 2,
-            .col = region.col,
+            .col = indent,
             .width = visualizer_width + 1,
             .height = visualizer_height,
         };

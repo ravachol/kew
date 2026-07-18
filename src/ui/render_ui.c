@@ -580,6 +580,11 @@ void layout_reflow(Model *model,
                         fixed_rows += row->resolved_height;
                         break;
 
+                case SIZE_INDENT_NORMAL:
+                        row->resolved_height = model->indent_normal;
+                        fixed_rows += row->resolved_height;
+                        break;
+
                 case SIZE_INDENT_WIDE:
                         row->resolved_height = model->indent_wide;
                         fixed_rows += row->resolved_height;
@@ -627,6 +632,9 @@ void layout_reflow(Model *model,
                 case COL_INDENT_WIDE:
                         col = model->indent_wide;
                         break;
+                case COL_INDENT_NORMAL:
+                        col = model->indent_normal;
+                        break;
                 default:
                         break;
                 }
@@ -672,6 +680,11 @@ void layout_reflow(Model *model,
 
                         case SIZE_INDENT_WIDE:
                                 pane->region.width = model->indent_wide;
+                                fixed_cols += pane->region.width;
+                                break;
+
+                        case SIZE_INDENT_NORMAL:
+                                pane->region.width = model->indent_normal;
                                 fixed_cols += pane->region.width;
                                 break;
 
@@ -1044,6 +1057,8 @@ void calc_indent(Model *model)
         } else {
                 model->indent = calc_indent_track_view(model);
         }
+
+        model->indent_normal = calc_indent_normal();
 
         model->indent_wide = model->indent + (model->indent / 4);
         if (model->state.settings.hideSideCover)

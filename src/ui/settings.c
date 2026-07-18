@@ -2679,6 +2679,9 @@ static int parse_col(const char *str)
         if (strcmp(str, "indent_wide") == 0)
                 return COL_INDENT;
 
+        if (strcmp(str, "indent_normal") == 0)
+                return COL_INDENT_NORMAL;
+
         return atoi(str);
 }
 
@@ -2695,6 +2698,9 @@ k_Size parse_size(const char *str)
 
         if (strcmp(str, "indent_wide") == 0)
                 return (k_Size){SIZE_INDENT_WIDE, 0};
+
+        if (strcmp(str, "indent_normal") == 0)
+                return (k_Size){SIZE_INDENT_NORMAL, 0};
 
         if (strcmp(str, "from_width") == 0)
                 return (k_Size){SIZE_FROM_WIDTH, 0};

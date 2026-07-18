@@ -110,6 +110,7 @@ typedef enum {
         SIZE_PERCENT, // percentage of parent
         SIZE_WINDOW_MINUS,
         SIZE_INDENT,
+        SIZE_INDENT_NORMAL,
         SIZE_INDENT_WIDE,
         SIZE_FROM_HEIGHT,  // width = f(height)
         SIZE_FROM_WIDTH,   // height = f(width)
@@ -118,6 +119,7 @@ typedef enum {
 typedef enum {
         COL_INDENT = -1,
         COL_INDENT_WIDE = -2,
+        COL_INDENT_NORMAL = -3,
 } ColKind;
 
 typedef struct {
@@ -821,6 +823,7 @@ typedef struct Model {
 
         int indent;
         int indent_wide;
+        int indent_normal;
 
         int updateCounter;
 

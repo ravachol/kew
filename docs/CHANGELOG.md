@@ -6,7 +6,9 @@
 
 - Mini-controls. The idea here is that you will be able to do all the basic operations and will be able to sit a whole session of listening to music, without ever using a keyboard.
 
-- New visualizer mode with a two color gradient.
+- Added a new visualizer mode with a two color gradient.
+
+- The visualizer and footer are now under the cover in track view and don't move around depending on metadata position.
 
 #### Bug Fixes:
 
