@@ -192,8 +192,10 @@ void run_tick_commands(Model *model)
         if (is_refresh_triggered() && model->state.settings.trackTitleAsWindowTitle) {
 
                 if (model->songdata_ok) {
-                        set_terminal_window_title(
-                            model->songdata->metadata->title);
+                          char title[METADATA_MAX_LENGTH + 100];
+                          snprintf(title, sizeof(title), "kew - %s", model->songdata->metadata->title);
+                          set_terminal_window_title(title);
+
                 } else {
                         set_terminal_window_title("kew");
                 }
