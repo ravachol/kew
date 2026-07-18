@@ -6,6 +6,8 @@
 
 - Mini-controls. The idea here is that you will be able to do all the basic operations and will be able to sit a whole session of listening to music, without ever using a keyboard.
 
+- New visualizer mode with a two color gradient.
+
 #### Bug Fixes:
 
 - Re-enable desktop notifications.
