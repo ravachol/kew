@@ -557,6 +557,15 @@ int sound_system_get_fft_size(const sound_system_t *system);
  */
 int sound_system_is_buffer_ready(const sound_system_t *system);
 
+/**
+ * @brief Returns whether this file type is supported b kew
+ *
+ * @param system Pointer to the sound system instance.
+ *
+ * @return Whether 1 if the file is supported, 0 if it is not.
+ */
+int sound_system_is_deconding_possible(const sound_system_t *system, const char *file_path);
+
 /*=========================================================
   Audio Settings
 =========================================================*/

@@ -523,11 +523,11 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         }
 
         MinicontrolMode mode;
-        if (model->miniControls.width >= 16) {
+        if (model->miniControls.width >= 14) {
                 mode = MINICONTROLS_FULL;
-        } else if (model->miniControls.width >= 13) {
+        } else if (model->miniControls.width >= 11) {
                 mode = MINICONTROLS_NAV_VOL;
-        } else if (model->miniControls.width >= 7) {
+        } else if (model->miniControls.width >= 5) {
                 mode = MINICONTROLS_NAV;
         } else {
                 mode = MINICONTROLS_NAV;

@@ -7,6 +7,10 @@
 
 #include "song_loader.h"
 
+#include "common/appstate.h"
+#include "common/model.h"
+
+#include "loader/songdatatype.h"
 #include "lyrics.h"
 
 #include "data/cache.h"
@@ -196,7 +200,7 @@ void make_file_path(const char *dir_path, char *file_path, size_t file_path_size
 }
 
 char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int size,
-                       int depth)
+                       int depth, bool search_sub_dirs)
 {
         if (!dir_path || !custom_file_name_arr || size <= 0 ||
             depth > MAX_RECURSION_DEPTH) {
@@ -248,7 +252,7 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
         }
 
         // Recursive search for directories
-        if (!result) {
+        if (!result && search_sub_dirs) {
                 rewinddir(directory);
                 while ((entry = readdir(directory)) != NULL && !result) {
                         if (strcmp(entry->d_name, ".") == 0 ||
@@ -284,7 +288,7 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
                                 if (S_ISDIR(link_stat.st_mode)) {
                                         result = choose_album_art(
                                             resolved_path, custom_file_name_arr,
-                                            size, depth + 1);
+                                            size, depth + 1, search_sub_dirs);
                                 }
                         }
                 }
@@ -534,7 +538,14 @@ void load_meta_data(SongData *songdata)
                     "f.jpg",
                     "f.jpeg",
                 };
-                tmp = choose_album_art(path, file_arr, 12, 0);
+
+                Model *model = get_model();
+                char library_expanded[KEW_PATH_MAX];
+                expand_path(model->library->full_path, library_expanded, KEW_PATH_MAX);
+                bool search_sub_dirs = !paths_equal(path, library_expanded);
+
+                tmp = choose_album_art(path, file_arr, 12, 0, search_sub_dirs);
+
                 if (tmp == NULL) {
                         tmp = find_largest_image_file(path, tmp, &size);
                 }

@@ -1938,6 +1938,10 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
         char expanded_path[KEW_PATH_MAX];
         expand_path(model->settings.path, expanded_path, sizeof(expanded_path));
+        char path_copy[4096];
+        strcpy(path_copy, model->songdata->file_path);
+        char *dir = dirname(path_copy); // Dirname can modify the string, so use a copy
+        bool is_root_dir = paths_equal(dir, expanded_path);
 
         if (dirty & DIRTY_SONG) {
 
@@ -1950,11 +1954,8 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         const char *homepage = NULL;
                         char *artist = NULL;
                         char *artist_folder = NULL;
-                        char path_copy[4096];
-                        strcpy(path_copy, model->songdata->file_path);
-                        char *dir = dirname(path_copy);
 
-                        if (strcmp(dir, expanded_path) != 0) {
+                        if (!is_root_dir) {
                                 dir = dirname(dir);
                                 artist_folder = basename(dir);
                         }
@@ -1991,11 +1992,8 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 if (region.height >= 3) {
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_album);
                         char line[METADATA_MAX_LENGTH + 2];
-                        char path_copy2[4096];
-                        strcpy(path_copy2, model->songdata->file_path);
-                        char *dir = dirname(path_copy2); // Dirname can modify the string, so use a copy
                         char *album = NULL;
-                        if (strcmp(dir, expanded_path) != 0) {
+                        if (!is_root_dir) {
                                 album = basename(dir);
                         }
 

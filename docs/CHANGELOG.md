@@ -10,6 +10,12 @@
 
 - Re-enable desktop notifications.
 
+- Don't search for covers in sub-folders if the cover is in the root library path.
+
+- Fixed bug where the root library path was used as artist and album fallback if it didn't contain a '/' at the end.
+
+- Fixed crash on loading Enhanced AC3 files and added proper handling of unsupported files in general.
+
 ## kew 4.2.6
 
 #### Enhancements:

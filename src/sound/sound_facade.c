@@ -501,3 +501,15 @@ int sound_system_get_fade_offset_seconds(const sound_system_t *system)
 {
         return system->ring_buffer_secs;
 }
+
+int sound_system_is_deconding_possible(const sound_system_t *system, const char *file_path)
+{
+        if (!system)
+                return SOUND_ERROR_NOT_INITIALIZED;
+
+        const CodecOps *ops = find_codec_ops(file_path);
+        if (is_decoding_possible(file_path, ops) < 0)
+                return 0;
+
+        return 1;
+}

@@ -460,3 +460,18 @@ char *path_realpath(const char *path, char *out)
 #endif
 }
 
+bool paths_equal(const char *a, const char *b)
+{
+    size_t len_a = strlen(a);
+    size_t len_b = strlen(b);
+
+    while (len_a > 1 && a[len_a - 1] == '/')
+        len_a--;
+
+    while (len_b > 1 && b[len_b - 1] == '/')
+        len_b--;
+
+    return len_a == len_b && strncmp(a, b, len_a) == 0;
+}
+
+

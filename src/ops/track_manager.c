@@ -54,10 +54,18 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
                 return;
         }
 
-        sound_result_t sound_result = sound_system_load(sound_sys, song->song.file_path, is_first_decoder, replace_next_song);
+        bool result = sound_system_is_deconding_possible(sound_sys, song->song.file_path);
 
-        if (sound_result == SOUND_ERROR_SONG)
+        if (!result)
+        {
                 ps->songHasErrors = true;
+        }
+        else {
+                sound_result_t sound_result = sound_system_load(sound_sys, song->song.file_path, is_first_decoder, replace_next_song);
+
+                if (sound_result == SOUND_ERROR_SONG)
+                        ps->songHasErrors = true;
+        }
 }
 
 void load_next_song(bool replace_next_song)
@@ -84,13 +92,14 @@ int load_first(Node *song)
                 ps->songHasErrors = false;
                 ps->loadedNextSong = false;
                 current = current->next;
-                load_song(song, true, false);
+                set_current_song(current);
+                load_song(current, true, false);
         }
 
         if (ps->songHasErrors) {
                 // Couldn't play any of the songs
                 sound_system_unload_songs(sound_sys);
-                current = NULL;
+                set_current_song(NULL);
                 ps->songHasErrors = false;
                 return -1;
         }

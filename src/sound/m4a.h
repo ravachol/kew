@@ -20,7 +20,10 @@ extern "C" {
 #include "neaacdec.h"
 #include <miniaudio.h>
 
+#if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
+#include "common/common.h"
 #include "utils/k_log.h"
+#endif
 
 #include <stdint.h>
 #include <stdio.h>
@@ -688,7 +691,8 @@ MA_API ma_result m4a_decoder_init_file(
 
                 unsigned char objectType = decoder_config[0];
                 if (objectType == 5 || objectType >= 29) {
-                        k_log("File is encoded with HE-AAC which is not supported.\n");
+                        k_log("File is encoded with HE-AAC which is not supported.");
+                        set_error_message("The current or next file is encoded with HE-AAC which is not supported.");
                         free(frameData);
                         free(decoder_config);
                         fclose(fp);
@@ -703,6 +707,7 @@ MA_API ma_result m4a_decoder_init_file(
                 int initResult = NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_size, &sample_rate, &channels);
                 if (initResult < 0) {
                         k_log("Error initializing decoder. Code: %d\n", initResult);
+                        set_error_message("Error initializing decoder in the current or next file.");
                         free(frameData);
                         free(decoder_config);
                         NeAACDecClose(pM4a->hDecoder);
@@ -715,6 +720,7 @@ MA_API ma_result m4a_decoder_init_file(
                 // Check if the sample_rate and channels are correctly initialized
                 if (sample_rate == 0 || channels == 0) {
                         k_log("Error: Invalid sample rate or channel count.\n");
+                        set_error_message("The current or next file contains an invalid sample rate or channel count.");
                         free(frameData);
                         NeAACDecClose(pM4a->hDecoder);
                         fclose(fp);
@@ -807,6 +813,7 @@ MA_API ma_result m4a_decoder_init_file(
                 if (is_alac(fp, alac_dsi, &alac_dsi_size)) {
                         // This is an alac file and is currently unsupported.
                         k_log("M4a files that use the ALAC encoder are not supported.");
+                        set_error_message("The current or next file uses the ALAC encoder which is not supported.");
                         return MA_ERROR;
                 } else // AAC
                 {
@@ -826,6 +833,8 @@ MA_API ma_result m4a_decoder_init_file(
                                 pM4a->track.id,
                                 &decoder_config,
                                 &decoder_config_len) != 0) {
+                                k_log("Unsupported codec");
+                                set_error_message("The current or next file uses an unsupported codec.");
                                 return MA_ERROR;
                         }
 
@@ -837,6 +846,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                                 if (object_type == 5 || object_type == 29) {
                                         k_log("Unsupported AAC object type: (HE-AAC or PS)");
+                                        set_error_message("The current or next file uses an unsupported AAC object type: (HE-AAC or PS).");
                                         return MA_ERROR;
                                 }
                         }
