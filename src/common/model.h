@@ -337,7 +337,8 @@ typedef enum {
         VIZ_VIBRANT = 4,
         VIZ_LUM_VIBRANT = 5,
         VIZ_BINNING = 6,
-        VIZ_OFF = 7,
+        VIZ_GRADIENT = 7,
+        VIZ_OFF = 8,
 } VisualizerMode;
 
 /**
@@ -528,7 +529,7 @@ typedef struct
         bool resumed_in_background;
         bool naming_playlist;
 
-        ColorPalette visualizer_palettes[7];
+        ColorPalette visualizer_palettes[8];
 
         k_ScrollBar playlist_scrollbar;
         k_ScrollBar library_scrollbar;

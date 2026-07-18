@@ -488,6 +488,7 @@ void generate_all_visualizer_palettes(Model *model, int height)
                 sort_palette_by_luminosity(&model->state.ui.visualizer_palettes[VIZ_BINNING]);
                 generate_topn_vibrant_palette(&model->state.ui.visualizer_palettes[VIZ_VIBRANT], cover, cover_w, cover_h, cover_ch);
                 generate_kmeans_clustering_palette(&model->state.ui.visualizer_palettes[VIZ_KMEANS_CLUSTERING], cover, cover_w, cover_h, cover_ch);
+                model->state.ui.visualizer_palettes[VIZ_GRADIENT] = model->state.ui.visualizer_palettes[VIZ_KMEANS_CLUSTERING];
         } else {
                 model->state.ui.visualizer_palettes[VIZ_LUM_VIBRANT].count = 0;
                 model->state.ui.visualizer_palettes[VIZ_BINNING].count = 0;
@@ -524,30 +525,27 @@ void clear_magnitudes(int num_bars, float *magnitudes)
 
 void generate_blackman_harris_window(float *window, int buffer_size)
 {
-    const float alpha0 = 0.35875f;
-    const float alpha1 = 0.48829f;
-    const float alpha2 = 0.14128f;
-    const float alpha3 = 0.01168f;
+        const float alpha0 = 0.35875f;
+        const float alpha1 = 0.48829f;
+        const float alpha2 = 0.14128f;
+        const float alpha3 = 0.01168f;
 
-    float denom = (float)(buffer_size - 1);
+        float denom = (float)(buffer_size - 1);
 
-    for (int i = 0; i < buffer_size; i++) {
-        float x = 2.0f * M_PI * i / denom;
+        for (int i = 0; i < buffer_size; i++) {
+                float x = 2.0f * M_PI * i / denom;
 
-        window[i] =
-            alpha0
-            - alpha1 * cosf(x)
-            + alpha2 * cosf(2.0f * x)
-            - alpha3 * cosf(3.0f * x);
-    }
+                window[i] =
+                    alpha0 - alpha1 * cosf(x) + alpha2 * cosf(2.0f * x) - alpha3 * cosf(3.0f * x);
+        }
 }
 
 void apply_blackman_harris(float *restrict data,
-                  const float *restrict window,
-                  int n)
+                           const float *restrict window,
+                           int n)
 {
-    for (int i = 0; i < n; i++)
-        data[i] *= window[i];
+        for (int i = 0; i < n; i++)
+                data[i] *= window[i];
 }
 
 // Fill center freqs for 1/3-octave bands, given min/max freq and num_bands
@@ -850,6 +848,20 @@ void free_visuals(void)
         }
 }
 
+static PixelData interpolate_color(PixelData a, PixelData b, float t)
+{
+        if (t < 0.0f)
+                t = 0.0f;
+        if (t > 1.0f)
+                t = 1.0f;
+
+        return (PixelData){
+            .r = (unsigned char)(a.r + (b.r - a.r) * t),
+            .g = (unsigned char)(a.g + (b.g - a.g) * t),
+            .b = (unsigned char)(a.b + (b.b - a.b) * t),
+            .a = 255};
+}
+
 /*
 # Visualizer Palettes — Implementation Details
 
@@ -924,15 +936,19 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
 {
         // Resolve base color
         PixelData color = {0, 0, 0, 255};
+        PixelData color2 = {0, 0, 0, 255};
         const UISettings *ui = &model->state.settings;
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
                 color = model->songdata_ok && model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[0] : ui->color;
-       } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
+                color2 = model->songdata_ok && model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[1] : ui->color;
+        } else if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
                 color = ui->color;
+                color2 = model->songdata_ok && model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[1] : ui->color;
         } else if (ui->colorMode == COLOR_MODE_THEME &&
                    ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
                 color = ui->theme.trackview_visualizer.rgb;
+                color2 = model->songdata_ok && model->songdata && model->songdata->cover ? model->songdata->kmeans_palette[1] : ui->color;
         }
 
         // Resolve pre-computed palette for modes 1-6
@@ -969,7 +985,27 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 if (palette != NULL && palette->count > 0 &&
                     (color.r != 0 || color.g != 0 || color.b != 0)) {
                         int pidx;
-                        if (ui->visualizer_mode == VIZ_LIGHTEN) {
+
+                        if (ui->visualizer_mode == VIZ_GRADIENT) {
+                                // 0.0 = change starts at bottom
+                                // 1.0 = change starts at top
+                                float gradient_start = 0.4f;
+
+                                float position = (float)(height - j) / (float)(height - 1);
+
+                                float t = (position - gradient_start) /
+                                          (1.0f - gradient_start);
+
+                                if (t < 0.0f)
+                                        t = 0.0f;
+                                else if (t > 1.0f)
+                                        t = 1.0f;
+
+                                row_color = interpolate_color(
+                                    color,
+                                    color2,
+                                    t);
+                        } else if (ui->visualizer_mode == VIZ_LIGHTEN) {
 
                                 row_color = increase_luminosity_for_height(color, height, j, false);
 
@@ -1008,7 +1044,10 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                 for (int i = 0; i < num_bars; i++) {
 
                         CellStyle bar_style = row_style;
-                        if (ui->visualizer_mode != VIZ_LIGHTEN && ui->visualizer_mode != VIZ_REVERSED &&  ui->visualizer_mode != VIZ_FLAT &&
+                        if (ui->visualizer_mode != VIZ_LIGHTEN &&
+                            ui->visualizer_mode != VIZ_REVERSED &&
+                            ui->visualizer_mode != VIZ_FLAT &&
+                            ui->visualizer_mode != VIZ_GRADIENT &&
                             palette != NULL && palette->count > 0 &&
                             (color.r != 0 || color.g != 0 || color.b != 0)) {
                                 PixelData bar_color;
@@ -1024,24 +1063,24 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                                                 scaled = (float)(palette->count - 1);
                                         else
                                                 scaled = (magnitudes[i] - 1.0f) *
-                                                          (palette->count - 1) /
-                                                          (height - 1);
+                                                         (palette->count - 1) /
+                                                         (height - 1);
 
                                         // Perform linear interpolation between the two nearest palette entries.
                                         int lo = (int)scaled;
                                         int hi = lo + 1;
-                                        if (hi >= palette->count) hi = palette->count - 1;
+                                        if (hi >= palette->count)
+                                                hi = palette->count - 1;
 
                                         // 'frac' is the interpolation factor [0, 1] between color at 'lo' and color at 'hi'.
                                         float frac = scaled - (float)lo;
                                         PixelData c0 = palette->colors[lo];
                                         PixelData c1 = palette->colors[hi];
                                         bar_color = (PixelData){
-                                                .r = (unsigned char)(c0.r + (int)((c1.r - c0.r) * frac)),
-                                                .g = (unsigned char)(c0.g + (int)((c1.g - c0.g) * frac)),
-                                                .b = (unsigned char)(c0.b + (int)((c1.b - c0.b) * frac)),
-                                                .a = 255
-                                        };
+                                            .r = (unsigned char)(c0.r + (int)((c1.r - c0.r) * frac)),
+                                            .g = (unsigned char)(c0.g + (int)((c1.g - c0.g) * frac)),
+                                            .b = (unsigned char)(c0.b + (int)((c1.b - c0.b) * frac)),
+                                            .a = 255};
                                 }
                                 if (ui->colorMode != COLOR_MODE_DEFAULT || ui->theme.trackview_visualizer.ansiIndex >= 100)
                                         bar_style = cell_style_fg(bar_color);
