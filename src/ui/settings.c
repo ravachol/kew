@@ -429,7 +429,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 #if defined(__ANDROID__) || defined(__APPLE__)
         return snprintf(
             text, size,
-            "<<  %s  >>",
+            "<  %s  >",
             play
         );
 #else
@@ -443,7 +443,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 #if defined(__ANDROID__) || defined(__APPLE__)
         return snprintf(
             text, size,
-             "<<  %s  >>  +  -",
+             "<  %s  >  +  -",
             play
         );
 #else
@@ -459,7 +459,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 #if defined(__ANDROID__) || defined(__APPLE__)
         return snprintf(
             text, size,
-            "<<  %s  >>  +  -  ∅",
+            "<  %s  >  +  -  ∅",
             play
         );
 #else
