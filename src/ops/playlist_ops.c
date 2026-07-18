@@ -436,10 +436,11 @@ void switch_to_prev_song(void)
         }
 
         skip_in_progress = true;
-
+        int retries = 0;
+retry: {
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
-retry:
+
         if (current == NULL) {
 
                 if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING)
@@ -465,7 +466,7 @@ retry:
 
         set_current_song_to_prev();
 
-        if (song == get_current_song()) {
+        if (song == get_current_song() && retries == 0) {
                 reset_clock();
                 update_playback_position(
                     0); // We need to signal to mpris that the song was
@@ -486,27 +487,37 @@ retry:
 
         load_song(get_current_song(), false, true);
 
-        play();
-
-        int max_num_tries = 50;
-        int numtries = 0;
-
-        while (!ps->loadedNextSong && numtries < max_num_tries) {
-                c_sleep(100);
-                numtries++;
-        }
-
         if (ps->songHasErrors) {
-                ps->songHasErrors = false;
-                ps->forceSkip = true;
-                goto retry;
+                 if (!(song == get_current_song() && retries > 0)) {
+                        ps->songHasErrors = false;
+                        ps->forceSkip = true;
+                        retries++;
+
+                        goto retry;
+                }
+                else {
+                        ps->skipping = false;
+                        ps->skipOutOfOrder = false;
+                        ps->songLoading = false;
+                        ps->forceSkip = false;
+                        ps->loadedNextSong = false;
+                        ps->songHasErrors = false;
+                        skip_in_progress = false;
+                        set_next_song(NULL);
+                        set_current_song_to_next();
+                        clear_and_play(get_current_song());
+                        return;
+                }
         }
+
+        play();
 
         reset_clock();
 
         skip();
 
         skip_in_progress = false;
+}
 }
 
 void delete_from_lists(Node *node)
@@ -596,12 +607,10 @@ void handle_remove(int chosen_row)
         if (model->state.currentView == PLAYLIST_VIEW) {
                 Node *current = get_current_song();
                 node = find_selected_entry(unshuffled_playlist, chosen_row);
-                if (current && node && node->id == current->id)
-                {
+                if (current && node && node->id == current->id) {
                         model->state.ui.resetPlaylistDisplay = true;
                         set_dirty(DIRTY_ALL);
-                }
-                else
+                } else
                         set_dirty(DIRTY_PLAYLIST);
 
                 remove_song(node);
@@ -1101,5 +1110,3 @@ char *get_playlist_name(void)
 
         return model->state.ui.playlist_name;
 }
-
-

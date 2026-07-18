@@ -638,6 +638,8 @@ MA_API ma_result m4a_decoder_init_file(
                 // Check if it's an MP4 file (using MP4D_open or similar)
                 if (mp4_demux_open(pFilePath, &pM4a->mp4) < 0) {
                         fclose(fp);
+                        k_log("Error initializing decoder.\n");
+                        set_error_message("Error initializing decoder (possibly a fragmented mp4 file) in the current or next file.");
                         return MA_ERROR;
                 } else {
                         pM4a->file_type = k_unknown; // It's an MP4 container
