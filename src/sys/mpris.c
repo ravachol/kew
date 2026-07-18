@@ -436,6 +436,7 @@ static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name,
         (void)connection;
         (void)name;
         (void)user_data;
+        k_log("DBUS name aquired");
 }
 
 static void on_bus_name_lost(GDBusConnection *connection, const gchar *name,
@@ -444,6 +445,7 @@ static void on_bus_name_lost(GDBusConnection *connection, const gchar *name,
         (void)connection;
         (void)name;
         (void)user_data;
+        k_log("DBUS name lostd");
 }
 
 static gboolean
@@ -1082,19 +1084,34 @@ void mpris_init(void)
 
         GDBusNodeInfo *introspection_data =
             g_dbus_node_info_new_for_xml(introspection_xml, NULL);
-        set_gd_bus_connection(g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL));
+        GError *error = NULL;
+
+        GDBusConnection *conn =
+            g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+
+        if (!conn) {
+                g_printerr("%s\n", error->message);
+                k_log("%s", error->message);
+                k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
+                g_error_free(error);
+                g_dbus_node_info_unref(introspection_data);
+                set_error_message(error->message);
+                quit();
+        }
+
+        set_gd_bus_connection(conn);
 
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
+                k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
                 set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
                 quit();
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
 
-        GError *error = NULL;
         bus_name_id = g_bus_own_name_on_connection(
-            get_gd_bus_connection(), app_name, G_BUS_NAME_OWNER_FLAGS_NONE,
+            conn, app_name, G_BUS_NAME_OWNER_FLAGS_NONE,
             on_bus_name_acquired, on_bus_name_lost, NULL, NULL);
 
         if (bus_name_id == 0) {
