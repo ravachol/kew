@@ -12,6 +12,8 @@
 
 #### Bug Fixes:
 
+- Fix freeze if the first played song was in an unsupported format. By @ravachol. Found by @Erwin-Iosef. @Crimson72. Thank you also to @petoem for helping identifying what caused the bug.
+
 - Re-enable desktop notifications.
 
 - Fixed an issue on Nix and with the flake.nix. By: @manuwul.
