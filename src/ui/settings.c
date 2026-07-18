@@ -407,40 +407,69 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
         return buf;
 }
 
-// To Append: U+FE0E (Variation Selector-15) Force text representation of unicode symbols
-#define VS15 "\xEF\xB8\x8E" /* U+FE0E: text presentation (not colored emoji style on macos/android/windows */
+#define VS15 "\xEF\xB8\x8E" // U+FE0E: text presentation (not colored emoji style on macos/android/windows
 
 int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 {
     Model *model = get_model();
 
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
+    const char *play = (model->is_stopped || model->is_paused)
+        ? "▶" VS15
+        : "။" VS15;
+#else
     const char *play = (model->is_stopped || model->is_paused)
         ? "▶" VS15
         : "⏸" VS15;
+#endif
 
     switch (mode)
     {
     case MINICONTROLS_NAV:
+#if defined(__ANDROID__) || defined(__APPLE__)
+                        state_icon = " ။ ";
+        return snprintf(
+            text, size,
+            "<<  %s  >>",
+            play
+        );
+#else
         return snprintf(
             text, size,
             "⏮" VS15 "  %s  ⏭" VS15,
             play
         );
-
+#endif
     case MINICONTROLS_NAV_VOL:
+#if defined(__ANDROID__) || defined(__APPLE__)
+        return snprintf(
+            text, size,
+             "<<  %s  >>  +  -",
+            play
+        );
+#else
         return snprintf(
             text, size,
             "⏮" VS15 "  %s  ⏭" VS15 "  +  -",
             play
         );
+#endif
 
     case MINICONTROLS_FULL:
     default:
+#if defined(__ANDROID__) || defined(__APPLE__)
+        return snprintf(
+            text, size,
+            "<<  %s  >>  +  -  ∅",
+            play
+        );
+#else
         return snprintf(
             text, size,
             "⏮" VS15 "  %s  ⏭" VS15 "  +  -  ∅",
             play
         );
+#endif
     }
 }
 
