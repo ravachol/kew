@@ -130,25 +130,6 @@ sound_result_t sound_system_load(
     int is_next_song);
 
 /**
- * @brief Unloads all songs currently managed by the sound system.
- *
- * Frees resources associated with both the current and any preloaded
- * songs without shutting down the audio device itself.
- *
- * After this call, no songs remain loaded in the system, but the
- * sound system may still be initialized and ready to load new tracks.
- *
- * @param system Pointer to the sound system instance.
- *
- * @return sound_result_t Status code indicating success or failure
- *                        of the unload operation.
- *
- * @warning This function should not be called while audio processing
- *          threads are actively accessing song data.
- */
-sound_result_t sound_system_unload_songs(sound_system_t *system);
-
-/**
  * @brief Starts or resumes playback.
  *
  * Begins playback of the currently loaded audio track, or resumes
