@@ -31,8 +31,8 @@
 #include "loader/song_loader.h"
 
 #include "utils/file.h"
-#include "utils/utils.h"
 #include "utils/k_log.h"
+#include "utils/utils.h"
 
 #include <miniaudio.h>
 
@@ -1409,16 +1409,25 @@ void *song_data_reader_thread(void *arg)
 
         if (result == -1)
                 songdata->hasErrors = true;
-        else
-                loader_data->loadInSlotA = !loader_data->loadInSlotA;
 
         pthread_mutex_unlock(&(loader_data->mutex));
 
         if (songdata == NULL || songdata->hasErrors) {
+                
+                if (loader_data->loadInSlotA) {
+
+                        song_loader_unload_song_A();
+
+                } else {
+
+                        song_loader_unload_song_B();
+                }
+
                 ps->songHasErrors = true;
                 ps->clearingErrors = true;
                 set_next_song(NULL);
         } else {
+                loader_data->loadInSlotA = !loader_data->loadInSlotA;
                 ps->songHasErrors = false;
                 ps->clearingErrors = false;
                 set_next_song(get_try_next_song());
