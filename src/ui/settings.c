@@ -2339,7 +2339,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "[miscellaneous]\n\n");
         fprintf(file, "path=%s\n\n", settings->path);
         fprintf(file, "# Enable artist database, that provides clickable artists links in track view.\n");
-        fprintf(file, "useArtistDb=%s\n\n", settings->useArtistLink);
+        fprintf(file, "useArtistsDb=%s\n\n", settings->useArtistLink);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
