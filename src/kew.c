@@ -726,7 +726,7 @@ void state_init(void)
         state->settings.simpleTimeStatus = true;
         state->settings.quitAfterStopping = false;
         state->settings.hideGlimmeringText = false;
-        state->settings.useArtistsDb = false;
+        state->settings.useAristsLink = true;
         state->settings.coverAnsi = false;
         state->settings.visualizer_mode = VIZ_KMEANS_CLUSTERING;
         state->settings.discordRPCEnabled = true;

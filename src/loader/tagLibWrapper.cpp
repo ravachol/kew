@@ -55,6 +55,10 @@ static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                         "abcdefghijklmnopqrstuvwxyz"
                                         "0123456789+/";
 
+static const std::vector<std::string> kAllowedDomains = {
+    "bandcamp.com",
+};
+
 const uint32_t MAX_REASONABLE_SIZE = 100 * 1024 * 1024; // 100MB limit
 
 #if defined(TAGLIB_MAJOR_VERSION) && TAGLIB_MAJOR_VERSION >= 2
@@ -974,7 +978,7 @@ bool extractCoverArtFromMp4(TagLib::FileRef *f,
                                 fclose(coverFile);
                                 return true; // Success
                         } else {
-                               fprintf(
+                                fprintf(
                                     stderr, "Could not open output file '%s'\n",
                                     coverFilePath.c_str());
                                 return false; // Failed to open the
@@ -1213,7 +1217,7 @@ static bool loadLyricsMP4(TagLib::MP4::File *file, Lyrics **lyricsOut)
 
         bool looksLikeLrc = detectLrcFormat(lines);
         bool ok = looksLikeLrc ? parseTimedLyricsFromTagLines(lines, lyrics)
-        : parseUntimedLyricsFromTagLines(lines, lyrics);
+                               : parseUntimedLyricsFromTagLines(lines, lyrics);
 
         if (!ok) {
                 freeLyrics(lyrics);
@@ -1469,7 +1473,7 @@ void getTrackInfo(const char *filepath, uint32_t *track, uint32_t *disc)
 
         if (file.isNull() || !file.file()) {
                 fprintf(stderr, "FileRef is null or file could not be opened: "
-                        "'%s'\n",
+                                "'%s'\n",
                         filepath);
 
                 return;
@@ -1515,8 +1519,113 @@ void getTrackInfo(const char *filepath, uint32_t *track, uint32_t *disc)
         return;
 }
 
+static std::string getComment(TagLib::File *file)
+{
+        if (!file)
+                return "";
+
+        // FLAC / Ogg Vorbis / Opus (Vorbis comments)
+        if (auto flac = dynamic_cast<TagLib::FLAC::File *>(file)) {
+                if (auto tag = flac->xiphComment())
+                        return tag->comment().to8Bit(true);
+        }
+
+        if (auto ogg = dynamic_cast<TagLib::Ogg::Vorbis::File *>(file)) {
+                if (auto tag = ogg->tag())
+                        return tag->comment().to8Bit(true);
+        }
+
+        if (auto opus = dynamic_cast<TagLib::Ogg::Opus::File *>(file)) {
+                if (auto tag = opus->tag())
+                        return tag->comment().to8Bit(true);
+        }
+
+        // MP3 (ID3v2)
+        if (auto mp3 = dynamic_cast<TagLib::MPEG::File *>(file)) {
+                if (auto tag = mp3->ID3v2Tag())
+                        return tag->comment().to8Bit(true);
+        }
+
+        // MP4/M4A
+        if (auto mp4 = dynamic_cast<TagLib::MP4::File *>(file)) {
+                if (auto tag = mp4->tag())
+                        return tag->comment().to8Bit(true);
+        }
+
+        // Generic fallback
+        if (auto tag = file->tag())
+                return tag->comment().to8Bit(true);
+
+        return "";
+}
+
+static std::string extractFirstUrl(const std::string &text)
+{
+        size_t h = text.find("http://");
+        size_t s = text.find("https://");
+
+        size_t start;
+        if (h == std::string::npos)
+                start = s;
+        else if (s == std::string::npos)
+                start = h;
+        else
+                start = std::min(h, s);
+
+        if (start == std::string::npos)
+                return "";
+
+        size_t end = start;
+        while (end < text.size()) {
+                unsigned char c = static_cast<unsigned char>(text[end]);
+                if (std::isspace(c) || c == '<' || c == '>' || c == '"' || c == '\'')
+                        break;
+                ++end;
+        }
+
+        return text.substr(start, end - start);
+}
+
+bool isAllowedUrl(std::string &url)
+{
+    if (url.empty())
+        return false;
+
+    size_t hostStart;
+    if (url.compare(0, 7, "http://") == 0)
+        hostStart = 7;
+    else if (url.compare(0, 8, "https://") == 0)
+        hostStart = 8;
+    else {
+        url.clear();
+        return false;
+    }
+
+    size_t hostEnd = url.find_first_of("/:?#", hostStart);
+    std::string host = url.substr(
+        hostStart,
+        hostEnd == std::string::npos ? std::string::npos : hostEnd - hostStart);
+
+    if (host.compare(0, 4, "www.") == 0)
+        host.erase(0, 4);
+
+    for (const auto &allowed : kAllowedDomains) {
+        if (host == allowed)
+            return true;
+
+        if (host.size() > allowed.size() &&
+            host.compare(host.size() - allowed.size(),
+                         allowed.size(), allowed) == 0 &&
+            host[host.size() - allowed.size() - 1] == '.')
+            return true;
+    }
+
+    url.clear();
+    return false;
+}
+
 int extractTags(const char *input_file, TagSettings *tag_settings,
-                double *duration, const char *coverFilePath, Lyrics **lyrics)
+                double *duration, const char *coverFilePath, Lyrics **lyrics, bool get_url)
 {
         memset(tag_settings, 0,
                sizeof(TagSettings)); // Initialize tag settings
@@ -1533,7 +1642,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
 
         if (f.isNull() || !f.file()) {
                 fprintf(stderr, "FileRef is null or file could not be opened: "
-                        "'%s'\n",
+                                "'%s'\n",
                         input_file);
 
                 char title[4096];
@@ -1609,6 +1718,20 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         loadLyricsVorbisOpus(opusFile, lyrics);
                 else if (auto mp4File = dynamic_cast<TagLib::MP4::File *>(f.file()))
                         loadLyricsMP4(mp4File, lyrics);
+        }
+
+        if (get_url) {
+                std::string comment = getComment(f.file());
+                std::string url = extractFirstUrl(comment);
+
+                if (!url.empty() && isAllowedUrl(url)) {
+
+                        c_strcpy(tag_settings->url,
+                         url.c_str(),
+                         sizeof(tag_settings->url) - 1);
+
+                         tag_settings->url[sizeof(tag_settings->url) - 1] = '\0';
+                }
         }
 
         // Extract audio properties for duration.

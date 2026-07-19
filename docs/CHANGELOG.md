@@ -2,6 +2,12 @@
 
 ## kew 4.2.8
 
+#### Enhancements:
+
+- Use bandcamp.com links in the comment tags as the fallback homepage url if the artist db isn't installed. This is awesome because it doesn't require the database and a lot of bandcamp artists have their bandcamp homepage in the comment tag. Links can still be disabled by settings useArtistDB=0 in kewrc. Suggested by @sparrowd_P.
+
+#### Bug fixes:
+
 - Fix use after free if DBUS connection fails. By @daeho-ro.
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION

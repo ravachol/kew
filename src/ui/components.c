@@ -1969,8 +1969,6 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_artist);
                         char line[METADATA_MAX_LENGTH + 2];
-                        const ArtistRecord *record = NULL;
-                        const char *homepage = NULL;
                         char *artist = NULL;
                         char *artist_folder = NULL;
 
@@ -1990,16 +1988,9 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         }
 
                         if (artist) {
-                                if (model->hasArtistDb) {
-                                        record = db_find(model->db, artist);
-
-                                        if (record)
-                                                homepage = db_get_value(model->db, record);
-                                }
-
-                                if (homepage) {
+                                if (model->state.settings.useAristsLink && strnlen(metadata->url, 3) > 0) {
                                         draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
-                                                            homepage, artist, style);
+                                                            metadata->url, artist, style);
                                 } else {
                                         draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
                                                                          line, max_width, style);

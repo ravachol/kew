@@ -29,6 +29,7 @@ typedef struct
         char album_artist[METADATA_MAX_LENGTH];
         char album[METADATA_MAX_LENGTH];
         char date[METADATA_MAX_LENGTH];
+        char url[2048];
         double replaygainTrack;
         double replaygainAlbum;
 } TagSettings;
