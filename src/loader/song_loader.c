@@ -590,7 +590,7 @@ void load_meta_data(SongData *songdata)
                 const ArtistRecord *record = NULL;
                 const char *homepage = NULL;
 
-                if (songdata->metadata->artist[0] != '\0') {
+                if (songdata->metadata->artist[0] != '\0' && songdata->metadata->url[0] == '\0') {
                         if (model->hasArtistDb) {
                                 record = db_find(model->db, songdata->metadata->artist);
 
