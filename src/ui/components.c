@@ -756,15 +756,15 @@ int get_row_within_bounds(int row)
 static const char *get_player_status_icon(const Model *model)
 {
         if (model->is_paused) {
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
+#if defined(__ANDROID__) || defined(_WIN32)
                 return "။";
 #else
-                return "⏸";
+                return "\u23F8" VS15; // ⏸
 #endif
         }
         if (model->is_stopped)
-                return "■";
-        return "▶";
+                return "\u23F9" VS15; // ⏹
+        return "\u25B6" VS15;         // ▶
 }
 
 static void build_song_title(const Model *model, const UISettings *ui,
@@ -1111,9 +1111,9 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         else
                 controls[0] = '\0';
 
-
         int minicontrols_row = model->miniControls.row - 1;
-        int minicontrols_col = model->miniControls.col - 1;;
+        int minicontrols_col = model->miniControls.col - 1;
+        ;
 
         if (dirty & DIRTY_SONG) {
                 minicontrols_row = row + corrected_height;
@@ -1397,13 +1397,13 @@ ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBu
 #endif
                 const char *state_icon;
                 if (model->is_paused) {
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
+#if defined(__ANDROID__) || defined(_WIN32)
                         state_icon = "။ ";
 #else
-                state_icon = "⏸ ";
+                state_icon = "\u23F8" VS15 " "; // ⏸
 #endif
                 } else if (model->is_stopped) {
-                        state_icon = "■ ";
+                        state_icon = "\u23F9" VS15 " "; // ⏹
                 } else {
                         state_icon = " ";
                 }
@@ -1493,15 +1493,15 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
 #endif
                 const char *state_icon;
                 if (model->is_paused) {
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
+#if defined(__ANDROID__) || defined(_WIN32)
                         state_icon = " ။ ";
 #else
-                state_icon = " ⏸ ";
+                state_icon = " \u23F8" VS15 " "; // ⏸
 #endif
                 } else if (model->is_stopped) {
-                        state_icon = " ■ ";
+                        state_icon = " \u23F9" VS15 " "; // ⏹
                 } else {
-                        state_icon = " ▶ ";
+                        state_icon = " \u25B6" VS15 " "; // ▶
                 }
                 snprintf(icons + icons_len, sizeof(icons) - icons_len, "%s", state_icon);
                 icons_len = strnlen(icons, sizeof(icons));
