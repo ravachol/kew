@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.2.8
+
+- Fix use after free if DBUS connection fails. By @daeho-ro.
+
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
 #### Enhancements:
