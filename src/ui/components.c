@@ -1113,7 +1113,6 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
 
         int minicontrols_row = model->miniControls.row - 1;
         int minicontrols_col = model->miniControls.col - 1;
-        ;
 
         if (dirty & DIRTY_SONG) {
                 minicontrols_row = row + corrected_height;
