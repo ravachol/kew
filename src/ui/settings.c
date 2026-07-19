@@ -948,8 +948,8 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->clearListClearsAll));
         c_strcpy(settings->hideGlimmeringText, "0",
                  sizeof(settings->hideGlimmeringText));
-        c_strcpy(settings->useArtistsDb, "1",
-                 sizeof(settings->useArtistsDb));
+        c_strcpy(settings->useArtistLink, "1",
+                 sizeof(settings->useArtistLink));
         c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled));
         c_strcpy(settings->replayGainCheckFirst, "0",
                  sizeof(settings->replayGainCheckFirst));
@@ -1562,8 +1562,8 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  sizeof(settings->hideGlimmeringText), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "useartistsdb") == 0) {
-                        snprintf(settings->useArtistsDb,
-                                 sizeof(settings->useArtistsDb), "%s",
+                        snprintf(settings->useArtistLink,
+                                 sizeof(settings->useArtistLink), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "quit") == 0) {
                         snprintf(settings->quit, sizeof(settings->quit), "%s",
@@ -2245,12 +2245,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->hideGlimmeringText))
                     : c_strcpy(settings->hideGlimmeringText, "0",
                                sizeof(settings->hideGlimmeringText));
-        if (settings->useArtistsDb[0] == '\0')
-                ui->useArtistsDb
-                    ? c_strcpy(settings->useArtistsDb, "1",
-                               sizeof(settings->useArtistsDb))
-                    : c_strcpy(settings->useArtistsDb, "0",
-                               sizeof(settings->useArtistsDb));
+        if (settings->useArtistLink[0] == '\0')
+                ui->useAristsLink
+                    ? c_strcpy(settings->useArtistLink, "1",
+                               sizeof(settings->useArtistLink))
+                    : c_strcpy(settings->useArtistLink, "0",
+                               sizeof(settings->useArtistLink));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1",
                                             sizeof(settings->mouseEnabled))
@@ -2339,7 +2339,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "[miscellaneous]\n\n");
         fprintf(file, "path=%s\n\n", settings->path);
         fprintf(file, "# Enable artist database, that provides clickable artists links in track view.\n");
-        fprintf(file, "useArtistsDb=%s\n\n", settings->useArtistsDb);
+        fprintf(file, "useArtistDb=%s\n\n", settings->useArtistLink);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);

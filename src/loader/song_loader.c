@@ -13,12 +13,13 @@
 #include "loader/songdatatype.h"
 #include "lyrics.h"
 
+#include "data/artists.h"
 #include "data/cache.h"
 
 #include "utils/file.h"
 #include "utils/img_utils.h"
-#include "utils/utils.h"
 #include "utils/k_log.h"
+#include "utils/utils.h"
 
 #include "stb_image.h"
 #include "tagLibWrapper.h"
@@ -304,94 +305,109 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
 char *find_largest_image_file(const char *directory_path, char *largest_image_file,
                               off_t *largest_file_size)
 {
-    // Convert directory path (UTF-8) to wide
-    int wlen = MultiByteToWideChar(CP_UTF8, 0, directory_path, -1, NULL, 0);
-    if (wlen <= 0) return largest_image_file;
+        // Convert directory path (UTF-8) to wide
+        int wlen = MultiByteToWideChar(CP_UTF8, 0, directory_path, -1, NULL, 0);
+        if (wlen <= 0)
+                return largest_image_file;
 
-    wchar_t *wdir = (wchar_t *)malloc(wlen * sizeof(wchar_t));
-    if (!wdir) return largest_image_file;
-    MultiByteToWideChar(CP_UTF8, 0, directory_path, -1, wdir, wlen);
+        wchar_t *wdir = (wchar_t *)malloc(wlen * sizeof(wchar_t));
+        if (!wdir)
+                return largest_image_file;
+        MultiByteToWideChar(CP_UTF8, 0, directory_path, -1, wdir, wlen);
 
-    // Normalize separators to backslash
-    for (int i = 0; wdir[i]; i++)
-        if (wdir[i] == L'/') wdir[i] = L'\\';
+        // Normalize separators to backslash
+        for (int i = 0; wdir[i]; i++)
+                if (wdir[i] == L'/')
+                        wdir[i] = L'\\';
 
-    // Build "dir\*" pattern
-    size_t dirlen = wcslen(wdir);
-    int need_sep = (dirlen == 0 || wdir[dirlen - 1] != L'\\') ? 1 : 0;
-    wchar_t *pattern = (wchar_t *)malloc((dirlen + need_sep + 2) * sizeof(wchar_t));
-    if (!pattern) { free(wdir); return largest_image_file; }
-    wcscpy(pattern, wdir);
-    if (need_sep) wcscat(pattern, L"\\");
-    wcscat(pattern, L"*");
+        // Build "dir\*" pattern
+        size_t dirlen = wcslen(wdir);
+        int need_sep = (dirlen == 0 || wdir[dirlen - 1] != L'\\') ? 1 : 0;
+        wchar_t *pattern = (wchar_t *)malloc((dirlen + need_sep + 2) * sizeof(wchar_t));
+        if (!pattern) {
+                free(wdir);
+                return largest_image_file;
+        }
+        wcscpy(pattern, wdir);
+        if (need_sep)
+                wcscat(pattern, L"\\");
+        wcscat(pattern, L"*");
 
-    // Base path with guaranteed trailing backslash (reuse or rebuild)
-    wchar_t *wbase = (wchar_t *)malloc((dirlen + 2) * sizeof(wchar_t));
-    if (!wbase) { free(wdir); free(pattern); return largest_image_file; }
-    wcscpy(wbase, wdir);
-    if (need_sep) wcscat(wbase, L"\\");
-    free(wdir);
+        // Base path with guaranteed trailing backslash (reuse or rebuild)
+        wchar_t *wbase = (wchar_t *)malloc((dirlen + 2) * sizeof(wchar_t));
+        if (!wbase) {
+                free(wdir);
+                free(pattern);
+                return largest_image_file;
+        }
+        wcscpy(wbase, wdir);
+        if (need_sep)
+                wcscat(wbase, L"\\");
+        free(wdir);
 
-    WIN32_FIND_DATAW ffd;
-    HANDLE hFind = FindFirstFileW(pattern, &ffd);
-    free(pattern);
+        WIN32_FIND_DATAW ffd;
+        HANDLE hFind = FindFirstFileW(pattern, &ffd);
+        free(pattern);
 
-    if (hFind == INVALID_HANDLE_VALUE) {
-        free(wbase);
-        return largest_image_file;
-    }
-
-    do {
-        if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
-            continue;
-        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            continue;
-
-        // Check extension
-        const wchar_t *ext = wcsrchr(ffd.cFileName, L'.');
-        if (!ext) continue;
-        if (_wcsicmp(ext, L".jpg")  != 0 &&
-            _wcsicmp(ext, L".jpeg") != 0 &&
-            _wcsicmp(ext, L".png")  != 0 &&
-            _wcsicmp(ext, L".gif")  != 0)
-            continue;
-
-        // File size from FIND_DATA (avoids a stat call)
-        LARGE_INTEGER sz;
-        sz.HighPart = ffd.nFileSizeHigh;
-        sz.LowPart  = ffd.nFileSizeLow;
-        off_t file_size = (off_t)sz.QuadPart;
-
-        const off_t MAX_FILE_SIZE = 100 * 1024 * 1024;
-        if (file_size <= 0 || file_size > MAX_FILE_SIZE) continue;
-
-        if (file_size > *largest_file_size) {
-            *largest_file_size = file_size;
-
-            size_t baselen = wcslen(wbase);
-            size_t namelen = wcslen(ffd.cFileName);
-            wchar_t *wfull = (wchar_t *)malloc((baselen + namelen + 1) * sizeof(wchar_t));
-            if (!wfull) break;
-            wcscpy(wfull, wbase);
-            wcscat(wfull, ffd.cFileName);
-
-            int u8len = WideCharToMultiByte(CP_UTF8, 0, wfull, -1, NULL, 0, NULL, NULL);
-            if (u8len > 0) {
-                char *tmp = (char *)malloc(u8len);
-                if (tmp) {
-                    WideCharToMultiByte(CP_UTF8, 0, wfull, -1, tmp, u8len, NULL, NULL);
-                    free(largest_image_file);
-                    largest_image_file = tmp;
-                }
-            }
-            free(wfull);
+        if (hFind == INVALID_HANDLE_VALUE) {
+                free(wbase);
+                return largest_image_file;
         }
 
-    } while (FindNextFileW(hFind, &ffd));
+        do {
+                if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
+                        continue;
+                if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                        continue;
 
-    FindClose(hFind);
-    free(wbase);
-    return largest_image_file;
+                // Check extension
+                const wchar_t *ext = wcsrchr(ffd.cFileName, L'.');
+                if (!ext)
+                        continue;
+                if (_wcsicmp(ext, L".jpg") != 0 &&
+                    _wcsicmp(ext, L".jpeg") != 0 &&
+                    _wcsicmp(ext, L".png") != 0 &&
+                    _wcsicmp(ext, L".gif") != 0)
+                        continue;
+
+                // File size from FIND_DATA (avoids a stat call)
+                LARGE_INTEGER sz;
+                sz.HighPart = ffd.nFileSizeHigh;
+                sz.LowPart = ffd.nFileSizeLow;
+                off_t file_size = (off_t)sz.QuadPart;
+
+                const off_t MAX_FILE_SIZE = 100 * 1024 * 1024;
+                if (file_size <= 0 || file_size > MAX_FILE_SIZE)
+                        continue;
+
+                if (file_size > *largest_file_size) {
+                        *largest_file_size = file_size;
+
+                        size_t baselen = wcslen(wbase);
+                        size_t namelen = wcslen(ffd.cFileName);
+                        wchar_t *wfull = (wchar_t *)malloc((baselen + namelen + 1) * sizeof(wchar_t));
+                        if (!wfull)
+                                break;
+                        wcscpy(wfull, wbase);
+                        wcscat(wfull, ffd.cFileName);
+
+                        int u8len = WideCharToMultiByte(CP_UTF8, 0, wfull, -1, NULL, 0, NULL, NULL);
+                        if (u8len > 0) {
+                                char *tmp = (char *)malloc(u8len);
+                                if (tmp) {
+                                        WideCharToMultiByte(CP_UTF8, 0, wfull, -1, tmp, u8len, NULL, NULL);
+                                        free(largest_image_file);
+                                        largest_image_file = tmp;
+                                }
+                        }
+                        free(wfull);
+                }
+
+        } while (FindNextFileW(hFind, &ffd));
+
+        FindClose(hFind);
+        free(wbase);
+        return largest_image_file;
 }
 #else
 char *find_largest_image_file(const char *directory_path, char *largest_image_file,
@@ -400,7 +416,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
         DIR *directory = opendir(directory_path);
         if (directory == NULL) {
                 k_log("Failed to open directory: %s\n",
-                        directory_path);
+                      directory_path);
                 return largest_image_file;
         }
 
@@ -470,7 +486,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                                         largest_image_file = strdup(resolved_path);
                                         if (largest_image_file == NULL) {
                                                 k_log("Memory allocation "
-                                                        "failure\n");
+                                                      "failure\n");
                                                 // Return early or continue
                                                 // depending on desired behavior
                                                 break;
@@ -502,6 +518,7 @@ int load_color(SongData *songdata)
 
 void load_meta_data(SongData *songdata)
 {
+        Model *model = get_model();
         char path[KEW_PATH_MAX];
 
         songdata->metadata = malloc(sizeof(TagSettings));
@@ -511,11 +528,12 @@ void load_meta_data(SongData *songdata)
         }
         songdata->metadata->replaygainTrack = 0.0;
         songdata->metadata->replaygainAlbum = 0.0;
+        songdata->metadata->artist[0] = '\0';
 
         generate_temp_file_path(songdata->cover_art_path, KEW_PATH_MAX, "cover", ".jpg");
 
         int res = extractTags(songdata->file_path, songdata->metadata,
-                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics));
+                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
 
         if (res == -2) {
                 songdata->hasErrors = true;
@@ -565,6 +583,28 @@ void load_meta_data(SongData *songdata)
         songdata->cover =
             get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
                        &(songdata->coverHeight));
+
+        // Fetch homepage from aritst db
+        if (model->state.settings.useAristsLink) {
+
+                const ArtistRecord *record = NULL;
+                const char *homepage = NULL;
+
+                if (songdata->metadata->artist[0] != '\0') {
+                        if (model->hasArtistDb) {
+                                record = db_find(model->db, songdata->metadata->artist);
+
+                                if (record)
+                                        homepage = db_get_value(model->db, record);
+                        }
+
+                        if (homepage) {
+                                c_strcpy(songdata->metadata->url,
+                                         homepage,
+                                         sizeof(songdata->metadata->url) - 1);
+                        }
+                }
+        }
 }
 
 SongData *songdata_clone(const SongData *src)
@@ -611,19 +651,19 @@ SongData *songdata_clone(const SongData *src)
 
                 if (src->lyrics->count > 0) {
                         dst->lyrics->lines =
-                                calloc(src->lyrics->count,
-                                       sizeof(*dst->lyrics->lines));
+                            calloc(src->lyrics->count,
+                                   sizeof(*dst->lyrics->lines));
 
                         if (!dst->lyrics->lines)
                                 goto error;
 
                         for (size_t i = 0; i < src->lyrics->count; i++) {
                                 dst->lyrics->lines[i].timestamp =
-                                        src->lyrics->lines[i].timestamp;
+                                    src->lyrics->lines[i].timestamp;
 
                                 if (src->lyrics->lines[i].text) {
                                         dst->lyrics->lines[i].text =
-                                                g_strdup(src->lyrics->lines[i].text);
+                                            g_strdup(src->lyrics->lines[i].text);
 
                                         if (!dst->lyrics->lines[i].text)
                                                 goto error;
@@ -670,4 +710,3 @@ SongData *load_song_data(char *file_path)
 
         return songdata;
 }
-

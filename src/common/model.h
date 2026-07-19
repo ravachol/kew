@@ -386,7 +386,7 @@ typedef struct
         bool quitAfterStopping;   /**< Exit application automatically after playback stops. */
         bool clearListClearsAll;  /**< Whether clearing the playlist also removes the currently playing song. */
         bool hideGlimmeringText;  /**< Disable animated/glimmering bottom row text. */
-        bool useArtistsDb;        /**< Whether to use the artists database that contains homepage URLs. */
+        bool useAristsLink;        /**< Whether to make links out of homepage URLs. */
         time_t last_time_app_ran; /**< Timestamp of last run, used to detect library changes. */
 
         int visualizer_bar_mode;        /**< 0=Thin bars, 1=Double width bars, 2=Auto (default). */
@@ -677,7 +677,7 @@ typedef struct
         char quitAfterStopping[2];
         char clearListClearsAll[2];
         char hideGlimmeringText[2];
-        char useArtistsDb[2];
+        char useArtistLink[2];
         char nextView[6];
         char prevView[6];
         char hardClearPlaylist[6];

@@ -55,7 +55,7 @@ extern "C" {
  *          initialize the tag settings, and fallback behavior will be applied.
  */
 int extractTags(const char *input_file, TagSettings *tag_settings,
-                double *duration, const char *cover_file_path, Lyrics **lyrics);
+                double *duration, const char *coverFilePath, Lyrics **lyrics, bool get_url);
 
 /*
  * @brief Extracts disc and track number from tags
