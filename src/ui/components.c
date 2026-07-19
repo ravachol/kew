@@ -9,7 +9,6 @@
 
 #include "update/messages.h"
 
-#include "data/artists.h"
 #include "data/directorytree.h"
 #include "data/img_func.h"
 
