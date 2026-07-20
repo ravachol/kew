@@ -75,6 +75,16 @@ jobs:
             | xargs -I{} cp {} stage/bin/
 
       # -------------------------
+      # FlATTEN DIRECTORY
+      # -------------------------
+      - name: Flatten stage layout
+        shell: msys2 {0}
+        run: |
+          mv stage/bin/kew.exe stage/
+          mv stage/bin/*.dll stage/ 2>/dev/null || true
+          rmdir stage/bin 2>/dev/null || true
+
+      # -------------------------
       # BUNDLE DOCS
       # -------------------------
       - name: Bundle docs
@@ -102,6 +112,17 @@ jobs:
         shell: pwsh
         run: |
           choco install innosetup --yes
+
+      # -------------------------
+      # DEBUG STAGE CONTENTS
+      # -------------------------
+      - name: Show stage layout
+        shell: msys2 {0}
+        run: |
+          echo "==== stage tree ===="
+          find stage -maxdepth 4 -type f | sort
+          echo "==== directories ===="
+          find stage -maxdepth 4 -type d | sort
 
       # -------------------------
       # BUILD INSTALLER

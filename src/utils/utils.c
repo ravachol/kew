@@ -433,6 +433,7 @@ char *get_prefs_path(void)
 
         return out;
 }
+
 bool is_valid_filename(const char *filename)
 {
         // Check for path traversal patterns
