@@ -2845,10 +2845,31 @@ Layout *load_layout_from_config(const char *layout_name)
         return layout;
 }
 
+#ifdef _WIN32
+
+const char *get_system_data_dir(void)
+{
+    static char path[KEW_PATH_MAX];
+
+    GetModuleFileNameA(NULL, path, sizeof(path));
+
+    char *slash = strrchr(path, '\\');
+    if (slash)
+        *slash = '\0';              // remove "kew.exe"
+
+    strcat(path, "\\share\\kew");
+
+    return path;
+}
+
+#else
+
 const char *get_system_data_dir(void)
 {
     return PREFIX "/share/kew";
 }
+
+#endif
 
 static bool copy_layout_file(const char *src_name,
                              const char *dst_path)
