@@ -9,6 +9,7 @@
     <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot">
   </a>
   <br>
+  <i>Lost-Sci-Fi Themes by Jenova 7. Cover by Ravachol.</i>
 </div>
 <br><br>
 
