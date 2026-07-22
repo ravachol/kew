@@ -17,6 +17,8 @@ kew is designed for those who want:
   <i><a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">Lost-Sci-Fi Themes by Jenova 7</a>. Cover by Ravachol.</i>
 </div>
 
+<br />
+
 <img src="images/kew-terminal-music-player-screenshot.png" width="860" />
 
 ## Features
