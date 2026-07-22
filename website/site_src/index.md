@@ -9,6 +9,14 @@ kew is designed for those who want:
 
 ✅ Fair compensation for artists (by supporting owned music).
 
+<div align="center">
+  <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
+    <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot">
+  </a>
+  <br>
+  <i><a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">Lost-Sci-Fi Themes by Jenova 7</a>. Cover by Ravachol.</i>
+</div>
+
 <img src="images/kew-terminal-music-player-screenshot.png" width="860" />
 
 ## Features
