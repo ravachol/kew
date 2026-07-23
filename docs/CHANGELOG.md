@@ -8,7 +8,7 @@
 
 #### Bug fixes:
 
-- When pressing on a top level or - music library - , you are supposed to get a shuffled list, reenabled now.
+- When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
 
 - Fix use after free if DBUS connection fails. By @daeho-ro.
 
