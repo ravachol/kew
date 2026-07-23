@@ -270,4 +270,6 @@ void dequeue_m3u(const char *filepath, FileSystemEntry *library);
 
 void library_shutdown(void);
 
+int determine_depth(FileSystemEntry *entry);
+
 #endif

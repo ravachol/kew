@@ -41,8 +41,6 @@ const char *LOGO[] =  {"  __",
                        " |__|__|_____|________|"};
 // clang-format on
 
-bool found_last_parent = false;
-
 void render_scroll_bar(DrawBuffer *buf, k_Rect region, k_ScrollBar scrollbar, CellStyle style)
 {
         if (scrollbar.position < 0)
@@ -141,39 +139,6 @@ static void draw_search_row(DrawBuffer *buf, int row, int col, int width,
         draw_buffer_set_string_truncated(buf, row, reverse_col,
                                          rest, width - (reverse_col - col),
                                          is_chosen ? rev_style : name_style);
-}
-
-int determine_depth(FileSystemEntry *entry)
-{
-        int depth = 0;
-        bool found_parent = false;
-
-        Model *model = get_model();
-
-        if (entry->parent && model->state.ui.last_search_parent && entry->parent->id == model->state.ui.last_search_parent->id) {
-                found_parent = found_last_parent;
-        } else {
-
-                for (int i = 0; i < model->state.ui.search_results_count; i++) {
-                        FileSystemEntry *tmp = model->search_results[i].entry;
-
-                        if (entry->parent && tmp && tmp->id == entry->parent->id) {
-                                found_parent = true;
-                                model->state.ui.last_search_parent = entry->parent;
-                        }
-                }
-        }
-
-        if (found_parent) {
-                found_last_parent = true;
-
-                while (entry->parent != NULL) {
-                        entry = entry->parent;
-                        depth++;
-                }
-        }
-
-        return depth;
 }
 
 int calc_indentation(int depth)
