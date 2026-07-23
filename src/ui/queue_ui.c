@@ -171,15 +171,34 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                 }
         }
 
+        bool shuffle = false;
+        if (first_enqueued_entry) {
+                int depth = determine_depth(first_enqueued_entry);
+
+                if (depth == 0 || depth == 1)
+                        shuffle = true;
+        }
+
         if (num_enqueued && first_enqueued_entry) {
                 autostart_if_stopped(first_enqueued_entry->full_path);
                 first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, model->playlist);
         }
 
-        if (is_shuffle_enabled() && !is_root && num_enqueued) {
+        if ((is_shuffle_enabled() && !is_root && num_enqueued)  || shuffle) {
 
                 if (first_enqueued_node)
+                {
                         shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
+                        move_down_list(model->playlist, first_enqueued_node, true);
+                        move_down_list(model->unshuffled_playlist, first_enqueued_node, true);
+
+                        if (first_enqueued_node->prev)
+                        {
+                                first_enqueued_node = first_enqueued_node->prev;
+                                autostart_if_stopped(first_enqueued_node->song.file_path);
+                        }
+
+                }
                 else
                         shuffle_playlist(model->playlist);
         }

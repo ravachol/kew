@@ -966,3 +966,38 @@ void dequeue_m3u(const char *filepath, FileSystemEntry *library)
         g_strfreev(lines);
         g_free(contents);
 }
+
+bool found_last_parent = false;
+
+int determine_depth(FileSystemEntry *entry)
+{
+        int depth = 0;
+        bool found_parent = false;
+
+        Model *model = get_model();
+
+        if (entry->parent && model->state.ui.last_search_parent && entry->parent->id == model->state.ui.last_search_parent->id) {
+                found_parent = found_last_parent;
+        } else {
+
+                for (int i = 0; i < model->state.ui.search_results_count; i++) {
+                        FileSystemEntry *tmp = model->search_results[i].entry;
+
+                        if (entry->parent && tmp && tmp->id == entry->parent->id) {
+                                found_parent = true;
+                                model->state.ui.last_search_parent = entry->parent;
+                        }
+                }
+        }
+
+        if (found_parent) {
+                found_last_parent = true;
+
+                while (entry->parent != NULL) {
+                        entry = entry->parent;
+                        depth++;
+                }
+        }
+
+        return depth;
+}
