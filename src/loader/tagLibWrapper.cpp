@@ -1083,48 +1083,9 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
 {
         size_t capacity = 64;
         lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
-        if (!lyrics->lines)
-                return false;
-
-        static const double fracDivisors[] = {1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0};
-
-        for (const auto &line : lines) {
-                std::string text = line.toCString(true);
-                if (text.empty() || text[0] != '[')
-                        continue;
-
-                int min = 0, sec = 0;
-                char fracStr[8] = {0};
-                char lyricText[512] = {0};
-
-                if (sscanf(text.c_str(), "[%d:%d.%7[0-9]]%511[^\r\n]", &min, &sec, fracStr, lyricText) == 4) {
-                        if (lyrics->count == capacity) {
-                                capacity *= 2;
-                                LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
-                                if (!newLines)
-                                        return false;
-                                lyrics->lines = newLines;
-                        }
-
-                        int fracLen = (int)strlen(fracStr);
-                        double frac = atoi(fracStr) / fracDivisors[fracLen];
-
-                        char *start = lyricText;
-                        while (isspace((unsigned char)*start))
-                                start++;
-                        char *end = start + strlen(start);
-                        while (end > start && isspace((unsigned char)*(end - 1)))
-                                *(--end) = '\0';
-
-                        lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + frac;
-                        lyrics->lines[lyrics->count].text = strdup(start);
-                        if (!lyrics->lines[lyrics->count].text)
-                                return false;
-
-                        lyrics->count++;
-                }
+        for (auto line: lines) {
+            parseTimedLyricsLine((char*)line.toCString(), lyrics, &capacity);
         }
-
         lyrics->isTimed = 1;
         return (lyrics->count > 0);
 }
@@ -1352,8 +1313,14 @@ static bool loadLyricsFromSYLTTag(TagLib::ID3v2::Tag *id3v2Tag, Lyrics **lyricsO
                         while (end > start && isspace((unsigned char)*(end - 1)))
                                 *(--end) = '\0';
 
-                        lyrics->lines[lyrics->count].timestamp = lyric.time / 1000.0; // ms → s
-                        lyrics->lines[lyrics->count].text = strdup(start);
+                        double timestamp = lyric.time / 1000.0;
+                        lyrics->lines[lyrics->count].timestamp = timestamp; // ms → s
+                        if (strchr(start, '<') == NULL) {
+                            lyrics->lines[lyrics->count].text = strdup(start);
+                        }
+                        else {
+                            parseKaraokeLine(start, lyrics, timestamp);
+                        }
                         free(text);
 
                         if (!lyrics->lines[lyrics->count].text) {

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #define _XOPEN_SOURCE 700
 
 #include "components.h"
@@ -31,7 +33,6 @@
 #include <libgen.h>
 #include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <wchar.h>
 
 // clang-format off
@@ -2366,9 +2367,44 @@ ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, Dra
         if (!songdata || !songdata->lyrics || songdata->lyrics->isTimed != 1)
                 return (ComponentMsg){0};
 
+        char* lyric_line = (char*)model->state.ui.lyrics_line;
+        char stringSlice[256] = {0};
+        
         CellStyle style = cell_style_from_theme(ui->theme.trackview_lyrics);
-        draw_buffer_set_string_truncated(buf, region.row, region.col,
-                                         model->state.ui.lyrics_line, region.width, style);
+        
+        if (model->state.ui.wordLength > 0) {
+            snprintf(stringSlice,
+                     model->state.ui.wordOffset + 1,
+                     "%s", lyric_line
+                    );
+            draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                             stringSlice, region.width, style);
+            stringSlice[0] = '\0';
+
+            snprintf(stringSlice,
+                     model->state.ui.wordLength + 1,
+                     "%s", lyric_line + model->state.ui.wordOffset
+                    );
+            draw_buffer_set_string_truncated(buf,
+                                             region.row,
+                                             region.col + model->state.ui.wordOffset,
+                                             stringSlice, region.width,
+                                             cell_style_from_theme(ui->theme.trackview_title)
+                                            );
+            stringSlice[0] = '\0';
+
+            draw_buffer_set_string_truncated(buf, region.row, region.col + model->state.ui.wordOffset + model->state.ui.wordLength,
+                                             lyric_line +
+                                             model->state.ui.wordOffset +
+                                             model->state.ui.wordLength,
+                                             region.width,
+                                             style
+                                            );
+        }
+        else {
+            draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                             lyric_line, region.width, style);
+        }
 
         return (ComponentMsg){0};
 }
