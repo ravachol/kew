@@ -101,6 +101,23 @@ bool check_songs_for_track_number(FileSystemEntry *entry)
         return (starts_with_track_number(entry->name) && starts_with_track_number(entry->next->name));
 }
 
+int get_depth(const char *base, const char *path)
+{
+    (void)base; // unused for now
+
+    int depth = 0;
+
+    while (*path)
+    {
+        if (*path == '/')
+            depth++;
+
+        path++;
+    }
+
+    return depth;
+}
+
 Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue)
 {
         Model *model = get_model();
@@ -173,7 +190,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
 
         bool shuffle = false;
         if (first_enqueued_entry) {
-                int depth = determine_depth(first_enqueued_entry);
+                int depth = get_depth(model->library->full_path, first_enqueued_entry->full_path);
 
                 if (depth == 0 || depth == 1)
                         shuffle = true;
