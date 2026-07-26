@@ -36,6 +36,8 @@ typedef struct
 
 typedef struct {
         double timestamp;
+        double timestampArray[METADATA_MAX_LENGTH];
+        int numberOfTimestamps;
         char *text;
 } LyricsLine;
 
@@ -44,6 +46,7 @@ typedef struct {
         size_t count;
         int max_length;
         int isTimed;
+        int isKaraoke;
 } Lyrics;
 
 /**

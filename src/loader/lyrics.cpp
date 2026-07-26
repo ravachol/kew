@@ -39,6 +39,150 @@ static bool compareLyricsLine(const LyricsLine &a, const LyricsLine &b)
         return a.timestamp < b.timestamp;
 }
 
+char* parseTimestamp(char* lyricSlice, double* timestamp, char openerChar) {
+    char formatString[64];
+    snprintf(formatString, 63, "%c%s:%s%s", openerChar, "%d", "%d", "%n");
+
+    int min = 0, sec = 0, n = 0;
+    if (sscanf(lyricSlice,formatString, &min, &sec, &n) == 2) {
+            char *ptr = lyricSlice + n;
+            if (*ptr == '\0') return NULL;
+            double frac = 0.0;
+            if (*ptr == '.') {
+                    ptr++;
+                    double pad = 0.1;
+                    while (isdigit((unsigned char)*ptr)) {
+                            frac += (*ptr - '0') * pad;
+                            pad /= 10.0;
+                            ptr++;
+                    }
+            }
+
+            *timestamp = min * 60.0 + sec + frac;
+            return ptr;
+    }
+
+    return NULL;
+}
+
+int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
+        double timestampArr[METADATA_MAX_LENGTH] = {0};
+        int numberOfTimestamps = 0;
+        char karaokeString[256] = {0};
+        char *start = ptr;
+        char *end;
+        double timestamp = 0.0f;
+
+        if (*ptr != '<') {
+            ptr = strchr(start, '<');
+            if (ptr == NULL) ptr = start;
+            else {
+                strncat(karaokeString, start, ptr - start);
+                timestampArr[numberOfTimestamps++] = firstStamp;
+            }
+        }
+
+        while (*ptr == '<') {
+            ptr = parseTimestamp(ptr, &timestamp, '<');
+            if (ptr == NULL) continue;
+            timestampArr[numberOfTimestamps++] = timestamp;
+            lyrics->isKaraoke = 1;
+            if (*ptr == '>') ptr++;
+
+            end = strchr(ptr, '<');
+
+            if (end == NULL)
+                end = ptr + strlen(ptr);
+
+            strncat(karaokeString, ptr, end - ptr);
+
+            ptr = end;
+        }
+
+        if (karaokeString[0] != '\0') {
+            lyrics->lines[lyrics->count].text = strdup(karaokeString);
+        }
+
+        if (numberOfTimestamps > 0) {
+                for (int i = 0; i < numberOfTimestamps &&
+                                i < METADATA_MAX_LENGTH;
+                     i++
+                ) {
+                        lyrics->lines[lyrics->count].timestampArray[i] =
+                                                        timestampArr[i];
+                }
+                lyrics->lines[lyrics->count].numberOfTimestamps = numberOfTimestamps;
+        }
+        else {
+                lyrics->lines[lyrics->count].numberOfTimestamps = 0;
+        }
+
+        return numberOfTimestamps;
+}
+
+int parseTimedLyricsLine(char* line, Lyrics* lyrics, size_t* lyricsCapacity) {
+        if (lyrics == NULL) {
+                return 0;
+        }
+        if (lyrics->lines == NULL) {
+                lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * (*lyricsCapacity));
+        }
+
+        int numberOfTimestamps = 0;
+        double timestamp = 0.0f;
+        if (line[0] != '[' || !isdigit((unsigned char)line[1]))
+                return 0;
+
+        char* ptr = parseTimestamp(line,
+                                   &timestamp,
+                                   '['
+                    );
+        if (ptr == NULL) return 0;
+        if (*ptr == ']') {
+                ptr++;
+                if (lyrics->count == *lyricsCapacity) {
+                        (*lyricsCapacity) *= 2;
+                        LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * (*lyricsCapacity) );
+
+                        if (!newLines) {
+                                for (size_t i = 0; i < lyrics->count; i++)
+                                        free(lyrics->lines[i].text);
+                                free(lyrics->lines);
+                                lyrics->lines = NULL;
+                                return 0;
+                        }
+
+                        lyrics->lines = newLines;
+                }
+
+                while (isspace((unsigned char)*ptr))
+                        ptr++;
+                char *end = ptr + strlen(ptr);
+
+
+                while (end > ptr && isspace((unsigned char)*(end - 1)))
+                        *(--end) = '\0';
+
+                lyrics->lines[lyrics->count].timestamp = timestamp;
+                if (strchr(ptr, '<') == NULL) {
+                    lyrics->lines[lyrics->count].text = strdup(ptr);
+                }
+                else {
+                    numberOfTimestamps = parseKaraokeLine(ptr, lyrics, timestamp);
+                }
+                
+
+                if (!lyrics->lines[lyrics->count].text) {
+                        freeLyricLines(lyrics);
+                        return 0;
+                }
+
+                lyrics->count++;
+        }
+
+        return numberOfTimestamps + 1; // include the first, non-karaoke timestamp
+}
+
 // LRC Loader
 static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
 {
@@ -50,61 +194,7 @@ static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
         char lineBuffer[1024];
 
         while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
-                if (lineBuffer[0] != '[' || !isdigit((unsigned char)lineBuffer[1]))
-                        continue;
-
-                int min = 0, sec = 0, n = 0;
-                if (sscanf(lineBuffer, "[%d:%d%n", &min, &sec, &n) == 2) {
-                        char *ptr = lineBuffer + n;
-                        double frac = 0.0;
-                        if (*ptr == '.') {
-                                ptr++;
-                                double pad = 0.1;
-                                while (isdigit((unsigned char)*ptr)) {
-                                        frac += (*ptr - '0') * pad;
-                                        pad /= 10.0;
-                                        ptr++;
-                                }
-                        }
-
-                        if (*ptr == ']') {
-                                ptr++;
-                                if (lyrics->count == capacity) {
-                                        capacity *= 2;
-                                        LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
-
-                                        if (!newLines) {
-                                                for (size_t i = 0; i < lyrics->count; i++)
-                                                        free(lyrics->lines[i].text);
-                                                free(lyrics->lines);
-                                                lyrics->lines = NULL;
-                                                return 0;
-                                        }
-
-                                        lyrics->lines = newLines;
-                                }
-
-                                char *start = ptr;
-                                while (isspace((unsigned char)*start))
-                                        start++;
-                                char *end = start + strlen(start);
-                                while (end > start && isspace((unsigned char)*(end - 1)))
-                                        *(--end) = '\0';
-
-                                lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + frac;
-                                lyrics->lines[lyrics->count].text = strdup(start);
-
-                                if (!lyrics->lines[lyrics->count].text) {
-                                        for (size_t i = 0; i < lyrics->count; i++)
-                                                free(lyrics->lines[i].text);
-                                        free(lyrics->lines);
-                                        lyrics->lines = NULL;
-                                        return 0;
-                                }
-
-                                lyrics->count++;
-                        }
-                }
+            parseTimedLyricsLine(lineBuffer, lyrics, &capacity);
         }
         std::stable_sort(lyrics->lines, lyrics->lines + lyrics->count, compareLyricsLine);
 
@@ -256,6 +346,15 @@ Lyrics *loadLyricsFromLRC(const char *path,SongData *songdata)
         }
 
         return lyrics;
+}
+
+void freeLyricLines(Lyrics *lyrics) {
+        if (!lyrics)
+                return;
+        for (size_t i = 0; i < lyrics->count; i++)
+                free(lyrics->lines[i].text);
+        free(lyrics->lines);
+        lyrics->lines = NULL;
 }
 
 // Free & Access
