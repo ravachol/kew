@@ -40,6 +40,7 @@
 * Michael Petö @petoem (Technical advisor) https://petoe.me
 * @Moksh-Parikh
 * @netodosrjoao
+* not-nef
 * @Overionised
 * @Quillenar-dev.
 * Ravachol @ravachol kew-player at proton dot me
