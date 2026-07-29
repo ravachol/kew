@@ -12,6 +12,9 @@
 
 - Fix use after free if DBUS connection fails. By @daeho-ro.
 
+- Properly escape cover art paths for mpris. By @not-nef.
+
+
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
 #### Enhancements:
