@@ -580,9 +580,8 @@ void load_meta_data(SongData *songdata)
                 add_to_cache(tmpCache, songdata->cover_art_path);
         }
 
-        songdata->cover =
-            get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
-                       &(songdata->coverHeight));
+        songdata->cover = get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
+                                &(songdata->coverHeight));
 
         // Fetch homepage from aritst db
         if (model->state.settings.useAristsLink) {

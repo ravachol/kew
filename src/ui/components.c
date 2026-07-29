@@ -1935,10 +1935,13 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         char line[METADATA_MAX_LENGTH + 2];
                         char *artist = NULL;
                         char *artist_folder = NULL;
+                        char *dir_copy = NULL;
 
                         if (!is_root_dir) {
-                                dir = dirname(dir);
-                                artist_folder = basename(dir);
+                                dir_copy = strdup(dir);
+                                char *parent = dirname(dir_copy);    // /music/Radiohead
+                                artist_folder = basename(parent); // Radiohead
+
                         }
 
                         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0) {
@@ -1960,6 +1963,9 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                                                                          line, max_width, style);
                                 }
                         }
+
+                        if (dir_copy)
+                                free(dir_copy);
                 }
 
                 // Album
