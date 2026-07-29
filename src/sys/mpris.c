@@ -547,6 +547,30 @@ static gboolean get_shuffle(GDBusConnection *connection, const gchar *sender,
         return TRUE;
 }
 
+// Convert a filesystem cover path to a properly escaped file:// URI for
+// mpris:artUrl
+static gchar *cover_art_path_to_uri(const char *cover_art_path)
+{
+        if (!cover_art_path || cover_art_path[0] == '\0')
+                return NULL;
+
+        GError *error = NULL;
+        gchar *uri = g_filename_to_uri(cover_art_path, NULL, &error);
+        if (uri)
+                return uri;
+
+        if (error) {
+                g_debug("cover_art_path_to_uri: %s", error->message);
+                g_error_free(error);
+        }
+
+        // Fallback for absolute Unix paths if g_filename_to_uri fails
+        if (cover_art_path[0] == '/')
+                return g_strdup_printf("file://%s", cover_art_path);
+
+        return NULL;
+}
+
 static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path,
                              const gchar *interface_name,
@@ -588,17 +612,26 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist",
                                       g_variant_new_strv(artist_list_storage, -1));
 
-                gchar *coverArtUrl =
-                    g_strdup_printf("file://%s", current_song_data->cover_art_path);
-
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "xesam:album",
                     g_variant_new_string(current_song_data->metadata->album));
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "xesam:contentCreated",
                     g_variant_new_string(current_song_data->metadata->date));
-                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl",
-                                      g_variant_new_string(coverArtUrl));
+
+                gchar *coverArtUrl =
+                    cover_art_path_to_uri(current_song_data->cover_art_path);
+                if (coverArtUrl) {
+                        g_variant_builder_add(&metadata_builder, "{sv}",
+                                              "mpris:artUrl",
+                                              g_variant_new_string(coverArtUrl));
+                        g_free(coverArtUrl);
+                } else {
+                        g_variant_builder_add(&metadata_builder, "{sv}",
+                                              "mpris:artUrl",
+                                              g_variant_new_string(""));
+                }
+
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "mpris:trackid",
                     g_variant_new_object_path(current_song_data->track_id));
@@ -607,8 +640,6 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                     llround(current_song_data->duration * G_USEC_PER_SEC);
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length",
                                       g_variant_new_int64(length));
-
-                g_free(coverArtUrl);
         } else {
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title",
                                       g_variant_new_string(""));
@@ -1297,8 +1328,8 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album",
                               g_variant_new_string(album));
 
-        if (cover_art_path && *cover_art_path != '\0') {
-                coverArtUrl = g_strdup_printf("file://%s", cover_art_path);
+        coverArtUrl = cover_art_path_to_uri(cover_art_path);
+        if (coverArtUrl) {
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl",
                                       g_variant_new_string(coverArtUrl));
                 g_debug("Cover art URL added: %s", coverArtUrl);
