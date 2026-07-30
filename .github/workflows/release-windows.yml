@@ -2,7 +2,13 @@ name: Release Windows
 
 on:
   release:
+    types: [published]
+
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 1.2.3)"
+        required: true
 
 jobs:
   build:
@@ -36,6 +42,47 @@ jobs:
             mingw-w64-ucrt-x86_64-libvorbis
             mingw-w64-ucrt-x86_64-libogg
             mingw-w64-ucrt-x86_64-ntldd
+
+      # -------------------------
+      # VERSION
+      # -------------------------
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+
+          VERSION="${VERSION#v}"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Windows version resource
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          PATCH=${PATCH:-0}
+
+          cat > src/ui/version.h <<EOF
+
+          #define VER_FILEVERSION $MAJOR,$MINOR,$PATCH,0
+          #define VER_PRODUCTVERSION $MAJOR,$MINOR,$PATCH,0
+
+          #define FILE_VERSION "$VERSION.0\0"
+          #define PRODUCT_VERSION "$VERSION.0\0"
+
+          #define COMPANY_NAME "Ravachol\0"
+          #define FILE_DESCRIPTION "kew terminal music player\0"
+          #define INTERNAL_NAME "kew\0"
+          #define ORIGINAL_FILENAME "kew.exe\0"
+          #define PRODUCT_NAME "kew\0"
+          EOF
 
       # -------------------------
       # BUILD
@@ -95,14 +142,6 @@ jobs:
           cp README.md stage/docs/
 
       # -------------------------
-      # VERSION
-      # -------------------------
-      - name: Get version
-        id: version
-        shell: bash
-        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-
-      # -------------------------
       # INSTALL INNO SETUP
       # -------------------------
       - name: Install Inno Setup
@@ -131,20 +170,10 @@ jobs:
 
           iscc /DMyAppVersion=$version installer.iss
 
-          if (!(Test-Path "Output\kew-setup.exe")) {
+          if (!(Test-Path "Output\kew-$version-windows-x64.exe")) {
             Write-Error "Installer not found"
             exit 1
           }
-
-      # -------------------------
-      # RENAME INSTALLER
-      # -------------------------
-      - name: Rename installer
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-
-          Copy-Item "Output\kew-setup.exe" "kew-$version-setup.exe"
 
       # -------------------------
       # ARTIFACT (CI ONLY)
@@ -152,20 +181,19 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kew-windows-x64
+          name: kew-${{ steps.version.outputs.version }}-windows-x64
           path: |
-            kew-*.exe
+            Output/kew-*.exe
           retention-days: 7
 
       # -------------------------
-      # RELEASE (SAFE OLD LOGIC RESTORED)
+      # UPLOAD TO GITHUB RELEASE
       # -------------------------
       - name: Create GitHub Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name }}
           overwrite_files: true
           files: |
-            kew-*.exe
-          generate_release_notes: true
+            Output/kew-*.exe
+
