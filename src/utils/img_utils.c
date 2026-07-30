@@ -16,7 +16,7 @@
 
 #define MACRO_STRLEN(s) (sizeof(s) / sizeof(s[0]))
 
-char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
+char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'.";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
 // The function to load and return image data
