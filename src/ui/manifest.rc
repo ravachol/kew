@@ -1,3 +1,39 @@
+#include <windows.h>
 #include <winuser.h>
+#include "version.h"
+
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "ms-utf8.xml"
 IDI_ICON1 ICON "kew.ico"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION VER_FILEVERSION
+ PRODUCTVERSION VER_PRODUCTVERSION
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE 0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      COMPANY_NAME
+            VALUE "FileDescription",  FILE_DESCRIPTION
+            VALUE "FileVersion",      FILE_VERSION
+            VALUE "InternalName",     INTERNAL_NAME
+            VALUE "OriginalFilename", ORIGINAL_FILENAME
+            VALUE "ProductName",      PRODUCT_NAME
+            VALUE "ProductVersion",   PRODUCT_VERSION
+        END
+    END
+
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END
