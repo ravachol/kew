@@ -720,15 +720,12 @@ int get_row_within_bounds(int row)
 static const char *get_player_status_icon(const Model *model)
 {
         if (model->is_paused) {
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
-                return "။";
-#else
-                return "⏸";
-#endif
+                return KEW_CHAR_ICON_PAUSE;
         }
         if (model->is_stopped)
-                return "■";
-        return "▶";
+                return KEW_CHAR_ICON_STOP;
+
+        return KEW_CHAR_ICON_PLAY;
 }
 
 static void build_song_title(const Model *model, const UISettings *ui,
@@ -1075,9 +1072,8 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         else
                 controls[0] = '\0';
 
-
         int minicontrols_row = model->miniControls.row - 1;
-        int minicontrols_col = model->miniControls.col - 1;;
+        int minicontrols_col = model->miniControls.col - 1;
 
         if (dirty & DIRTY_SONG) {
                 minicontrols_row = row + corrected_height;
@@ -1361,13 +1357,9 @@ ComponentMsg component_playback_status(const Model *model, k_Rect region, DrawBu
 #endif
                 const char *state_icon;
                 if (model->is_paused) {
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
-                        state_icon = "။ ";
-#else
-                state_icon = "⏸ ";
-#endif
+                        state_icon = KEW_CHAR_ICON_PAUSE " ";
                 } else if (model->is_stopped) {
-                        state_icon = "■ ";
+                        state_icon = KEW_CHAR_ICON_STOP " ";
                 } else {
                         state_icon = " ";
                 }
@@ -1457,15 +1449,11 @@ ComponentMsg component_footer(const Model *model, k_Rect region, DrawBuffer *buf
 #endif
                 const char *state_icon;
                 if (model->is_paused) {
-#if defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32)
-                        state_icon = " ။ ";
-#else
-                state_icon = " ⏸ ";
-#endif
+                        state_icon = " " KEW_CHAR_ICON_PAUSE " ";
                 } else if (model->is_stopped) {
-                        state_icon = " ■ ";
+                        state_icon = " " KEW_CHAR_ICON_STOP " ";
                 } else {
-                        state_icon = " ▶ ";
+                        state_icon = " " KEW_CHAR_ICON_PLAY " ";
                 }
                 snprintf(icons + icons_len, sizeof(icons) - icons_len, "%s", state_icon);
                 icons_len = strnlen(icons, sizeof(icons));

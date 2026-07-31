@@ -13,6 +13,7 @@
 #include "common/model.h"
 
 #define NUM_DEFAULT_KEY_BINDINGS 57
+#define VS15 "\uFE0E" // Variation selector-15 for text style emoji
 
 extern size_t keybinding_count;
 
