@@ -409,54 +409,26 @@ const char *get_binding_string(enum MsgType event, bool find_only_one)
 int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode)
 {
         Model *model = get_model();
-
-#if defined(__ANDROID__) || defined(_WIN32)
         const char *play = (model->is_stopped || model->is_paused)
-                               ? "▶" VS15
-                               : "။";
-#else
-        const char *play = (model->is_stopped || model->is_paused)
-                               ? "\u25B6" VS15  // ▶
-                               : "\u23F8" VS15; // ⏸
-#endif
+                               ? KEW_CHAR_ICON_PLAY
+                               : KEW_CHAR_ICON_PAUSE;
         switch (mode) {
         case MINICONTROLS_NAV:
-#if defined(__ANDROID__) || defined(_WIN32)
                 return snprintf(
                     text, size,
-                    "<  %s  >",
+                    KEW_CHAR_ICON_PREVIOUS "  %s  " KEW_CHAR_ICON_NEXT,
                     play);
-#else
-                return snprintf(
-                    text, size,
-                    "\u23EE" VS15 "  %s  \u23ED" VS15, // U+23EE is ⏮ and U+23ED is ⏭
-                    play);
-#endif
         case MINICONTROLS_NAV_VOL:
-#if defined(__ANDROID__) || defined(_WIN32)
                 return snprintf(
                     text, size,
-                    "<  %s  >  +  -",
+                    KEW_CHAR_ICON_PREVIOUS "  %s  " KEW_CHAR_ICON_NEXT "  +  -",
                     play);
-#else
-                return snprintf(
-                    text, size,
-                    "\u23EE" VS15 "  %s  \u23ED" VS15 "  +  -",
-                    play);
-#endif
         case MINICONTROLS_FULL:
         default:
-#if defined(__ANDROID__) || defined(_WIN32)
                 return snprintf(
                     text, size,
-                    "<  %s  >  +  -  ∅",
+                    KEW_CHAR_ICON_PREVIOUS "  %s  " KEW_CHAR_ICON_NEXT "  +  -  ∅",
                     play);
-#else
-                return snprintf(
-                    text, size,
-                    "\u23EE" VS15 "  %s  \u23ED" VS15 "  +  -  ∅",
-                    play);
-#endif
         }
 }
 
