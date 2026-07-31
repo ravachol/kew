@@ -13,6 +13,25 @@
 
 #include <stdbool.h>
 
+#ifdef __APPLE__
+#include <Availability.h>
+#endif
+
+#define VS15 "\uFE0E" // Variation selector-15 for text style emoji
+#if defined(__ANDROID__) || defined(_WIN32) || defined(__APPLE__) && __MAC_OS_X_VERSION_MIN_REQUIRED < 140000
+#define KEW_CHAR_ICON_PLAY "\u25B6"
+#define KEW_CHAR_ICON_PAUSE "\u104B"
+#define KEW_CHAR_ICON_STOP "\u25A0"
+#define KEW_CHAR_ICON_PREVIOUS "<"
+#define KEW_CHAR_ICON_NEXT ">"
+#else
+#define KEW_CHAR_ICON_PLAY "\u25B6" VS15
+#define KEW_CHAR_ICON_PAUSE "\u23F8" VS15
+#define KEW_CHAR_ICON_STOP "\u23F9" VS15
+#define KEW_CHAR_ICON_PREVIOUS "\u23EE" VS15
+#define KEW_CHAR_ICON_NEXT "\u23ED" VS15
+#endif
+
 /**
  * @brief Sets the RGB foreground color using the provided pixel data.
  *
@@ -270,7 +289,6 @@ void draw_buffer_set_cell(DrawBuffer *buf,
                           uint32_t cp,
                           CellStyle style);
 
-
 /**
  * @brief Returns the default cell style.
  *
@@ -322,7 +340,7 @@ int get_minicontrols_text(char *text, size_t size, MinicontrolMode mode);
 int utf8_display_width(const char *s);
 
 void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
-                        const char *url, char *title, CellStyle style);
+                         const char *url, char *title, CellStyle style);
 
 void free_link_payload(LinkPayload **link);
 
