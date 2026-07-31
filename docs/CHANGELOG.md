@@ -8,6 +8,8 @@
 
 - Make ascii covers look better on light themes. Requested by @baranelitez.
 
+- Use text emoji characters for mini player controls, for those macs that support it. By @petoem.
+
 #### Bug fixes:
 
 - When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
