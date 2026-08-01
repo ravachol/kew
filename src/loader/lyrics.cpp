@@ -150,10 +150,50 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
         return 1;
 }
 
-Lyrics *loadLyricsFromLRC(const char *path) {
+//helper function findLRC that find wether current folder have a .lrc file match the word
+static char *findLRC(const char *folder, const char *word)
+{
+        static char result[KEW_PATH_MAX];
+        DIR *d = opendir(folder);
+
+        if (!d)
+                return NULL;
+
+        struct dirent *e;
+
+        while ((e = readdir(d))) {
+                if (!strstr(e->d_name, ".lrc") || !strstr(e->d_name, word))
+                        continue;
+
+                if (strlen(folder) + strlen(e->d_name) + 2 > sizeof(result))
+                        continue;
+
+                strcpy(result, folder);
+                strcat(result, "/");
+                strcat(result, e->d_name);
+
+                closedir(d);
+                return result;
+        }
+
+        closedir(d);
+        return NULL;
+}
+
+Lyrics *loadLyricsFromLRC(const char *path,SongData *songdata)
+{
         char lrcPath[KEW_PATH_MAX];
         if (snprintf(lrcPath, sizeof(lrcPath), "%s", path) >= (int)sizeof(lrcPath))
                 return nullptr;
+
+        char corrTitle[255];
+        strcpy(corrTitle,songdata->metadata->title);
+
+        for (size_t i=0; i<strlen(corrTitle); i++){
+                if (corrTitle[i] == '/'){
+                        corrTitle[i] = '-';
+                }
+        }
 
         char *dot = strrchr(lrcPath, '.');
         if (!dot || dot == lrcPath)
@@ -163,9 +203,28 @@ Lyrics *loadLyricsFromLRC(const char *path) {
                 return nullptr;
 
         FILE *file = fopen(lrcPath, "r");
-        if (!file)
-                return nullptr;
+        if (!file){
+                // try to substring match a lrc using title of metadata of songdata
+                char *slash = strrchr(lrcPath, '/');
+                if (!slash || slash == lrcPath)
+                        return nullptr;
 
+                char curFolder[KEW_PATH_MAX];
+                if (snprintf(curFolder, slash - lrcPath + 1, "%s", lrcPath) >= KEW_PATH_MAX)
+                        return nullptr;
+
+                char *fallbackPath = findLRC(curFolder, corrTitle);
+
+                if (!fallbackPath) {
+                        return nullptr;
+                }
+
+                file = fopen(fallbackPath, "r");
+                if (!file) {
+                        fprintf(stderr, "Failed to open lyrics: %s\n", fallbackPath);
+                        return nullptr;
+                }
+        }
         Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
 
         if (!lyrics) {
