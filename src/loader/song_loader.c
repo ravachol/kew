@@ -1,7 +1,6 @@
 /**
  * @file song_loader.c
  * @brief Song loading and preparation routines.
- *
  * Responsible for loading song data from file
  */
 
@@ -535,6 +534,10 @@ void load_meta_data(SongData *songdata)
         int res = extractTags(songdata->file_path, songdata->metadata,
                               &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
 
+        if (!songdata->lyrics) {
+                songdata->lyrics = loadLyricsFromLRC(songdata->file_path,songdata);
+        }
+
         if (res == -2) {
                 songdata->hasErrors = true;
                 return;
@@ -638,6 +641,9 @@ SongData *songdata_clone(const SongData *src)
         // Metadata
         load_meta_data(dst);
 
+        // load Metadata except lyrics
+        unload_lyrics(dst);
+
         // Deep-copy lyrics
         if (src->lyrics) {
                 dst->lyrics = calloc(1, sizeof(*dst->lyrics));
@@ -702,7 +708,6 @@ SongData *load_song_data(char *file_path)
         songdata->avg_bit_rate = 0;
         songdata->lyrics = NULL;
         c_strcpy(songdata->file_path, file_path, sizeof(songdata->file_path));
-        songdata->lyrics = loadLyricsFromLRC(songdata->file_path);
         load_meta_data(songdata);
         load_color(songdata);
         load_kmeans_palette(songdata->cover, songdata->coverWidth, songdata->coverHeight, songdata->kmeans_palette);
