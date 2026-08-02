@@ -14,14 +14,14 @@
 #include "common/appstate.h"
 #include "common/events.h"
 
-#include "data/theme.h"
 #include "data/img_func.h"
+#include "data/theme.h"
 
 #include "ui/components.h"
 
+#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
-#include "utils/k_log.h"
 
 #include <glib.h>
 #include <math.h>
@@ -1108,9 +1108,9 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                         model->state.ui.chosen_row = (model->state.ui.chosen_row < 0)
                                                          ? 0
                                                          : model->state.ui.chosen_row;
-                }
 
-                component_playlist_helper_update_view_state(model, false);
+                        component_playlist_helper_update_view_state(model, false);
+                }
                 set_dirty(DIRTY_PLAYLIST);
         }
 
@@ -1120,6 +1120,7 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 row = model->state.ui.library_region.row;
                 numRows = model->state.ui.lib_row_count;
                 delta_row = (long long)pos - (long long)row;
+                int new_lib_row = 0;
 
                 if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
@@ -1128,19 +1129,21 @@ void scrollbar_scroll(int mouse_y, bool dragging)
 
                         double position = (double)delta_row / (double)height;
 
-                        model->state.ui.chosen_lib_row = round(numRows * position);
+                        new_lib_row = round(numRows * position);
 
-                        model->state.ui.chosen_lib_row =
-                            (model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count)
+                        new_lib_row =
+                            (new_lib_row >= model->state.ui.lib_row_count)
                                 ? model->state.ui.lib_row_count - 1
-                                : model->state.ui.chosen_lib_row;
+                                : new_lib_row;
 
-                        model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row < 0)
-                                                             ? 0
-                                                             : model->state.ui.chosen_lib_row;
+                        new_lib_row = (new_lib_row < 0)
+                                          ? 0
+                                          : new_lib_row;
+
+                        model->state.ui.chosen_lib_row = new_lib_row;
+
+                        component_library_helper_update_view_state(model);
                 }
-
-                component_library_helper_update_view_state(model);
                 set_dirty(DIRTY_LIBRARY);
         }
 

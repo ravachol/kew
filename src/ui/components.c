@@ -681,7 +681,9 @@ void component_library_helper_update_view_state(Model *model)
         if (model->state.ui.chosen_lib_row > threshold)
                 ctx->start_lib_iter = model->state.ui.chosen_lib_row - model->state.ui.max_lib_rows / 2 + 1;
 
-        if (model->state.ui.chosen_lib_row < 0)
+        if (model->state.ui.chosen_lib_row < 0 && ctx->start_lib_iter > 0)
+                model->state.ui.chosen_lib_row = ctx->start_lib_iter;
+       else if (model->state.ui.chosen_lib_row < 0)
                 ctx->start_lib_iter = model->state.ui.chosen_lib_row = 0;
 }
 
