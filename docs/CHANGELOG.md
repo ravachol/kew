@@ -22,6 +22,8 @@
 
 - Properly escape cover art paths for mpris. By @not-nef.
 
+- Fix jump in library position after opening two directories and then scrolling.
+
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
