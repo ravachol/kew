@@ -983,7 +983,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         const UISettings *ui = &state->settings;
         const TermSize *term_size = &model->term_size;
 
-        if (!ui->coverEnabled || ui->hideSideCover || !songdata || !songdata->cover)
+        if (!songdata)
                 return (ComponentMsg){0};
 
         int indent = region.width * 4 / 5;
@@ -1021,29 +1021,32 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         if (corrected_width <= 0 || target_height <= 0)
                 return (ComponentMsg){0};
 
-        int corrected_height = 0;
+        int corrected_height = corrected_width / 2;
 
-        if (dirty & DIRTY_SONG) {
+        if (ui->coverEnabled && !ui->hideSideCover && songdata->cover) {
 
-                if (ui->coverAnsi) {
-                        draw_cover_ascii(term_size, songdata->cover_art_path,
-                                         row, col, target_height,
-                                         false, buf, dirty);
-                        corrected_height = target_height + 1;
-                } else {
+                if (dirty & DIRTY_SONG) {
 
-                        corrected_height = draw_square_bitmap_to_buf(buf,
-                                                                     row, col,
-                                                                     songdata->cover,
-                                                                     songdata->coverWidth,
-                                                                     songdata->coverHeight,
-                                                                     corrected_width,
-                                                                     target_height,
-                                                                     term_size,
-                                                                     false,
-                                                                     model->current_hash,
-                                                                     ui->coverStyle, false, true) +
-                                           1;
+                        if (ui->coverAnsi) {
+                                draw_cover_ascii(term_size, songdata->cover_art_path,
+                                                 row, col, target_height,
+                                                 false, buf, dirty);
+                                corrected_height = target_height + 1;
+                        } else {
+
+                                corrected_height = draw_square_bitmap_to_buf(buf,
+                                                                             row, col,
+                                                                             songdata->cover,
+                                                                             songdata->coverWidth,
+                                                                             songdata->coverHeight,
+                                                                             corrected_width,
+                                                                             target_height,
+                                                                             term_size,
+                                                                             false,
+                                                                             model->current_hash,
+                                                                             ui->coverStyle, false, true) +
+                                                   1;
+                        }
                 }
         }
 
@@ -1927,9 +1930,8 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                         if (!is_root_dir) {
                                 dir_copy = strdup(dir);
-                                char *parent = dirname(dir_copy);    // /music/Radiohead
+                                char *parent = dirname(dir_copy); // /music/Radiohead
                                 artist_folder = basename(parent); // Radiohead
-
                         }
 
                         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0) {

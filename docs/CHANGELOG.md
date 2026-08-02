@@ -12,6 +12,8 @@
 
 - Load lyrics from similarly named files, not just exact ones. By @toasteeeer.
 
+- Show mini-controls also on songs with no cover.
+
 #### Bug fixes:
 
 - When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
