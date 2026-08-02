@@ -1140,6 +1140,13 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                                           ? 0
                                           : new_lib_row;
 
+                        if (dragging && model->state.ui.chosen_lib_row > 0) { // Move one step at a time
+                                if (new_lib_row > model->state.ui.chosen_lib_row + model->state.ui.max_lib_rows)
+                                        new_lib_row = model->state.ui.chosen_lib_row + model->state.ui.max_lib_rows;
+                                else if (new_lib_row < model->state.ui.chosen_lib_row - model->state.ui.max_lib_rows)
+                                        new_lib_row = model->state.ui.chosen_lib_row - model->state.ui.max_lib_rows;
+                        }
+
                         model->state.ui.chosen_lib_row = new_lib_row;
 
                         component_library_helper_update_view_state(model);

@@ -484,7 +484,7 @@ void open_url(const char *url)
 #endif
 }
 
-bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
+bool handle_mouse_event(struct tb_event *ev, struct Msg *event, bool do_scroll)
 {
         if (ev->type != TB_EVENT_MOUSE)
                 return false;
@@ -588,7 +588,8 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event)
         if (inScrollBar) {
                 if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_scrollbar) {
 
-                        scrollbar_scroll(mouse_y, dragging_scrollbar);
+                        if (do_scroll)
+                                scrollbar_scroll(mouse_y, dragging_scrollbar);
 
                         dragging_scrollbar = true;
 
@@ -735,7 +736,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 AppState *state = get_app_state();
                 if (state->ui.naming_playlist) {
                         while (tb_peek_event(&ev, 0) == 0) {
-                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg, true);
                                 if (!isMouseEvent) {
                                         msg = handle_name_playlist_event(&ev);
                                         if (msg.type == MSG_NONE)
@@ -747,7 +748,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         // Process all characters in the buffer (e.g. IME commits
                         // multiple characters at once)
                         while (tb_peek_event(&ev, 0) == 0) {
-                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg, true);
                                 if (!isMouseEvent) {
                                         msg = handle_search_event(&ev, get_model());
                                         if (msg.type == MSG_NONE)
@@ -758,7 +759,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
                         // Extract all events in the buffer
                         while (tb_peek_event(&ev, 0) == 0) {
-                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg, false);
                                 if (isMouseEvent || map_tb_key_to_event(&ev).type != MSG_NONE) {
                                         last_ev = ev;
                                         found_event = true;
@@ -773,7 +774,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                 return FALSE;
 
                         // Process only the last event
-                        bool isMouseEvent = handle_mouse_event(&last_ev, &msg);
+                        bool isMouseEvent = handle_mouse_event(&last_ev, &msg, true);
                         if (!isMouseEvent) {
 
                                 msg = map_tb_key_to_event(&last_ev);
@@ -903,7 +904,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 AppState *state = get_app_state();
                 if (state->ui.naming_playlist) {
                         while (tb_peek_event(&ev, 0) == 0) {
-                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg, true);
                                 if (!isMouseEvent) {
                                         msg = handle_name_playlist_event(&ev);
                                         if (msg.type == MSG_NONE)
@@ -915,7 +916,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         // Process all characters in the buffer (e.g. IME commits
                         // multiple characters at once)
                         while (tb_peek_event(&ev, 0) == 0) {
-                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg, true);
                                 if (!isMouseEvent) {
                                         msg = handle_search_event(&ev, get_model());
                                         if (msg.type == MSG_NONE)
@@ -926,7 +927,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
                         // Extract all events in the buffer
                         while (tb_peek_event(&ev, 0) == 0) {
-                                bool isMouseEvent = handle_mouse_event(&ev, &msg);
+                                bool isMouseEvent = handle_mouse_event(&ev, &msg, false);
                                 if (isMouseEvent || map_tb_key_to_event(&ev).type != MSG_NONE) {
                                         last_ev = ev;
                                         found_event = true;
@@ -942,7 +943,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
                         // Process only the last event
                         dragging_scrollbar = old_dragging;
-                        bool isMouseEvent = handle_mouse_event(&last_ev, &msg);
+                        bool isMouseEvent = handle_mouse_event(&last_ev, &msg, true);
                         if (!isMouseEvent) {
 
                                 msg = map_tb_key_to_event(&last_ev);
