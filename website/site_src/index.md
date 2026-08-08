@@ -34,7 +34,7 @@ kew is designed for those who want:
  - Music library explorer.
  - Playlist editing (add, reorder, delete).
  - Search.
- - Lyrics support.
+ - Lyrics support, including Karaoke lyrics.
  - Desktop integration (both Linux and macOS).
  - Import/export .m3u playlists.
  - Replay gain.
