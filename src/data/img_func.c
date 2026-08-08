@@ -76,11 +76,12 @@ apply_passthrough_workarounds_tmux(void)
         }
 
         if (!mode || (strcmp(mode, "on") && strcmp(mode, "all"))) {
-                argv = g_new0(gchar *, 4);
+                argv = g_new0(gchar *, 5);
                 argv[0] = g_strdup("tmux");
                 argv[1] = g_strdup("set-option");
-                argv[2] = g_strdup("allow-passthrough on");
-                argv[3] = NULL;
+                argv[2] = g_strdup("allow-passthrough");
+                argv[3] = g_strdup("on");
+                argv[4] = NULL;
 
                 result = g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
                                       NULL, NULL, &standard_output, &standard_error,
