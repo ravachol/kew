@@ -29,6 +29,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <stdio.h>
 
 // kew uses the Model-View-Update pattern.
 //
@@ -65,8 +66,24 @@ size_t string_hash(const char *str)
 
 void set_lyrics_line(Model *model)
 {
-        if (model->songdata_ok)
-                model->state.ui.lyrics_line = get_lyrics_line(model->songdata->lyrics, model->elapsed_seconds);
+        int lyricIndex = 0;
+        if (model->songdata_ok && model->songdata->lyrics != NULL) {
+            model->state.ui.lyrics_line = get_lyrics_line(model->songdata->lyrics, &lyricIndex, model->elapsed_seconds);
+            if (model->songdata->lyrics->isKaraoke > 0) {
+                    model->state.ui.wordOffset = get_word_offset(model->songdata->lyrics->lines[lyricIndex], model->elapsed_seconds);
+                    if (model->state.ui.wordOffset >= 0) {
+                        model->state.ui.wordLength = get_word_length(model->songdata->lyrics->lines[lyricIndex], model->state.ui.wordOffset);
+                    }
+                    else {
+                        model->state.ui.wordOffset = 0;
+                        model->state.ui.wordLength = 0;
+                    }
+            }
+            else {
+                    model->state.ui.wordLength = 0;
+                    model->state.ui.wordOffset = 0;
+            }
+        }
 
         if (!model->state.ui.lyrics_line || model->state.ui.lyrics_line[0] == '\0')
                 return;

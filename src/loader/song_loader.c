@@ -653,6 +653,7 @@ SongData *songdata_clone(const SongData *src)
                 dst->lyrics->count = src->lyrics->count;
                 dst->lyrics->max_length = src->lyrics->max_length;
                 dst->lyrics->isTimed = src->lyrics->isTimed;
+                dst->lyrics->isKaraoke = src->lyrics->isKaraoke;
 
                 if (src->lyrics->count > 0) {
                         dst->lyrics->lines =
@@ -665,7 +666,15 @@ SongData *songdata_clone(const SongData *src)
                         for (size_t i = 0; i < src->lyrics->count; i++) {
                                 dst->lyrics->lines[i].timestamp =
                                     src->lyrics->lines[i].timestamp;
-
+                                dst->lyrics->lines[i].numberOfTimestamps =
+                                    src->lyrics->lines[i].numberOfTimestamps;
+                                
+                                if (dst->lyrics->isKaraoke) {
+                                    memcpy(dst->lyrics->lines[i].timestampArray,
+                                           src->lyrics->lines[i].timestampArray,
+                                           METADATA_MAX_LENGTH * sizeof(double));
+                                }
+                                
                                 if (src->lyrics->lines[i].text) {
                                         dst->lyrics->lines[i].text =
                                             g_strdup(src->lyrics->lines[i].text);
