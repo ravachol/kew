@@ -2395,6 +2395,20 @@ void draw_karaoke_line(const Model *model, char* lyric_line,
                                         );
 }
 
+bool coloursAreSameType(ColorValue val1, ColorValue val2) {
+    return (val1.type == COLOR_TYPE_RGB && val2.type == COLOR_TYPE_RGB) ||
+           (val1.type == COLOR_TYPE_ANSI && val2.type == COLOR_TYPE_ANSI);
+}
+
+bool coloursAreEqual(ColorValue val1, ColorValue val2) {
+    bool RGBMatch = val1.rgb.r == val2.rgb.r &&
+             val1.rgb.g == val2.rgb.g &&
+             val1.rgb.b == val2.rgb.b;
+    bool ANSIMatch = val1.ansiIndex == val2.ansiIndex &&
+             val1.ansiIndex > 100;
+    return RGBMatch || ANSIMatch;
+}
+
 ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf,
                                           DirtyFlags dirty)
 {
@@ -2414,8 +2428,16 @@ ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, Dra
         CellStyle style = cell_style_from_theme(ui->theme.trackview_lyrics);
         
         if (model->state.ui.wordLength > 0) {
-            CellStyle normalWordStyle = cell_style_from_theme(ui->theme.trackview_lyrics);
-            CellStyle currentWordStyle = cell_style_from_theme(ui->theme.trackview_title);
+            ColorValue normalWordColour = ui->theme.trackview_lyrics;
+            ColorValue currentWordColour = ui->theme.trackview_title;
+            CellStyle normalWordStyle = cell_style_from_theme(normalWordColour);
+            CellStyle currentWordStyle = cell_style_from_theme(currentWordColour);
+            
+            if (coloursAreSameType(normalWordColour, currentWordColour) &&
+                coloursAreEqual(normalWordColour, currentWordColour)
+            ) {
+                    currentWordStyle.fg = increase_luminosity(currentWordStyle.fg, 80);
+            }
 
             draw_karaoke_line(model, lyric_line, region, buf, normalWordStyle, currentWordStyle);
         }
@@ -2577,20 +2599,6 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         return result;
 }
 
-bool coloursAreSameType(ColorValue val1, ColorValue val2) {
-    return (val1.type == COLOR_TYPE_RGB && val2.type == COLOR_TYPE_RGB) ||
-           (val1.type == COLOR_TYPE_ANSI && val2.type == COLOR_TYPE_ANSI);
-}
-
-bool coloursAreEqual(ColorValue val1, ColorValue val2) {
-    bool RGBMatch = val1.rgb.r == val2.rgb.r &&
-             val1.rgb.g == val2.rgb.g &&
-             val1.rgb.b == val2.rgb.b;
-    bool ANSIMatch = val1.ansiIndex == val2.ansiIndex &&
-             val1.ansiIndex > 100;
-    return RGBMatch || ANSIMatch;
-}
-
 ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -2653,26 +2661,33 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
         for (int i = offset; i < last_line; i++) {
                 const char *text = lyrics->lines[i].text ? lyrics->lines[i].text : "";
 
-                CellStyle style;
+                CellStyle lineStyle, wordStyle;
                 int draw_row = region.row + (i - offset);
                 if (highlight == i && lyrics->isTimed) {
-                        style = cell_style_from_theme(ui->theme.nowplaying);
+                        lineStyle = cell_style_from_theme(ui->theme.nowplaying);
 
-                        if (coloursAreSameType(ui->theme.nowplaying, ui->theme.trackview_time) &&
+                        if (coloursAreSameType(ui->theme.nowplaying, ui->theme.trackview_lyrics) &&
                             coloursAreEqual(ui->theme.nowplaying, ui->theme.trackview_lyrics)
                         ) {
-                                style.fg = increase_luminosity(style.fg, 80);
+                                lineStyle.fg = increase_luminosity(lineStyle.fg, 80);
                         }
                 } else
-                        style = cell_style_from_theme(ui->theme.trackview_lyrics);
+                        lineStyle = cell_style_from_theme(ui->theme.trackview_lyrics);
 
                 if (highlight == i && lyrics->isKaraoke) {
+                        wordStyle = cell_style_from_theme(ui->theme.trackview_title);
+                        if (coloursAreSameType(ui->theme.trackview_title, ui->theme.trackview_lyrics) &&
+                            coloursAreEqual(ui->theme.trackview_title, ui->theme.trackview_lyrics)
+                        ) {
+                                wordStyle.fg = increase_luminosity(wordStyle.fg, 80);
+                        }
+                        
                         k_Rect newRegion = {draw_row, region.col, region.width, region.height};
-                        draw_karaoke_line(model, (char*)text, newRegion, buf, cell_style_from_theme(ui->theme.trackview_lyrics), style);
+                        draw_karaoke_line(model, (char*)text, newRegion, buf, cell_style_from_theme(ui->theme.trackview_lyrics), lineStyle);
                 }
                 else {
                         draw_buffer_set_string_truncated(buf, draw_row, region.col,
-                                                                 text, region.width, style);
+                                                                 text, region.width, lineStyle);
                 }
         }
 
