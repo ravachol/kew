@@ -503,6 +503,8 @@ typedef struct
         int visualizer_width;
 
         const char *lyrics_line;
+        int wordOffset;
+        int wordLength;
 
         bool render_often;
         bool render_search;

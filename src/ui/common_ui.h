@@ -231,7 +231,11 @@ PixelData get_gradient_color(PixelData base_color, int row, int max_list_size, i
  * @param elapsed_seconds How far we are into the song.
  * @return The current line of lyrics.
  */
-const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds);
+const char *get_lyrics_line(const Lyrics *lyrics, int* lyricIndex, double elapsed_seconds);
+
+int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds);
+
+int get_word_length(const LyricsLine lyric_line, int offset);
 
 /**
  * @brief Returns the next UTF-8 codepoint

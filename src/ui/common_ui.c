@@ -550,8 +550,10 @@ PixelData get_gradient_color(PixelData base_color, int row, int max_list_size,
         return decrease_luminosity_pct(base_color, pct);
 }
 
-const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
-{
+const char *get_lyrics_line(const Lyrics *lyrics,
+                    int* lyricIndex,
+                    double elapsed_seconds
+) {
         if (!lyrics || lyrics->count == 0)
                 return "";
 
@@ -559,8 +561,8 @@ const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
         line[0] = '\0';
 
         double last_timestamp = -1.0;
-
-        for (size_t i = 0; i < lyrics->count; i++) {
+        size_t i = 0;
+        for (; i < lyrics->count; i++) {
                 double ts = lyrics->lines[i].timestamp;
                 const char *text = lyrics->lines[i].text;
 
@@ -578,7 +580,38 @@ const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
                 }
         }
 
+        *lyricIndex = i > 0 ? i - 1 : 0;
         return line;
+}
+
+int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds) {
+        if (lyric_line.numberOfTimestamps == 0)
+                return 0;
+        int i = 0;
+        for (; i < lyric_line.numberOfTimestamps; i++) {
+                double ts = lyric_line.timestampArray[i];
+
+                if (elapsed_seconds < ts) {
+                        break;
+                }
+        }
+
+        if (i == 0) return 0;
+
+        char *ptr = lyric_line.text;
+        int countedSpaces = 0;
+        while (*ptr != '\0') {
+            if (countedSpaces == i - 1) return ptr - lyric_line.text;
+            if (*ptr == ' ') countedSpaces++;
+            ptr++;
+        }
+        return -1;
+}
+
+int get_word_length(const LyricsLine lyric_line, int offset) {
+        char* ptr = lyric_line.text + offset;
+        for (; *ptr != '\0' && *ptr != ' '; ptr++);
+        return ptr - (lyric_line.text + offset);
 }
 
 // Advance one UTF-8 codepoint, return it. *bytes_consumed is set to the
