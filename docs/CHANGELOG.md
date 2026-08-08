@@ -8,6 +8,8 @@
 
 This is awesome because it doesn't require the database and a lot of bandcamp artists have their bandcamp homepage in the comment tag. Links can still be disabled by settings useArtistsDb=0 in kewrc. Suggested by @sparrowd_P.
 
+- Karaoke lyrics support (very cool). By @Moksh-Parikh.
+
 - Make ascii covers look better on light themes. Requested by @baranelitez.
 
 - Use text emoji characters for mini player controls, for those macs that support it. By @petoem.
