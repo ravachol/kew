@@ -92,9 +92,7 @@ apply_passthrough_workarounds_tmux(void)
                         tmux_allow_passthrough_original = mode;
                         tmux_allow_passthrough_is_changed = TRUE;
                 }
-        } else {
-                g_free(mode);
-        }
+        } 
 
 out:
         g_free(standard_output);
