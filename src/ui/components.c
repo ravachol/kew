@@ -2353,6 +2353,48 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
         return (ComponentMsg){0};
 }
 
+void draw_karaoke_line(const Model *model, char* lyric_line,
+                       k_Rect region, DrawBuffer* buf,
+                       CellStyle normalWordStyle, CellStyle currentWordStyle
+) {
+        char stringSlice[256] = {0};
+        if (model->state.ui.wordLength > 255 ||
+            (size_t)(model->state.ui.wordOffset + model->state.ui.wordLength) > strlen(lyric_line)
+        ) {  
+            draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                             lyric_line, region.width, normalWordStyle);
+            return;
+        }
+
+        snprintf(stringSlice,
+                 model->state.ui.wordOffset + 1,
+                 "%s", lyric_line
+                );
+        draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                         stringSlice, region.width, normalWordStyle);
+        stringSlice[0] = '\0';
+
+        snprintf(stringSlice,
+                 model->state.ui.wordLength + 1,
+                 "%s", lyric_line + model->state.ui.wordOffset
+                );
+        draw_buffer_set_string_truncated(buf,
+                                         region.row,
+                                         region.col + model->state.ui.wordOffset,
+                                         stringSlice, region.width,
+                                         currentWordStyle
+                                        );
+        stringSlice[0] = '\0';
+
+        draw_buffer_set_string_truncated(buf, region.row, region.col + model->state.ui.wordOffset + model->state.ui.wordLength,
+                                         lyric_line +
+                                         model->state.ui.wordOffset +
+                                         model->state.ui.wordLength,
+                                         region.width,
+                                         normalWordStyle
+                                        );
+}
+
 ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf,
                                           DirtyFlags dirty)
 {
@@ -2368,38 +2410,14 @@ ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, Dra
                 return (ComponentMsg){0};
 
         char* lyric_line = (char*)model->state.ui.lyrics_line;
-        char stringSlice[256] = {0};
         
         CellStyle style = cell_style_from_theme(ui->theme.trackview_lyrics);
         
         if (model->state.ui.wordLength > 0) {
-            snprintf(stringSlice,
-                     model->state.ui.wordOffset + 1,
-                     "%s", lyric_line
-                    );
-            draw_buffer_set_string_truncated(buf, region.row, region.col,
-                                             stringSlice, region.width, style);
-            stringSlice[0] = '\0';
+            CellStyle normalWordStyle = cell_style_from_theme(ui->theme.trackview_lyrics);
+            CellStyle currentWordStyle = cell_style_from_theme(ui->theme.trackview_title);
 
-            snprintf(stringSlice,
-                     model->state.ui.wordLength + 1,
-                     "%s", lyric_line + model->state.ui.wordOffset
-                    );
-            draw_buffer_set_string_truncated(buf,
-                                             region.row,
-                                             region.col + model->state.ui.wordOffset,
-                                             stringSlice, region.width,
-                                             cell_style_from_theme(ui->theme.trackview_title)
-                                            );
-            stringSlice[0] = '\0';
-
-            draw_buffer_set_string_truncated(buf, region.row, region.col + model->state.ui.wordOffset + model->state.ui.wordLength,
-                                             lyric_line +
-                                             model->state.ui.wordOffset +
-                                             model->state.ui.wordLength,
-                                             region.width,
-                                             style
-                                            );
+            draw_karaoke_line(model, lyric_line, region, buf, normalWordStyle, currentWordStyle);
         }
         else {
             draw_buffer_set_string_truncated(buf, region.row, region.col,
@@ -2559,6 +2577,20 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
         return result;
 }
 
+bool coloursAreSameType(ColorValue val1, ColorValue val2) {
+    return (val1.type == COLOR_TYPE_RGB && val2.type == COLOR_TYPE_RGB) ||
+           (val1.type == COLOR_TYPE_ANSI && val2.type == COLOR_TYPE_ANSI);
+}
+
+bool coloursAreEqual(ColorValue val1, ColorValue val2) {
+    bool RGBMatch = val1.rgb.r == val2.rgb.r &&
+             val1.rgb.g == val2.rgb.g &&
+             val1.rgb.b == val2.rgb.b;
+    bool ANSIMatch = val1.ansiIndex == val2.ansiIndex &&
+             val1.ansiIndex > 100;
+    return RGBMatch || ANSIMatch;
+}
+
 ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -2622,28 +2654,26 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
                 const char *text = lyrics->lines[i].text ? lyrics->lines[i].text : "";
 
                 CellStyle style;
+                int draw_row = region.row + (i - offset);
                 if (highlight == i && lyrics->isTimed) {
                         style = cell_style_from_theme(ui->theme.nowplaying);
 
-                        if ((ui->theme.nowplaying.type == COLOR_TYPE_RGB && ui->theme.trackview_lyrics.type == COLOR_TYPE_RGB) ||
-                            ((ui->theme.nowplaying.type == COLOR_TYPE_ANSI && ui->theme.trackview_lyrics.type == COLOR_TYPE_ANSI) &&
-                             ui->theme.nowplaying.ansiIndex == ui->theme.trackview_lyrics.ansiIndex &&
-                             ui->theme.nowplaying.ansiIndex > 100)) {
-
-                                if ((ui->theme.nowplaying.rgb.r == ui->theme.trackview_lyrics.rgb.r &&
-                                     ui->theme.nowplaying.rgb.g == ui->theme.trackview_lyrics.rgb.g &&
-                                     ui->theme.nowplaying.rgb.b == ui->theme.trackview_lyrics.rgb.b) ||
-                                    ui->theme.nowplaying.ansiIndex > 100) {
-
-                                        style.fg = increase_luminosity(style.fg, 80);
-                                }
+                        if (coloursAreSameType(ui->theme.nowplaying, ui->theme.trackview_time) &&
+                            coloursAreEqual(ui->theme.nowplaying, ui->theme.trackview_lyrics)
+                        ) {
+                                style.fg = increase_luminosity(style.fg, 80);
                         }
                 } else
                         style = cell_style_from_theme(ui->theme.trackview_lyrics);
 
-                int draw_row = region.row + (i - offset);
-                draw_buffer_set_string_truncated(buf, draw_row, region.col,
-                                                 text, region.width, style);
+                if (highlight == i && lyrics->isKaraoke) {
+                        k_Rect newRegion = {draw_row, region.col, region.width, region.height};
+                        draw_karaoke_line(model, (char*)text, newRegion, buf, cell_style_from_theme(ui->theme.trackview_lyrics), style);
+                }
+                else {
+                        draw_buffer_set_string_truncated(buf, draw_row, region.col,
+                                                                 text, region.width, style);
+                }
         }
 
         // Blank remaining rows
