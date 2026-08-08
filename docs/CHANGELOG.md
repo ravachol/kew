@@ -18,6 +18,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 #### Bug fixes:
 
+- Cover not displayed on tmux (we've been trying to fix this for years). By @nhuvaynhe.
+
 - When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
 
 - Fix use after free if DBUS connection fails. By @daeho-ro.
