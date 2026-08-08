@@ -71,7 +71,13 @@ void set_lyrics_line(Model *model)
             model->state.ui.lyrics_line = get_lyrics_line(model->songdata->lyrics, &lyricIndex, model->elapsed_seconds);
             if (model->songdata->lyrics->isKaraoke > 0) {
                     model->state.ui.wordOffset = get_word_offset(model->songdata->lyrics->lines[lyricIndex], model->elapsed_seconds);
-                    model->state.ui.wordLength = get_word_length(model->songdata->lyrics->lines[lyricIndex], model->state.ui.wordOffset);
+                    if (model->state.ui.wordOffset >= 0) {
+                        model->state.ui.wordLength = get_word_length(model->songdata->lyrics->lines[lyricIndex], model->state.ui.wordOffset);
+                    }
+                    else {
+                        model->state.ui.wordOffset = 0;
+                        model->state.ui.wordLength = 0;
+                    }
             }
             else {
                     model->state.ui.wordLength = 0;

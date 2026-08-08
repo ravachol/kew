@@ -555,7 +555,7 @@ const char *get_lyrics_line(const Lyrics *lyrics,
                     double elapsed_seconds
 ) {
         if (!lyrics || lyrics->count == 0)
-                return 0;
+                return "";
 
         static char line[1024];
         line[0] = '\0';
@@ -587,8 +587,6 @@ const char *get_lyrics_line(const Lyrics *lyrics,
 int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds) {
         if (lyric_line.numberOfTimestamps == 0)
                 return 0;
-
-        double last_timestamp = -1.0;
         int i = 0;
         for (; i < lyric_line.numberOfTimestamps; i++) {
                 double ts = lyric_line.timestampArray[i];
@@ -596,12 +594,9 @@ int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds) {
                 if (elapsed_seconds < ts) {
                         break;
                 }
-
-                // New timestamp → start fresh
-                last_timestamp = ts;
         }
 
-
+        if (i == 0) return 0;
 
         char *ptr = lyric_line.text;
         int countedSpaces = 0;
@@ -610,7 +605,7 @@ int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds) {
             if (*ptr == ' ') countedSpaces++;
             ptr++;
         }
-        return 0;
+        return -1;
 }
 
 int get_word_length(const LyricsLine lyric_line, int offset) {
