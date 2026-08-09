@@ -11,6 +11,7 @@
 
 #include "audiotypes.h"
 #include "utils/utils.h"
+#include <stdio.h>
 #include <sys/stat.h>
 
 #ifdef USE_FAAD
@@ -616,6 +617,7 @@ void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
 
 int is_decoding_possible(const char *filepath, const CodecOps *ops)
 {
+        if (ops == NULL) return -1;
         void *decoder = malloc(ops->decoderSize);
         ma_decoding_backend_config config = {0};
         config.preferredFormat = ma_format_f32;
