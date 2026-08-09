@@ -85,6 +85,6 @@ void run_command(UpdateResult result);
 /**
  * @brief Checks if a resize is needed and resizes if it is.
  *
- * @return True if a resize occured.
+ * @return True if a resize occurred.
  */
 bool resize_if_needed(void);
