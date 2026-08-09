@@ -240,7 +240,7 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
         return 1;
 }
 
-//helper function findLRC that find wether current folder have a .lrc file match the word
+//helper function findLRC that find whether current folder have a .lrc file match the word
 static char *findLRC(const char *folder, const char *word)
 {
         static char result[KEW_PATH_MAX];
