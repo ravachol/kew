@@ -34,6 +34,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - When middle-clicking (immediate play) on an enqueued album, it now plays. By @nhuvaynhe.
 
+- Null check preventing segfault. @Moksh-Parikh.
+
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
