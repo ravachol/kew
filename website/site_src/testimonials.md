@@ -288,3 +288,6 @@ I no longer need to search for the perfect music player. :blobcheerbounce:
 
 @MaikaB41
 i just discovered your player music, and it's so amazing.
+
+@BoysenberryCider
+And I thought I recognised your name...you're the founder of Kew!  I've used Kew every day for the last year or so. Genuinely my favourite piece of software on my computer.
