@@ -10,6 +10,7 @@
 #include "playback.h"
 
 #include "audiotypes.h"
+#include "utils/k_log.h"
 #include "utils/utils.h"
 #include <stdio.h>
 #include <sys/stat.h>
@@ -617,13 +618,18 @@ void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
 
 int is_decoding_possible(const char *filepath, const CodecOps *ops)
 {
-        if (ops == NULL) return -1;
+        if (ops == NULL)
+        {
+                k_log("is_decoding_possible: codec ops is null, file: '%s'\n", filepath);
+                return -1;
+        }
         void *decoder = malloc(ops->decoderSize);
         ma_decoding_backend_config config = {0};
         config.preferredFormat = ma_format_f32;
         config.seekPointCount = 0;
 
         if (ops->init(filepath, &config, decoder) != MA_SUCCESS) {
+                k_log("is_decoding_possible: file couldn't be initialized, file: '%s'\n", filepath);
                 free(decoder);
                 return -1;
         }
@@ -697,6 +703,7 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         config.seekPointCount = 0;
 
         if (ops->init(filepath, &config, decoder) != MA_SUCCESS) {
+                k_log("prepare_next_decoder: codec ops init failed for '%s'\n", filepath);
                 free(decoder);
                 return -1;
         }

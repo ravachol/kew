@@ -1277,14 +1277,14 @@ int load_decoder(SongData *song_data, bool *song_data_deleted)
                 // This should only be done for the second song, as
                 // switch_audio_implementation() handles the first one
                 const CodecOps *ops = find_codec_ops(song_data->file_path);
-                if (!loader_data->loadingFirstDecoder) {
 
-                        if (!ops)
-                                result = -1;
-                        else {
-                                result = prepare_next_decoder(song_data->file_path, song_data, ops);
-                                sound_s->fade_allowed = (result != -2);
-                        }
+                if (!ops) {
+                        k_log("load_decoder: no codec ops found for file: '%s'\n", song_data->file_path);
+                        result = -1;
+                } else if (!loader_data->loadingFirstDecoder) {
+
+                        result = prepare_next_decoder(song_data->file_path, song_data, ops);
+                        sound_s->fade_allowed = (result != -2);
                 } else {
                         result = is_decoding_possible(song_data->file_path, ops);
                 }
@@ -1413,7 +1413,7 @@ void *song_data_reader_thread(void *arg)
         pthread_mutex_unlock(&(loader_data->mutex));
 
         if (songdata == NULL || songdata->hasErrors) {
-                
+
                 if (loader_data->loadInSlotA) {
 
                         song_loader_unload_song_A();

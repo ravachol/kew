@@ -27,6 +27,7 @@
 #include "ui/common_ui.h"
 #include "ui/components.h"
 
+#include "utils/k_log.h"
 #include "utils/utils.h"
 
 #include <stdbool.h>
@@ -59,12 +60,19 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
         if (!result)
         {
                 ps->songHasErrors = true;
+                k_log("load_song: song has errors: '%s'\n", song->song.file_path);
         }
         else {
                 sound_result_t sound_result = sound_system_load(sound_sys, song->song.file_path, is_first_decoder, replace_next_song);
 
                 if (sound_result == SOUND_ERROR_SONG)
+                {
                         ps->songHasErrors = true;
+                        k_log("load_song: song has errors (SOUND_ERROR_SONG): '%s'\n", song->song.file_path);
+                }
+                else {
+                        k_log("load_song: song loaded without errors: '%s'\n", song->song.file_path);
+                }
         }
 }
 
