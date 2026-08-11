@@ -295,6 +295,9 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
         }
 
         closedir(directory);
+
+        k_log("choose_album_art: returning: '%s'\n", result);
+
         return result;
 }
 
@@ -540,6 +543,7 @@ void load_meta_data(SongData *songdata)
 
         if (res == -2) {
                 songdata->hasErrors = true;
+                k_log("load_meta_data: songdata has errors, path: '%s'\n", songdata->file_path);
                 return;
         } else if (res == -1) {
                 get_directory_from_path(songdata->file_path, path);
@@ -574,11 +578,17 @@ void load_meta_data(SongData *songdata)
                 if (tmp != NULL) {
                         c_strcpy(songdata->cover_art_path, tmp,
                                  sizeof(songdata->cover_art_path));
+
+                        k_log("load_meta_data: largest image file found, path: '%s'\n", songdata->cover_art_path);
+
                         free(tmp);
                         tmp = NULL;
-                } else
+                } else {
                         c_strcpy(songdata->cover_art_path, "",
                                  sizeof(songdata->cover_art_path));
+
+                        k_log("load_meta_data: no image file found, path: '%s'\n", songdata->cover_art_path);
+                }
         } else {
                 add_to_cache(tmpCache, songdata->cover_art_path);
         }
@@ -668,13 +678,13 @@ SongData *songdata_clone(const SongData *src)
                                     src->lyrics->lines[i].timestamp;
                                 dst->lyrics->lines[i].numberOfTimestamps =
                                     src->lyrics->lines[i].numberOfTimestamps;
-                                
+
                                 if (dst->lyrics->isKaraoke) {
                                     memcpy(dst->lyrics->lines[i].timestampArray,
                                            src->lyrics->lines[i].timestampArray,
                                            METADATA_MAX_LENGTH * sizeof(double));
                                 }
-                                
+
                                 if (src->lyrics->lines[i].text) {
                                         dst->lyrics->lines[i].text =
                                             g_strdup(src->lyrics->lines[i].text);
