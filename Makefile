@@ -392,11 +392,16 @@ endif
 		done; \
 	fi
 
+ifeq ($(ENABLE_CAP_SYS_NICE),1)
 	@if [ "$$(uname)" = "Linux" ]; then \
 		if command -v setcap >/dev/null 2>&1; then \
-			setcap cap_sys_nice+ep "$(DESTDIR)$(PREFIX)/bin/kew"; \
+			setcap cap_sys_nice+ep "$(DESTDIR)$(PREFIX)/bin/kew" || \
+			echo "Warning: failed to set CAP_SYS_NICE"; \
+		else \
+			echo "Warning: setcap not found; installing without CAP_SYS_NICE"; \
 		fi; \
 	fi
+endif
 
 .PHONY: uninstall
 uninstall:
