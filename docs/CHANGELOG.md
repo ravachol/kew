@@ -20,6 +20,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 #### Bug fixes:
 
+- Don't set real-time process status (setcap) if it's not allowed by the system. Prevents a crash on hyprland. By @ravachol. Reported by @prostitutionofthesoul and @aaruni96.
+
 - Cover not displayed on tmux (we've been trying to fix this for years). By @nhuvaynhe.
 
 - When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
