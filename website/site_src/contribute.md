@@ -107,6 +107,8 @@ kew developers should strive to follow the above architecture, so that function 
 
 3. Run bear \-\- make.
 
+4. Search settings for 'external. Change "Terminal External Linux Exec" to konsole or kitty, or your favorite terminal emulator. This should make kew open in its own window, when debugging.
+
 This should enable you to develop kew on VSCodium.
 
 ### Memory debugging with Valgrind
