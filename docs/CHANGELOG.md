@@ -20,7 +20,7 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 #### Bug fixes:
 
-- Don't set real-time process status (setcap) if it's not allowed by the system. Prevents a crash on hyprland. By @ravachol. Reported by @prostitutionofthesoul and @aaruni96.
+- Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul, @aaruni96 and @jespo.
 
 - Cover not displayed on tmux (we've been trying to fix this for years). By @nhuvaynhe.
 
