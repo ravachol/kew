@@ -348,7 +348,7 @@ int display_song_notification(const char *artist, const char *title, const char 
         }
 
         if (connection == NULL) {
-                connection = get_dbus_connection_with_timeout(G_BUS_TYPE_SESSION, 100);
+                connection = get_dbus_connection_with_timeout(G_BUS_TYPE_SESSION, 200);
 
                 if (connection == NULL) {
                         k_log("Failed to connect to session bus\n");
