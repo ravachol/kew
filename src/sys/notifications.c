@@ -241,18 +241,20 @@ static void bus_connection_data_unref(BusConnectionData *data)
 
 static gboolean on_timeout(gpointer user_data)
 {
-        BusConnectionData *data = (BusConnectionData *)user_data;
+        k_log("on_timeout: entered\n");
+
+        BusConnectionData *data = user_data;
 
         if (!data->connected) {
-                k_log("D-Bus connection timed out.\n");
+                k_log("on_timeout: D-Bus connection timed out.\n");
                 data->timeout_triggered = TRUE;
                 g_main_loop_quit(data->loop);
+                k_log("on_timeout: called g_main_loop_quit()\n");
         }
 
-        // Decrement reference count
         bus_connection_data_unref(data);
 
-        return FALSE; // Stop the timeout callback from repeating
+        return FALSE;
 }
 
 static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpointer user_data)
@@ -281,7 +283,9 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
 {
         // Allocate and initialize the data structure
         BusConnectionData *data = g_new0(BusConnectionData, 1);
-        data->loop = g_main_loop_new(NULL, FALSE);
+        GMainContext *context = g_main_context_new();
+
+        data->loop = g_main_loop_new(context, FALSE);
         data->connected = FALSE;
         data->connection = NULL;
         data->timeout_triggered = FALSE;
@@ -295,16 +299,24 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
         g_bus_get(bus_type, NULL, on_bus_get_complete, data);
 
         // Add a timeout callback
-        g_timeout_add(timeout_ms, on_timeout, data);
+        GSource *source = g_timeout_source_new(timeout_ms);
+        g_source_set_callback(source, on_timeout, data, NULL);
+        g_source_attach(source, context);
+        g_source_unref(source);
+
+        k_log("Before g_main_loop_run()\n");
 
         // Run the main loop
         g_main_loop_run(data->loop);
+
+        k_log("After g_main_loop_run()\n");
 
         // Store the connection result before cleaning up
         GDBusConnection *connection = data->connection;
 
         // Decrement reference count for the main loop
         bus_connection_data_unref(data);
+        g_main_context_unref(context);
 
         return connection;
 }
