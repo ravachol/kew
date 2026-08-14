@@ -22,6 +22,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
 
+- Fix crash when starting to play a song II, because of interaction with dbus/mpris. By @ravachol. Reported by @@aaruni96.
+
 - Cover not displayed on tmux (we've been trying to fix this for years). By @nhuvaynhe.
 
 - When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
