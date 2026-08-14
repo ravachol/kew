@@ -92,7 +92,7 @@ apply_passthrough_workarounds_tmux(void)
                         tmux_allow_passthrough_original = mode;
                         tmux_allow_passthrough_is_changed = TRUE;
                 }
-        } 
+        }
 
 out:
         g_free(standard_output);
@@ -303,6 +303,14 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         detect_terminal(&term_info, &mode, &pixel_mode,
                         &passthrough, &symbol_map);
+
+        k_log("convert_image: chafa version: %d.%d.%d",
+              CHAFA_MAJOR_VERSION,
+              CHAFA_MINOR_VERSION,
+              CHAFA_MICRO_VERSION);
+
+        k_log("convert_image: mode=%d pixel_mode=%d passthrough=%d",
+              mode, pixel_mode, passthrough);
 
 #ifdef _WIN32
 
@@ -536,9 +544,9 @@ void free_image_payload(ImagePayload **img)
 }
 
 int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
-                               unsigned char *pixels, int width, int height, int max_width,
-                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
-                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
+                              unsigned char *pixels, int width, int height, int max_width,
+                              int base_height, const TermSize *term_size, bool centered, size_t img_hash,
+                              const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
 {
         int cell_width = 8;
         int cell_height = 16;
