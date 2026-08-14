@@ -312,6 +312,13 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         k_log("convert_image: mode=%d pixel_mode=%d passthrough=%d",
               mode, pixel_mode, passthrough);
 
+        k_log("TERM=%s", g_getenv("TERM"));
+        k_log("COLORTERM=%s", g_getenv("COLORTERM"));
+        k_log("KONSOLE_VERSION=%s", g_getenv("KONSOLE_VERSION"));
+        k_log("TERM_PROGRAM=%s", g_getenv("TERM_PROGRAM"));
+        k_log("TERMINAL_NAME=%s", g_getenv("TERMINAL_NAME"));
+        k_log("TMUX=%s", g_getenv("TMUX"));
+
 #ifdef _WIN32
 
         pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
