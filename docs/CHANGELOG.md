@@ -20,7 +20,7 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 #### Bug fixes:
 
-- Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul, @aaruni96 and @jespo.
+- Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
 
 - Cover not displayed on tmux (we've been trying to fix this for years). By @nhuvaynhe.
 
