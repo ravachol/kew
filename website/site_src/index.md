@@ -51,5 +51,6 @@ Supported: m4a, raw aac, mp3, flac, wav, webm, opus, ogg.
 - HE-AAC.
 - E-AC-3.
 - Alac.
+- M4a with fragmented mp4's.
 
 [^1]: kew can display your listening status in Discord, but this is now opt-in by popular demand.
