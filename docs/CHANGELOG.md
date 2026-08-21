@@ -18,6 +18,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Show mini-controls also on songs with no cover.
 
+- Clear search query when switching views (but search results stay).
+
 #### Bug fixes:
 
 - Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
