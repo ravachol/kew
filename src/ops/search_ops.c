@@ -130,6 +130,17 @@ void collect_result(FileSystemEntry *entry, int distance)
         add_result(entry, distance);
 }
 
+void clear_search_query(void)
+{
+        Model *model = get_model();
+
+        num_search_bytes = 0;
+        num_search_letters = 0;
+        model->state.ui.search_text[num_search_bytes] = '\0';
+
+        set_dirty(DIRTY_SEARCH);
+}
+
 void search_shutdown(void)
 {
         Model *model = get_model();
@@ -345,5 +356,3 @@ int remove_from_search_text(Model *model)
 
         return 0;
 }
-
-
