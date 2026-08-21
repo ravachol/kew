@@ -19,6 +19,8 @@
 
 #include "ui/components.h"
 
+#include "ops/search_ops.h"
+
 #include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -1065,6 +1067,8 @@ void view_changed(Model *model)
 
         if (model->state.currentView == LIBRARY_VIEW)
                 component_library_helper_update_view_state(model);
+
+        clear_search_query();
 
         set_dirty(DIRTY_ALL);
 }

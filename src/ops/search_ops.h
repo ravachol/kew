@@ -93,3 +93,5 @@ FileSystemEntry *get_chosen_search_dir(void);
  * @return Returns 0 when the function completes successfully.
  */
 int display_search(int row, int col, int max_list_size, int *chosen_row);
+
+void clear_search_query(void);
