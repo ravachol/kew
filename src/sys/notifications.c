@@ -295,8 +295,12 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
         bus_connection_data_ref(data); // For on_timeout
         bus_connection_data_ref(data); // For on_bus_get_complete
 
+        g_main_context_push_thread_default(context);
+
         // Start the asynchronous bus connection
         g_bus_get(bus_type, NULL, on_bus_get_complete, data);
+
+        g_main_context_pop_thread_default(context);
 
         // Add a timeout callback
         GSource *source = g_timeout_source_new(timeout_ms);
