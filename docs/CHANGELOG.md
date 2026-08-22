@@ -40,7 +40,10 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - When middle-clicking (immediate play) on an enqueued album, it now plays. By @nhuvaynhe.
 
-- Null check preventing segfault. @Moksh-Parikh.
+- Null check preventing segfault. By @Moksh-Parikh.
+
+- Fix Null pointer dereference in set_prefs when playing file outside library. By @lhs-12.
+
 
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
