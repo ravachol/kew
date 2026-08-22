@@ -1289,6 +1289,11 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
                            const gchar *track_id, Node *current_song, gint64 length)
 {
 #ifdef USE_DBUS
+        GDBusConnection *connection = get_gd_bus_connection();
+
+        if (connection == NULL)
+                return;
+
         guint64 current_time = g_get_monotonic_time();
         if (current_time - last_emit_time < 500000) // 0.5 seconds
         {
@@ -1400,7 +1405,7 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
 
         GError *error = NULL;
         gboolean result = g_dbus_connection_emit_signal(
-            get_gd_bus_connection(), NULL, "/org/mpris/MediaPlayer2",
+            connection, NULL, "/org/mpris/MediaPlayer2",
             "org.freedesktop.DBus.Properties", "PropertiesChanged",
             g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
                           &changed_properties_builder, NULL),
