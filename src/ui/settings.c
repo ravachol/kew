@@ -2070,8 +2070,10 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         // Save current song id and seconds for auto-resume
         if (current) {
                 FileSystemEntry *entry = find_corresponding_entry(model->library, current->song.file_path);
-                fprintf(file, "currentSongId=%d\n", entry->id);
-                fprintf(file, "currentSongSeconds=%f\n", model->elapsed_seconds);
+                if (entry != NULL) {
+                        fprintf(file, "currentSongId=%d\n", entry->id);
+                        fprintf(file, "currentSongSeconds=%f\n", model->elapsed_seconds);
+                }
         }
 
         fclose(file);
