@@ -535,17 +535,22 @@ void load_meta_data(SongData *songdata)
         generate_temp_file_path(songdata->cover_art_path, KEW_PATH_MAX, "cover", ".jpg");
 
         int res = extractTags(songdata->file_path, songdata->metadata,
-                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
+                &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
 
         if (!songdata->lyrics) {
+
                 songdata->lyrics = loadLyricsFromLRC(songdata->file_path,songdata);
+
         }
 
         if (res == -2) {
+
                 songdata->hasErrors = true;
                 k_log("load_meta_data: songdata has errors, path: '%s'\n", songdata->file_path);
                 return;
+
         } else if (res == -1) {
+
                 get_directory_from_path(songdata->file_path, path);
                 char *tmp = NULL;
                 off_t size = 0;
@@ -565,9 +570,14 @@ void load_meta_data(SongData *songdata)
                 };
 
                 Model *model = get_model();
+
                 char library_expanded[KEW_PATH_MAX];
-                expand_path(model->library->full_path, library_expanded, KEW_PATH_MAX);
-                bool search_sub_dirs = !paths_equal(path, library_expanded);
+                bool search_sub_dirs = true;
+
+                if (expand_path(model->library->full_path, library_expanded, KEW_PATH_MAX) >= 0)
+                {
+                        search_sub_dirs = !paths_equal(path, library_expanded);
+                }
 
                 tmp = choose_album_art(path, file_arr, 12, 0, search_sub_dirs);
 
@@ -577,7 +587,7 @@ void load_meta_data(SongData *songdata)
 
                 if (tmp != NULL) {
                         c_strcpy(songdata->cover_art_path, tmp,
-                                 sizeof(songdata->cover_art_path));
+                                sizeof(songdata->cover_art_path));
 
                         k_log("load_meta_data: largest image file found, path: '%s'\n", songdata->cover_art_path);
 
@@ -585,7 +595,7 @@ void load_meta_data(SongData *songdata)
                         tmp = NULL;
                 } else {
                         c_strcpy(songdata->cover_art_path, "",
-                                 sizeof(songdata->cover_art_path));
+                                sizeof(songdata->cover_art_path));
 
                         k_log("load_meta_data: no image file found, path: '%s'\n", songdata->cover_art_path);
                 }
@@ -594,7 +604,7 @@ void load_meta_data(SongData *songdata)
         }
 
         songdata->cover = get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
-                                &(songdata->coverHeight));
+                &(songdata->coverHeight));
 
         // Fetch homepage from aritst db
         if (model->state.settings.useAristsLink) {
@@ -603,7 +613,9 @@ void load_meta_data(SongData *songdata)
                 const char *homepage = NULL;
 
                 if (songdata->metadata->artist[0] != '\0' && songdata->metadata->url[0] == '\0') {
+
                         if (model->hasArtistDb) {
+
                                 record = db_find(model->db, songdata->metadata->artist);
 
                                 if (record)
@@ -612,8 +624,8 @@ void load_meta_data(SongData *songdata)
 
                         if (homepage) {
                                 c_strcpy(songdata->metadata->url,
-                                         homepage,
-                                         sizeof(songdata->metadata->url) - 1);
+                                        homepage,
+                                        sizeof(songdata->metadata->url) - 1);
                         }
                 }
         }
