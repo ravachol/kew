@@ -1144,7 +1144,6 @@ void mpris_init(void)
                 set_error_message(error->message);
                 g_error_free(error);
                 g_dbus_node_info_unref(introspection_data);
-                quit();
                 return;
         }
 
@@ -1154,9 +1153,10 @@ void mpris_init(void)
                 g_dbus_node_info_unref(introspection_data);
                 k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
                 set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew 4) run: doas setcap -r /usr/local/bin/kew");
-                quit();
                 return;
         }
+
+        return;
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
 
