@@ -44,6 +44,7 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Fix Null pointer dereference in set_prefs when playing file outside library. By @lhs-12.
 
+- Don't bail if Mpris is unavailable. Suggested by @lhs-12.
 
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
