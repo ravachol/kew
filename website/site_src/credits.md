@@ -38,6 +38,7 @@
 * @manuwul
 * Martin Kollár @Kolby11
 * Matthias Geiger @werdahias
+* @metanoia
 * Michael Petö @petoem (Technical advisor) https://petoe.me
 * @Moksh-Parikh
 * @netodosrjoao
