@@ -1967,7 +1967,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                 // Album
                 if (region.height >= 3) {
                         CellStyle style = cell_style_from_theme(ui->theme.trackview_album);
-                        char line[METADATA_MAX_LENGTH + 2];
+                        char line[METADATA_MAX_LENGTH + 2] = {0};
                         char *album = NULL;
                         if (!is_root_dir) {
                                 album = basename(dir);
