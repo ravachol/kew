@@ -607,28 +607,28 @@ void load_meta_data(SongData *songdata)
                 &(songdata->coverHeight));
 
         // Fetch homepage from artist db
-        // if (model->state.settings.useAristsLink) {
+        if (model->state.settings.useAristsLink) {
 
-        //         const ArtistRecord *record = NULL;
-        //         const char *homepage = NULL;
+                const ArtistRecord *record = NULL;
+                const char *homepage = NULL;
 
-        //         if (songdata->metadata->artist[0] != '\0' && songdata->metadata->url[0] == '\0') {
+                if (songdata->metadata->artist[0] != '\0' && songdata->metadata->url[0] == '\0') {
 
-        //                 if (model->hasArtistDb) {
+                        if (model->hasArtistDb) {
 
-        //                         record = db_find(model->db, songdata->metadata->artist);
+                                record = db_find(model->db, songdata->metadata->artist);
 
-        //                         if (record)
-        //                                 homepage = db_get_value(model->db, record);
-        //                 }
+                                if (record)
+                                        homepage = db_get_value(model->db, record);
+                        }
 
-        //                 if (homepage) {
-        //                         c_strcpy(songdata->metadata->url,
-        //                                 homepage,
-        //                                 sizeof(songdata->metadata->url) - 1);
-        //                 }
-        //         }
-        // }
+                        if (homepage) {
+                                c_strcpy(songdata->metadata->url,
+                                        homepage,
+                                        sizeof(songdata->metadata->url) - 1);
+                        }
+                }
+        }
 }
 
 SongData *songdata_clone(const SongData *src)
