@@ -301,13 +301,120 @@ void switch_current_decoder(sound_system_t *sound)
         pthread_mutex_unlock(&ps->switch_mutex);
 }
 
+#if defined(__linux__)
+
+#include <sys/syscall.h>
+#include <unistd.h>
+
+static bool set_decode_thread_priority_rtkit(void)
+{
+        pid_t tid = (pid_t)syscall(SYS_gettid);
+
+        GError *error = NULL;
+        GDBusConnection *bus =
+                g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
+
+        if (bus == NULL) {
+                k_log("RTKit: failed to connect to system bus: %s",
+                      error ? error->message : "unknown error");
+                g_clear_error(&error);
+                return false;
+        }
+
+        /* First try realtime scheduling. */
+        GVariant *result = g_dbus_connection_call_sync(
+                bus,
+                "org.freedesktop.RealtimeKit1",
+                "/org/freedesktop/RealtimeKit1",
+                "org.freedesktop.RealtimeKit1",
+                "MakeThreadRealtime",
+                g_variant_new("(tu)", (guint64)tid, (guint32)1),
+                NULL,
+                G_DBUS_CALL_FLAGS_NONE,
+                -1,
+                NULL,
+                &error);
+
+        if (result != NULL) {
+                g_variant_unref(result);
+                g_object_unref(bus);
+
+                k_log("RTKit: MakeThreadRealtime succeeded for TID %d", tid);
+                return true;
+        }
+
+        k_log("RTKit: MakeThreadRealtime failed: %s",
+              error ? error->message : "unknown error");
+        g_clear_error(&error);
+
+        /* Realtime wasn't available, so try nice -5 through RTKit. */
+        gint32 nice_level = -5;
+
+        result = g_dbus_connection_call_sync(
+                bus,
+                "org.freedesktop.RealtimeKit1",
+                "/org/freedesktop/RealtimeKit1",
+                "org.freedesktop.RealtimeKit1",
+                "MakeThreadHighPriority",
+                g_variant_new("(ti)", (guint64)tid, nice_level),
+                NULL,
+                G_DBUS_CALL_FLAGS_NONE,
+                -1,
+                NULL,
+                &error);
+
+        g_object_unref(bus);
+
+        if (result != NULL) {
+                g_variant_unref(result);
+
+                k_log("RTKit: MakeThreadHighPriority succeeded for TID %d",
+                      tid);
+                return true;
+        }
+
+        k_log("RTKit: MakeThreadHighPriority failed: %s",
+              error ? error->message : "unknown error");
+        g_clear_error(&error);
+
+        return false;
+}
+
+#endif
+
 void set_decode_thread_priority(pthread_t thread)
 {
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__)
+
         struct sched_param param = {.sched_priority = 1};
         int ret = pthread_setschedparam(thread, SCHED_RR, &param);
+
         if (ret != 0) {
-                ret = setpriority(PRIO_PROCESS, 0, -5);
+
+                // Direct SCHED_RR may fail because the process doesn't have CAP_SYS_NICE or an appropriate RLIMIT_RTPRIO.
+
+                // Ask RTKit to grant realtime priority to this thread.
+                // If that isn't available, fall back to nice(-5).
+
+                if (!set_decode_thread_priority_rtkit()) {
+                        setpriority(PRIO_PROCESS, 0, -5);
+                        k_log("decode_loop: thread priority, nice -5 used");
+                }
+                else {
+                        k_log("decode_loop: thread priority, rtkit used");
+               }
+        }
+        else {
+                        k_log("decode_loop: thread priority, SCHED_RR used directly");
+        }
+
+#elif defined(__FreeBSD__)
+
+        struct sched_param param = {.sched_priority = 1};
+        int ret = pthread_setschedparam(thread, SCHED_RR, &param);
+
+        if (ret != 0) {
+                setpriority(PRIO_PROCESS, 0, -5);
         }
 #elif defined(__APPLE__)
         (void)thread;
