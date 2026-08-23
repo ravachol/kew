@@ -692,7 +692,10 @@ int get_year(const char *date_string)
 {
         int year;
 
-        if (sscanf(date_string, "%d", &year) != 1) {
+        // Read at most four digits so that full dates such as
+        // "20060203" or "2006-02-03" yield the year (2006), not the
+        // whole number.
+        if (sscanf(date_string, "%4d", &year) != 1) {
                 return -1;
         }
         return year;
