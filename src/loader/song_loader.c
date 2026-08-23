@@ -606,7 +606,7 @@ void load_meta_data(SongData *songdata)
         songdata->cover = get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
                 &(songdata->coverHeight));
 
-        // Fetch homepage from aritst db
+        // Fetch homepage from artist db
         // if (model->state.settings.useAristsLink) {
 
         //         const ArtistRecord *record = NULL;

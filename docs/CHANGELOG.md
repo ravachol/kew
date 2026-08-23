@@ -46,6 +46,9 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Don't bail if Mpris is unavailable. Suggested by @lhs-12.
 
+- Properly extract year from dates in the format YYYYMMDD, instead of showing the full date. By @Exberg. Reported by @ILikePapyrus.
+
+
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
