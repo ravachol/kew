@@ -221,3 +221,57 @@ macOS: ~/Library/Preferences/kew/kewstaterc
 
 By default, the build system will automatically detect if `faad2` is available and includes it if found.
 
+#### Real-time scheduling and CAP_SYS_NICE
+
+kew asks for real-time scheduling (`SCHED_RR` at a low priority) for its decoding
+thread, which helps prevent buffer underruns. On Linux this requires either the
+`CAP_SYS_NICE` capability or a raised `RLIMIT_RTPRIO`. If neither is granted, kew
+falls back to `setpriority()` and keeps playing normally, so nothing needs to be
+done here.
+
+`make install` does not grant the capability by default. If you want it, run:
+
+```bash
+sudo make install ENABLE_CAP_SYS_NICE=1
+```
+
+which adds `cap_sys_nice+ep` to the installed binary.
+
+Be aware of one side effect before enabling it. A binary carrying file
+capabilities is started by the kernel with `AT_SECURE=1`, and in that mode glib
+ignores `$DBUS_SESSION_BUS_ADDRESS` and refuses to autolaunch a session bus. Which
+means MPRIS support depends on how your session bus was set up:
+
+- If `$XDG_RUNTIME_DIR/bus` exists and is owned by you, as is the case with
+  systemd or `dbus-user-session`, glib finds the bus there and MPRIS keeps
+  working.
+- If your session bus comes from `dbus-launch`, with the socket somewhere in
+  `/tmp` and its address only in `$DBUS_SESSION_BUS_ADDRESS`, glib has nothing
+  left to fall back on. kew then reports:
+
+```
+Cannot spawn a message bus when AT_SECURE is set
+```
+
+Note that `dbus-launch kew` and `dbus-run-session kew` do not help, because both
+only set the environment variable that glib is ignoring.
+
+If you hit this, either install without `ENABLE_CAP_SYS_NICE=1`, or drop the
+capability from an already installed binary:
+
+```bash
+sudo setcap -r /usr/local/bin/kew
+```
+
+The other way to get real-time scheduling, without file capabilities, is to raise
+`RLIMIT_RTPRIO` through PAM limits, which is what JACK and PipeWire rely on. On
+most distributions that means adding a line like this to `/etc/security/limits.conf`
+(or a file under `/etc/security/limits.d/`) and logging back in:
+
+```
+@audio - rtprio 95
+```
+
+Your user needs to be a member of the group you name there. This keeps
+`AT_SECURE=0`, so MPRIS is unaffected.
+

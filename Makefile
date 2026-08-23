@@ -10,6 +10,10 @@ STRIP ?= 0
 # make USE_DBUS=0
 # To disable faad2, run:
 # make USE_FAAD=0
+# To let make install grant CAP_SYS_NICE for real-time scheduling, run:
+# make install ENABLE_CAP_SYS_NICE=1
+# Note that this breaks MPRIS on some systems, see the section on real-time
+# scheduling in docs/MANUAL-INSTALL-INSTRUCTIONS.md
 
 # Detect system and architecture
 UNAME_S := $(shell uname -s)

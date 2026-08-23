@@ -1144,7 +1144,6 @@ void mpris_init(void)
                 set_error_message(error->message);
                 g_error_free(error);
                 g_dbus_node_info_unref(introspection_data);
-                quit();
                 return;
         }
 
@@ -1154,7 +1153,6 @@ void mpris_init(void)
                 g_dbus_node_info_unref(introspection_data);
                 k_log("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew");
                 set_error_message("Failed to connect to D-Bus. Either 1) start D-BUS, 2) recompile with USE_DBUS=0 or 3) use dbus-launch kew 4) run: doas setcap -r /usr/local/bin/kew");
-                quit();
                 return;
         }
 
@@ -1289,6 +1287,11 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
                            const gchar *track_id, Node *current_song, gint64 length)
 {
 #ifdef USE_DBUS
+        GDBusConnection *connection = get_gd_bus_connection();
+
+        if (connection == NULL)
+                return;
+
         guint64 current_time = g_get_monotonic_time();
         if (current_time - last_emit_time < 500000) // 0.5 seconds
         {
@@ -1400,7 +1403,7 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
 
         GError *error = NULL;
         gboolean result = g_dbus_connection_emit_signal(
-            get_gd_bus_connection(), NULL, "/org/mpris/MediaPlayer2",
+            connection, NULL, "/org/mpris/MediaPlayer2",
             "org.freedesktop.DBus.Properties", "PropertiesChanged",
             g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
                           &changed_properties_builder, NULL),
