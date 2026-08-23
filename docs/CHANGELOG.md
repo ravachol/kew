@@ -48,6 +48,7 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Properly extract year from dates in the format YYYYMMDD, instead of showing the full date. By @Exberg. Reported by @ILikePapyrus.
 
+- Fixed uninitialized album line causing random garbled text in track view. By @lhs-12.
 
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
