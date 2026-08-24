@@ -9,7 +9,7 @@
     <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot">
   </a>
   <br>
-  <!--i><a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">Lost-Sci-Fi Themes by Jenova 7</a>. Cover by Ravachol.</i-->
+  <i><a href="https://www.qobuz.com/album/greatest-hits-the-cure/0073145894322">The Cure Greatest Hits</a>. Not affiliated with us.</i>
 </div>
 <br><br>
 
