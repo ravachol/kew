@@ -10,7 +10,7 @@ kew is designed for those who want:
 ✅ Fair compensation for artists (by supporting owned music).
 
 <div align="center">
-  <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
+  <a href="https://www.qobuz.com/album/greatest-hits-the-cure/0073145894322">
     <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot" />
   </a>
   <br />
