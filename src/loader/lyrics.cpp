@@ -7,6 +7,7 @@
  * when metadata or network access is unavailable.
  */
 
+#include <cstddef>
 #include <cstdlib>
 #include <algorithm>
 #include <cctype>
@@ -77,7 +78,11 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
             ptr = strchr(start, '<');
             if (ptr == NULL) ptr = start;
             else {
-                strncat(karaokeString, start, ptr - start);
+                char* karaokeEnd = strchr(karaokeString, '\0');
+                if (karaokeEnd == NULL) return 0;
+                char* ptrNull = strchr(ptr, '\0');
+                memcpy(karaokeEnd, ptr, ptrNull - start);
+                
                 timestampArr[numberOfTimestamps++] = firstStamp;
             }
         }
@@ -94,7 +99,10 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
             if (end == NULL)
                 end = ptr + strlen(ptr);
 
-            strncat(karaokeString, ptr, end - ptr);
+            char* karaokeEnd = strchr(karaokeString, '\0');
+            if (karaokeEnd == NULL) break;
+            char* ptrNull = strchr(end, '\0');
+            memcpy(karaokeEnd, end, ptrNull - ptr);
 
             ptr = end;
         }
