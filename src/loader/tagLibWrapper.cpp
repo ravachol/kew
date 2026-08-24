@@ -1084,7 +1084,7 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
         size_t capacity = 64;
         lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
         for (auto line: lines) {
-            parseTimedLyricsLine((char*)line.toCString(), lyrics, &capacity);
+            parseTimedLyricsLine((char*)line.toCString(true), lyrics, &capacity);
         }
         lyrics->isTimed = 1;
         return (lyrics->count > 0);
@@ -1766,7 +1766,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         for (auto it = items.begin(); it != items.end();
                              ++it) {
                                 std::string key =
-                                    it->first.upper().toCString();
+                                    it->first.upper().toCString(true);
                                 TagLib::String value =
                                     it->second.toString();
 
