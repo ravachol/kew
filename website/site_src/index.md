@@ -14,7 +14,7 @@ kew is designed for those who want:
     <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot" />
   </a>
   <br />
-  <i><a href="https://www.qobuz.com/album/mezzanine-massive-attack/0724384559953">Mezzanine by Massive Attack</a>. Not affiliated with us.</i>
+  <i><a href="https://www.qobuz.com/album/greatest-hits-the-cure/0073145894322">The Cure Greatest Hits</a>. Not affiliated with us.</i>
 </div>
 
 <br />
