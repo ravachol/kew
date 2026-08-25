@@ -27,6 +27,8 @@
 #include "sound/audiobuffer.h"
 #include "volume.h"
 
+#include "utils/k_log.h"
+
 sound_result_t sound_system_create(sound_system_t **out_system)
 {
         if (!out_system)
@@ -504,10 +506,15 @@ int sound_system_get_fade_offset_seconds(const sound_system_t *system)
 
 int sound_system_is_deconding_possible(const sound_system_t *system, const char *file_path)
 {
+        k_log("sound_system_is_deconding_possible: entered");
+
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         const CodecOps *ops = find_codec_ops(file_path);
+
+        k_log("sound_system_is_deconding_possible: codec ops found");
+
         if (is_decoding_possible(file_path, ops) < 0)
                 return 0;
 

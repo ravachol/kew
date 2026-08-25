@@ -2,6 +2,14 @@
 
 ## kew 4.2.8
 
+This version brings karaoke lyrics support, and band names will link to their bandcamp page on track view.
+
+It's mostly a bug fix release. We are far from the mess directly after the UI rewrite, most issues fixed here only affected certain users.
+
+We want people to report subtle issues, minor annoyances and so on. We are going to focus on this the next 6 months - we call it "Project Joy".
+
+/Ravachol
+
 #### Enhancements:
 
 - Bandcamp links! Uses bandcamp.com links as fallback for the homepage url if the artist db isn't installed.
