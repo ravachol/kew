@@ -56,9 +56,9 @@ int get_cover_color(unsigned char *pixels,
  * @param draw_occupied_markers Whether to mark cells as occupied
  */
 int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
-                               unsigned char *pixels, int width, int height, int max_width,
-                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
-                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers);
+                              const unsigned char *pixels, int width, int height, int max_width,
+                              int base_height, const TermSize *term_size, bool centered, size_t img_hash,
+                              const char *cover_style, int just_mark_cover, bool draw_occupied_markers);
 
 /**
  * Returns the terminal cell aspect ratio.
