@@ -327,15 +327,76 @@ void parseFlacPictureBlock(const std::vector<unsigned char> &data,
         imageData.assign(&ptr[offset], &ptr[offset + dataLength]);
 }
 
+bool looksLikeJpeg(const std::vector<unsigned char> &data)
+{
+        return data.size() > 4 && data[0] == 0xFF && data[1] == 0xD8 &&
+               data[data.size() - 2] == 0xFF &&
+               data[data.size() - 1] == 0xD9;
+}
+bool looksLikePng(const std::vector<unsigned char> &data)
+{
+        static const unsigned char pngHeader[8] = {
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        if (data.size() < 12)
+                return false;
+        if (memcmp(data.data(), pngHeader, 8) != 0)
+                return false;
+        // Look for IEND within last 16 bytes
+        for (size_t i = data.size() >= 16 ? data.size() - 16 : 0;
+             i + 3 < data.size(); ++i) {
+                if (memcmp(&data[i], "IEND", 4) == 0)
+                        return true;
+        }
+        return false;
+}
+bool looksLikeWebp(const std::vector<unsigned char> &data)
+{
+        return data.size() > 12 && memcmp(&data[0], "RIFF", 4) == 0 &&
+               memcmp(&data[8], "WEBP", 4) == 0;
+}
+
+std::string getImageExtension(const std::vector<unsigned char> &data)
+{
+        if (looksLikeJpeg(data))
+                return ".jpg";
+
+        if (looksLikePng(data))
+                return ".png";
+
+        if (looksLikeWebp(data))
+                return ".webp";
+
+        return ".jpg";
+}
+
+bool withImageExtension(std::string &filename,
+                        const std::vector<unsigned char> &data)
+{
+        std::string extension = getImageExtension(data);
+
+        if (extension.empty())
+                return false;
+
+        auto slashPos = filename.find_last_of("/\\");
+        auto dotPos = filename.find_last_of('.');
+
+        if (dotPos != std::string::npos &&
+            (slashPos == std::string::npos || dotPos > slashPos)) {
+                filename.erase(dotPos);
+        }
+
+        filename += extension;
+
+        return true;
+}
+
 #if HAVE_COMPLEXPROPERTIES
 
 bool extractCoverArtFromOgg(TagLib::FileRef *f,
-                            const std::string &outputFileName)
+                            std::string &outputFileName)
 {
         if (!f->file() || !f->file()->isOpen()) {
-                std::cerr
-                    << "Error: Could not open file"
-                    << std::endl;
+                std::cerr << "Error: Could not open file" << std::endl;
                 return false;
         }
 
@@ -346,29 +407,46 @@ bool extractCoverArtFromOgg(TagLib::FileRef *f,
                 return false;
         }
 
-        // Use the first picture found (usually the front cover)
         for (const auto &pic : pictures) {
                 auto it_data = pic.find("data");
 
                 if (it_data == pic.end())
-                        continue; // Skip if no data
+                        continue;
 
-                // Write the image data to a file
+                TagLib::ByteVector bv = it_data->second.toByteVector();
+
+                // Convert TagLib::ByteVector to std::vector<unsigned char>
+                std::vector<unsigned char> data(
+                    bv.data(),
+                    bv.data() + bv.size());
+
+                // Determine the correct output filename and extension
+                withImageExtension(outputFileName, data);
+
+                if (outputFileName.empty()) {
+                        std::cerr << "Unsupported or unknown cover image format.\n";
+                        continue;
+                }
+
                 std::ofstream outFile(outputFileName, std::ios::binary);
                 if (!outFile) {
-                        std::cerr << "Error: Could not write to output "
-                                     "file.\n";
+                        std::cerr << "Could not write to output file: "
+                                  << outputFileName << '\n';
                         return false;
                 }
-                TagLib::ByteVector bv = it_data->second.toByteVector();
+
                 outFile.write(bv.data(), bv.size());
-                outFile.close();
+
+                if (!outFile) {
+                        std::cerr << "Error while writing output file: "
+                                  << outputFileName << '\n';
+                        return false;
+                }
 
                 return true;
         }
 
-        std::cerr
-            << "No usable cover image found in complexProperties().\n";
+        std::cerr << "No usable cover image found in complexProperties().\n";
         return false;
 }
 
@@ -476,33 +554,6 @@ bool extractCoverArtFromOgg(TagLib::FileRef *f,
 
 #endif
 
-bool looksLikeJpeg(const std::vector<unsigned char> &data)
-{
-        return data.size() > 4 && data[0] == 0xFF && data[1] == 0xD8 &&
-               data[data.size() - 2] == 0xFF &&
-               data[data.size() - 1] == 0xD9;
-}
-bool looksLikePng(const std::vector<unsigned char> &data)
-{
-        static const unsigned char pngHeader[8] = {
-            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-        if (data.size() < 12)
-                return false;
-        if (memcmp(data.data(), pngHeader, 8) != 0)
-                return false;
-        // Look for IEND within last 16 bytes
-        for (size_t i = data.size() >= 16 ? data.size() - 16 : 0;
-             i + 3 < data.size(); ++i) {
-                if (memcmp(&data[i], "IEND", 4) == 0)
-                        return true;
-        }
-        return false;
-}
-bool looksLikeWebp(const std::vector<unsigned char> &data)
-{
-        return data.size() > 12 && memcmp(&data[0], "RIFF", 4) == 0 &&
-               memcmp(&data[8], "WEBP", 4) == 0;
-}
 bool isAudioOggStreamHeader(const ogg_packet &headerPacket)
 {
         if (headerPacket.bytes >= 7 && headerPacket.packet[0] == 0x01 &&
@@ -518,7 +569,7 @@ bool isAudioOggStreamHeader(const ogg_packet &headerPacket)
 }
 
 bool extractCoverArtFromOggVideo(const std::string &audioFilePath,
-                                 const std::string &outputFileName)
+                                 std::string &outputFileName)
 {
         FILE *oggFile = fopen(audioFilePath.c_str(), "rb");
         if (!oggFile) {
@@ -558,12 +609,12 @@ bool extractCoverArtFromOggVideo(const std::string &audioFilePath,
                                 isHeaderParsed[serialNo] = false;
                                 isAudioStream[serialNo] = false;
                         }
+
                         ogg_stream_state &os = streams[serialNo];
                         ogg_stream_pagein(&os, &og);
 
                         while (ogg_stream_packetout(&os, &op) == 1) {
-                                // Only decide on audio-ness for first
-                                // packet
+                                // Only decide on audio-ness for first packet
                                 if (!isHeaderParsed[serialNo]) {
                                         isAudioStream[serialNo] =
                                             isAudioOggStreamHeader(op);
@@ -572,17 +623,17 @@ bool extractCoverArtFromOggVideo(const std::string &audioFilePath,
                                         if (isAudioStream[serialNo])
                                                 continue;
                                 }
+
                                 if (!isAudioStream[serialNo]) {
-                                        // For image/video: collect all
-                                        // packets from this stream
+                                        // For image/video: collect all packets from this stream
                                         streamPackets[serialNo].insert(
-                                            streamPackets[serialNo]
-                                                .end(),
+                                            streamPackets[serialNo].end(),
                                             op.packet,
                                             op.packet + op.bytes);
                                 }
                         }
                 }
+
                 if (bytes == 0)
                         break;
         }
@@ -590,36 +641,48 @@ bool extractCoverArtFromOggVideo(const std::string &audioFilePath,
         // Clean up
         for (auto &entry : streams)
                 ogg_stream_clear(&(entry.second));
+
         ogg_sync_clear(&oy);
         fclose(oggFile);
 
         // Write out a valid image stream
-        for (auto &kv : streamPackets) {
+        for (const auto &kv : streamPackets) {
                 const auto &data = kv.second;
-                if (looksLikeJpeg(data) || looksLikePng(data) ||
-                    looksLikeWebp(data)) {
-                        std::ofstream outFile(outputFileName,
-                                              std::ios::binary);
-                        if (!outFile) {
-                                std::cerr << "Error: Could not write "
-                                             "to output file."
-                                          << std::endl;
-                                return false;
-                        }
-                        outFile.write(
-                            reinterpret_cast<const char *>(data.data()),
-                            data.size());
-                        outFile.close();
-                        return true;
+
+                withImageExtension(outputFileName, data);
+
+                if (outputFileName.empty())
+                        continue;
+
+                std::ofstream outFile(outputFileName, std::ios::binary);
+                if (!outFile) {
+                        std::cerr << "Error: Could not write to output file: "
+                                  << outputFileName << std::endl;
+                        return false;
                 }
+
+                outFile.write(
+                    reinterpret_cast<const char *>(data.data()),
+                    data.size());
+
+                if (!outFile) {
+                        std::cerr << "Error while writing output file: "
+                                  << outputFileName << std::endl;
+                        return false;
+                }
+
+                outFile.close();
+
+                return true;
         }
+
         std::cerr << "No embedded image stream found in file."
                   << std::endl;
         return false;
 }
 
 bool extractCoverArtFromMp3(TagLib::FileRef *f,
-                            const std::string &coverFilePath)
+                            std::string &coverFilePath)
 {
         TagLib::MPEG::File *file =
             dynamic_cast<TagLib::MPEG::File *>(f->file());
@@ -629,176 +692,211 @@ bool extractCoverArtFromMp3(TagLib::FileRef *f,
         }
 
         const TagLib::ID3v2::Tag *id3v2tag = file->ID3v2Tag();
-        if (id3v2tag) {
-                TagLib::ID3v2::FrameList frames =
-                    id3v2tag->frameList("APIC");
-
-                if (frames.isEmpty())
-                        frames = id3v2tag->frameList("PIC");
-
-                if (!frames.isEmpty()) {
-                        for (auto it = frames.begin();
-                             it != frames.end(); ++it) {
-                                const TagLib::ID3v2::
-                                    AttachedPictureFrame *picFrame =
-                                        dynamic_cast<
-                                            TagLib::ID3v2::
-                                                AttachedPictureFrame *>(
-                                            *it);
-                                if (picFrame) {
-                                        // Access picture data and MIME
-                                        // type
-                                        TagLib::ByteVector pictureData =
-                                            picFrame->picture();
-                                        TagLib::String mimeType =
-                                            picFrame->mimeType();
-
-                                        // Construct the output file
-                                        // path
-                                        std::string outputFilePath =
-                                            coverFilePath;
-
-                                        // Write the image data to a
-                                        // file
-                                        FILE *outFile = fopen(
-                                            outputFilePath.c_str(),
-                                            "wb");
-                                        if (outFile) {
-                                                fwrite(
-                                                    pictureData.data(),
-                                                    1,
-                                                    pictureData.size(),
-                                                    outFile);
-                                                fclose(outFile);
-
-                                                return true;
-                                        } else {
-                                                return false; // Failed
-                                                              // to open
-                                                              // output
-                                                              // file
-                                        }
-
-                                        // Break if only the first image
-                                        // is needed
-                                        break;
-                                }
-                        }
-                } else {
-                        return false; // No picture frames found
-                }
-        } else {
-                return false; // No ID3v2 tag found
+        if (!id3v2tag) {
+                return false;
         }
 
-        return true; // Success
-}
+        TagLib::ID3v2::FrameList frames =
+            id3v2tag->frameList("APIC");
 
-bool extractCoverArtFromFlac(TagLib::FileRef *f,
-                             const std::string &coverFilePath)
-{
-        TagLib::FLAC::File *file =
-            dynamic_cast<TagLib::FLAC::File *>(f->file());
+        if (frames.isEmpty())
+                frames = id3v2tag->frameList("PIC");
 
-        if (file->pictureList().size() > 0) {
-                const TagLib::FLAC::Picture *picture =
-                    file->pictureList().front();
-                if (picture) {
-                        FILE *coverFile =
-                            fopen(coverFilePath.c_str(), "wb");
-                        if (coverFile) {
-                                fwrite(picture->data().data(), 1,
-                                       picture->data().size(),
-                                       coverFile);
-                                fclose(coverFile);
-                                return true;
-                        } else {
-                                return false;
-                        }
+        if (frames.isEmpty()) {
+                return false;
+        }
+
+        for (auto it = frames.begin(); it != frames.end(); ++it) {
+                auto *picFrame =
+                    dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
+
+                if (!picFrame)
+                        continue;
+
+                TagLib::ByteVector pictureData = picFrame->picture();
+
+                // Convert TagLib::ByteVector to std::vector<unsigned char>
+                std::vector<unsigned char> data(
+                    pictureData.data(),
+                    pictureData.data() + pictureData.size());
+
+                // Determine the correct output filename and extension
+                withImageExtension(coverFilePath, data);
+
+                if (coverFilePath.empty()) {
+                        std::cerr << "Unsupported or unknown cover image format."
+                                  << std::endl;
+                        continue;
                 }
+
+                // Write the image data
+                FILE *outFile = fopen(coverFilePath.c_str(), "wb");
+                if (!outFile) {
+                        std::cerr << "Failed to open output file: "
+                                  << coverFilePath << std::endl;
+                        return false;
+                }
+
+                size_t written = fwrite(
+                    pictureData.data(),
+                    1,
+                    pictureData.size(),
+                    outFile);
+
+                fclose(outFile);
+
+                if (written != pictureData.size()) {
+                        std::cerr << "Failed to write complete image to: "
+                                  << coverFilePath << std::endl;
+                        return false;
+                }
+
+                return true;
         }
 
         return false;
 }
 
-bool extractCoverArtFromWav(TagLib::FileRef *f,
-                            const std::string &coverFilePath)
+bool extractCoverArtFromFlac(TagLib::FileRef *f,
+                             std::string &coverFilePath)
 {
+        TagLib::FLAC::File *file =
+            dynamic_cast<TagLib::FLAC::File *>(f->file());
 
+        if (!file || !file->isValid()) {
+                return false;
+        }
+
+        if (file->pictureList().isEmpty()) {
+                return false;
+        }
+
+        const TagLib::FLAC::Picture *picture =
+            file->pictureList().front();
+
+        if (!picture) {
+                return false;
+        }
+
+        TagLib::ByteVector pictureData = picture->data();
+
+        // Convert TagLib::ByteVector to std::vector<unsigned char>
+        std::vector<unsigned char> data(
+            pictureData.data(),
+            pictureData.data() + pictureData.size());
+
+        // Determine the correct output filename and extension
+        withImageExtension(coverFilePath, data);
+
+        if (coverFilePath.empty()) {
+                std::cerr << "Unsupported or unknown cover image format."
+                          << std::endl;
+                return false;
+        }
+
+        FILE *coverFile =
+            fopen(coverFilePath.c_str(), "wb");
+
+        if (!coverFile) {
+                std::cerr << "Could not open output file: "
+                          << coverFilePath << std::endl;
+                return false;
+        }
+
+        size_t written = fwrite(
+            pictureData.data(),
+            1,
+            pictureData.size(),
+            coverFile);
+
+        fclose(coverFile);
+
+        if (written != pictureData.size()) {
+                std::cerr << "Failed to write complete image to: "
+                          << coverFilePath << std::endl;
+                return false;
+        }
+
+        return true;
+}
+
+bool extractCoverArtFromWav(TagLib::FileRef *f,
+                            std::string &coverFilePath)
+{
         TagLib::RIFF::WAV::File *file =
             dynamic_cast<TagLib::RIFF::WAV::File *>(f->file());
-        if (!file->isValid()) {
+
+        if (!file || !file->isValid()) {
                 return false;
         }
 
         const TagLib::ID3v2::Tag *id3v2tag = file->ID3v2Tag();
-        if (id3v2tag) {
-                TagLib::ID3v2::FrameList frames =
-                    id3v2tag->frameList("APIC");
-
-                if (frames.isEmpty())
-                        frames = id3v2tag->frameList("PIC");
-
-                if (!frames.isEmpty()) {
-                        for (auto it = frames.begin();
-                             it != frames.end(); ++it) {
-                                const TagLib::ID3v2::
-                                    AttachedPictureFrame *picFrame =
-                                        dynamic_cast<
-                                            TagLib::ID3v2::
-                                                AttachedPictureFrame *>(
-                                            *it);
-                                if (picFrame) {
-                                        // Access picture data and MIME
-                                        // type
-                                        TagLib::ByteVector pictureData =
-                                            picFrame->picture();
-                                        TagLib::String mimeType =
-                                            picFrame->mimeType();
-
-                                        // Construct the output file
-                                        // path
-                                        std::string outputFilePath =
-                                            coverFilePath;
-
-                                        // Write the image data to a
-                                        // file
-                                        FILE *outFile = fopen(
-                                            outputFilePath.c_str(),
-                                            "wb");
-                                        if (outFile) {
-                                                fwrite(
-                                                    pictureData.data(),
-                                                    1,
-                                                    pictureData.size(),
-                                                    outFile);
-                                                fclose(outFile);
-
-                                                return true;
-                                        } else {
-                                                return false; // Failed
-                                                              // to open
-                                                              // output
-                                                              // file
-                                        }
-
-                                        // Break if only the first image
-                                        // is needed
-                                        break;
-                                }
-                        }
-                } else {
-                        return false; // No picture frames found
-                }
-        } else {
-                return false; // No ID3v2 tag found
+        if (!id3v2tag) {
+                return false;
         }
 
-        return true; // Success
+        TagLib::ID3v2::FrameList frames =
+            id3v2tag->frameList("APIC");
+
+        if (frames.isEmpty())
+                frames = id3v2tag->frameList("PIC");
+
+        if (frames.isEmpty()) {
+                return false;
+        }
+
+        for (auto it = frames.begin(); it != frames.end(); ++it) {
+                auto *picFrame =
+                    dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
+
+                if (!picFrame)
+                        continue;
+
+                TagLib::ByteVector pictureData = picFrame->picture();
+
+                // Convert TagLib::ByteVector to std::vector<unsigned char>
+                std::vector<unsigned char> data(
+                    pictureData.data(),
+                    pictureData.data() + pictureData.size());
+
+                // Determine the correct output filename and extension
+                withImageExtension(coverFilePath, data);
+
+                if (coverFilePath.empty()) {
+                        std::cerr << "Unsupported or unknown cover image format."
+                                  << std::endl;
+                        continue;
+                }
+
+                FILE *outFile = fopen(coverFilePath.c_str(), "wb");
+                if (!outFile) {
+                        std::cerr << "Failed to open output file: "
+                                  << coverFilePath << std::endl;
+                        return false;
+                }
+
+                size_t written = fwrite(
+                    pictureData.data(),
+                    1,
+                    pictureData.size(),
+                    outFile);
+
+                fclose(outFile);
+
+                if (written != pictureData.size()) {
+                        std::cerr << "Failed to write complete image to: "
+                                  << coverFilePath << std::endl;
+                        return false;
+                }
+
+                return true;
+        }
+
+        return false;
 }
 
 bool extractCoverArtFromOpus(const std::string &audioFilePath,
-                             const std::string &outputFileName)
+                             std::string &outputFileName)
 {
         int error;
         OggOpusFile *of = op_open_file(audioFilePath.c_str(), &error);
@@ -816,26 +914,23 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
                 return false;
         }
 
-        // Search through the metadata for an attached picture (if
-        // present)
+        // Search through the metadata for an attached picture (if present)
         for (int i = 0; i < tags->comments; ++i) {
-                // Check for METADATA_BLOCK_PICTURE
                 const char *comment = tags->user_comments[i];
+
                 if (strncasecmp(comment,
                                 "METADATA_BLOCK_PICTURE=", 23) == 0) {
-                        // Extract the value after
-                        // "METADATA_BLOCK_PICTURE="
+
+                        // Extract the value after "METADATA_BLOCK_PICTURE="
                         std::string metadataBlockPicture(comment + 23);
 
-                        // Base64-decode this value to get the binary
-                        // PICTURE block
+                        // Base64-decode this value to get the binary PICTURE block
                         std::vector<unsigned char> pictureBlock =
                             decodeBase64(metadataBlockPicture);
 
                         if (pictureBlock.empty()) {
-                                std::cerr
-                                    << "Failed to decode Base64 data."
-                                    << std::endl;
+                                std::cerr << "Failed to decode Base64 data."
+                                          << std::endl;
                                 op_free(of);
                                 return false;
                         }
@@ -863,11 +958,11 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
                         offset += 4;
 
                         // Read MIME TYPE
-                        if (offset + mimeTypeLength >
-                            pictureBlock.size()) {
+                        if (offset + mimeTypeLength > pictureBlock.size()) {
                                 op_free(of);
                                 return false;
                         }
+
                         offset += mimeTypeLength;
 
                         // Read DESCRIPTION LENGTH
@@ -877,13 +972,12 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
                         offset += 4;
 
                         // Read DESCRIPTION
-                        if (offset + descriptionLength >
-                            pictureBlock.size()) {
+                        if (offset + descriptionLength > pictureBlock.size()) {
                                 op_free(of);
                                 return false;
                         }
+
                         offset += descriptionLength;
-                        // Optionally print or ignore description
 
                         // Read WIDTH
                         read_uint32_be(pictureBlock.data(),
@@ -894,7 +988,6 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
                         read_uint32_be(pictureBlock.data(),
                                        pictureBlock.size(), offset);
                         offset += 4;
-                        ;
 
                         // Read COLOR DEPTH
                         read_uint32_be(pictureBlock.data(),
@@ -913,9 +1006,8 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
                         offset += 4;
 
                         if (offset + dataLength > pictureBlock.size()) {
-                                std::cerr
-                                    << "Invalid image data length."
-                                    << std::endl;
+                                std::cerr << "Invalid image data length."
+                                          << std::endl;
                                 op_free(of);
                                 return false;
                         }
@@ -925,19 +1017,40 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
                             pictureBlock.begin() + offset,
                             pictureBlock.begin() + offset + dataLength);
 
+                        // Determine the correct output filename.
+                        // If the format is unknown, keep the original filename
+                        // rather than failing like the previous version did.
+                        withImageExtension(outputFileName, imageData);
+
+                        if (outputFileName.empty()) {
+                                // Preserve the original behavior for an image format
+                                // that our signature checks don't recognize.
+                                std::cerr << "Warning: Unknown image format; "
+                                             "using output filename as provided: "
+                                          << outputFileName << std::endl;
+                        }
+
                         // Save image data to file
-                        std::ofstream outFile(outputFileName,
-                                              std::ios::binary);
+                        std::ofstream outFile(outputFileName, std::ios::binary);
                         if (!outFile) {
                                 std::cerr << "Error: Could not write "
-                                             "to output file."
-                                          << std::endl;
+                                             "to output file: "
+                                          << outputFileName << std::endl;
                                 op_free(of);
                                 return false;
                         }
-                        outFile.write(reinterpret_cast<const char *>(
-                                          imageData.data()),
-                                      imageData.size());
+
+                        outFile.write(
+                            reinterpret_cast<const char *>(imageData.data()),
+                            imageData.size());
+
+                        if (!outFile) {
+                                std::cerr << "Error while writing output file: "
+                                          << outputFileName << std::endl;
+                                op_free(of);
+                                return false;
+                        }
+
                         outFile.close();
 
                         op_free(of);
@@ -951,43 +1064,72 @@ bool extractCoverArtFromOpus(const std::string &audioFilePath,
 }
 
 bool extractCoverArtFromMp4(TagLib::FileRef *f,
-                            const std::string &coverFilePath)
+                            std::string &coverFilePath)
 {
-
         TagLib::MP4::File *file =
             dynamic_cast<TagLib::MP4::File *>(f->file());
 
-        if (!file->isValid()) {
+        if (!file || !file->isValid()) {
                 return false;
         }
 
-        const TagLib::MP4::Item coverItem = file->tag()->item("covr");
+        const TagLib::MP4::Item coverItem =
+            file->tag()->item("covr");
 
-        if (coverItem.isValid()) {
-                TagLib::MP4::CoverArtList coverArtList =
-                    coverItem.toCoverArtList();
-                if (!coverArtList.isEmpty()) {
-                        const TagLib::MP4::CoverArt &coverArt =
-                            coverArtList.front();
-                        FILE *coverFile =
-                            fopen(coverFilePath.c_str(), "wb");
-                        if (coverFile) {
-                                fwrite(coverArt.data().data(), 1,
-                                       coverArt.data().size(),
-                                       coverFile);
-                                fclose(coverFile);
-                                return true; // Success
-                        } else {
-                                fprintf(
-                                    stderr, "Could not open output file '%s'\n",
-                                    coverFilePath.c_str());
-                                return false; // Failed to open the
-                                              // output file
-                        }
-                }
+        if (!coverItem.isValid()) {
+                return false;
         }
 
-        return false; // No valid cover item or cover art found
+        TagLib::MP4::CoverArtList coverArtList =
+            coverItem.toCoverArtList();
+
+        if (coverArtList.isEmpty()) {
+                return false;
+        }
+
+        const TagLib::MP4::CoverArt &coverArt =
+            coverArtList.front();
+
+        TagLib::ByteVector pictureData = coverArt.data();
+
+        // Convert TagLib::ByteVector to std::vector<unsigned char>
+        std::vector<unsigned char> data(
+            pictureData.data(),
+            pictureData.data() + pictureData.size());
+
+        // Determine the correct output filename and extension
+        withImageExtension(coverFilePath, data);
+
+        if (coverFilePath.empty()) {
+                std::cerr << "Unsupported or unknown cover image format."
+                          << std::endl;
+                return false;
+        }
+
+        FILE *coverFile =
+            fopen(coverFilePath.c_str(), "wb");
+
+        if (!coverFile) {
+                std::cerr << "Could not open output file '"
+                          << coverFilePath << "'\n";
+                return false;
+        }
+
+        size_t written = fwrite(
+            pictureData.data(),
+            1,
+            pictureData.size(),
+            coverFile);
+
+        fclose(coverFile);
+
+        if (written != pictureData.size()) {
+                std::cerr << "Failed to write complete image to '"
+                          << coverFilePath << "'\n";
+                return false;
+        }
+
+        return true;
 }
 
 void trimcpp(std::string &str)
@@ -1083,8 +1225,8 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
 {
         size_t capacity = 64;
         lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
-        for (auto line: lines) {
-            parseTimedLyricsLine((char*)line.toCString(true), lyrics, &capacity);
+        for (auto line : lines) {
+                parseTimedLyricsLine((char *)line.toCString(true), lyrics, &capacity);
         }
         lyrics->isTimed = 1;
         return (lyrics->count > 0);
@@ -1316,10 +1458,9 @@ static bool loadLyricsFromSYLTTag(TagLib::ID3v2::Tag *id3v2Tag, Lyrics **lyricsO
                         double timestamp = lyric.time / 1000.0;
                         lyrics->lines[lyrics->count].timestamp = timestamp; // ms → s
                         if (strchr(start, '<') == NULL) {
-                            lyrics->lines[lyrics->count].text = strdup(start);
-                        }
-                        else {
-                            parseKaraokeLine(start, lyrics, timestamp);
+                                lyrics->lines[lyrics->count].text = strdup(start);
+                        } else {
+                                parseKaraokeLine(start, lyrics, timestamp);
                         }
                         free(text);
 
@@ -1555,44 +1696,44 @@ static std::string extractFirstUrl(const std::string &text)
 
 bool isAllowedUrl(std::string &url)
 {
-    if (url.empty())
-        return false;
+        if (url.empty())
+                return false;
 
-    size_t hostStart;
-    if (url.compare(0, 7, "http://") == 0)
-        hostStart = 7;
-    else if (url.compare(0, 8, "https://") == 0)
-        hostStart = 8;
-    else {
+        size_t hostStart;
+        if (url.compare(0, 7, "http://") == 0)
+                hostStart = 7;
+        else if (url.compare(0, 8, "https://") == 0)
+                hostStart = 8;
+        else {
+                url.clear();
+                return false;
+        }
+
+        size_t hostEnd = url.find_first_of("/:?#", hostStart);
+        std::string host = url.substr(
+            hostStart,
+            hostEnd == std::string::npos ? std::string::npos : hostEnd - hostStart);
+
+        if (host.compare(0, 4, "www.") == 0)
+                host.erase(0, 4);
+
+        for (const auto &allowed : kAllowedDomains) {
+                if (host == allowed)
+                        return true;
+
+                if (host.size() > allowed.size() &&
+                    host.compare(host.size() - allowed.size(),
+                                 allowed.size(), allowed) == 0 &&
+                    host[host.size() - allowed.size() - 1] == '.')
+                        return true;
+        }
+
         url.clear();
         return false;
-    }
-
-    size_t hostEnd = url.find_first_of("/:?#", hostStart);
-    std::string host = url.substr(
-        hostStart,
-        hostEnd == std::string::npos ? std::string::npos : hostEnd - hostStart);
-
-    if (host.compare(0, 4, "www.") == 0)
-        host.erase(0, 4);
-
-    for (const auto &allowed : kAllowedDomains) {
-        if (host == allowed)
-            return true;
-
-        if (host.size() > allowed.size() &&
-            host.compare(host.size() - allowed.size(),
-                         allowed.size(), allowed) == 0 &&
-            host[host.size() - allowed.size() - 1] == '.')
-            return true;
-    }
-
-    url.clear();
-    return false;
 }
 
 int extractTags(const char *input_file, TagSettings *tag_settings,
-                double *duration, const char *coverFilePath, Lyrics **lyrics, bool get_url)
+                double *duration, char *coverFilePath, Lyrics **lyrics, bool get_url)
 {
         memset(tag_settings, 0,
                sizeof(TagSettings)); // Initialize tag settings
@@ -1694,10 +1835,10 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                 if (!url.empty() && isAllowedUrl(url)) {
 
                         c_strcpy(tag_settings->url,
-                         url.c_str(),
-                         sizeof(tag_settings->url) - 1);
+                                 url.c_str(),
+                                 sizeof(tag_settings->url) - 1);
 
-                         tag_settings->url[sizeof(tag_settings->url) - 1] = '\0';
+                        tag_settings->url[sizeof(tag_settings->url) - 1] = '\0';
                 }
         }
 
@@ -1816,33 +1957,41 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
         std::string extension = toLower(filename.substr(filename.find_last_of('.') + 1));
         bool coverArtExtracted = false;
 
+        std::string coverFilePathStr = coverFilePath;
+
         if (extension == "mp3") {
                 coverArtExtracted =
-                    extractCoverArtFromMp3(&f, coverFilePath);
+                    extractCoverArtFromMp3(&f, coverFilePathStr);
         } else if (extension == "flac") {
                 coverArtExtracted =
-                    extractCoverArtFromFlac(&f, coverFilePath);
+                    extractCoverArtFromFlac(&f, coverFilePathStr);
         } else if (extension == "m4a" || extension == "aac") {
                 coverArtExtracted =
-                    extractCoverArtFromMp4(&f, coverFilePath);
+                    extractCoverArtFromMp4(&f, coverFilePathStr);
         }
         if (extension == "opus") {
                 coverArtExtracted =
-                    extractCoverArtFromOpus(input_file, coverFilePath);
+                    extractCoverArtFromOpus(input_file, coverFilePathStr);
         } else if (extension == "ogg") {
                 coverArtExtracted =
-                    extractCoverArtFromOgg(&f, coverFilePath);
+                    extractCoverArtFromOgg(&f, coverFilePathStr);
 
                 if (!coverArtExtracted) {
                         coverArtExtracted = extractCoverArtFromOggVideo(
-                            input_file, coverFilePath);
+                            input_file, coverFilePathStr);
                 }
         } else if (extension == "wav" || extension == "aiff") {
                 coverArtExtracted =
-                    extractCoverArtFromWav(&f, coverFilePath);
+                    extractCoverArtFromWav(&f, coverFilePathStr);
         }
 
         if (coverArtExtracted) {
+                strncpy(coverFilePath,
+                        coverFilePathStr.c_str(),
+                        KEW_PATH_MAX - 1);
+
+                coverFilePath[KEW_PATH_MAX - 1] = '\0';
+
                 return 0;
         } else {
                 return -1;
