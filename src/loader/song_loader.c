@@ -4,6 +4,9 @@
  * Responsible for loading song data from file
  */
 
+#define twp_IMPLEMENTATION
+#include "../include/tinywebp/tiny_webp.h"
+
 #include "song_loader.h"
 
 #include "common/appstate.h"
@@ -369,6 +372,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 if (_wcsicmp(ext, L".jpg") != 0 &&
                     _wcsicmp(ext, L".jpeg") != 0 &&
                     _wcsicmp(ext, L".png") != 0 &&
+                    _wcsicmp(ext, L".webp") != 0 &&
                     _wcsicmp(ext, L".gif") != 0)
                         continue;
 
@@ -464,6 +468,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                             (strcasecmp(extension, ".jpg") == 0 ||
                              strcasecmp(extension, ".jpeg") == 0 ||
                              strcasecmp(extension, ".png") == 0 ||
+                             strcasecmp(extension, ".webp") == 0 ||
                              strcasecmp(extension, ".gif") == 0)) {
                                 // Ensure non-negative file size and prevent
                                 // integer overflow
@@ -535,12 +540,11 @@ void load_meta_data(SongData *songdata)
         generate_temp_file_path(songdata->cover_art_path, KEW_PATH_MAX, "cover", ".jpg");
 
         int res = extractTags(songdata->file_path, songdata->metadata,
-                &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
+                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
 
         if (!songdata->lyrics) {
 
-                songdata->lyrics = loadLyricsFromLRC(songdata->file_path,songdata);
-
+                songdata->lyrics = loadLyricsFromLRC(songdata->file_path, songdata);
         }
 
         if (res == -2) {
@@ -574,8 +578,7 @@ void load_meta_data(SongData *songdata)
                 char library_expanded[KEW_PATH_MAX];
                 bool search_sub_dirs = true;
 
-                if (expand_path(model->library->full_path, library_expanded, KEW_PATH_MAX) >= 0)
-                {
+                if (expand_path(model->library->full_path, library_expanded, KEW_PATH_MAX) >= 0) {
                         search_sub_dirs = !paths_equal(path, library_expanded);
                 }
 
@@ -587,7 +590,7 @@ void load_meta_data(SongData *songdata)
 
                 if (tmp != NULL) {
                         c_strcpy(songdata->cover_art_path, tmp,
-                                sizeof(songdata->cover_art_path));
+                                 sizeof(songdata->cover_art_path));
 
                         k_log("load_meta_data: largest image file found, path: '%s'\n", songdata->cover_art_path);
 
@@ -595,7 +598,7 @@ void load_meta_data(SongData *songdata)
                         tmp = NULL;
                 } else {
                         c_strcpy(songdata->cover_art_path, "",
-                                sizeof(songdata->cover_art_path));
+                                 sizeof(songdata->cover_art_path));
 
                         k_log("load_meta_data: no image file found, path: '%s'\n", songdata->cover_art_path);
                 }
@@ -603,8 +606,18 @@ void load_meta_data(SongData *songdata)
                 add_to_cache(tmpCache, songdata->cover_art_path);
         }
 
-        songdata->cover = get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
-                &(songdata->coverHeight));
+#ifdef _WIN32
+        const wchar_t *ext = wcsrchr(songdata->cover_art_path, L'.');
+        if (_wcsicmp(ext, L".webp") == 0) {
+ #else
+        char *extension = strrchr(songdata->cover_art_path, '.');
+        if (strcasecmp(extension, ".webp") == 0) {
+ #endif
+                songdata->cover = twp_read(songdata->cover_art_path, &(songdata->coverWidth), &(songdata->coverHeight), twp_FORMAT_RGBA, 0);
+        } else {
+
+                songdata->cover = get_bitmap(songdata->cover_art_path, &(songdata->coverWidth), &(songdata->coverHeight));
+        }
 
         // Fetch homepage from artist db
         if (model->state.settings.useAristsLink) {
@@ -624,8 +637,8 @@ void load_meta_data(SongData *songdata)
 
                         if (homepage) {
                                 c_strcpy(songdata->metadata->url,
-                                        homepage,
-                                        sizeof(songdata->metadata->url) - 1);
+                                         homepage,
+                                         sizeof(songdata->metadata->url) - 1);
                         }
                 }
         }
@@ -692,9 +705,9 @@ SongData *songdata_clone(const SongData *src)
                                     src->lyrics->lines[i].numberOfTimestamps;
 
                                 if (dst->lyrics->isKaraoke) {
-                                    memcpy(dst->lyrics->lines[i].timestampArray,
-                                           src->lyrics->lines[i].timestampArray,
-                                           METADATA_MAX_LENGTH * sizeof(double));
+                                        memcpy(dst->lyrics->lines[i].timestampArray,
+                                               src->lyrics->lines[i].timestampArray,
+                                               METADATA_MAX_LENGTH * sizeof(double));
                                 }
 
                                 if (src->lyrics->lines[i].text) {
