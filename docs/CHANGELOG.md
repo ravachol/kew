@@ -20,6 +20,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Clear search query when switching views (but search results stay).
 
+- Add webp cover support. Uses tinywebp (BSD-3 License). Suggested by @hashfoeW.
+
 #### Bug fixes:
 
 - Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
