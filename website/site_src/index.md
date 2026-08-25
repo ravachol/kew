@@ -10,11 +10,11 @@ kew is designed for those who want:
 ✅ Fair compensation for artists (by supporting owned music).
 
 <div align="center">
-  <a href="https://www.qobuz.com/album/greatest-hits-the-cure/0073145894322">
+  <a href="https://liminal-band.bandcamp.com/track/the-crop-3">
     <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot" />
   </a>
   <br />
-  <i><a href="https://www.qobuz.com/album/greatest-hits-the-cure/0073145894322">The Cure Greatest Hits</a>. Not affiliated with us.</i>
+  <i><a href="https://liminal-band.bandcamp.com/track/the-crop-3">Liminal - The Crop</a></i>
 </div>
 
 <br />
