@@ -8,7 +8,6 @@
  */
 
 #include "common/appstate.h"
-#include "common/common.h"
 #include "common/model.h"
 
 #include "ui/common_ui.h"
@@ -551,12 +550,46 @@ void free_image_payload(ImagePayload **img)
 }
 
 int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
-                              unsigned char *pixels, int width, int height, int max_width,
+                              const unsigned char *pixels, int width, int height, int max_width,
                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
 {
         int cell_width = 8;
         int cell_height = 16;
+
+        // Validate arguments.
+        if (!buf || !buf->cells || !term_size || !pixels) {
+                k_log("Invalid draw arguments.");
+                return 0;
+        }
+
+        if (buf->rows <= 0 || buf->cols <= 0) {
+                k_log("Invalid draw buffer dimensions.");
+                return 0;
+        }
+
+        if (width <= 0 || height <= 0) {
+                k_log("Invalid image dimensions.");
+                return 0;
+        }
+
+        if (max_width <= 0 || base_height <= 0) {
+                k_log("Invalid requested image dimensions.");
+                return 0;
+        }
+
+        // Validate RGBA8 buffer size.
+        if ((size_t)width > SIZE_MAX / 4) {
+                k_log("Image width overflow.");
+                return 0;
+        }
+
+        size_t stride = (size_t)width * 4;
+
+        if ((size_t)height > SIZE_MAX / stride) {
+                k_log("Image size overflow.");
+                return 0;
+        }
 
 #ifdef _WIN32
         // Use the default monospace cell ratio.
@@ -578,7 +611,8 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 #endif
 
 #ifdef DEBUG
-        k_log("img_func entered");
+        k_log("img_func entered: pixels=%p width=%d height=%d",
+              (const void *)pixels, width, height);
 #endif
 
         if (cell_width <= 0 || cell_height <= 0) {
@@ -586,27 +620,21 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 return 0;
         }
 
-        if (width == 0 || height == 0 || !pixels) {
-                k_log("Invalid image dimensions / no pixels.");
-                return 0;
-        }
-
-        // Terminal cell aspect ratio
-        // Terminal cell correction
+        // Terminal cell aspect ratio.
         float cell_ratio = (float)cell_height / (float)cell_width;
 
-        // Source image aspect
+        // Source image aspect.
         float image_ratio = (float)width / (float)height;
 
-        // Keep requested height
+        // Keep requested height.
         int corrected_height = base_height;
 
-        // Calculate width in terminal cells
+        // Calculate width in terminal cells.
         int corrected_width = (int)(corrected_height *
                                     image_ratio *
                                     cell_ratio);
 
-        // If too wide, limit width and reduce height
+        // If too wide, limit width and reduce height.
         if (corrected_width > max_width) {
 
                 corrected_width = max_width;
@@ -615,7 +643,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                                          (image_ratio * cell_ratio));
         }
 
-        // Minimum size
+        // Minimum size.
         if (corrected_width < 1)
                 corrected_width = 1;
 
@@ -623,27 +651,32 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 corrected_height = 1;
 
         if (term_size->cols > 0 && corrected_width > term_size->cols) {
-                k_log("Invalid terminal dimensions.\n");
+                k_log("Invalid terminal dimensions.");
                 return 0;
         }
 
         if (term_size->rows > 0 && corrected_height > term_size->rows) {
-                k_log("Invalid terminal dimensions.\n");
+                k_log("Invalid terminal dimensions.");
                 return 0;
         }
 
         if (centered && term_size->cols > 0)
                 col = ((term_size->cols - corrected_width) / 2) + 1;
 
-        // Bounds check
+        // Bounds check.
         if (row < 0 || row >= buf->rows || col < 0 || col >= buf->cols) {
-                k_log("Bounds check failed.\n");
+                k_log("Bounds check failed.");
                 return 0;
         }
 
         Model *model = get_model();
+
+        if (!model) {
+                k_log("get_model() returned NULL.");
+                return 0;
+        }
+
         // Store the encoded blob in an ImagePayload and place it in the buffer.
-        // The terminal backend emits it verbatim at commit time — same as sixels.
         ImagePayload *img = calloc(1, sizeof(ImagePayload));
         if (!img) {
                 return 0;
@@ -659,7 +692,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         if (!just_mark_cover) {
                 GString *printable = convert_image(
                     pixels, width, height,
-                    width * 4,
+                    stride,
                     CHAFA_PIXEL_RGBA8_UNASSOCIATED,
                     corrected_width, corrected_height,
                     cell_width, cell_height, cover_style);
@@ -671,6 +704,11 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
                 img->data_len = printable->len;
                 img->data = (uint8_t *)g_string_free(printable, FALSE);
+
+                if (!img->data && img->data_len > 0) {
+                        free(img);
+                        return 0;
+                }
         }
 
         printf("\033[%d;%dH", row, col);
