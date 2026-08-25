@@ -52,6 +52,8 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
                 ps->loadedNextSong = true;
                 ps->skipping = false;
                 ps->songLoading = false;
+                ps->songHasErrors = true;
+
                 return;
         }
 
