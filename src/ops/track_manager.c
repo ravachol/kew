@@ -53,7 +53,7 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
                 ps->skipping = false;
                 ps->songLoading = false;
                 ps->songHasErrors = true;
-
+                k_log("load_song: song was null");
                 return;
         }
 
