@@ -526,6 +526,7 @@ int load_color(SongData *songdata)
 void load_meta_data(SongData *songdata)
 {
         Model *model = get_model();
+        bool found_image = false;
         char path[KEW_PATH_MAX];
 
         songdata->metadata = malloc(sizeof(TagSettings));
@@ -596,6 +597,7 @@ void load_meta_data(SongData *songdata)
 
                         free(tmp);
                         tmp = NULL;
+                        found_image = true;
                 } else {
                         c_strcpy(songdata->cover_art_path, "",
                                  sizeof(songdata->cover_art_path));
@@ -604,14 +606,15 @@ void load_meta_data(SongData *songdata)
                 }
         } else {
                 add_to_cache(tmpCache, songdata->cover_art_path);
+                found_image = true;
         }
 
 #ifdef _WIN32
         const wchar_t *ext = wcsrchr(songdata->cover_art_path, L'.');
-        if (ext && _wcsicmp(ext, L".webp") == 0) {
+        if (found_image && ext && _wcsicmp(ext, L".webp") == 0) {
  #else
         char *extension = strrchr(songdata->cover_art_path, '.');
-        if (extension && strcasecmp(extension, ".webp") == 0) {
+        if (found_image && extension && strcasecmp(extension, ".webp") == 0) {
  #endif
                 songdata->cover = twp_read(songdata->cover_art_path, &(songdata->coverWidth), &(songdata->coverHeight), twp_FORMAT_RGBA, 0);
         } else {
