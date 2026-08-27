@@ -301,10 +301,81 @@ void switch_current_decoder(sound_system_t *sound)
         pthread_mutex_unlock(&ps->switch_mutex);
 }
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__ANDROID__) && defined(USE_DBUS)
 
+#include <errno.h>
+#include <gio/gio.h>
+#include <string.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+
+#define RTKIT_CALL_TIMEOUT_MS 2000
+#define RTKIT_RTTIME_USEC_DEFAULT 200000
+
+static gint64 rtkit_rttime_usec_max(GDBusConnection *bus)
+{
+        GVariant *reply = g_dbus_connection_call_sync(
+                bus,
+                "org.freedesktop.RealtimeKit1",
+                "/org/freedesktop/RealtimeKit1",
+                "org.freedesktop.DBus.Properties",
+                "Get",
+                g_variant_new("(ss)", "org.freedesktop.RealtimeKit1",
+                              "RTTimeUSecMax"),
+                NULL,
+                G_DBUS_CALL_FLAGS_NONE,
+                RTKIT_CALL_TIMEOUT_MS,
+                NULL,
+                NULL);
+
+        if (reply == NULL)
+                return RTKIT_RTTIME_USEC_DEFAULT;
+
+        gint64 usec = RTKIT_RTTIME_USEC_DEFAULT;
+        GVariant *value = NULL;
+
+        g_variant_get(reply, "(v)", &value);
+
+        if (value != NULL) {
+                if (g_variant_is_of_type(value, G_VARIANT_TYPE_INT64))
+                        usec = g_variant_get_int64(value);
+                g_variant_unref(value);
+        }
+
+        g_variant_unref(reply);
+
+        return usec > 0 ? usec : RTKIT_RTTIME_USEC_DEFAULT;
+}
+
+// RTKit refuses to grant realtime unless our RLIMIT_RTTIME hard limit is finite
+// and no larger than the RTTimeUSecMax it advertises. Lowering our own limit
+// needs no privileges, so there is nothing for the user to configure.
+
+static bool lower_rttime_limit_for_rtkit(GDBusConnection *bus)
+{
+        struct rlimit limit;
+
+        if (getrlimit(RLIMIT_RTTIME, &limit) != 0)
+                return false;
+
+        rlim_t allowed = (rlim_t)rtkit_rttime_usec_max(bus);
+
+        if (limit.rlim_max != RLIM_INFINITY && limit.rlim_max <= allowed)
+                return true;
+
+        limit.rlim_max = allowed;
+
+        if (limit.rlim_cur == RLIM_INFINITY || limit.rlim_cur > allowed)
+                limit.rlim_cur = allowed;
+
+        if (setrlimit(RLIMIT_RTTIME, &limit) != 0) {
+                k_log("RTKit: could not lower RLIMIT_RTTIME: %s",
+                      strerror(errno));
+                return false;
+        }
+
+        return true;
+}
 
 static bool set_decode_thread_priority_rtkit(void)
 {
@@ -321,6 +392,8 @@ static bool set_decode_thread_priority_rtkit(void)
                 return false;
         }
 
+        lower_rttime_limit_for_rtkit(bus);
+
         /* First try realtime scheduling. */
         GVariant *result = g_dbus_connection_call_sync(
                 bus,
@@ -331,7 +404,7 @@ static bool set_decode_thread_priority_rtkit(void)
                 g_variant_new("(tu)", (guint64)tid, (guint32)1),
                 NULL,
                 G_DBUS_CALL_FLAGS_NONE,
-                -1,
+                RTKIT_CALL_TIMEOUT_MS,
                 NULL,
                 &error);
 
@@ -359,7 +432,7 @@ static bool set_decode_thread_priority_rtkit(void)
                 g_variant_new("(ti)", (guint64)tid, nice_level),
                 NULL,
                 G_DBUS_CALL_FLAGS_NONE,
-                -1,
+                RTKIT_CALL_TIMEOUT_MS,
                 NULL,
                 &error);
 
@@ -384,7 +457,12 @@ static bool set_decode_thread_priority_rtkit(void)
 
 void set_decode_thread_priority(pthread_t thread)
 {
-#if defined(__linux__)
+        // Android defines __linux__, so it has to be handled before the generic
+        // Linux branch or it never gets its own priority.
+#if defined(__ANDROID__)
+        (void)thread;
+        setpriority(PRIO_PROCESS, 0, -8);
+#elif defined(__linux__)
 
         struct sched_param param = {.sched_priority = 1};
         int ret = pthread_setschedparam(thread, SCHED_RR, &param);
@@ -393,6 +471,7 @@ void set_decode_thread_priority(pthread_t thread)
 
                 // Direct SCHED_RR may fail because the process doesn't have CAP_SYS_NICE or an appropriate RLIMIT_RTPRIO.
 
+#if defined(USE_DBUS)
                 // Ask RTKit to grant realtime priority to this thread.
                 // If that isn't available, fall back to nice(-5).
 
@@ -403,6 +482,10 @@ void set_decode_thread_priority(pthread_t thread)
                 else {
                         k_log("decode_loop: thread priority, rtkit used");
                }
+#else
+                setpriority(PRIO_PROCESS, 0, -5);
+                k_log("decode_loop: thread priority, nice -5 used");
+#endif
         }
         else {
                         k_log("decode_loop: thread priority, SCHED_RR used directly");
@@ -419,9 +502,6 @@ void set_decode_thread_priority(pthread_t thread)
 #elif defined(__APPLE__)
         (void)thread;
         pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
-#elif defined(__ANDROID__)
-        (void)thread;
-        setpriority(PRIO_PROCESS, 0, -8);
 #elif defined(_WIN32)
 
 #include <windows.h>
