@@ -60,6 +60,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Fixed uninitialized album line causing random garbled text in track view. By @lhs-12.
 
+- Fix CTRL+g (immediate play) doesnt play an unselected song. By @ravachol. Found by @LeahTheSlug.
+
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
