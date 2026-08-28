@@ -224,12 +224,37 @@ By default, the build system will automatically detect if `faad2` is available a
 #### Real-time scheduling and CAP_SYS_NICE
 
 kew asks for real-time scheduling (`SCHED_RR` at a low priority) for its decoding
-thread, which helps prevent buffer underruns. On Linux this requires either the
-`CAP_SYS_NICE` capability or a raised `RLIMIT_RTPRIO`. If neither is granted, kew
-falls back to `setpriority()` and keeps playing normally, so nothing needs to be
-done here.
+thread, which helps prevent buffer underruns. It tries three things in order and
+uses whichever works first:
 
-`make install` does not grant the capability by default. If you want it, run:
+1. `SCHED_RR` directly, which succeeds if kew has `CAP_SYS_NICE` or a raised
+   `RLIMIT_RTPRIO`.
+2. RTKit over D-Bus, which needs `rtkit-daemon` running. kew lowers its own
+   `RLIMIT_RTTIME` first, since RTKit refuses the request otherwise, and that
+   needs no privileges and no setup on your part.
+3. `setpriority()`, which is not real-time but keeps playback working.
+
+So on a typical desktop with `rtkit-daemon` installed there is nothing to
+configure. Which path was taken ends up in `error.log`, look for a line
+containing `decode_loop: thread priority`.
+
+If step 2 fails with `AccessDenied: Operation not permitted` even though
+`rtkit-daemon` is running, check that polkit was built with a session backend.
+RTKit asks polkit whether your session is active, and a polkit built without
+`elogind` or `systemd` support cannot answer that, so it denies the request. On
+Gentoo that means the `elogind` USE flag on `sys-auth/polkit`. You can verify
+with:
+
+```bash
+pkcheck --action-id org.freedesktop.RealtimeKit1.acquire-high-priority --process $$
+```
+
+Silence means allowed, `Not authorized` means polkit cannot see the session.
+
+#### Granting CAP_SYS_NICE at install time
+
+`make install` does not grant the capability by default, and with RTKit in place
+you usually do not need it. If you want it anyway, run:
 
 ```bash
 sudo make install ENABLE_CAP_SYS_NICE=1
@@ -263,7 +288,7 @@ capability from an already installed binary:
 sudo setcap -r /usr/local/bin/kew
 ```
 
-The other way to get real-time scheduling, without file capabilities, is to raise
+One more way to get real-time scheduling, if RTKit is not an option, is to raise
 `RLIMIT_RTPRIO` through PAM limits, which is what JACK and PipeWire rely on. On
 most distributions that means adding a line like this to `/etc/security/limits.conf`
 (or a file under `/etc/security/limits.d/`) and logging back in:
@@ -272,6 +297,6 @@ most distributions that means adding a line like this to `/etc/security/limits.c
 @audio - rtprio 95
 ```
 
-Your user needs to be a member of the group you name there. This keeps
-`AT_SECURE=0`, so MPRIS is unaffected.
+Your user needs to be a member of the group you name there. This satisfies step 1
+above and keeps `AT_SECURE=0`, so MPRIS is unaffected.
 
