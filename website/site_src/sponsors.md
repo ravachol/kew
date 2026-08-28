@@ -17,6 +17,8 @@
 
 @LTeder $45 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑 🤯
 
+@marighost $20 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
+
 @mattfoo $20 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️ 👑
 
 @imalee.sk $20 @ [ko-fi](https://ko-fi.com/ravachol) ❤️ 👑
