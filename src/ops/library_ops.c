@@ -627,6 +627,7 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry **first_enqueued)
                         entry->track_number = track_number;
                         entry->disc_number = disc_number;
                         discArray[numberOfEntries] = entry;
+                        discArray[numberOfEntries]->is_enqueued = 0;
 
                         numberOfEntries++;
                 }
@@ -681,6 +682,9 @@ int enqueue_children(FileSystemEntry *child,
                         if (sort)
                         {
                                 num_enq_files = enqueue_album(child, first_enqueued_entry);
+                                num_enqueued += num_enq_files;
+
+                                break;
                         }
                         else {
                                 if (!child->is_enqueued)

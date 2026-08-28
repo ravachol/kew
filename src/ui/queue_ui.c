@@ -213,13 +213,6 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                         shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
                         move_down_list(model->playlist, first_enqueued_node, true);
                         move_down_list(model->unshuffled_playlist, first_enqueued_node, true);
-
-                        if (first_enqueued_node->prev)
-                        {
-                                first_enqueued_node = first_enqueued_node->prev;
-                                autostart_if_stopped(first_enqueued_node->song.file_path);
-                        }
-
                 }
                 else
                         shuffle_playlist(model->playlist);
