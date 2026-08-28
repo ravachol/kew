@@ -201,7 +201,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                         shuffle = true;
         }
 
-        if (num_enqueued && first_enqueued_entry) {
+        if (first_enqueued_entry) {
                 autostart_if_stopped(first_enqueued_entry->full_path);
                 first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, model->playlist);
         }
