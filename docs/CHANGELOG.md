@@ -30,6 +30,8 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Add webp cover support. Uses tinywebp (BSD-3 License). Suggested by @hashfoeW.
 
+- A better way to get real-time priority, using RTKIT. By @metanoia.
+
 #### Bug fixes:
 
 - Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
@@ -61,7 +63,6 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 - Fixed uninitialized album line causing random garbled text in track view. By @lhs-12.
 
 - Fix CTRL+g (immediate play) doesnt play an unselected song. By @ravachol. Found by @LeahTheSlug.
-
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
