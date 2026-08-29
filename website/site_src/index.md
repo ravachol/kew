@@ -10,6 +10,15 @@ kew is designed for those who want:
 ✅ Fair compensation for artists (by supporting owned music).
 
 <div align="center">
+  <a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">
+    <img src="images/beyond-the-pale-walk-the-plank.gif" alt="kew terminal music player screenshot">
+  </a>
+  <br>
+  <i><a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">Beyond the Pale - Walk the Plank</a>.</i>
+</div>
+<br><br>
+
+<div align="center">
   <a href="https://liminal-band.bandcamp.com/track/the-crop-3">
     <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot" />
   </a>
