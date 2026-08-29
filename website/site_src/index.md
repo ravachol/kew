@@ -11,12 +11,12 @@ kew is designed for those who want:
 
 <div align="center">
   <a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">
-    <img src="images/beyond-the-pale-walk-the-plank.gif" alt="kew terminal music player screenshot">
+    <img src="images/beyond-the-pale-walk-the-plank.gif" alt="kew terminal music player screenshot" />
   </a>
-  <br>
+  <br />
   <i><a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">Beyond the Pale - Walk the Plank</a>.</i>
 </div>
-<br><br>
+<br /><br />
 
 <div align="center">
   <a href="https://liminal-band.bandcamp.com/track/the-crop-3">

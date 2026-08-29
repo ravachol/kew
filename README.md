@@ -11,7 +11,7 @@
   <br>
   <i><a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">Beyond the Pale - Walk the Plank</a>.</i>
 </div>
-<br><br>
+<br /><br />
 
 <div align="center">
   <a href="https://liminal-band.bandcamp.com/track/the-crop-3">
@@ -20,7 +20,7 @@
   <br>
   <i><a href="https://liminal-band.bandcamp.com/track/the-crop-3">Liminal - The Crop</a>.</i>
 </div>
-<br><br>
+<br /><br />
 
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
