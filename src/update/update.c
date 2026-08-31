@@ -68,21 +68,19 @@ void set_lyrics_line(Model *model)
 {
         int lyricIndex = 0;
         if (model->songdata_ok && model->songdata->lyrics != NULL) {
-            model->state.ui.lyrics_line = get_lyrics_line(model->songdata->lyrics, &lyricIndex, model->elapsed_seconds);
-            if (model->songdata->lyrics->isKaraoke > 0) {
-                    model->state.ui.wordOffset = get_word_offset(model->songdata->lyrics->lines[lyricIndex], model->elapsed_seconds);
-                    if (model->state.ui.wordOffset >= 0) {
-                        model->state.ui.wordLength = get_word_length(model->songdata->lyrics->lines[lyricIndex], model->state.ui.wordOffset);
-                    }
-                    else {
-                        model->state.ui.wordOffset = 0;
+                model->state.ui.lyrics_line = get_lyrics_line(model->songdata->lyrics, &lyricIndex, model->elapsed_seconds);
+                if (model->songdata->lyrics->isKaraoke > 0) {
+                        model->state.ui.wordOffset = get_word_offset(model->songdata->lyrics->lines[lyricIndex], model->elapsed_seconds);
+                        if (model->state.ui.wordOffset >= 0) {
+                                model->state.ui.wordLength = get_word_length(model->songdata->lyrics->lines[lyricIndex], model->state.ui.wordOffset);
+                        } else {
+                                model->state.ui.wordOffset = 0;
+                                model->state.ui.wordLength = 0;
+                        }
+                } else {
                         model->state.ui.wordLength = 0;
-                    }
-            }
-            else {
-                    model->state.ui.wordLength = 0;
-                    model->state.ui.wordOffset = 0;
-            }
+                        model->state.ui.wordOffset = 0;
+                }
         }
 
         if (!model->state.ui.lyrics_line || model->state.ui.lyrics_line[0] == '\0')
@@ -314,20 +312,20 @@ void flip_prev_page(Model *model)
 
         if (model->state.currentView == LIBRARY_VIEW) {
 
-                model->state.ui.chosen_lib_row -= model->state.ui.max_lib_rows;
+                model->state.ui.chosen_lib_row -= (model->state.ui.max_lib_rows - 1);
                 model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row > 0) ? model->state.ui.chosen_lib_row : 0;
                 set_dirty(DIRTY_LIBRARY);
 
         } else if (model->state.currentView == PLAYLIST_VIEW) {
 
-                model->state.ui.chosen_row -= model->state.ui.max_playlist_rows;
+                model->state.ui.chosen_row -= (model->state.ui.max_playlist_rows - 1);
                 model->state.ui.chosen_row = (model->state.ui.chosen_row > 0) ? model->state.ui.chosen_row : 0;
 
                 set_dirty(DIRTY_PLAYLIST);
 
         } else if (model->state.currentView == SEARCH_VIEW) {
 
-                model->state.ui.chosen_search_result_row -= model->state.ui.max_search_rows;
+                model->state.ui.chosen_search_result_row -= (model->state.ui.max_search_rows - 1);
                 model->state.ui.chosen_search_result_row =
                     (model->state.ui.chosen_search_result_row > 0) ? model->state.ui.chosen_search_result_row : 0;
                 set_dirty(DIRTY_SEARCH);
@@ -381,7 +379,6 @@ void set_scrollbar_positions()
 
                         if (new_pos != model->state.ui.search_scrollbar.position)
                                 set_dirty(DIRTY_SEARCH);
-
                 }
         }
 }
@@ -801,8 +798,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->mouse_key = -1;
 
                 if (model->name_scroll.active &&
-                        model->state.ui.current_search_entry &&
-                        model->name_scroll.frame > KEW_NAME_MAX) {
+                    model->state.ui.current_search_entry &&
+                    model->name_scroll.frame > KEW_NAME_MAX) {
                         model->name_scroll.active = false;
                         set_dirty(DIRTY_LIBRARY);
                 }
@@ -811,13 +808,12 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_LIBRARY_ROW_SELECTED:
 
-                if(!msg->found_chosen && (model->state.ui.chosen_lib_row != msg->chosen_row || model->mouse_y >= 0)) {
+                if (!msg->found_chosen && (model->state.ui.chosen_lib_row != msg->chosen_row || model->mouse_y >= 0)) {
                         set_dirty(DIRTY_LIBRARY);
                         model->state.ui.rendered = false; // re-render;
                 }
 
-                if (msg->current_lib_entry)
-                {
+                if (msg->current_lib_entry) {
                         model->state.ui.current_lib_entry = msg->current_lib_entry;
                         model->state.ui.chosen_lib_row = msg->chosen_row;
                 }
@@ -856,8 +852,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->state.ui.lib_row_count = msg->num_rows;
 
                 if (model->name_scroll.active &&
-                        model->state.ui.current_lib_entry &&
-                        model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256)) {
+                    model->state.ui.current_lib_entry &&
+                    model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256)) {
                         model->name_scroll.active = false;
                         set_dirty(DIRTY_LIBRARY);
                 }
@@ -866,13 +862,12 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_SEARCH_ROW_SELECTED:
 
-                if(!msg->found_chosen && (model->state.ui.chosen_search_result_row != msg->chosen_row || model->mouse_y >= 0)) {
+                if (!msg->found_chosen && (model->state.ui.chosen_search_result_row != msg->chosen_row || model->mouse_y >= 0)) {
                         set_dirty(DIRTY_SEARCH);
                         model->state.ui.rendered = false; // re-render;
                 }
 
-                if (msg->current_search_entry)
-                {
+                if (msg->current_search_entry) {
                         model->state.ui.current_search_entry = msg->current_search_entry;
                         model->state.ui.chosen_search_result_row = msg->chosen_row;
                 }
@@ -894,8 +889,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->mouse_key = -1;
 
                 if (model->name_scroll.active &&
-                        model->state.ui.current_search_entry &&
-                        model->name_scroll.frame > (int)strnlen(model->state.ui.current_search_entry->name, 256)) {
+                    model->state.ui.current_search_entry &&
+                    model->name_scroll.frame > (int)strnlen(model->state.ui.current_search_entry->name, 256)) {
                         model->name_scroll.active = false;
                         set_dirty(DIRTY_LIBRARY);
                 }
