@@ -34,6 +34,7 @@
 * Joey Schaff @jaoheah / @jaoh (codeberg)
 * John Lakeman @j-lakeman
 * LeahTheSlug (Advisor) https://slugmail.quest
+* @Lemon-mon-254
 * lhs-12
 * @noiamnote
 * @manuwul

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.3.0
+
+#### Enhancements:
+
+- Have track title as the title of the notification and not artist. By @Lemon-mon-254.
+
 ## kew 4.2.9
 
 #### Bug Fixes:

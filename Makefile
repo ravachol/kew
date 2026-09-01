@@ -273,8 +273,16 @@ $(VERSION_H): FORCE
 	printf '#define KEW_VERSION "%s"\n' '$(KEW_VERSION)' > $@
 	printf '#define FILE_VERSION "%s"\n' '$(KEW_VERSION)' >> $@
 	printf '#define PRODUCT_VERSION "%s"\n' '$(KEW_VERSION)' >> $@
-	printf '#define VER_FILEVERSION %s\n' '$(shell git describe --tags --match "v[0-9]*" --abbrev=0 | sed "s/^v//" | sed "s/\./,/g"),0' >> $@
-	printf '#define VER_PRODUCTVERSION %s\n' '$(shell git describe --tags --match "v[0-9]*" --abbrev=0 | sed "s/^v//" | sed "s/\./,/g"),0' >> $@
+
+	@version='$(KEW_VERSION)'; \
+	major=$${version%%.*}; \
+	rest=$${version#*.}; \
+	minor=$${rest%%.*}; \
+	patch=$${rest#*.}; \
+	patch=$${patch%%.*}; \
+	printf '#define VER_FILEVERSION %s,%s,%s,0\n' "$$major" "$$minor" "$$patch" >> $@; \
+	printf '#define VER_PRODUCTVERSION %s,%s,%s,0\n' "$$major" "$$minor" "$$patch" >> $@
+
 	printf '#define COMPANY_NAME "kew"\n' >> $@
 	printf '#define FILE_DESCRIPTION "kew"\n' >> $@
 	printf '#define INTERNAL_NAME "kew"\n' >> $@
@@ -339,7 +347,7 @@ $(OBJDIR)/libmp4/%.o: include/libmp4/src/%.c Makefile | $(OBJDIR)
 	$(CC) $(CFLAGS) $(DEFINES) -DMP4_API_EXPORTS -std=gnu99 -c -o $@ $<
 
 $(WIN_MANIFEST_OBJ): src/ui/manifest.rc $(VERSION_H) src/ui/ms-utf8.xml kew.ico
-	$(WINDRES) -Isrc/ui src/ui/manifest.rc -O coff -o $@
+	$(WINDRES) -Isrc/ui -I. src/ui/manifest.rc -O coff -o $@
 
 # Link all objects safely together using C++ linker
 kew: $(OBJS) $(WRAPPER_OBJ) $(WIN_MANIFEST_OBJ) Makefile
