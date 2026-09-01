@@ -610,9 +610,9 @@ void load_meta_data(SongData *songdata)
         }
 
 #ifdef _WIN32
-        const wchar_t *ext = wcsrchr(songdata->cover_art_path, L'.');
-        if (found_image && ext && _wcsicmp(ext, L".webp") == 0) {
- #else
+        const char *extension = strrchr(songdata->cover_art_path, '.');
+        if (found_image && extension && _stricmp(extension, ".webp") == 0) {
+#else
         char *extension = strrchr(songdata->cover_art_path, '.');
         if (found_image && extension && strcasecmp(extension, ".webp") == 0) {
  #endif
