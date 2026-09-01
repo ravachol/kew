@@ -34,19 +34,19 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 #### Bug fixes:
 
-- Fix crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
+- Fixed crash when starting to play a song. Don't set real-time process status (setcap) if it's not allowed by the system. By @ravachol. Reported by @prostitutionofthesoul.
 
-- Fix crash when starting to play a song II, because of interaction with dbus/mpris. By @ravachol. Reported by @@aaruni96.
+- Fixed crash when starting to play a song II, because of interaction with dbus/mpris. By @ravachol. Reported by @@aaruni96.
 
 - Cover not displayed on tmux (we've been trying to fix this for years). By @nhuvaynhe.
 
 - When pressing on a top level (artist) or - music library - , you are supposed to get a shuffled list, reenabled now.
 
-- Fix use after free if DBUS connection fails. By @daeho-ro.
+- Fixed use after free if DBUS connection fails. By @daeho-ro.
 
 - Properly escape cover art paths for mpris. By @not-nef.
 
-- Library View: Fix jump in library position after opening two directories and then scrolling.
+- Library View: Fixed jump in library position after opening two directories and then scrolling.
 
 - Library View: Prevent double-scrolling.
 
@@ -54,7 +54,7 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Null check preventing segfault. By @Moksh-Parikh.
 
-- Fix Null pointer dereference in set_prefs when playing file outside library. By @lhs-12.
+- Fixed Null pointer dereference in set_prefs when playing file outside library. By @lhs-12.
 
 - Don't bail if Mpris is unavailable. Suggested by @lhs-12.
 
@@ -62,7 +62,9 @@ This is awesome because it doesn't require the database and a lot of bandcamp ar
 
 - Fixed uninitialized album line causing random garbled text in track view. By @lhs-12.
 
-- Fix CTRL+g (immediate play) doesnt play an unselected song. By @ravachol. Found by @LeahTheSlug.
+- Fixed CTRL+g (immediate play) doesnt play an unselected song. By @ravachol. Found by @LeahTheSlug.
+
+- Fix page up/down off by one on library, playlist and search view. By @petoem. Found by @LeahTheSlug.
 
 ## kew 4.2.7 "CRIMINAL WORLD" EDITION
 
