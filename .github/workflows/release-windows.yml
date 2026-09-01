@@ -69,37 +69,13 @@ jobs:
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Generate Windows version resource
-        shell: bash
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
-          PATCH=${PATCH:-0}
-
-          cat > src/ui/version.h <<EOF
-
-          #define VER_FILEVERSION $MAJOR,$MINOR,$PATCH,0
-          #define VER_PRODUCTVERSION $MAJOR,$MINOR,$PATCH,0
-
-          #define FILE_VERSION "$VERSION.0\0"
-          #define PRODUCT_VERSION "$VERSION.0\0"
-
-          #define COMPANY_NAME "Ravachol\0"
-          #define FILE_DESCRIPTION "kew terminal music player\0"
-          #define INTERNAL_NAME "kew\0"
-          #define ORIGINAL_FILENAME "kew.exe\0"
-          #define PRODUCT_NAME "kew\0"
-          EOF
-
       # -------------------------
       # BUILD
       # -------------------------
       - name: Build
         shell: msys2 {0}
         run: |
-          mingw32-make -j$(nproc)
+          mingw32-make -j$(nproc) KEW_VERSION="${{ steps.version.outputs.version }}"
 
       # -------------------------
       # STAGE INSTALL
@@ -145,6 +121,7 @@ jobs:
         run: |
           mkdir -p stage/docs
 
+          cp kew.ico stage/
           cp PRIVACY_POLICY.md stage/docs/
           cp TERMS.md stage/docs/
           cp LICENSE stage/docs/
