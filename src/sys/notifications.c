@@ -387,8 +387,8 @@ int display_song_notification(const char *artist, const char *title, const char 
         // Create a new notification
         const gchar *app_name = "kew";
         const gchar *app_icon = (coverExists && cover) ? cover : "";
-        const gchar *summary = sanitized_artist;
-        const gchar *body = sanitized_title;
+        const gchar *summary = sanitized_title;
+        const gchar *body = sanitized_artist;
 
         GVariantBuilder actions_builder;
         g_variant_builder_init(&actions_builder, G_VARIANT_TYPE("as"));
