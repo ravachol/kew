@@ -22,13 +22,13 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName",      COMPANY_NAME
-            VALUE "FileDescription",  FILE_DESCRIPTION
-            VALUE "FileVersion",      FILE_VERSION
-            VALUE "InternalName",     INTERNAL_NAME
-            VALUE "OriginalFilename", ORIGINAL_FILENAME
-            VALUE "ProductName",      PRODUCT_NAME
-            VALUE "ProductVersion",   PRODUCT_VERSION
+            VALUE "CompanyName", "kew"
+            VALUE "FileDescription", "kew"
+            VALUE "FileVersion", FILE_VERSION
+            VALUE "InternalName", "kew"
+            VALUE "OriginalFilename", "kew.exe"
+            VALUE "ProductName", "kew"
+            VALUE "ProductVersion", PRODUCT_VERSION
         END
     END
 
