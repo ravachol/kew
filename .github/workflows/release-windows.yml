@@ -85,7 +85,7 @@ jobs:
         run: |
           rm -rf stage
           mkdir -p stage
-          mingw32-make install DESTDIR=stage PREFIX=
+          mingw32-make install DESTDIR=stage PREFIX= KEW_VERSION="${{ steps.version.outputs.version }}"
 
       # -------------------------
       # COLLECT DLLs + EXE

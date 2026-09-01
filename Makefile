@@ -270,23 +270,27 @@ FORCE:
 
 $(VERSION_H): FORCE
 	mkdir -p $(dir $@)
-	printf '#define KEW_VERSION "%s"\n' '$(KEW_VERSION)' > $@
-	printf '#define FILE_VERSION "%s"\n' '$(KEW_VERSION)' >> $@
-	printf '#define PRODUCT_VERSION "%s"\n' '$(KEW_VERSION)' >> $@
-
 	@version='$(KEW_VERSION)'; \
-	major=$${version%%.*}; \
-	rest=$${version#*.}; \
-	minor=$${rest%%.*}; \
-	patch=$${rest#*.}; \
-	patch=$${patch%%.*}; \
+	version="$${version#v}"; \
+	numeric="$${version%%-*}"; \
+	major="$${numeric%%.*}"; \
+	rest="$${numeric#*.}"; \
+	minor="$${rest%%.*}"; \
+	patch="$${rest#*.}"; \
+	[ "$$rest" = "$$numeric" ] && minor=0; \
+	[ "$$patch" = "$$rest" ] && patch=0; \
+	case "$$major" in ''|*[!0-9]*) major=0;; esac; \
+	case "$$minor" in ''|*[!0-9]*) minor=0;; esac; \
+	case "$$patch" in ''|*[!0-9]*) patch=0;; esac; \
+	printf '#define KEW_VERSION "%s"\n' "$$version" > $@; \
+	printf '#define FILE_VERSION "%s"\n' "$$version" >> $@; \
+	printf '#define PRODUCT_VERSION "%s"\n' "$$version" >> $@; \
 	printf '#define VER_FILEVERSION %s,%s,%s,0\n' "$$major" "$$minor" "$$patch" >> $@; \
-	printf '#define VER_PRODUCTVERSION %s,%s,%s,0\n' "$$major" "$$minor" "$$patch" >> $@
-
-	printf '#define COMPANY_NAME "kew"\n' >> $@
-	printf '#define FILE_DESCRIPTION "kew"\n' >> $@
-	printf '#define INTERNAL_NAME "kew"\n' >> $@
-	printf '#define ORIGINAL_FILENAME "kew.exe"\n' >> $@
+	printf '#define VER_PRODUCTVERSION %s,%s,%s,0\n' "$$major" "$$minor" "$$patch" >> $@; \
+	printf '#define COMPANY_NAME "kew"\n' >> $@; \
+	printf '#define FILE_DESCRIPTION "kew"\n' >> $@; \
+	printf '#define INTERNAL_NAME "kew"\n' >> $@; \
+	printf '#define ORIGINAL_FILENAME "kew.exe"\n' >> $@; \
 	printf '#define PRODUCT_NAME "kew"\n' >> $@
 
 # Generate object lists
