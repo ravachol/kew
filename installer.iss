@@ -45,7 +45,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName=kew
 Uninstallable=yes
 LicenseFile=LICENSE
-SetupIconFile=stage\kew.ico
+SetupIconFile=kew.ico
 
 [Files]
 ; stage should contain:
