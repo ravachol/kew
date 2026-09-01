@@ -44,7 +44,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName=kew
 Uninstallable=yes
-LicenseFile=docs\LICENSE
+LicenseFile=LICENSE
 SetupIconFile=stage\kew.ico
 
 [Files]
