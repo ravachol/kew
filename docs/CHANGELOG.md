@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.2.9
+
+#### Bug Fixes:
+
+- Fixes Windows installer issue.
+
 ## kew 4.2.8
 
 This version brings karaoke lyrics support, and band names will link to their bandcamp page on track view.

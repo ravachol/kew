@@ -258,12 +258,28 @@ THEMEDIR = $(KEW_DATADIR)/kew/themes
 THEMESRCDIR := $(shell pwd)/themes
 LAYOUTDIR = $(KEW_DATADIR)/kew/layouts
 LAYOUTSRCDIR := $(shell pwd)/layouts
+VERSION_H = src/ui/version.h
 
 DEFINES += -DLOCALEDIR_RAW=$(LOCALEDIR)
 
 CFLAGS += -DKEW_DATADIR_RAW=$(KEW_DATADIR)
 
 all: kew
+.PHONY: FORCE
+FORCE:
+
+$(VERSION_H): FORCE
+	mkdir -p $(dir $@)
+	printf '#define KEW_VERSION "%s"\n' '$(KEW_VERSION)' > $@
+	printf '#define FILE_VERSION "%s"\n' '$(KEW_VERSION)' >> $@
+	printf '#define PRODUCT_VERSION "%s"\n' '$(KEW_VERSION)' >> $@
+	printf '#define VER_FILEVERSION %s\n' '$(shell git describe --tags --match "v[0-9]*" --abbrev=0 | sed "s/^v//" | sed "s/\./,/g"),0' >> $@
+	printf '#define VER_PRODUCTVERSION %s\n' '$(shell git describe --tags --match "v[0-9]*" --abbrev=0 | sed "s/^v//" | sed "s/\./,/g"),0' >> $@
+	printf '#define COMPANY_NAME "kew"\n' >> $@
+	printf '#define FILE_DESCRIPTION "kew"\n' >> $@
+	printf '#define INTERNAL_NAME "kew"\n' >> $@
+	printf '#define ORIGINAL_FILENAME "kew.exe"\n' >> $@
+	printf '#define PRODUCT_NAME "kew"\n' >> $@
 
 # Generate object lists
 OBJS_C = $(SRCS:src/%.c=$(OBJDIR)/%.o)
@@ -322,8 +338,8 @@ $(OBJDIR)/libmp4/%.o: include/libmp4/src/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -DMP4_API_EXPORTS -std=gnu99 -c -o $@ $<
 
-$(WIN_MANIFEST_OBJ): src/ui/manifest.rc src/ui/ms-utf8.xml kew.ico
-	$(WINDRES) src/ui/manifest.rc -O coff -o $@
+$(WIN_MANIFEST_OBJ): src/ui/manifest.rc $(VERSION_H) src/ui/ms-utf8.xml kew.ico
+	$(WINDRES) -Isrc/ui src/ui/manifest.rc -O coff -o $@
 
 # Link all objects safely together using C++ linker
 kew: $(OBJS) $(WRAPPER_OBJ) $(WIN_MANIFEST_OBJ) Makefile
