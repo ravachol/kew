@@ -20,6 +20,7 @@
 
 #include "ui/components.h"
 #include "utils/file.h"
+#include "utils/k_log.h"
 #include "utils/utils.h"
 
 #include <glib.h>
@@ -513,7 +514,6 @@ void enqueue_song(FileSystemEntry *child)
                 // Get the last entries enqueued number. This is the row number.
                 // It can be larger than the playlist count because we don't adjust it when songs are dequeued
                 // Our number has to be one larger than that number.
-                FileSystemEntry *library = get_library();
                 FileSystemEntry *prev_entry = find_corresponding_entry(library, node->prev->song.file_path);
                 if (prev_entry)
                         child->is_enqueued = prev_entry->is_enqueued + 1;
@@ -574,6 +574,11 @@ void dequeue_song(FileSystemEntry *child)
 
         Node *node2 = find_selected_entry_by_id(playlist, id);
 
+        if (node1 == node2) {
+                k_log("BUG: node1 and node2 are the same node!\n");
+                abort();
+        }
+
         if (node1 != NULL)
                 delete_from_list(unshuffled_playlist, node1);
 
@@ -620,7 +625,7 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry **first_enqueued)
         FileSystemEntry *discArray[MAX_SORT_SIZE] = {0};
 
         while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
-                if (!entry->is_directory && is_music_file(entry->name)) {
+                if (!entry->is_directory && !entry->is_enqueued && is_music_file(entry->name)) {
                         uint32_t disc_number = 0, track_number = 0;
                         getTrackInfo(entry->full_path, &track_number, &disc_number);
 
