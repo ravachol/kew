@@ -911,7 +911,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->useArtistLink, "1",
                  sizeof(settings->useArtistLink));
         c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled));
-        c_strcpy(settings->replayGainCheckFirst, "0",
+        c_strcpy(settings->replayGainCheckFirst, "3",
                  sizeof(settings->replayGainCheckFirst));
         c_strcpy(settings->visualizer_bar_width, "2",
                  sizeof(settings->visualizer_bar_width));
@@ -2332,7 +2332,7 @@ void set_config(AppSettings *settings, UISettings *ui)
                 settings->hideGlimmeringText);
 
         fprintf(file, "# Replay gain check first, can be either 0=track, "
-                      "1=album or 2=disabled.\n");
+                      "1=album, 2=disabled or 3=auto.\n");
         fprintf(file, "replayGainCheckFirst=%s\n\n",
                 settings->replayGainCheckFirst);
 
