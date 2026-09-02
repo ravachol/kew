@@ -745,7 +745,7 @@ void state_init(void)
         state->settings.mouseScrollDownAction = 4;
         state->settings.mouseAltScrollUpAction = 7;
         state->settings.mouseAltScrollDownAction = 8;
-        state->settings.replayGainCheckFirst = 0;
+        state->settings.replayGainCheckFirst = 3;
         state->settings.saveRepeatShuffleSettings = 1;
         state->settings.repeatState = 0;
         state->settings.shuffle_enabled = 0;
