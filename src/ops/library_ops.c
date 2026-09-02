@@ -514,6 +514,7 @@ void enqueue_song(FileSystemEntry *child)
                 // Get the last entries enqueued number. This is the row number.
                 // It can be larger than the playlist count because we don't adjust it when songs are dequeued
                 // Our number has to be one larger than that number.
+                FileSystemEntry *library = get_library();
                 FileSystemEntry *prev_entry = find_corresponding_entry(library, node->prev->song.file_path);
                 if (prev_entry)
                         child->is_enqueued = prev_entry->is_enqueued + 1;
