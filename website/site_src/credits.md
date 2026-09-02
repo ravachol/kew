@@ -60,6 +60,7 @@
 * @toasteeeer
 * Vafone @vafone
 * Xplshn @xplshn
+* @yamhab
 * Zane Godden @mechatour
 
 ## Testers
