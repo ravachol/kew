@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.3.1
+
+#### Enhancements:
+
+- Default replay gain is now track if shuffle is enabled, otherwise album. By @yamhab.
+
 ## kew 4.3.0
 
 #### Enhancements:
