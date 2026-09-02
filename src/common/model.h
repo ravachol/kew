@@ -390,7 +390,7 @@ typedef struct
         time_t last_time_app_ran; /**< Timestamp of last run, used to detect library changes. */
 
         int visualizer_bar_mode;        /**< 0=Thin bars, 1=Double width bars, 2=Auto (default). */
-        int replayGainCheckFirst;       /**< Priority of replay gain mode (track vs album). */
+        int replayGainCheckFirst;       /**< Priority of replay gain mode (track vs album vs disabled vs auto). */
         bool saveRepeatShuffleSettings; /**< Persist repeat/shuffle settings between sessions. */
         int repeatState;                /**< 0=Disabled, 1=Repeat track, 2=Repeat list. */
         bool shuffle_enabled;           /**< Whether shuffle mode is enabled. */
