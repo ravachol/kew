@@ -190,6 +190,12 @@ Node *delete_from_list(PlayList *list, Node *node)
 
         // Free song file path string if allocated
         if (node->song.file_path != NULL) {
+
+                k_log("delete node=%p file_path=%p path=%s\n",
+                        (void *)node,
+                        (void *)node->song.file_path,
+                        node->song.file_path ? node->song.file_path : "(null)");
+
                 free(node->song.file_path);
                 node->song.file_path = NULL;
         }
