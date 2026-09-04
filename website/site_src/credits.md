@@ -45,7 +45,8 @@
 * @Moksh-Parikh
 * @netodosrjoao
 * @nhuvaynhe
-* not-nef
+* @not-nef
+* @omardev29
 * @Overionised
 * @Quillenar-dev.
 * Ravachol @ravachol kew-player at proton dot me
