@@ -194,7 +194,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
         }
 
         bool shuffle = false;
-        if (first_enqueued_entry) {
+        if (first_enqueued_entry && entry->is_directory) {
                 int depth = get_relative_depth(model->library->full_path, entry->full_path);
 
                 if (depth == 0 || depth == 1)
@@ -211,8 +211,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                 if (first_enqueued_node)
                 {
                         shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
-                        move_down_list(model->playlist, first_enqueued_node, true);
-                        move_down_list(model->unshuffled_playlist, first_enqueued_node, true);
+                        move_down_list(model->playlist, first_enqueued_node, false);
                 }
                 else
                         shuffle_playlist(model->playlist);
