@@ -6,6 +6,10 @@
 
 - Default replay gain is now track if shuffle is enabled, otherwise album. By @yamhab.
 
+- Fix crash when enqueuing files that don't have file numbers in the title. Found by @LeahTheSlug.
+
+- Fix playlist corruption when enqueueing from the library root. By @omardev29. Found by @LeahTheSlug.
+
 ## kew 4.3.0
 
 #### Enhancements:

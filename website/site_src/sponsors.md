@@ -35,6 +35,8 @@
 
 @codemacabre $10 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
 
+@VGS $9 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
+
 @mimidios8 $8 @ [ko-fi](https://ko-fi.com/ravachol) ❤️
 
 @ddogfoodd $5 @ [Github Sponsors](https://github.com/sponsors/ravachol) ❤️
