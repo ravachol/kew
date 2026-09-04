@@ -258,6 +258,13 @@ void shuffle_playlist(PlayList *playlist)
                 playlist->count = i;
         }
 
+        if (playlist->count < 1) {
+                playlist->head = NULL;
+                playlist->tail = NULL;
+                free(nodes);
+                return;
+        }
+
         // Shuffle the array using Fisher-Yates algorithm
         for (int j = playlist->count - 1; j >= 1; --j) {
                 int k = rand() % (j + 1);
