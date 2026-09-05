@@ -17,8 +17,8 @@
 #include "ui/settings.h"
 
 #include "utils/file.h"
-#include "utils/utils.h"
 #include "utils/k_log.h"
+#include "utils/utils.h"
 
 #include <ctype.h>
 #include <dirent.h>
@@ -261,7 +261,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                         if (strcmp(key, "name") == 0) {
                                 // Copy theme name safely
                                 c_strcpy(current_theme->theme_name, value,
-                                        sizeof(current_theme->theme_name) - 1);
+                                         sizeof(current_theme->theme_name) - 1);
                                 current_theme->theme_name
                                     [sizeof(current_theme->theme_name) - 1] =
                                     '\0';
@@ -271,7 +271,7 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
                         if (strcmp(key, "author") == 0) {
                                 // Copy theme name safely
                                 c_strcpy(current_theme->theme_author, value,
-                                        sizeof(current_theme->theme_author) - 1);
+                                         sizeof(current_theme->theme_author) - 1);
                                 current_theme->theme_author
                                     [sizeof(current_theme->theme_author) - 1] =
                                     '\0';
@@ -283,8 +283,8 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
 
                                 if (!parse_color_value(value, &color)) {
                                         k_log("Invalid color value at line "
-                                                "%d: %s\n",
-                                                line_num, value);
+                                              "%d: %s\n",
+                                              line_num, value);
                                 } else {
                                         *(mappings[i].field) = color;
                                         found = 1;
@@ -331,6 +331,22 @@ bool ensure_default_themes(void)
         }
 
         if (!dir) {
+                snprintf(system_themes, sizeof(system_themes), "/usr/local/share/kew/themes");
+                dir = opendir(system_themes);
+        }
+
+#ifdef _WIN32
+
+        if (!dir) {
+                snprintf(system_themes, sizeof(system_themes),
+                         "%s/usr/local/share/kew/themes",
+                         get_msys2_root());
+                dir = opendir(system_themes);
+        }
+
+#endif
+
+        if (!dir) {
                 k_log("ensure_default_themes: failed to copy themes, system themes dir couldn't be opened: %s\n", system_themes);
                 free(config_path);
                 set_error_message("Couldn't copy themes. The directory wasn't found or kew doesn't have permissions to read from it.");
@@ -346,23 +362,19 @@ bool ensure_default_themes(void)
 
                 struct stat st;
                 if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode) &&
-                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") ||  strstr(entry->d_name, ".md")))
-                {
+                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt") || strstr(entry->d_name, ".md"))) {
                         char src[KEW_PATH_MAX], dst[KEW_PATH_MAX], bak[KEW_PATH_MAX];
 
-                        if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src))
-                        {
+                        if (snprintf(src, sizeof(src), "%s/%s", system_themes, entry->d_name) >= (int)sizeof(src)) {
                                 k_log("ensure_default_themes: system_themes larger than src\n");
                                 continue;
                         }
-                        if (snprintf(dst, sizeof(dst), "%s/%s", themes_path, entry->d_name) >= (int)sizeof(dst))
-                        {
+                        if (snprintf(dst, sizeof(dst), "%s/%s", themes_path, entry->d_name) >= (int)sizeof(dst)) {
                                 k_log("ensure_default_themes: themes_path larger than dst\n");
                                 continue;
                         }
 
-                        if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(bak))
-                        {
+                        if (snprintf(bak, sizeof(bak), "%s/%s.bak", themes_path, entry->d_name) >= (int)sizeof(bak)) {
                                 k_log("ensure_default_themes: bak path larger than dst\n");
                                 continue;
                         }
@@ -383,8 +395,7 @@ bool ensure_default_themes(void)
                                         rename(dst, bak);
                                 }
 
-                                if (copy_file(src, dst))
-                                {
+                                if (copy_file(src, dst)) {
                                         copied = true;
                                 }
                         }

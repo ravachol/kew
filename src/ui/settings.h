@@ -166,4 +166,6 @@ bool ensure_default_layouts(void);
 
 const char *get_system_data_dir(void);
 
+const char *get_msys2_root(void);
+
 #endif

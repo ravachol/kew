@@ -6,6 +6,8 @@
 
 - Fixes issue with karaoke lyrics. By @Moksh-Parikh.
 
+- Fix music auto-plays when merely expanding a directory where the songs are enqueued. By @ravachol.
+
 ## kew 4.3.2
 
 #### Enhancements:
