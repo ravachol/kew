@@ -382,6 +382,7 @@ void view_enqueue(bool play_immediately)
         FileSystemEntry *entry = NULL;
         Node *current_song = get_current_song();
         Node *first_enqueued_node = NULL;
+        bool start_playing = true;
         bool canGoNext = (current_song != NULL && current_song->next != NULL);
 
         if (state->currentView == TRACK_VIEW || state->currentView == HELP_VIEW) {
@@ -424,6 +425,9 @@ void view_enqueue(bool play_immediately)
                         return;
                 }
 
+                if (!model->state.ui.treeCtx.chosen_dir)
+                        start_playing = false;
+
                 // Enqueue / dequeue playlist file (toggle, mirroring directory behaviour)
                 if (is_m3u_file(entry)) {
                         first_enqueued_node = enqueue_playlist(entry, play_immediately);
@@ -434,7 +438,7 @@ void view_enqueue(bool play_immediately)
                 set_dirty(DIRTY_LIBRARY | DIRTY_SEARCH);
         }
 
-        if (!first_enqueued_node && entry && entry->is_enqueued) {
+        if (start_playing && !first_enqueued_node && entry && entry->is_enqueued) {
                 if (entry->is_directory && entry->children) {
                         (void)find_node_in_list(playlist, entry->children->id, &first_enqueued_node);
                 } else {
