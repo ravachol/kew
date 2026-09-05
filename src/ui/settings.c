@@ -29,6 +29,7 @@
 #include "update/messages.h"
 
 #include <ctype.h>
+#include <dirent.h>
 #include <locale.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -2824,6 +2825,25 @@ const char *get_system_data_dir(void)
     return path;
 }
 
+const char *get_msys2_root(void)
+{
+    static char root[KEW_PATH_MAX];
+
+    GetModuleFileNameA(NULL, root, sizeof(root));
+
+    // Find "\home\" / "\ucrt64\" / "\mingw64\" etc.
+    char *p = strstr(root, "\\home\\");
+    if (!p)
+        p = strstr(root, "\\ucrt64\\");
+    if (!p)
+        p = strstr(root, "\\mingw64\\");
+
+    if (p)
+        *p = '\0';
+
+    return root;
+}
+
 #else
 
 const char *get_system_data_dir(void)
@@ -2850,6 +2870,22 @@ static bool copy_layout_file(const char *src_name,
                 snprintf(system_layouts, sizeof(system_layouts), "/usr/share/kew/layouts");
                 dir = opendir(system_layouts);
         }
+
+        if (!dir) {
+                snprintf(system_layouts, sizeof(system_layouts), "/usr/local/share/kew/layouts");
+                dir = opendir(system_layouts);
+        }
+
+#ifdef _WIN32
+
+        if (!dir) {
+                snprintf(system_layouts, sizeof(system_layouts),
+                         "%s/usr/local/share/kew/layouts",
+                         get_msys2_root());
+                dir = opendir(system_layouts);
+        }
+
+#endif
 
         if (!dir) {
                 free(config_path);
