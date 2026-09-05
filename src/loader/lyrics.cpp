@@ -86,8 +86,6 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
         }
 
         while (*ptr == '<') {
-            fprintf(stderr, "\n\nWriting new line\n");
-            fflush(stderr);
             ptr = parseTimestamp(ptr, &timestamp, '<');
             if (ptr == NULL) continue;
             timestampArr[numberOfTimestamps++] = timestamp;
