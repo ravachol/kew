@@ -19,11 +19,10 @@ Available through the package manager or [manual installation guide](https://cod
 
 ## WINDOWS
 
-Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.3.0/kew-4.3.0-windows-x64.exe), compiled and created entirely on Github.com.
+Run the [Windows installer](https://github.com/ravachol/kew/releases/download/v4.3.1/kew-4.3.1-windows-x64.exe), compiled and created entirely on Github.com.
 
 (sha256:aa567beb61f64c46fc28b333ef838e474351157270b31effac5a63a7215c0df1)
 
 ## ANDROID
 
 kew is available on Android as a package for the app [Termux](https://termux.dev), which is a terminal emulator for Android.
-
