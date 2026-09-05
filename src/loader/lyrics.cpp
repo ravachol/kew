@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <limits.h>
+#include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,41 +71,42 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
         double timestampArr[METADATA_MAX_LENGTH] = {0};
         int numberOfTimestamps = 0;
         char karaokeString[256] = {0};
+        int karaokeStringSize = 0;
         char *start = ptr;
-        char *end;
+        char *substringEnd;
         double timestamp = 0.0f;
 
         if (*ptr != '<') {
             ptr = strchr(start, '<');
             if (ptr == NULL) ptr = start;
             else {
-                char* karaokeEnd = strchr(karaokeString, '\0');
-                if (karaokeEnd == NULL) return 0;
-                char* ptrNull = strchr(ptr, '\0');
-                memcpy(karaokeEnd, ptr, ptrNull - start);
+                karaokeStringSize += ptr - start;
+                if (karaokeStringSize < 256)
+                    strncat(karaokeString, start, ptr - start);
                 
-                timestampArr[numberOfTimestamps++] = firstStamp;
+                if (numberOfTimestamps < METADATA_MAX_LENGTH)
+                    timestampArr[numberOfTimestamps++] = firstStamp;
             }
         }
 
         while (*ptr == '<') {
             ptr = parseTimestamp(ptr, &timestamp, '<');
-            if (ptr == NULL) continue;
+            if (ptr == NULL) break;
+            if (numberOfTimestamps > METADATA_MAX_LENGTH) break;
             timestampArr[numberOfTimestamps++] = timestamp;
             lyrics->isKaraoke = 1;
             if (*ptr == '>') ptr++;
 
-            end = strchr(ptr, '<');
+            substringEnd = strchr(ptr, '<');
 
-            if (end == NULL)
-                end = ptr + strlen(ptr);
+            if (substringEnd == NULL)
+                substringEnd = ptr + strlen(ptr);
 
-            char* karaokeEnd = strchr(karaokeString, '\0');
-            if (karaokeEnd == NULL) break;
-            char* ptrNull = strchr(end, '\0');
-            memcpy(karaokeEnd, end, ptrNull - ptr);
+            karaokeStringSize += substringEnd - ptr;
+            if (karaokeStringSize < 256)
+                strncat(karaokeString, ptr, substringEnd - ptr);
 
-            ptr = end;
+            ptr = substringEnd;
         }
 
         if (karaokeString[0] != '\0') {
