@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## kew 4.3.1
+## kew 4.3.2
 
 #### Enhancements:
 
