@@ -207,6 +207,8 @@ To load 'kew list fav': kew .
 
 ## Visualizations / Chroma
 
+CHROMA DOES NOT CURRENTLY WORK WITH AUDIO REACTIVITY, WAITING FOR CHANGES TO CHROMA.
+
 Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.
 
 You'll need to install a specific commit, which is the latest one that works.
