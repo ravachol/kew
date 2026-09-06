@@ -684,7 +684,7 @@ void component_library_helper_update_view_state(Model *model)
 
         if (model->state.ui.chosen_lib_row < 0 && ctx->start_lib_iter > 0)
                 model->state.ui.chosen_lib_row = ctx->start_lib_iter;
-       else if (model->state.ui.chosen_lib_row < 0)
+        else if (model->state.ui.chosen_lib_row < 0)
                 ctx->start_lib_iter = model->state.ui.chosen_lib_row = 0;
 }
 
@@ -1952,7 +1952,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
 
                         if (artist) {
                                 if (model->state.settings.useAristsLink && strnlen(metadata->url, 3) > 0) {
-                                        draw_link_to_buffer(buf, region.row + 1, region.col, max_width,
+                                        draw_link_to_buffer(buf, region.row + 1, region.col, utf8_display_width(line),
                                                             metadata->url, artist, style);
                                 } else {
                                         draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
@@ -2356,60 +2356,57 @@ ComponentMsg component_visualizer(const Model *model, k_Rect region, DrawBuffer 
         return (ComponentMsg){0};
 }
 
-void draw_karaoke_line(const Model *model, char* lyric_line,
-                       k_Rect region, DrawBuffer* buf,
-                       CellStyle normalWordStyle, CellStyle currentWordStyle
-) {
+void draw_karaoke_line(const Model *model, char *lyric_line,
+                       k_Rect region, DrawBuffer *buf,
+                       CellStyle normalWordStyle, CellStyle currentWordStyle)
+{
         char stringSlice[256] = {0};
         if (model->state.ui.wordLength > 255 ||
-            (size_t)(model->state.ui.wordOffset + model->state.ui.wordLength) > strlen(lyric_line)
-        ) {
-            draw_buffer_set_string_truncated(buf, region.row, region.col,
-                                             lyric_line, region.width, normalWordStyle);
-            return;
+            (size_t)(model->state.ui.wordOffset + model->state.ui.wordLength) > strlen(lyric_line)) {
+                draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                                 lyric_line, region.width, normalWordStyle);
+                return;
         }
 
         snprintf(stringSlice,
                  model->state.ui.wordOffset + 1,
-                 "%s", lyric_line
-                );
+                 "%s", lyric_line);
         draw_buffer_set_string_truncated(buf, region.row, region.col,
                                          stringSlice, region.width, normalWordStyle);
         stringSlice[0] = '\0';
 
         snprintf(stringSlice,
                  model->state.ui.wordLength + 1,
-                 "%s", lyric_line + model->state.ui.wordOffset
-                );
+                 "%s", lyric_line + model->state.ui.wordOffset);
         draw_buffer_set_string_truncated(buf,
                                          region.row,
                                          region.col + model->state.ui.wordOffset,
                                          stringSlice, region.width,
-                                         currentWordStyle
-                                        );
+                                         currentWordStyle);
         stringSlice[0] = '\0';
 
         draw_buffer_set_string_truncated(buf, region.row, region.col + model->state.ui.wordOffset + model->state.ui.wordLength,
                                          lyric_line +
-                                         model->state.ui.wordOffset +
-                                         model->state.ui.wordLength,
+                                             model->state.ui.wordOffset +
+                                             model->state.ui.wordLength,
                                          region.width,
-                                         normalWordStyle
-                                        );
+                                         normalWordStyle);
 }
 
-bool coloursAreSameType(ColorValue val1, ColorValue val2) {
-    return (val1.type == COLOR_TYPE_RGB && val2.type == COLOR_TYPE_RGB) ||
-           (val1.type == COLOR_TYPE_ANSI && val2.type == COLOR_TYPE_ANSI);
+bool coloursAreSameType(ColorValue val1, ColorValue val2)
+{
+        return (val1.type == COLOR_TYPE_RGB && val2.type == COLOR_TYPE_RGB) ||
+               (val1.type == COLOR_TYPE_ANSI && val2.type == COLOR_TYPE_ANSI);
 }
 
-bool coloursAreEqual(ColorValue val1, ColorValue val2) {
-    bool RGBMatch = val1.rgb.r == val2.rgb.r &&
-             val1.rgb.g == val2.rgb.g &&
-             val1.rgb.b == val2.rgb.b;
-    bool ANSIMatch = val1.ansiIndex == val2.ansiIndex &&
-             val1.ansiIndex > 100;
-    return RGBMatch || ANSIMatch;
+bool coloursAreEqual(ColorValue val1, ColorValue val2)
+{
+        bool RGBMatch = val1.rgb.r == val2.rgb.r &&
+                        val1.rgb.g == val2.rgb.g &&
+                        val1.rgb.b == val2.rgb.b;
+        bool ANSIMatch = val1.ansiIndex == val2.ansiIndex &&
+                         val1.ansiIndex > 100;
+        return RGBMatch || ANSIMatch;
 }
 
 ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, DrawBuffer *buf,
@@ -2426,27 +2423,25 @@ ComponentMsg component_timestamped_lyrics(const Model *model, k_Rect region, Dra
         if (!songdata || !songdata->lyrics || songdata->lyrics->isTimed != 1)
                 return (ComponentMsg){0};
 
-        char* lyric_line = (char*)model->state.ui.lyrics_line;
+        char *lyric_line = (char *)model->state.ui.lyrics_line;
 
         CellStyle style = cell_style_from_theme(ui->theme.trackview_lyrics);
 
         if (model->state.ui.wordLength > 0) {
-            ColorValue normalWordColour = ui->theme.trackview_lyrics;
-            ColorValue currentWordColour = ui->theme.trackview_title;
-            CellStyle normalWordStyle = cell_style_from_theme(normalWordColour);
-            CellStyle currentWordStyle = cell_style_from_theme(currentWordColour);
+                ColorValue normalWordColour = ui->theme.trackview_lyrics;
+                ColorValue currentWordColour = ui->theme.trackview_title;
+                CellStyle normalWordStyle = cell_style_from_theme(normalWordColour);
+                CellStyle currentWordStyle = cell_style_from_theme(currentWordColour);
 
-            if (coloursAreSameType(normalWordColour, currentWordColour) &&
-                coloursAreEqual(normalWordColour, currentWordColour)
-            ) {
-                    currentWordStyle.fg = increase_luminosity(currentWordStyle.fg, 80);
-            }
+                if (coloursAreSameType(normalWordColour, currentWordColour) &&
+                    coloursAreEqual(normalWordColour, currentWordColour)) {
+                        currentWordStyle.fg = increase_luminosity(currentWordStyle.fg, 80);
+                }
 
-            draw_karaoke_line(model, lyric_line, region, buf, normalWordStyle, currentWordStyle);
-        }
-        else {
-            draw_buffer_set_string_truncated(buf, region.row, region.col,
-                                             lyric_line, region.width, style);
+                draw_karaoke_line(model, lyric_line, region, buf, normalWordStyle, currentWordStyle);
+        } else {
+                draw_buffer_set_string_truncated(buf, region.row, region.col,
+                                                 lyric_line, region.width, style);
         }
 
         return (ComponentMsg){0};
@@ -2670,8 +2665,7 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
                         lineStyle = cell_style_from_theme(ui->theme.nowplaying);
 
                         if (coloursAreSameType(ui->theme.nowplaying, ui->theme.trackview_lyrics) &&
-                            coloursAreEqual(ui->theme.nowplaying, ui->theme.trackview_lyrics)
-                        ) {
+                            coloursAreEqual(ui->theme.nowplaying, ui->theme.trackview_lyrics)) {
                                 lineStyle.fg = increase_luminosity(lineStyle.fg, 80);
                         }
                 } else
@@ -2680,17 +2674,15 @@ ComponentMsg component_lyrics_page(const Model *model, k_Rect region, DrawBuffer
                 if (highlight == i && lyrics->isKaraoke) {
                         wordStyle = cell_style_from_theme(ui->theme.trackview_title);
                         if (coloursAreSameType(ui->theme.trackview_title, ui->theme.trackview_lyrics) &&
-                            coloursAreEqual(ui->theme.trackview_title, ui->theme.trackview_lyrics)
-                        ) {
+                            coloursAreEqual(ui->theme.trackview_title, ui->theme.trackview_lyrics)) {
                                 wordStyle.fg = increase_luminosity(wordStyle.fg, 80);
                         }
 
                         k_Rect newRegion = {draw_row, region.col, region.width, region.height};
-                        draw_karaoke_line(model, (char*)text, newRegion, buf, cell_style_from_theme(ui->theme.trackview_lyrics), lineStyle);
-                }
-                else {
+                        draw_karaoke_line(model, (char *)text, newRegion, buf, cell_style_from_theme(ui->theme.trackview_lyrics), lineStyle);
+                } else {
                         draw_buffer_set_string_truncated(buf, draw_row, region.col,
-                                                                 text, region.width, lineStyle);
+                                                         text, region.width, lineStyle);
                 }
         }
 
@@ -2965,6 +2957,12 @@ ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *bu
         return (ComponentMsg){0};
 }
 
+void component_help_helper_reset(Model *model)
+{
+        model->state.ui.help_scrollbar.position = model->state.ui.help_region.row;
+        model->state.ui.help_scrollbar.last_position = model->state.ui.help_region.row;
+}
+
 ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                             DirtyFlags dirty)
 {
@@ -2977,6 +2975,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         CellStyle link_style = cell_style_from_theme(ui->theme.link);
         CellStyle header_style = cell_style_from_theme(ui->theme.header);
 
+        int output_row = region.row;
         int row = region.row;
         int col = region.col;
         int max_width = region.width;
@@ -2984,58 +2983,82 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         // Theme line, split into segments with different colors
         char theme_line[512];
 
-        draw_buffer_set_string(buf, row, col, _(" Love kew? ❤️  "), help_style);
-        draw_link_to_buffer(buf, row, col + utf8_display_width(_(" Love kew? ❤️  ")), max_width,
-                            "https://kewplayer.com/donate.html", "Donate!", link_style);
+        if (output_row >= region.row + region.height)
+                goto render_scrollbar;
 
-        row += 2;
+        if (model->state.ui.chosen_help_row <= row) {
+                draw_buffer_set_string(buf, output_row, col, _(" Love kew? ❤️ "), help_style);
+                draw_link_to_buffer(buf, output_row, col + utf8_display_width(_(" Love kew? ❤️ ")), 7,
+                                    "https://kewplayer.com/donate.html", "Donate!", link_style);
 
-        if (row >= region.row + region.height)
-                return (ComponentMsg){0};
-
-        if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
-                draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
-                int c = col + utf8_display_width(_(" Theme: "));
-                draw_buffer_set_string(buf, row, c, _("Using "), text_style);
-                c += utf8_display_width(_("Using "));
-                draw_buffer_set_string(buf, row, c, _("One Color "), link_style);
-                c += utf8_display_width(_("One Color "));
-                draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
-        } else if (ui->colorMode == COLOR_MODE_ALBUM) {
-                draw_buffer_set_string(buf, row, col, _(" Theme: "), text_style);
-                int c = col + utf8_display_width(_(" Theme: "));
-                draw_buffer_set_string(buf, row, c, _("Using "), text_style);
-                c += utf8_display_width(_("Using "));
-                draw_buffer_set_string(buf, row, c, _("Colors "), link_style);
-                c += utf8_display_width(_("Colors "));
-                draw_buffer_set_string(buf, row, c, _("From Track Covers"), text_style);
-        } else {
-                snprintf(theme_line, sizeof(theme_line), _(" Theme: "));
-                draw_buffer_set_string(buf, row, col, theme_line, text_style);
-                int c = col + utf8_display_width(theme_line);
-                draw_buffer_set_string(buf, row, c, ui->theme.theme_name, help_style);
-                if (strcmp(ui->theme.theme_author, "") != 0) {
-                        c += utf8_display_width(ui->theme.theme_name);
-                        draw_buffer_set_string(buf, row, c, _(" Author: "), text_style);
-                        c += utf8_display_width(_(" Author: "));
-                        draw_buffer_set_string(buf, row, c, ui->theme.theme_author, help_style);
-                }
+                output_row += 2;
         }
         row += 2;
-        if (row >= region.row + region.height)
-                return (ComponentMsg){0};
+
+        if (output_row >= region.row + region.height)
+                goto render_scrollbar;
+
+        if (model->state.ui.chosen_help_row <= row) {
+                if (ui->colorMode == COLOR_MODE_ALBUM_ONE) {
+                        draw_buffer_set_string(buf, output_row, col, _(" Theme: "), text_style);
+                        int c = col + utf8_display_width(_(" Theme: "));
+                        draw_buffer_set_string(buf, output_row, c, _("Using "), text_style);
+                        c += utf8_display_width(_("Using "));
+                        draw_buffer_set_string(buf, output_row, c, _("One Color "), link_style);
+                        c += utf8_display_width(_("One Color "));
+                        draw_buffer_set_string(buf, output_row, c, _("From Track Covers"), text_style);
+                } else if (ui->colorMode == COLOR_MODE_ALBUM) {
+                        draw_buffer_set_string(buf, output_row, col, _(" Theme: "), text_style);
+                        int c = col + utf8_display_width(_(" Theme: "));
+                        draw_buffer_set_string(buf, output_row, c, _("Using "), text_style);
+                        c += utf8_display_width(_("Using "));
+                        draw_buffer_set_string(buf, output_row, c, _("Colors "), link_style);
+                        c += utf8_display_width(_("Colors "));
+                        draw_buffer_set_string(buf, output_row, c, _("From Track Covers"), text_style);
+                } else {
+                        snprintf(theme_line, sizeof(theme_line), _(" Theme: "));
+                        draw_buffer_set_string(buf, output_row, col, theme_line, text_style);
+                        int c = col + utf8_display_width(theme_line);
+                        draw_buffer_set_string(buf, output_row, c, ui->theme.theme_name, help_style);
+                        if (strcmp(ui->theme.theme_author, "") != 0) {
+                                c += utf8_display_width(ui->theme.theme_name);
+                                draw_buffer_set_string(buf, output_row, c, _(" Author: "), text_style);
+                                c += utf8_display_width(_(" Author: "));
+                                draw_buffer_set_string(buf, output_row, c, ui->theme.theme_author, help_style);
+                        }
+                }
+
+                output_row += 2;
+        }
+
+        row += 2;
+
+        if (output_row >= region.row + region.height)
+                goto render_scrollbar;
 
 // Keybinding lines
-#define HELP_LINE(fmt, ...)                                                                      \
-        do {                                                                                     \
-                if (row >= region.row + region.height)                                           \
-                        return (ComponentMsg){0};                                                \
-                char _line[512];                                                                 \
-                snprintf(_line, sizeof(_line), fmt, ##__VA_ARGS__);                              \
-                draw_buffer_set_string_truncated(buf, row++, col, _line, max_width, help_style); \
+#define HELP_LINE(fmt, ...)                                                 \
+        do {                                                                \
+                if (row >= region.row + region.height)                      \
+                        goto render_scrollbar;                              \
+                if (model->state.ui.chosen_help_row <= row) {               \
+                        char _line[512];                                    \
+                        snprintf(_line, sizeof(_line), fmt, ##__VA_ARGS__); \
+                        draw_buffer_set_string(buf, output_row, col,        \
+                                               _line, help_style);          \
+                        output_row++;                                       \
+                }                                                           \
+                row++;                                                      \
         } while (0)
 
-        draw_buffer_set_string_truncated(buf, row++, col, _(" Basic"), max_width, header_style);
+        if (model->state.ui.chosen_help_row <= row) {
+                draw_buffer_set_string(buf, output_row, col, _(" Basic"), header_style);
+
+                output_row++;
+        }
+
+        row++;
+
         HELP_LINE(_(" · Play/Pause: %s"), get_binding_string(MSG_PLAY_PAUSE, false));
         HELP_LINE(_(" · Enqueue/Dequeue: %s"), get_binding_string(MSG_ENQUEUE, false));
         HELP_LINE(_(" · Immediate Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
@@ -3055,7 +3078,10 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Stop: %s"), get_binding_string(MSG_STOP, false));
 
         // Change view line
-        if (row < region.row + region.height) {
+        if (output_row >= region.row + region.height)
+                goto render_scrollbar;
+
+        if (model->state.ui.chosen_help_row <= row) {
                 char view_line[512];
                 snprintf(view_line, sizeof(view_line),
                          _(" · Change View: %s or %s, %s, %s, %s, %s or click the footer"),
@@ -3065,13 +3091,28 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                          get_binding_string(MSG_SHOWTRACK, true),
                          get_binding_string(MSG_SHOWSEARCH, true),
                          get_binding_string(MSG_SHOWHELP, true));
-                draw_buffer_set_string_truncated(buf, row++, col, view_line, max_width, help_style);
+                draw_buffer_set_string(buf, output_row, col, view_line, help_style);
+
+                output_row++;
         }
+
+        row++;
 
         HELP_LINE(_(" · Quit: %s"), get_binding_string(MSG_QUIT, false));
 
         HELP_LINE(" ");
-        draw_buffer_set_string_truncated(buf, row++, col, _(" Advanced"), max_width, header_style);
+
+        if (output_row >= region.row + region.height)
+                goto render_scrollbar;
+
+        if (model->state.ui.chosen_help_row <= row) {
+                draw_buffer_set_string(buf, output_row, col, _(" Advanced"), header_style);
+
+                output_row++;
+        }
+
+        row++;
+
         HELP_LINE(_(" · Toggle Lyrics Page: %s"),
                   get_binding_string(MSG_SHOWLYRICSPAGE, false));
         HELP_LINE(_(" · Seek: %s and %s"),
@@ -3109,33 +3150,51 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
 #undef HELP_LINE
 
-        row += 1;
-        if (row >= region.row + region.height)
-                return (ComponentMsg){0};
+        row += 2;
+        output_row += 2;
 
-        // Project links
-        draw_buffer_set_string(buf, row, col, _(" Homepage: "), help_style);
-        draw_buffer_set_string(buf, row, col + utf8_display_width(_(" Homepage: ")),
-                               "https://www.kewplayer.com", link_style);
+        if (row >= region.row + region.height)
+                goto render_scrollbar;
+
+        if (model->state.ui.chosen_help_row <= row) {
+                // Project links
+                draw_buffer_set_string(buf, output_row, col, _(" Homepage: "), help_style);
+                draw_buffer_set_string(buf, output_row, col + utf8_display_width(_(" Homepage: ")),
+                                       "https://www.kewplayer.com", link_style);
+
+                output_row += 2;
+        }
 
         row += 2;
+
         if (row >= region.row + region.height)
-                return (ComponentMsg){0};
+                goto render_scrollbar;
 
         // Wikidata license
-        draw_buffer_set_string_truncated(buf, row, col,
-                                         " Wikidata (https://www.wikidata.org/) License CC BY-SA 4.0",
-                                         max_width, text_style);
 
+        if (model->state.ui.chosen_help_row <= row) {
+                draw_buffer_set_string_truncated(buf, output_row, col,
+                                                 " Wikidata (https://www.wikidata.org/) License CC BY-SA 4.0",
+                                                 max_width, text_style);
+
+                output_row += 2;
+        }
         row += 2;
+
         if (row >= region.row + region.height)
-                return (ComponentMsg){0};
+                goto render_scrollbar;
 
         // Copyright
-        draw_buffer_set_string_truncated(buf, row, col,
-                                         " Copyright © 2022-2026 Ravachol. License GPLv2+",
-                                         max_width, text_style);
+        if (model->state.ui.chosen_help_row <= row) {
+                draw_buffer_set_string_truncated(buf, output_row, col,
+                                                 " Copyright © 2022-2026 Ravachol. License GPLv2+",
+                                                 max_width, text_style);
+        }
 
+render_scrollbar: {
+        CellStyle plain_style = cell_style_plain();
+        render_scroll_bar(buf, region, model->state.ui.help_scrollbar, plain_style);
+}
         return (ComponentMsg){0};
 }
 

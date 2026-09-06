@@ -474,7 +474,6 @@ void set_model_attributes(Pane *pane)
 
         if (pane->fn == component_playlist_rows) {
                 model->state.ui.playlist_region = pane->region;
-                model->state.ui.playlist_region = pane->region;
                 model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
                 model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
 
@@ -489,7 +488,6 @@ void set_model_attributes(Pane *pane)
         }
 
         if (pane->fn == component_library_rows) {
-                model->state.ui.library_region = pane->region;
                 model->state.ui.library_region = pane->region;
                 model->state.ui.library_scrollbar.position = model->state.ui.library_region.row;
                 model->state.ui.library_scrollbar.last_position = model->state.ui.library_region.row;
@@ -506,7 +504,6 @@ void set_model_attributes(Pane *pane)
 
         if (pane->fn == component_search_results) {
                 model->state.ui.search_region = pane->region;
-                model->state.ui.search_region = pane->region;
                 model->state.ui.search_scrollbar.position = model->state.ui.search_region.row;
                 model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
 
@@ -517,6 +514,21 @@ void set_model_attributes(Pane *pane)
 
                         model->state.ui.search_scrollbar.position =
                             (int)model->state.ui.search_region.row + (int)round(position * model->state.ui.search_region.height);
+                }
+        }
+
+        if (pane->fn == component_help) {
+                model->state.ui.help_region = pane->region;
+                model->state.ui.help_scrollbar.position = model->state.ui.help_region.row;
+                model->state.ui.help_scrollbar.last_position = model->state.ui.help_region.row;
+
+                if (model->state.ui.chosen_row >= 0 && (double)model->unshuffled_playlist->count > 0) {
+                        double position =
+                            (double)model->state.ui.chosen_help_row /
+                            (double)model->state.ui.help_region.height;
+
+                        model->state.ui.help_scrollbar.position =
+                            (int)model->state.ui.help_region.row + (int)round(position * model->state.ui.help_region.height);
                 }
         }
 }
@@ -1174,6 +1186,7 @@ void ui_init(void)
 
         component_library_helper_reset(model);
         component_playlist_helper_reset(model);
+        component_help_helper_reset(model);
 
         s_buf = draw_buffer_create(model->term_w, model->term_h);
 }
@@ -1208,6 +1221,7 @@ void ui_shutdown(void)
 
         component_library_helper_reset(model);
         component_playlist_helper_reset(model);
+        component_help_helper_reset(model);
 
         layout_destroy(model->library_layout);
         layout_destroy(model->playlist_layout);

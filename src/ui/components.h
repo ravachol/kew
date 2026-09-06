@@ -105,6 +105,8 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
 
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
+void component_help_helper_reset(Model *model);
+
 ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 #endif
