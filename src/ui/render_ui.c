@@ -1267,8 +1267,7 @@ void layout_render_dirty(const Layout *layout,
                                     (pane->redraws_on & model->dirty) != 0;
                         }
 
-                        if (pane->fn == component_side_cover)
-                        {
+                        if (pane->fn == component_side_cover) {
                                 if (!should_draw)
                                         should_draw = model->state.ui.play_pause_toggled;
                         }
@@ -1294,7 +1293,7 @@ void layout_render_dirty(const Layout *layout,
                                     pane->fn == component_track_landscape_normal ||
                                     pane->fn == component_vis_and_progress_bar) {
 
-                                        if (!model->title_delay.active && (model->dirty & DIRTY_SONG || model->dirty == DIRTY_ALL))
+                                        if (!model->title_delay.active && (model->dirty & DIRTY_SONG || model->dirty == DIRTY_ALL) && !model->state.ui.chroma_started)
 
                                                 dispatch_msg((struct Msg){
                                                     .type = MSG_START_TITLE_ANIM});

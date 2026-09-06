@@ -3,6 +3,7 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "common/model.h"
 #include "messages.h"
 
 #include "ui/chroma.h"
@@ -184,7 +185,7 @@ void run_tick_commands(Model *model)
                 model->last_paused_state = is_paused();
         }
 
-        if (model->state.ui.chroma_started && model->state.last_view != model->state.currentView) {
+        if (model->state.ui.chroma_started && model->state.last_view != model->state.currentView &&  model->state.currentView != TRACK_VIEW) {
                 chroma_shutdown();
                 model->state.ui.chroma_start_requested = true;
         }
