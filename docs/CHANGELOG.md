@@ -10,6 +10,8 @@
 
 - Fix music auto-plays when merely expanding a directory where the songs are enqueued. By @ravachol.
 
+- Moved the website source out of kew repository, it will now be on https://codeberg.org/ravachol/kew-website.git. This makes the zip and git clone as lightweight as before the website. By @ravachol.
+
 ## kew 4.3.2
 
 #### Enhancements:
