@@ -330,6 +330,26 @@ void chroma_print_frame(int row, int col, int height, bool centered)
         }
 }
 
+#ifdef _WIN32
+
+#include <windows.h>
+
+bool chroma_is_installed(void)
+{
+        char path[MAX_PATH];
+
+        return SearchPathA(
+                NULL,
+                "chroma.exe",
+                NULL,
+                sizeof(path),
+                path,
+                NULL
+        ) != 0;
+}
+
+#else
+
 bool chroma_is_installed(void)
 {
         const char *path = getenv("PATH");
@@ -344,17 +364,22 @@ bool chroma_is_installed(void)
         char fullpath[512];
 
         while (dir) {
-                snprintf(fullpath, sizeof(fullpath), "%s/chroma", dir);
+                snprintf(fullpath, sizeof(fullpath),
+                         "%s/chroma", dir);
+
                 if (access(fullpath, X_OK) == 0) {
                         free(p);
                         return true;
                 }
+
                 dir = strtok(NULL, ":");
         }
 
         free(p);
         return false;
 }
+
+#endif
 
 bool chroma_is_started(void)
 {

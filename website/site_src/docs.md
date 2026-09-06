@@ -220,7 +220,7 @@ cd chroma
 
 git checkout fb00b6e
 
-cargo install --path .
+cargo install --path . --features audio
 ```
 
 Enable and cycle through the visualizations by pressing <kbd>c</kbd> in track view.

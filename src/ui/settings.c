@@ -1873,6 +1873,8 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui)
 
                 if (tmp >= 0)
                         ui->chromaPreset = tmp;
+                else
+                        ui->chromaPreset = 0;
         }
 
         tmp = get_number(settings->colorMode);
