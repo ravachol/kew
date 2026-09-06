@@ -4,6 +4,8 @@
 
 #### Bug fixes:
 
+- Fixes several issues with chroma and enables it on windows. However due to changes to chroma, it doesn't have audio reactivity anymore and the author of Chroma has been contacted to see if he can reenable it. By @ravachol.
+
 - Fixes issue with karaoke lyrics. By @Moksh-Parikh.
 
 - Fix music auto-plays when merely expanding a directory where the songs are enqueued. By @ravachol.
