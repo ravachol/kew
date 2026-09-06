@@ -492,6 +492,7 @@ typedef struct
         int chosen_row;
         int chosen_lib_row;
         int chosen_search_result_row;
+        int chosen_help_row;
 
         int start_lib_iter;
         int start_iter;
@@ -513,6 +514,7 @@ typedef struct
         int max_lib_rows;
         int max_search_rows;
         int lib_row_count;
+        int help_row_count;
         bool check_collapse_top_level;
 
         int chosen_lyrics_row;
@@ -541,10 +543,12 @@ typedef struct
         k_ScrollBar playlist_scrollbar;
         k_ScrollBar library_scrollbar;
         k_ScrollBar search_scrollbar;
+        k_ScrollBar help_scrollbar;
 
         k_Rect playlist_region;
         k_Rect library_region;
         k_Rect search_region;
+        k_Rect help_region;
 
         char *logfile_path;
 } UIState;

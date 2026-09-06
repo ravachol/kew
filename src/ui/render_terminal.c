@@ -3,6 +3,7 @@
 #include "common/model.h"
 
 #include "ui/chroma.h"
+#include "ui/common_ui.h"
 #include "utils/img_utils.h"
 #include "utils/term.h"
 
@@ -221,6 +222,36 @@ static void emit_style_diff(const Cell *cell,
         }
 }
 
+static void emit_utf8_string(const char *s)
+{
+        const unsigned char *p = (const unsigned char *)s;
+
+        while (*p) {
+                uint32_t cp;
+
+                if (*p < 0x80) {
+                        cp = *p++;
+                } else if ((*p & 0xE0) == 0xC0) {
+                        cp = ((uint32_t)(p[0] & 0x1F) << 6) |
+                             (uint32_t)(p[1] & 0x3F);
+                        p += 2;
+                } else if ((*p & 0xF0) == 0xE0) {
+                        cp = ((uint32_t)(p[0] & 0x0F) << 12) |
+                             ((uint32_t)(p[1] & 0x3F) << 6) |
+                             (uint32_t)(p[2] & 0x3F);
+                        p += 3;
+                } else {
+                        cp = ((uint32_t)(p[0] & 0x07) << 18) |
+                             ((uint32_t)(p[1] & 0x3F) << 12) |
+                             ((uint32_t)(p[2] & 0x3F) << 6) |
+                             (uint32_t)(p[3] & 0x3F);
+                        p += 4;
+                }
+
+                emit_codepoint(cp);
+        }
+}
+
 void terminal_backend_commit(const DrawBuffer *buf,
                              DirtyFlags dirty,
                              TerminalBackendState *state)
@@ -316,15 +347,18 @@ void terminal_backend_commit(const DrawBuffer *buf,
                         }
 
                         if (cell->kind == CELL_LINK) {
+                                
                                 cursor_move(row, col);
 
                                 emit_style_diff(cell, &style);
 
-                                printf("%s", cell->link->title);
+                                emit_utf8_string(cell->link->title);
 
+                                int link_width = utf8_display_width(cell->link->title);
                                 cur_row = row;
-                                cur_col = col;
-                                col = buf->cols;
+                                cur_col = col + link_width;
+                                col += link_width;
+
                                 continue;
                         }
 

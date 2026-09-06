@@ -949,6 +949,7 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
                 anchor->link->title = calloc(1, tlen + 1);
                 snprintf(anchor->link->title, tlen + 1, "%s", title);
         }
+
         if (draw_url) {
                 anchor->link->url = calloc(1, ulen + 1);
                 snprintf(anchor->link->url, ulen + 1, "%s", url);
@@ -956,8 +957,9 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
 
         // Mark occupied region
         int col_occupied = col + 1;
-        int col_end = col_occupied + width + 100;
+        int col_end = col_occupied + width;
         col_end = (col_end > buf->cols) ? buf->cols : col_end;
+
         for (int c = col_occupied; c < col_end; c++) {
                 if (c == col)
                         continue;
@@ -1106,6 +1108,9 @@ bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
         if (model->state.currentView == SEARCH_VIEW)
                 region = model->state.ui.search_region;
 
+        if (model->state.currentView == HELP_VIEW)
+                region = model->state.ui.help_region;
+
         if (mouse_y + 1 < region.row || mouse_y > region.row + region.height)
                 return false;
 
@@ -1217,6 +1222,44 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 }
 
                 set_dirty(DIRTY_SEARCH);
+        }
+
+        if (model->state.currentView == HELP_VIEW) {
+                scrollbar = &model->state.ui.help_scrollbar;
+                height = model->state.ui.help_region.height;
+                row = model->state.ui.help_region.row;
+                numRows = model->state.ui.help_region.height;
+                delta_row = (long long)pos - (long long)row;
+                int new_help_row = 0;
+
+                if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
+
+                        if (delta_row < 0)
+                                delta_row = 0;
+
+                        double position = (double)delta_row / (double)height;
+
+                        new_help_row = round(numRows * position);
+
+                        new_help_row =
+                            (new_help_row >= model->state.ui.help_region.height)
+                                ? model->state.ui.help_region.height - 1
+                                : new_help_row;
+
+                        new_help_row = (new_help_row < 0)
+                                          ? 0
+                                          : new_help_row;
+
+                        if (dragging && model->state.ui.chosen_help_row > 0) { // Move one step at a time
+                                if (new_help_row > model->state.ui.chosen_help_row + model->state.ui.help_region.height)
+                                        new_help_row = model->state.ui.chosen_help_row + model->state.ui.help_region.height;
+                                else if (new_help_row < model->state.ui.chosen_help_row - model->state.ui.help_region.height)
+                                        new_help_row = model->state.ui.chosen_help_row - model->state.ui.help_region.height;
+                        }
+
+                        model->state.ui.chosen_help_row = new_help_row;
+                }
+                set_dirty(DIRTY_ALL);
         }
 
         scrollbar->last_position = scrollbar->position;

@@ -382,6 +382,21 @@ void set_scrollbar_positions()
                                 set_dirty(DIRTY_SEARCH);
                 }
         }
+
+        if (model->state.currentView == HELP_VIEW) {
+                if (model->state.ui.chosen_help_row >= 0) {
+                        double position =
+                            (double)model->state.ui.chosen_help_row /
+                            (double)model->state.ui.help_region.height;
+
+                        new_pos = (int)model->state.ui.help_region.row + (int)round(position * model->state.ui.help_region.height);
+
+                        model->state.ui.help_scrollbar.position = new_pos;
+
+                        if (new_pos != model->state.ui.help_scrollbar.position)
+                                set_dirty(DIRTY_ALL);
+                }
+        }
 }
 
 UpdateResult update(Model *model, struct Msg *msg)
