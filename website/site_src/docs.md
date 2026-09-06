@@ -139,6 +139,8 @@ Linux: ~/.config/kew/
 
 macOS: ~/Library/Preferences/kew/
 
+Windows: %appdata%\kew
+
 Key bindings can be added like this:
 
 bind = +, volUp, +5%
