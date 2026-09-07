@@ -16,6 +16,7 @@
 
 #include "img_func.h"
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -625,6 +626,11 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         // Source image aspect.
         float image_ratio = (float)width / (float)height;
+
+        if (isnan(image_ratio))
+        {
+                image_ratio = 1.0;
+        }
 
         // Keep requested height.
         int corrected_height = base_height;
