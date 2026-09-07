@@ -420,11 +420,11 @@ char *get_prefs_path(void)
                 snprintf(out, KEW_PATH_MAX, "%s", base);
         } else if (home) {
 #ifdef __APPLE__
-                snprintf(out, KEW_PATH_MAX, "%s/Library/Application Support", home);
+                snprintf(out, KEW_PATH_MAX, "%s/Library/Application Support/kew", home);
 #elif _WIN32
-                snprintf(out, KEW_PATH_MAX, "%s\\AppData\\Local", home);
+                snprintf(out, KEW_PATH_MAX, "%s\\AppData\\Local\\kew", home);
 #else
-                snprintf(out, KEW_PATH_MAX, "%s/.local/state", home);
+                snprintf(out, KEW_PATH_MAX, "%s/.local/state/kew", home);
 #endif
         } else {
                 free(out);
@@ -455,7 +455,7 @@ bool is_valid_filename(const char *filename)
         return true;
 }
 
-char *get_file_path(const char *filename)
+char *get_config_file_path(const char *filename)
 {
         if (filename == NULL || !is_valid_filename(filename)) {
                 return NULL;
@@ -491,6 +491,44 @@ char *get_file_path(const char *filename)
         free(configdir);
         return filepath;
 }
+
+char *get_prefs_file_path(const char *filename)
+{
+        if (filename == NULL || !is_valid_filename(filename)) {
+                return NULL;
+        }
+
+        if (filename[0] == '.') {
+                return NULL;
+        }
+
+        char *configdir = get_prefs_path();
+        if (configdir == NULL) {
+                return NULL;
+        }
+
+        size_t configdir_length = strnlen(configdir, KEW_PATH_MAX);
+        size_t filename_length = strnlen(filename, KEW_PATH_MAX);
+
+        size_t filepath_length = configdir_length + 1 + filename_length + 1;
+
+        if (filepath_length > KEW_PATH_MAX) {
+                free(configdir);
+                return NULL;
+        }
+
+        char *filepath = (char *)malloc(filepath_length);
+        if (filepath == NULL) {
+                free(configdir);
+                return NULL;
+        }
+
+        snprintf(filepath, filepath_length, "%s/%s", configdir, filename);
+
+        free(configdir);
+        return filepath;
+}
+
 
 void format_filename(char *str)
 {

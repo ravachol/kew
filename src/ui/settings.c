@@ -671,13 +671,8 @@ void settings_init(AppSettings *settings)
 
         keybinding_count = NUM_DEFAULT_KEY_BINDINGS;
 
-        char *configdir = get_config_path();
-
-        char *kewrc =
-            get_settings_file_path(configdir, SETTINGS_FILE);
-
-        char *kewstaterc =
-            get_settings_file_path(configdir, STATE_FILE);
+        char *kewrc = get_config_file_path(SETTINGS_FILE);
+        char *kewstaterc = get_prefs_file_path(STATE_FILE);
 
         time_t kewrc_time = get_file_mtime(kewrc);
         time_t state_time = get_file_mtime(kewstaterc);
@@ -695,7 +690,6 @@ void settings_init(AppSettings *settings)
 
         free(kewrc);
         free(kewstaterc);
-        free(configdir);
 }
 
 void free_key_value_pairs(KeyValuePair *pairs, int count)
@@ -1835,22 +1829,22 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
 
 void migrate_prefs_file(char *new_filepath)
 {
-        char *prefs_dir = get_prefs_path();
-        char *prefs_file_old = get_settings_file_path(prefs_dir, STATE_FILE);
+        char *config_dir = get_config_path();
+        char *config_file_old = get_settings_file_path(config_dir, STATE_FILE);
 
         struct stat nfile = {0};
         struct stat ofile = {0};
-        if (stat(new_filepath, &nfile) == -1 && stat(prefs_file_old, &ofile) == 0) {
-                if (rename(prefs_file_old, new_filepath) != 0) {
+        if (stat(new_filepath, &nfile) == -1 && stat(config_file_old, &ofile) == 0) {
+                if (rename(config_file_old, new_filepath) != 0) {
                         perror("rename");
-                        free(prefs_file_old);
-                        free(prefs_dir);
+                        free(config_file_old);
+                        free(config_dir);
                         quit();
                 }
         }
 
-        free(prefs_file_old);
-        free(prefs_dir);
+        free(config_file_old);
+        free(config_dir);
         return;
 }
 
@@ -1921,20 +1915,20 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui)
 void get_prefs(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
-        char *configdir = get_config_path();
+        char *prefsdir = get_prefs_path();
 
         setlocale(LC_ALL, "");
 
         struct stat st = {0};
-        if (stat(configdir, &st) == -1) {
-                if (create_directory(configdir) != 1) {
+        if (stat(prefsdir, &st) == -1) {
+                if (create_directory(prefsdir) != 1) {
                         perror("mkdir");
-                        free(configdir);
+                        free(prefsdir);
                         quit();
                 }
         }
 
-        char *filepath = get_settings_file_path(configdir, STATE_FILE);
+        char *filepath = get_settings_file_path(prefsdir, STATE_FILE);
 
         // Move legacy state file to new location
         migrate_prefs_file(filepath);
@@ -1947,7 +1941,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
 
         load_settings_into_ui(settings, ui);
 
-        free(configdir);
+        free(prefsdir);
 }
 
 void get_config(AppSettings *settings, UISettings *ui)
@@ -1991,8 +1985,7 @@ void get_config(AppSettings *settings, UISettings *ui)
 void set_prefs(AppSettings *settings, UISettings *ui)
 {
         // Create the file path
-        char *configdir = get_config_path();
-        char *filepath = get_settings_file_path(configdir, STATE_FILE);
+        char *filepath = get_prefs_file_path(STATE_FILE);
 
         setlocale(LC_ALL, "");
 
@@ -2000,7 +1993,6 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         if (file == NULL) {
                 k_log("Error opening file: %s\n", filepath);
                 free(filepath);
-                free(configdir);
                 return;
         }
 
@@ -2078,7 +2070,6 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         }
 
         fclose(file);
-        free(configdir);
         free(filepath);
 }
 

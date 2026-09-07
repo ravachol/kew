@@ -110,7 +110,7 @@ int path_ends_with(const char *str, const char *suffix);
 int path_starts_with(const char *str, const char *prefix);
 
 /**
- * @brief Gets the file path for the given filename.
+ * @brief Gets the file path for the given filename in the config (~/.config/kew) directory.
  *
  * This function retrieves the full file path for the given filename.
  *
@@ -118,7 +118,18 @@ int path_starts_with(const char *str, const char *prefix);
  *
  * @return The full file path, or NULL if the filename is invalid.
  */
-char *get_file_path(const char *filename);
+char *get_config_file_path(const char *filename);
+
+/**
+ * @brief Gets the file path for the given filename in the preferences (~/.local/state/kew on linux) directory.
+ *
+ * This function retrieves the full file path for the given filename.
+ *
+ * @param filename The filename to retrieve the file path for.
+ *
+ * @return The full file path, or NULL if the filename is invalid.
+ */
+char *get_prefs_file_path(const char *filename);
 
 /**
  * @brief Converts a string to uppercase.

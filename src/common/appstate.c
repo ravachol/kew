@@ -4,12 +4,17 @@
  *
  */
 
-#ifdef _WIN32
-#include <winsock2.h>
-#endif
+ #include "appstate.h"
+
+#include "common/appstate.h"
+#include "common/model.h"
+#include "utils/file.h"
+#include "utils/term.h"
+#include "utils/utils.h"
 
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef _WIN32
+#include <winsock2.h>
 #include <io.h>
 #include <windows.h>
 
@@ -23,13 +28,6 @@ static int win32_stdout_is_file = 0;
 #include <sys/ioctl.h> /* ioctl */
 #endif
 
-#include "appstate.h"
-
-#include "common/appstate.h"
-#include "common/model.h"
-#include "utils/file.h"
-#include "utils/term.h"
-#include "utils/utils.h"
 
 sound_system_t *sound_sys = NULL;
 
@@ -443,7 +441,7 @@ PlaybackState *get_playback_state()
 
 char *get_library_file_path(void)
 {
-        return get_file_path(LIBRARY_FILE);
+        return get_prefs_file_path(LIBRARY_FILE);
 }
 
 double get_pause_seconds(void)

@@ -212,10 +212,11 @@ If you want, you can also delete the settings files:
 Linux: ~/.config/kew/
 macOS: ~/Library/Preferences/kew/
 
-Then delete the kewstaterc file:
+Then delete the kewstaterc and library.dat files:
 
-Linux: ~/.config/kew/kewstaterc
-macOS: ~/Library/Preferences/kew/kewstaterc
+Linux: ~/.local/state/kew/
+macOS: ~/Library/Application Support/kew/
+Windows: %AppData\\Local\kew
 
 #### Faad2 is optional
 
