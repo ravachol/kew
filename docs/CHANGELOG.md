@@ -8,6 +8,8 @@
 
 - Moved the website source out of kew repository, it will now be on https://codeberg.org/ravachol/kew-website.git. This makes the zip and git clone as lightweight as before the website. By @ravachol.
 
+- Volume now can go to 12, or 120%. So when you're at 11, and you need a little bit more... By @ravachol. Suggested by @GTAGCT.
+
 #### Bug fixes:
 
 - Fixes several issues with chroma and enables it on windows. However due to changes to chroma, it doesn't have audio reactivity unless you install the develop branch of chroma:
