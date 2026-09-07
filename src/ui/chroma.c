@@ -120,10 +120,10 @@ static void *chroma_thread(void *arg)
                 if(settings->chromaPath[0] == '\0'){
                         if(settings->chromaDevice[0] == '\0')
                                 n = snprintf(cmd, sizeof(cmd),
-                                        "chroma --stream %dx%d --preset %d --bass-influence 1.0", g_viz.width, g_viz.height, g_viz.preset);
+                                        "chroma --stream %dx%d --preset %d", g_viz.width, g_viz.height, g_viz.preset);
                         else
                                 n = snprintf(cmd, sizeof(cmd),
-                                        "chroma --stream %dx%d --preset %d --bass-influence 1.0  --audio-device \"%s\"", g_viz.width, g_viz.height, g_viz.preset, settings->chromaDevice);
+                                        "chroma --stream %dx%d --preset %d --audio-device \"%s\"", g_viz.width, g_viz.height, g_viz.preset, settings->chromaDevice);
                 } else{
                         if(settings->chromaDevice[0] == '\0')
                                 n = snprintf(cmd, sizeof(cmd),
@@ -132,7 +132,6 @@ static void *chroma_thread(void *arg)
                                n = snprintf(cmd, sizeof(cmd),
                                         "chroma --stream %dx%d -c \"%s\" --audio-device \"%s\"", g_viz.width, g_viz.height, settings->chromaPath, settings->chromaDevice);
                 }
-
 
                 //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
 
