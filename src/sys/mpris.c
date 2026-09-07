@@ -1001,8 +1001,8 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         double new_volume;
                         g_variant_get(value, "d", &new_volume);
 
-                        if (new_volume > 1.0)
-                                new_volume = 1.0;
+                        if (new_volume > 1.2)
+                                new_volume = 1.2;
 
                         if (new_volume < 0.0)
                                 new_volume = 0.0;

@@ -18,8 +18,8 @@ float get_current_volume(void)
 
 void set_current_volume(float volume)
 {
-        if (volume > 1.0f) {
-                volume = 1.0f;
+        if (volume > 1.2f) {
+                volume = 1.2f;
         } else if (volume < 0.0f) {
                 volume = 0.0f;
         }
