@@ -14,6 +14,7 @@
 #include "sound/sound_facade.h"
 
 #include "loader/song_loader.h"
+#include <math.h>
 
 #ifdef DEBUG
 #include "utils/k_log.h"
@@ -109,7 +110,7 @@ void set_volume(int vol)
         sound_system_set_volume(sound_sys, ((float)vol / 100));
 
         Model *model = get_model();
-        model->volume = sound_system_get_volume(sound_sys) * 100;
+        model->volume = (int)roundf(sound_system_get_volume(sound_sys) * 100);
 }
 
 SongData *get_current_song_data(SongData *previous_songdata)
