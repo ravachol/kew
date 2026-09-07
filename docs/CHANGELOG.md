@@ -10,7 +10,19 @@
 
 #### Bug fixes:
 
-- Fixes several issues with chroma and enables it on windows. However due to changes to chroma, it doesn't have audio reactivity anymore and the author of Chroma has been contacted to see if he can reenable it. By @ravachol.
+- Fixes several issues with chroma and enables it on windows. However due to changes to chroma, it doesn't have audio reactivity unless you install the develop branch of chroma:
+
+```
+git clone https://github.com/yuri-xyz/chroma.git
+
+cd chroma
+
+git checkout branch develop
+
+cargo install --path .
+```
+
+By @ravachol.
 
 - Fixes issue with karaoke lyrics. By @Moksh-Parikh.
 
