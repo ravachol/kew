@@ -545,7 +545,7 @@ int sound_system_is_buffer_ready(const sound_system_t *system);
  *
  * @return Whether 1 if the file is supported, 0 if it is not.
  */
-int sound_system_is_deconding_possible(const sound_system_t *system, const char *file_path);
+int sound_system_is_decoding_possible(const sound_system_t *system, const char *file_path);
 
 /*=========================================================
   Audio Settings

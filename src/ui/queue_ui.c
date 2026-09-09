@@ -123,6 +123,30 @@ int get_relative_depth(const char *base, const char *path)
     return depth;
 }
 
+bool should_shuffle_enqueued_songs(FileSystemEntry *first_enqueued_entry, FileSystemEntry *entry)
+{
+        Model *model = get_model();
+
+        // for a layout of type: root-> artist(s) -> album(s) -> song(s).
+        // artist level is shuffled, IF
+        // 1) it contains albums
+        // 2) first_enqueued_entry is from an album not the artist level itself
+
+        bool shuffle = false;
+        if (first_enqueued_entry && entry->is_directory) {
+                int depth = get_relative_depth(model->library->full_path, entry->full_path);
+
+                if (depth == 0 || depth == 1) // this is artist level
+                {
+                        depth = get_relative_depth(model->library->full_path, first_enqueued_entry->full_path);
+                        if (depth > 2)
+                                shuffle = true;
+                }
+        }
+
+        return shuffle;
+}
+
 Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool dont_dequeue)
 {
         Model *model = get_model();
@@ -193,13 +217,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                 }
         }
 
-        bool shuffle = false;
-        if (first_enqueued_entry && entry->is_directory) {
-                int depth = get_relative_depth(model->library->full_path, entry->full_path);
-
-                if (depth == 0 || depth == 1)
-                        shuffle = true;
-        }
+        bool shuffle = should_shuffle_enqueued_songs(first_enqueued_entry, entry);
 
         if (first_enqueued_entry) {
                 autostart_if_stopped(first_enqueued_entry->full_path);

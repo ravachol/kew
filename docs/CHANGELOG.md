@@ -12,6 +12,8 @@
 
 #### Bug fixes:
 
+- Fixes so albums that are at the top-level aren't shuffled (only if they have sub-folders with songs, ie it's an artist or genre folder, not an album folder). By @ravachol. Reported by @Narwha1.
+
 - Fixes several issues with chroma and enables it on windows. However due to changes to chroma, it doesn't have audio reactivity unless you install the develop branch of chroma:
 
 ```

@@ -504,7 +504,7 @@ int sound_system_get_fade_offset_seconds(const sound_system_t *system)
         return system->ring_buffer_secs;
 }
 
-int sound_system_is_deconding_possible(const sound_system_t *system, const char *file_path)
+int sound_system_is_decoding_possible(const sound_system_t *system, const char *file_path)
 {
         k_log("sound_system_is_deconding_possible: entered");
 
