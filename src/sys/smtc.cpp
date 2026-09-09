@@ -1,7 +1,7 @@
 #include "smtc.h"
 
 #ifdef _WIN32
-
+#include <winsock2.h>
 #include <windows.h>
 #include <windows.media.h>
 
@@ -10,6 +10,7 @@
 #include <winrt/Windows.Media.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
+#include <systemmediatransportcontrolsinterop.h>
 
 #include "common/events.h"
 #include "update/messages.h"
@@ -121,22 +122,27 @@ extern "C" void smtc_init(void)
         [](SystemMediaTransportControls const&,
            SystemMediaTransportControlsButtonPressedEventArgs const& args)
         {
-            switch (args.Button()) {
+            Msg msg{};
 
+            switch (args.Button()) {
             case SystemMediaTransportControlsButton::Play:
-                dispatch_msg((struct Msg){.type = MSG_PLAY});
+                msg.type = MSG_PLAY;
+                dispatch_msg(msg);
                 break;
 
             case SystemMediaTransportControlsButton::Pause:
-                dispatch_msg((struct Msg){.type = MSG_PAUSE});
+                msg.type = MSG_PAUSE;
+                dispatch_msg(msg);
                 break;
 
             case SystemMediaTransportControlsButton::Next:
-                dispatch_msg((struct Msg){.type = MSG_NEXT});
+                msg.type = MSG_NEXT;
+                dispatch_msg(msg);
                 break;
 
             case SystemMediaTransportControlsButton::Previous:
-                dispatch_msg((struct Msg){.type = MSG_PREV});
+                msg.type = MSG_PREV;
+                dispatch_msg(msg);
                 break;
 
             default:
