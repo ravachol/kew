@@ -348,3 +348,5 @@ void add_shuffled_albums_to_play_list(FileSystemEntry *root,
  * @return The incremented node ID.
  */
 int increment_node_id(void);
+
+void insert_as_first(Node *current_song, PlayList *playlist);

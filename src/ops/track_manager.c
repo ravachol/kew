@@ -299,7 +299,10 @@ void check_and_load_next_song(double seconds)
                         state->ui.songWasRemoved = false;
 
                         if (is_shuffle_enabled())
+                        {
                                 reshuffle_playlist();
+                                insert_as_first(next_song, playlist);
+                        }
 
                         int res = prepare_and_play_song(next_song, seconds);
 
