@@ -10,6 +10,8 @@
 
 - Volume now can go to 12, or 120%. So when you're at 11, and you need a little bit more... By @ravachol. Suggested by @GTAGCT.
 
+- Added kew to winget (windows package manager).
+
 #### Bug fixes:
 
 - Fixes so albums that are at the top-level aren't shuffled (only if they have sub-folders with songs, ie it's an artist or genre folder, not an album folder). By @ravachol. Reported by @Narwha1.
@@ -31,6 +33,9 @@ By @ravachol.
 - Fixes issue with karaoke lyrics. By @Moksh-Parikh.
 
 - Fix music auto-plays when merely expanding a directory where the songs are enqueued. By @ravachol.
+
+- When enqueueing in shuffle mode and I enqueue an album, the first song should also be shuffled. By @ravachol. Suggested by @Oyouu.
+
 
 ## kew 4.3.2
 

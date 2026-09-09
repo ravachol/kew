@@ -230,6 +230,8 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                 {
                         shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
                         move_down_list(model->playlist, first_enqueued_node, false);
+                        first_enqueued_node = first_enqueued_node->prev ? first_enqueued_node->prev
+                        : first_enqueued_node->next ? first_enqueued_node->next : first_enqueued_node;
                 }
                 else
                         shuffle_playlist(model->playlist);
