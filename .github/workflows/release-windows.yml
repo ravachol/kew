@@ -51,6 +51,7 @@ jobs:
             mingw-w64-ucrt-x86_64-libvorbis
             mingw-w64-ucrt-x86_64-libogg
             mingw-w64-ucrt-x86_64-ntldd
+            mingw-w64-ucrt-x86_64-cppwinrt
 
       # -------------------------
       # VERSION

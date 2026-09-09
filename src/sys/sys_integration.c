@@ -115,6 +115,15 @@ void emit_string_property_changed(const gchar *property_name, const gchar *new_v
                 else if (strcmp(new_value, "Stopped") == 0)
                         macos_set_playback_state_stopped();
         }
+#elif defined(USE_SMTC)
+        if (strcmp(property_name, "PlaybackStatus") == 0) {
+                if (strcmp(new_value, "Playing") == 0)
+                        smtc_set_playback_playing();
+                else if (strcmp(new_value, "Paused") == 0)
+                        smtc_set_playback_paused();
+                else if (strcmp(new_value, "Stopped") == 0)
+                        smtc_set_playback_stopped();
+        }
 #else
         (void)property_name;
         (void)new_value;
@@ -155,6 +164,10 @@ void update_playback_position(double elapsed_seconds)
         if (elapsed_seconds < 0.0)
                 elapsed_seconds = 0.0;
         macos_update_playback_position(elapsed_seconds);
+#elif defined(USE_SMTC)
+        if (elapsed_seconds < 0.0)
+                elapsed_seconds = 0.0;
+       smtc_set_playback_position(elapsed_seconds);
 #else
         (void)elapsed_seconds;
 #endif
@@ -183,6 +196,9 @@ void emit_seeked_signal(double new_position_seconds)
             "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
 #elif defined(USE_MACOS_MEDIA)
         macos_update_playback_position(new_position_seconds);
+#elif defined(USE_SMTC)
+        smtc_set_playback_position(new_position_seconds);
+
 #else
         (void)new_position_seconds;
 #endif
