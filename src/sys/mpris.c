@@ -30,6 +30,10 @@
 #include "macos_nowplaying.h"
 #endif
 
+#ifdef USE_SMTC
+#include "smtc.h"
+#endif
+
 #include <glib.h>
 #include <math.h>
 
@@ -1066,6 +1070,8 @@ void emit_playback_playing()
         emit_string_property_changed("PlaybackStatus", "Playing");
 #elif defined(USE_MACOS_MEDIA)
         macos_set_playback_state_playing();
+#elif defined(USE_SMTC)
+        smtc_set_playback_playing();
 #endif
 }
 
@@ -1075,6 +1081,8 @@ void emit_playback_stopped()
         emit_string_property_changed("PlaybackStatus", "Stopped");
 #elif defined(USE_MACOS_MEDIA)
         macos_set_playback_state_stopped();
+#elif defined(USE_SMTC)
+        smtc_set_playback_stopped();
 #endif
 }
 
@@ -1084,6 +1092,8 @@ void emit_playback_paused()
         emit_string_property_changed("PlaybackStatus", "Paused");
 #elif defined(USE_MACOS_MEDIA)
         macos_set_playback_state_paused();
+#elif defined(USE_SMTC)
+        smtc_set_playback_paused();
 #endif
 }
 
@@ -1117,7 +1127,13 @@ void mpris_shutdown(void)
                 set_g_main_context(NULL);
         }
 #elif defined(USE_MACOS_MEDIA)
+
         cleanup_macos_nowplaying();
+
+#elif defined(USE_SMTC)
+
+        smtc_shutdown();
+
 #endif
 }
 
@@ -1193,7 +1209,13 @@ void mpris_init(void)
 
         g_dbus_node_info_unref(introspection_data);
 #elif defined(USE_MACOS_MEDIA)
+
         init_macos_nowplaying();
+
+#elif defined(USE_SMTC)
+
+        smtc_init();
+
 #endif
 }
 
@@ -1424,6 +1446,14 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
         (void)current_song;
         macos_set_now_playing_info(title, artist, album, cover_art_path,
                                    (double)length / G_USEC_PER_SEC);
+#elif defined(USE_SMTC)
+
+        smtc_update_metadata(title,
+                             artist,
+                             album,
+                             cover_art_path,
+                             (double)length / G_USEC_PER_SEC);
+
 #else
         (void)title;
         (void)artist;

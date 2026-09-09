@@ -56,6 +56,15 @@ ifeq ($(origin USE_MACOS_MEDIA), undefined)
   endif
 endif
 
+# Default USE_SMTC to auto-detect on Windows
+ifeq ($(origin USE_SMTC), undefined)
+  ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
+    USE_SMTC = 1
+  else
+    USE_SMTC = 0
+  endif
+endif
+
 PREFIX    ?= /usr/local
 USE_DB    ?= 1
 
@@ -190,6 +199,7 @@ else ifeq ($(UNAME_S), Darwin)
   endif
 else ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
   LIBS += -lws2_32 -lgnurx
+  LIBS += -lwindowsapp -lruntimeobject
   WIN_MANIFEST_OBJ = manifest.res
   WINDRES = windres
 endif
@@ -202,6 +212,11 @@ endif
 # Conditionally add macOS media integration
 ifeq ($(USE_MACOS_MEDIA), 1)
   DEFINES += -DUSE_MACOS_MEDIA
+endif
+
+# Conditionally add Windows media integration
+ifeq ($(USE_SMTC), 1)
+  DEFINES += -DUSE_SMTC
 endif
 
 DEFINES += -DPREFIX_RAW=$(PREFIX)
@@ -313,8 +328,14 @@ ifeq ($(USE_MACOS_MEDIA), 1)
   MACOS_MEDIA_OBJ = $(MACOS_MEDIA_SRC:src/sys/%.m=$(OBJDIR)/sys/%.o)
 endif
 
+# Windows media keys (c++)
+ifeq ($(USE_SMTC), 1)
+  SMTC_SRC = src/sys/smtc.cpp
+  SMTC_OBJ = $(SMTC_SRC:src/%.cpp=$(OBJDIR)/%.o)
+endif
+
 # All objects together
-OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(LIBMP4_OBJS) $(MACOS_MEDIA_OBJ) $(WIN_MANIFEST_OBJ)
+OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(LIBMP4_OBJS) $(MACOS_MEDIA_OBJ) $(SMTC_OBJ) $(WIN_MANIFEST_OBJ)
 
 # Create object directories
 $(OBJDIR):
