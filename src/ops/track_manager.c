@@ -63,7 +63,7 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
                 return;
         }
 
-        bool result = sound_system_is_deconding_possible(sound_sys, song->song.file_path);
+        bool result = sound_system_is_decoding_possible(sound_sys, song->song.file_path);
 
         if (result < 1)
         {
