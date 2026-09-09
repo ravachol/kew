@@ -7,7 +7,15 @@
  *
  * @param msg The message
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void dispatch_msg(struct Msg msg);
+
+#ifdef __cplusplus
+}
+#endif
 
 /**
  * @brief returns true if there are more messages in the message queue

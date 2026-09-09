@@ -1447,7 +1447,8 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
         macos_set_now_playing_info(title, artist, album, cover_art_path,
                                    (double)length / G_USEC_PER_SEC);
 #elif defined(USE_SMTC)
-
+        (void)track_id;
+        (void)current_song;
         smtc_update_metadata(title,
                              artist,
                              album,
