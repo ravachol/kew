@@ -40,8 +40,10 @@ struct sound_system {
         ma_uint32 sample_rate;
         ma_format format;
 
+#ifndef __cplusplus
         atomic_bool request_pause;
         atomic_int drain_callbacks_remaining;
+#endif
 
         ma_uint64 current_frame;
         ma_uint64 total_frames;
