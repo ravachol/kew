@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="website/images/logo.png" alt="kew Logo">
+  <img src="images/logo.png" alt="kew Logo">
 </div>
 
 <br>
