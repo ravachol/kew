@@ -12,6 +12,8 @@
 
 - Added kew to winget (windows package manager).
 
+- Added ability to read lyrics from TXXX (description: USLT) tags, which is how ffmpeg defaults to encode lyrics.
+
 #### Bug fixes:
 
 - Fixes so albums that are at the top-level aren't shuffled (only if they have sub-folders with songs, ie it's an artist or genre folder, not an album folder). By @ravachol. Reported by @Narwha1.
