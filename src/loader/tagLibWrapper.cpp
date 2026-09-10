@@ -233,17 +233,6 @@ getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
         return TagLib::StringList();
 }
 
-std::string toLower(const std::string &str)
-{
-        std::string lowerStr = str;
-        std::transform(
-            lowerStr.begin(),
-            lowerStr.end(),
-            lowerStr.begin(),
-            [](unsigned char c) { return std::tolower(c); });
-        return lowerStr;
-}
-
 bool looksLikeJpeg(const std::vector<unsigned char> &data)
 {
         return data.size() > 4 && data[0] == 0xFF && data[1] == 0xD8 &&
@@ -1478,6 +1467,126 @@ static bool loadLyricsFromSYLTTag(TagLib::ID3v2::Tag *id3v2Tag, Lyrics **lyricsO
         return true;
 }
 
+std::string toLower(const std::string &str)
+{
+        std::string lowerStr = str;
+        std::transform(
+            lowerStr.begin(),
+            lowerStr.end(),
+            lowerStr.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+        return lowerStr;
+}
+
+static bool loadLyricsFromLyricsTag(TagLib::ID3v2::Tag *id3v2Tag,
+                                    Lyrics **lyricsOut)
+{
+        if (!id3v2Tag || !lyricsOut)
+                return false;
+
+        TagLib::String lyricsText;
+
+        // Look for a TXXX frame with description "lyrics".
+        auto frames = id3v2Tag->frameList("TXXX");
+
+        for (auto frame : frames) {
+                auto txxx =
+                    dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame *>(frame);
+
+                if (!txxx)
+                        continue;
+
+                const auto &fields = txxx->fieldList();
+
+                if (fields.size() < 2)
+                        continue;
+
+                std::string description = toLower(fields[0].to8Bit(true));
+
+                if (description == "lyrics" || description == "uslt") {
+                        lyricsText = fields[1];
+                        break;
+                }
+        }
+
+        if (lyricsText.isEmpty())
+                return false;
+
+        std::string utf8 = lyricsText.to8Bit(true);
+
+        if (utf8.empty())
+                return false;
+
+        // Normalize line endings.
+        std::string normalized;
+        normalized.reserve(utf8.size());
+
+        for (size_t i = 0; i < utf8.size(); ++i) {
+                if (utf8[i] == '\r') {
+                        if (i + 1 < utf8.size() && utf8[i + 1] == '\n')
+                                ++i;
+
+                        normalized.push_back('\n');
+                } else {
+                        normalized.push_back(utf8[i]);
+                }
+        }
+
+        // Split into lines.
+        TagLib::StringList lines;
+
+        size_t start = 0;
+
+        while (start < normalized.size()) {
+                size_t end = normalized.find('\n', start);
+
+                if (end == std::string::npos)
+                        end = normalized.size();
+
+                lines.append(TagLib::String(
+                    normalized.substr(start, end - start),
+                    TagLib::String::UTF8));
+
+                start = end + 1;
+        }
+
+        // Remove trailing blank lines.
+        while (!lines.isEmpty() &&
+               lines.back().stripWhiteSpace().isEmpty()) {
+                lines.erase(--lines.end());
+        }
+
+        if (lines.isEmpty())
+                return false;
+
+        Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
+
+        if (!lyrics)
+                return false;
+
+        lyrics->max_length = 1024;
+
+        // Use your existing parsers.
+        bool looksLikeLrc = detectLrcFormat(lines);
+        bool ok;
+
+        if (looksLikeLrc) {
+                ok = parseTimedLyricsFromTagLines(lines, lyrics);
+                lyrics->isTimed = 1;
+        } else {
+                ok = parseUntimedLyricsFromTagLines(lines, lyrics);
+                lyrics->isTimed = 0;
+        }
+
+        if (!ok) {
+                freeLyrics(lyrics);
+                return false;
+        }
+
+        *lyricsOut = lyrics;
+        return true;
+}
+
 static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
                                   Lyrics **lyricsOut)
 {
@@ -1810,12 +1919,16 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
 
         if (*lyrics == nullptr) {
                 if (auto mpegFile = dynamic_cast<TagLib::MPEG::File *>(f.file())) {
-                        // 1) True synchronized lyrics (SYLT)
+                        // Snchronized lyrics
                         loadLyricsFromSYLTTag(mpegFile->ID3v2Tag(), lyrics);
 
-                        // 2) USLT fallback (may contain LRC timestamps)
+                        // USLT, possibly containing LRC timestamps
                         if (*lyrics == nullptr)
                                 loadLyricsFromUSLTTag(mpegFile->ID3v2Tag(), lyrics);
+
+                        // TXXX with description "lyrics" or "uslt" tag, possibly containing LRC timestamps
+                        if (*lyrics == nullptr)
+                                loadLyricsFromLyricsTag(mpegFile->ID3v2Tag(), lyrics);
                 }
 
                 if (auto flacFile = dynamic_cast<TagLib::FLAC::File *>(f.file()))
