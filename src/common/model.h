@@ -4,15 +4,15 @@
 #include "data/directorytree.h"
 #include "loader/songdatatype.h"
 
-#include "data/playlist.h"
 #include "data/artists.h"
+#include "data/playlist.h"
 
 #include "sound/sound_facade.h"
 
 #include "utils/img_utils.h"
 
-#include "common/path_max.h"
 #include "common/events.h"
+#include "common/path_max.h"
 
 #include "stdio.h"
 #include <gio/gio.h>
@@ -52,22 +52,27 @@ typedef enum {
         DIRTY_CHROMA = 1 << 9,
 
         // redraw on full-screen refresh
-        DIRTY_REFRESH    = 1 << 9,
+        DIRTY_REFRESH = 1 << 9,
 
         DIRTY_ALL = ~0
 } DirtyFlags;
 
+enum sort_by_t {
+        SORT_BY_NAME = 0,
+        SORT_BY_DATE = 1
+};
+
 typedef enum {
-    MINICONTROLS_NAV,
-    MINICONTROLS_NAV_VOL,
-    MINICONTROLS_FULL,
+        MINICONTROLS_NAV,
+        MINICONTROLS_NAV_VOL,
+        MINICONTROLS_FULL,
 } MinicontrolMode;
 
 typedef enum {
-        CELL_NORMAL,        // regular character cell
-        CELL_WIDE_CONT,     // right half of a double-width character, backend skips it
-        CELL_IMAGE_ANCHOR,  // top-left cell of an image region, backend emits the image here
-        CELL_OCCUPIED,      // remaining cells of an occupied region, backend skips them
+        CELL_NORMAL,       // regular character cell
+        CELL_WIDE_CONT,    // right half of a double-width character, backend skips it
+        CELL_IMAGE_ANCHOR, // top-left cell of an image region, backend emits the image here
+        CELL_OCCUPIED,     // remaining cells of an occupied region, backend skips them
         CELL_LINK
 } CellKind;
 
@@ -112,8 +117,8 @@ typedef enum {
         SIZE_INDENT,
         SIZE_INDENT_NORMAL,
         SIZE_INDENT_WIDE,
-        SIZE_FROM_HEIGHT,  // width = f(height)
-        SIZE_FROM_WIDTH,   // height = f(width)
+        SIZE_FROM_HEIGHT, // width = f(height)
+        SIZE_FROM_WIDTH,  // height = f(width)
 } SizeKind;
 
 typedef enum {
@@ -128,30 +133,30 @@ typedef struct {
 } k_Size;
 
 typedef enum {
-    IMAGE_SIXEL,
-    IMAGE_KITTY,
-    IMAGE_ITERM2,
-    IMAGE_PIXEL_DIRECT,
+        IMAGE_SIXEL,
+        IMAGE_KITTY,
+        IMAGE_ITERM2,
+        IMAGE_PIXEL_DIRECT,
 } ImageProtocol;
 
 typedef struct {
-    ImageProtocol protocol;
-    uint8_t      *data;       // encoded sixel/kitty blob, or raw RGBA
-    size_t        data_len;
-    int           pixel_w;
-    int           pixel_h;
-    uint64_t      id;         // for change detection / kitty image IDs
-    int screen_w;
-    int screen_h;
+        ImageProtocol protocol;
+        uint8_t *data; // encoded sixel/kitty blob, or raw RGBA
+        size_t data_len;
+        int pixel_w;
+        int pixel_h;
+        uint64_t id; // for change detection / kitty image IDs
+        int screen_w;
+        int screen_h;
 } ImagePayload;
 
 typedef struct {
-    char         *url;
-    char         *title;
+        char *url;
+        char *title;
 } LinkPayload;
 
 typedef struct {
-        k_Size width;  // AUTO = fill remaining cols in row
+        k_Size width; // AUTO = fill remaining cols in row
 
         uint32_t codepoint;
         uint8_t attrs;
@@ -200,8 +205,8 @@ struct Msg {
 };
 
 typedef struct {
-    bool has_msg;
-    struct Msg msg;
+        bool has_msg;
+        struct Msg msg;
 } ComponentMsg;
 
 typedef ComponentMsg (*ComponentFn)(
@@ -213,29 +218,29 @@ typedef ComponentMsg (*ComponentFn)(
 typedef struct Layout Layout;
 
 typedef struct {
-    ComponentFn fn;
-    DirtyFlags  redraws_on;
-    Align       align;
-    k_Size        width;
-    k_Rect      region;        // resolved by layout_reflow()
-    int         offsetX;
-    int         offsetY;
-    int         hidden;
-    Layout *child;
+        ComponentFn fn;
+        DirtyFlags redraws_on;
+        Align align;
+        k_Size width;
+        k_Rect region; // resolved by layout_reflow()
+        int offsetX;
+        int offsetY;
+        int hidden;
+        Layout *child;
 } Pane;
 
 typedef struct {
-    Pane    panes[MAX_PANES];
-    int     pane_count;
-    k_Size    height;
-    int     col;
-    int     resolved_height;   // set by layout_reflow()
-    bool    hidden;
+        Pane panes[MAX_PANES];
+        int pane_count;
+        k_Size height;
+        int col;
+        int resolved_height; // set by layout_reflow()
+        bool hidden;
 } Row;
 
 typedef struct Layout {
-    Row     rows[MAX_ROWS];
-    int     row_count;
+        Row rows[MAX_ROWS];
+        int row_count;
 } Layout;
 
 /**
@@ -324,11 +329,11 @@ typedef enum {
  * @brief Defines how UI colors are selected.
  */
 typedef enum {
-        COLOR_MODE_DEFAULT = 0,         /**< ANSI 16-color palette theme. */
-        COLOR_MODE_ALBUM_ONE = 1,       /**< Colors derived from album art using only one color. */
-        COLOR_MODE_THEME = 2,           /**< Truecolor theme file. */
-        COLOR_MODE_ALBUM = 3,           /**< Colors derived from album art. */
-        COLOR_MODE_NEUTRAL = 4            /**< No color. */
+        COLOR_MODE_DEFAULT = 0,   /**< ANSI 16-color palette theme. */
+        COLOR_MODE_ALBUM_ONE = 1, /**< Colors derived from album art using only one color. */
+        COLOR_MODE_THEME = 2,     /**< Truecolor theme file. */
+        COLOR_MODE_ALBUM = 3,     /**< Colors derived from album art. */
+        COLOR_MODE_NEUTRAL = 4    /**< No color. */
 } ColorMode;
 
 typedef enum {
@@ -362,21 +367,21 @@ typedef struct
 
         PixelData color; /**< Album-derived accent color. */
 
-        bool coverEnabled;       /**< Whether album covers are displayed. */
-        bool uiEnabled;          /**< Whether the user interface is rendered. */
-        bool coverAnsi;          /**< Use high-quality chafa cover rendering if supported,
+        bool coverEnabled;              /**< Whether album covers are displayed. */
+        bool uiEnabled;                 /**< Whether the user interface is rendered. */
+        bool coverAnsi;                 /**< Use high-quality chafa cover rendering if supported,
                                       otherwise ASCII/ANSI cover. */
-        char coverStyle[16];     /**< Chafa symbol style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad. */
-        VisualizerMode visualizer_mode;     /**< Visualizer mode selector. */
-        bool discordRPCEnabled;  /**< Enable Discord Rich Presence integration. */
-        bool hideLogo;           /**< Hide application logo at the top. */
-        bool hideHelp;           /**< Hide help text at the top. */
-        bool hideFooter;         /**< Hide footer section. */
-        bool hideTimeStatus;     /**< Hide elapsed, song length, vol, bitrate. */
-        bool simpleTimeStatus;     /**< Shows only elapsed seconds and total seconds. */
-        bool hideSideCover;      /**< Hide side cover panel. */
-        bool collapseTopLevel;      /**< Hide contents of top level folders. */
-        bool allowNotifications; /**< Enable desktop notifications. */
+        char coverStyle[16];            /**< Chafa symbol style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad. */
+        VisualizerMode visualizer_mode; /**< Visualizer mode selector. */
+        bool discordRPCEnabled;         /**< Enable Discord Rich Presence integration. */
+        bool hideLogo;                  /**< Hide application logo at the top. */
+        bool hideHelp;                  /**< Hide help text at the top. */
+        bool hideFooter;                /**< Hide footer section. */
+        bool hideTimeStatus;            /**< Hide elapsed, song length, vol, bitrate. */
+        bool simpleTimeStatus;          /**< Shows only elapsed seconds and total seconds. */
+        bool hideSideCover;             /**< Hide side cover panel. */
+        bool collapseTopLevel;          /**< Hide contents of top level folders. */
+        bool allowNotifications;        /**< Enable desktop notifications. */
 
         int visualizer_height;      /**< Height (in terminal rows) of the spectrum visualizer. */
         bool visualizerBrailleMode; /**< Render visualizer using braille characters. */
@@ -386,7 +391,7 @@ typedef struct
         bool quitAfterStopping;   /**< Exit application automatically after playback stops. */
         bool clearListClearsAll;  /**< Whether clearing the playlist also removes the currently playing song. */
         bool hideGlimmeringText;  /**< Disable animated/glimmering bottom row text. */
-        bool useAristsLink;        /**< Whether to make links out of homepage URLs. */
+        bool useAristsLink;       /**< Whether to make links out of homepage URLs. */
         time_t last_time_app_ran; /**< Timestamp of last run, used to detect library changes. */
 
         int visualizer_bar_mode;        /**< 0=Thin bars, 1=Double width bars, 2=Auto (default). */
@@ -396,8 +401,8 @@ typedef struct
         bool shuffle_enabled;           /**< Whether shuffle mode is enabled. */
         bool trackTitleAsWindowTitle;   /**< Set terminal window title to current track title. */
 
-        Theme theme;                /**< Active theme. */
-        bool themeIsSet;            /**< Whether a theme has been loaded. */
+        Theme theme;                    /**< Active theme. */
+        bool themeIsSet;                /**< Whether a theme has been loaded. */
         char theme_name[KEW_NAME_MAX];  /**< Theme filename (without extension). */
         char themeAuthor[KEW_NAME_MAX]; /**< Author name stored from theme file. */
 
@@ -518,6 +523,8 @@ typedef struct
         bool check_collapse_top_level;
 
         int chosen_lyrics_row;
+
+        int current_library_sort;
 
         int has_chroma;
         bool chroma_started;
@@ -736,8 +743,8 @@ typedef struct
  */
 typedef struct
 {
-        int row;    /**< Terminal row. */
-        int col;    /**< Terminal column. */
+        int row;   /**< Terminal row. */
+        int col;   /**< Terminal column. */
         int width; /**< Width in characters. */
 } MiniControls;
 

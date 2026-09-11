@@ -828,6 +828,8 @@ void state_init(void)
         state->ui.search_scrollbar.last_position = 0;
         state->ui.help_scrollbar.position = 0;
         state->ui.help_scrollbar.last_position = 0;
+        state->ui.current_library_sort = SORT_BY_NAME;
+
         ps->lastPlayedId = -1;
         ps->nextSongNeedsRebuilding = false;
         ps->songHasErrors = false;
