@@ -913,11 +913,12 @@ UpdateResult update(Model *model, struct Msg *msg)
 
                 break;
 
-        case MSG_PROGRESS_ROW_SET:
+        case MSG_PROGRESS_BAR_SET:
                 model->state.ui.num_progress_bars = msg->region.width / 2;
                 model->progressBar.col = msg->region.col + 1;
                 model->progressBar.row = msg->region.row + 1;
                 model->progressBar.length = msg->region.width;
+                
                 if (msg->footer_row != DISABLED_ROW) {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;
@@ -938,6 +939,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->miniControls.row = msg->minicontrols_row;
                         model->miniControls.col = msg->minicontrols_col;
                         model->miniControls.width = msg->minicontrols_width;
+                        msg->type = MSG_PROGRESS_BAR_SET;
+                        dispatch_msg(*msg);
                 }
 
                 break;

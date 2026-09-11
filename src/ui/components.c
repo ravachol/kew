@@ -1098,16 +1098,43 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                          controls,
                                          width,
                                          style);
+
+        k_Rect progress_rect = {
+            .row = row + corrected_height - 1,
+            .col = minicontrols_col,
+            .width = (mode == MINICONTROLS_FULL) ? width + 1 : width, // +1 because the full version has a 2-cell wide character at the end
+            .height = 1,
+        };
+
+        if (dirty & DIRTY_PROGRESS && model->progressBar.row >= 0 && model->progressBar.col >= 0
+        && model->progressBar.length >= 0) {
+                progress_rect.row = model->progressBar.row - 1;
+                progress_rect.col = model->progressBar.col - 1;
+                progress_rect.width = model->progressBar.length;
+                progress_rect.height = 1;
+        };
+
+        if (dirty & (DIRTY_SONG | DIRTY_PROGRESS))
+                result = component_progress_bar(model, progress_rect, buf, dirty);
+
         if (dirty & DIRTY_SONG) {
-                result.has_msg = true;
-                result.msg = (struct Msg){
-                    .type = MSG_MINICONTROLS_SET,
-                    .region = region,
-                    .minicontrols_row = minicontrols_row + 1,
-                    .minicontrols_col = minicontrols_col + 1,
-                    .minicontrols_width = width,
-                };
+
+                if (result.has_msg) {
+                        result.msg.type = MSG_MINICONTROLS_SET;
+                        result.msg.minicontrols_row = minicontrols_row + 1;
+                        result.msg.minicontrols_col = minicontrols_col + 1;
+                        result.msg.minicontrols_width = width;
+                } else {
+                        result.has_msg = true;
+                        result.msg = (struct Msg){
+                            .type = MSG_MINICONTROLS_SET,
+                            .minicontrols_row = minicontrols_row + 1,
+                            .minicontrols_col = minicontrols_col + 1,
+                            .minicontrols_width = width,
+                        };
+                }
         }
+
         return result;
 }
 
@@ -2139,7 +2166,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
 
         result.has_msg = true;
         result.msg = (struct Msg){
-            .type = MSG_PROGRESS_ROW_SET,
+            .type = MSG_PROGRESS_BAR_SET,
             .region = region,
             .progress_bar_row = region.row,
             .footer_row = DISABLED_ROW};
@@ -2583,7 +2610,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                 };
                 if (dirty & DIRTY_FOOTER) {
                         component_footer(model, footer_rect, buf, dirty);
-                        if (result.msg.type != MSG_PROGRESS_ROW_SET) {
+                        if (result.msg.type != MSG_PROGRESS_BAR_SET) {
                                 result.has_msg = true;
                                 result.msg = (struct Msg){
                                     .type = MSG_FOOTER_ROW_SET,

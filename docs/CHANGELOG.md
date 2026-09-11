@@ -6,6 +6,8 @@
 
 - Add Scrollable text on help view. By @ravachol. Suggested by @hashfoeW.
 
+- Add progress bar below mini-controls. By @ravachol.
+
 - Moved the website source out of kew repository, it will now be on https://codeberg.org/ravachol/kew-website.git. This makes the zip and git clone as lightweight as before the website. By @ravachol.
 
 - Volume now can go to 12, or 120%. So when you're at 11, and you need a little bit more... By @ravachol. Suggested by @GTAGCT.
@@ -14,7 +16,7 @@
 
 - Added ability to read lyrics from TXXX (description: USLT) tags, which is how ffmpeg defaults to encode lyrics.
 
-- Auto-resume is now off by default in a fresh install. Sorry, auto-resumers, but it can be very annoying. It can be changed in kewrc to `autoResume=1`.
+- Auto-resume is now off by default in a fresh install. Sorry, auto-resumers, but it can be very annoying. We want to avoid annoying things. It can be changed in kewrc to `autoResume=1`.
 
 #### Bug fixes:
 
