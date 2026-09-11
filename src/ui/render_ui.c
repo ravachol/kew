@@ -1283,7 +1283,7 @@ void layout_render_dirty(const Layout *layout,
 
                         if (pane->fn == component_side_cover) {
                                 if (!should_draw)
-                                        should_draw = model->state.ui.play_pause_toggled;
+                                        should_draw = model->state.ui.play_pause_toggled || (model->dirty & DIRTY_PROGRESS);
                         }
 
                         if (should_draw) {

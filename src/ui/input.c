@@ -634,7 +634,7 @@ void handle_cooldown(void)
                                 state->ui.isRewinding = false;
 
                                 if (state->currentView != TRACK_VIEW) {
-                                        set_dirty(DIRTY_FOOTER);
+                                        set_dirty(DIRTY_FOOTER | DIRTY_PROGRESS);
                                 }
                         }
                 }
