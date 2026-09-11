@@ -14,6 +14,8 @@
 
 - Added ability to read lyrics from TXXX (description: USLT) tags, which is how ffmpeg defaults to encode lyrics.
 
+- Auto-resume is now off by default in a fresh install. Sorry, auto-resumers, but it can be very annoying. It can be changed in kewrc to `autoResume=1`.
+
 #### Bug fixes:
 
 - Fixes so albums that are at the top-level aren't shuffled (only if they have sub-folders with songs, ie it's an artist or genre folder, not an album folder). By @ravachol. Reported by @Narwha1.
