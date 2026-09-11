@@ -1101,8 +1101,8 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
 
         k_Rect progress_rect = {
             .row = row + corrected_height - 1,
-            .col = minicontrols_col,
-            .width = (mode == MINICONTROLS_FULL) ? width + 1 : width, // +1 because the full version has a 2-cell wide character at the end
+            .col = col,
+            .width = corrected_width,
             .height = 1,
         };
 
