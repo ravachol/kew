@@ -949,7 +949,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
         c_strcpy(settings->titleDelay, "1", sizeof(settings->titleDelay));
-        c_strcpy(settings->auto_resume, "1", sizeof(settings->auto_resume));
+        c_strcpy(settings->auto_resume, "0", sizeof(settings->auto_resume));
         c_strcpy(settings->always_crossfade, "0", sizeof(settings->always_crossfade));
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
         c_strcpy(settings->color, "6", sizeof(settings->color));
