@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.3.5
+
+#### Bug fixes:
+
+- Fixes issue where scrolling in help view leaves the bottom part cut off. by @ravachol.
+
 ## kew 4.3.4
 
 #### Bug fixes:
