@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.3.4
+
+#### Bug fixes:
+
+- Fix clicking links affecting rendering. By @ravachol.
+
 ## kew 4.3.3
 
 #### Enhancements:
