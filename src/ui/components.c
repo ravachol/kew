@@ -2158,7 +2158,7 @@ ComponentMsg component_progress_bar(const Model *model, k_Rect region, DrawBuffe
                                           : settings->progressBarCurrentOddChar;
                 }
 
-                draw_buffer_set_string(buf, region.row, draw_col, ch, style);
+                draw_buffer_set_string_truncated(buf, region.row, draw_col, ch, 1, style);
                 draw_col++;
         }
 

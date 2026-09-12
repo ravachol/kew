@@ -164,15 +164,19 @@ static void emit_style_diff(const Cell *cell,
                     st->ansi_fg != cell->style.fgAnsi) {
 
                         int fg_code;
-                        if (cell->style.fgAnsi < 8) {
+
+                        if (cell->style.fgAnsi < 8)
                                 fg_code = 30 + cell->style.fgAnsi;
-                        } else {
+                        else
                                 fg_code = 90 + (cell->style.fgAnsi - 8);
-                        }
+
                         printf("\033[%dm", fg_code);
 
                         st->ansi_mode = true;
                         st->ansi_fg = cell->style.fgAnsi;
+
+                        // RGB cache is no longer representative of terminal state.
+                        st->fg = (PixelData){0};
                 }
 
                 return;
@@ -181,8 +185,12 @@ static void emit_style_diff(const Cell *cell,
         // Leaving ANSI mode
         if (st->ansi_mode) {
                 printf("\033[39m");
+
                 st->ansi_mode = false;
                 st->ansi_fg = -1;
+
+                // Terminal is now default foreground.
+                st->fg = (PixelData){0};
         }
 
         // RGB foreground
@@ -347,7 +355,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
                         }
 
                         if (cell->kind == CELL_LINK) {
-                                
+
                                 cursor_move(row, col);
 
                                 emit_style_diff(cell, &style);

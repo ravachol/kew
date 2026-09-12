@@ -47,6 +47,7 @@ typedef enum {
 void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
 {
         Model *model = get_model();
+        
         if (model->state.settings.replayGainCheckFirst == 3)
                 sound_system_set_replay_gain_check_first(sound_sys, is_shuffle_enabled() ? 0 : 1);
         else
