@@ -4,7 +4,11 @@
 
 #### Bug fixes:
 
-- Fixes issue where scrolling in help view leaves the bottom part cut off. by @ravachol.
+- Fixes issue where scrolling in help view leaves the bottom part cut off. By @ravachol.
+
+- Fixes when a song is enqueued in library and album colors is the color mode, a song further down gets colored. By @ravahcol.
+
+- Fixes when a mini control is clicked, the song in the library on the same row disappears. By @ravachol.
 
 ## kew 4.3.4
 
