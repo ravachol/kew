@@ -37,6 +37,7 @@
 
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/k_log.h"
 
 #include <ctype.h>
 #include <gio/gio.h>
@@ -468,20 +469,12 @@ int get_footer_col(void)
 
 void open_url(const char *url)
 {
-#ifdef _WIN32
-        char cmd[4096];
-        snprintf(cmd, sizeof(cmd), "start \"\" \"%s\"", url);
-        system(cmd);
-#elif __APPLE__
-        char cmd[4096];
-        snprintf(cmd, sizeof(cmd), "open \"%s\"", url);
-        system(cmd);
-#else
-        char cmd[4096];
-        snprintf(cmd, sizeof(cmd), "xdg-open \"%s\"", url);
-        int result = system(cmd);
-        (void)result; // remove warning in editor
-#endif
+        GError *error = NULL;
+        g_app_info_launch_default_for_uri(url, NULL, &error);
+        if (error) {
+                k_log("Failed to open url: %s\n", error->message);
+                g_error_free(error);
+        }
 }
 
 bool handle_mouse_event(struct tb_event *ev, struct Msg *event, bool do_scroll)
