@@ -20,6 +20,8 @@
 
 #### Bug fixes:
 
+- Fix: vulnerability in kew. Maintainers of downstream packages can contact kew-player@proton.me for coordinated disclosure and additional technical information. By @ravachol. Reported by @eilvelia (https://github.com/eilvelia).
+
 - Fix Updating library sets sort to date bug. By @ravachol. Reported by @Narwha1.
 
 - Fixes so albums that are at the top-level aren't shuffled (only if they have sub-folders with songs, ie it's an artist or genre folder, not an album folder). By @ravachol. Reported by @Narwha1.
