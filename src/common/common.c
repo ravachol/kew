@@ -10,9 +10,9 @@
 #include "utils/utils.h"
 
 #include <signal.h>
+#include <time.h>
 
-#define ERROR_MESSAGE_LENGTH 256
-
+static time_t error_message_set_time;
 static char current_error_message[ERROR_MESSAGE_LENGTH];
 static bool has_printed_error = true;
 static volatile sig_atomic_t g_should_exit = 0;
@@ -32,8 +32,11 @@ void set_error_message(const char *message)
         current_error_message[ERROR_MESSAGE_LENGTH - 1] = '\0';
         has_printed_error = false;
 
+        error_message_set_time = time(NULL);
+
         set_dirty(DIRTY_FOOTER);
 }
+
 
 bool has_printed_error_message(void)
 {
@@ -58,6 +61,20 @@ char *get_error_message(void)
 void clear_error_message(void)
 {
         current_error_message[0] = '\0';
+}
+
+void clear_error_message_if_timeout(void)
+{
+        if (current_error_message[0] == '\0')
+                return;
+
+        time_t now = time(NULL);
+
+        if (difftime(now, error_message_set_time) >= ERROR_MESSAGE_TIMEOUT)
+        {
+                clear_error_message();
+                set_dirty(DIRTY_FOOTER);
+        }
 }
 
 sig_atomic_t should_exit(void)

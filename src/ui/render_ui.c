@@ -69,6 +69,7 @@ bool themes_init(int argc, char *argv[])
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
         bool themeLoaded = false;
+        bool set_info_message = false;
 
         // Command-line theme handling
         if (argc > 3 && strcmp(argv[1], "theme") == 0) {
@@ -77,7 +78,7 @@ bool themes_init(int argc, char *argv[])
                 // Try to load the user-specified theme
                 ui->colorMode = COLOR_MODE_THEME;
 
-                if (load_theme(argv[2], false) > 0) {
+                if (load_theme(argv[2], false, set_info_message) > 0) {
 
                         themeLoaded = true;
                         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", argv[2]);
@@ -92,7 +93,7 @@ bool themes_init(int argc, char *argv[])
                 // If UI has a theme_name stored, try to load it
                 ui->colorMode = COLOR_MODE_THEME;
 
-                if (load_theme(ui->theme_name, false) > 0) {
+                if (load_theme(ui->theme_name, false, set_info_message) > 0) {
 
                         themeLoaded = true;
 
@@ -109,28 +110,28 @@ bool themes_init(int argc, char *argv[])
         if (ui->colorMode == COLOR_MODE_DEFAULT && !themeLoaded) {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
-                if (load_theme("default", true)) {
+                if (load_theme("default", true, set_info_message)) {
                         themeLoaded = true;
                 }
         }
 
         if (ui->colorMode == COLOR_MODE_NEUTRAL && !themeLoaded) {
 
-                if (load_theme("neutral", true)) {
+                if (load_theme("neutral", true, set_info_message)) {
                         themeLoaded = true;
                 }
         }
 
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE && !themeLoaded) {
 
-                if (load_theme("onealbumcolor", true)) {
+                if (load_theme("onealbumcolor", true, set_info_message)) {
                         themeLoaded = true;
                 }
         }
 
         if (ui->colorMode == COLOR_MODE_ALBUM && !themeLoaded) {
 
-                if (load_theme("albumcolors", true)) {
+                if (load_theme("albumcolors", true, set_info_message)) {
                         themeLoaded = true;
                 }
         }

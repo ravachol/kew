@@ -127,10 +127,13 @@ bool can_refresh_player(void);
  *
  * @param theme_name The name of the theme to be loaded.
  * @param is_ansi_theme Boolean flag to indicate if the theme is ANSI-based.
+ * @param set_info_message Optionally sets a message saying which theme is loaded
  *
  * @return 1 if the theme was successfully loaded, 0 if loading failed.
  */
-int load_theme(const char *theme_name, bool is_ansi_theme);
+
+int load_theme(const char *theme_name,
+               bool is_ansi_theme, bool set_info_message);
 
 /**
  * @brief Cycles visualizations (Chroma).

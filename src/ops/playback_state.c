@@ -10,6 +10,7 @@
 #include "playback_state.h"
 
 #include "common/appstate.h"
+#include "common/common.h"
 
 #include "sound/sound_facade.h"
 
@@ -33,6 +34,9 @@ void set_shuffle_enabled(int value)
 
         shuffle_enabled = value == 1 ? 1 : 0;
         state->settings.shuffle_enabled = value;
+        char error_message[ERROR_MESSAGE_LENGTH];
+        snprintf(error_message, sizeof(error_message), "Shuffle Mode %s", shuffle_enabled ? "On" : "Off");
+        set_error_message(error_message);
 }
 
 bool is_repeat_list_enabled(void)
