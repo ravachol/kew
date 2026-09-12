@@ -23,8 +23,8 @@
 
 #include "data/theme.h"
 
-#include "utils/utils.h"
 #include "utils/k_log.h"
+#include "utils/utils.h"
 
 #include <miniaudio.h>
 
@@ -130,24 +130,25 @@ void cycle_color_mode(void)
         }
 
         bool themeLoaded = false;
+        bool set_info_message = true;
 
         switch (ui->colorMode) {
         case COLOR_MODE_DEFAULT:
-                if (load_theme("default", true)) {
+                if (load_theme("default", true, set_info_message)) {
                         themeLoaded = true;
                         if (ui->visualizer_mode > VIZ_REVERSED)
                                 ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_ALBUM_ONE:
-                if (load_theme("onealbumcolor", false)) {
+                if (load_theme("onealbumcolor", false, set_info_message)) {
                         themeLoaded = true;
                         if (ui->visualizer_mode > VIZ_REVERSED)
                                 ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_ALBUM:
-                if (load_theme("albumcolors", false)) {
+                if (load_theme("albumcolors", false, set_info_message)) {
                         themeLoaded = true;
                         if (ui->visualizer_mode != VIZ_KMEANS_CLUSTERING)
                                 ui->visualizer_mode = VIZ_KMEANS_CLUSTERING;
@@ -155,14 +156,14 @@ void cycle_color_mode(void)
                 break;
         case COLOR_MODE_THEME:
                 if (ui->theme_name[0] != '\0' &&
-                    load_theme(ui->theme_name, false)) {
+                    load_theme(ui->theme_name, false, set_info_message)) {
                         themeLoaded = true;
                         if (ui->visualizer_mode > VIZ_REVERSED)
                                 ui->visualizer_mode = VIZ_REVERSED;
                 }
                 break;
         case COLOR_MODE_NEUTRAL:
-                if (load_theme("neutral", false)) {
+                if (load_theme("neutral", false, set_info_message)) {
                         themeLoaded = true;
                 }
                 break;
@@ -262,8 +263,9 @@ void cycle_themes(void)
 
         // Get next theme (wrap around)
         int next_index = (current_index + 1) % theme_count;
+        bool set_info_message = true;
 
-        if (load_theme(themes[next_index], false)) {
+        if (load_theme(themes[next_index], false, set_info_message)) {
                 ui->colorMode = COLOR_MODE_THEME;
 
                 snprintf(ui->theme_name, sizeof(ui->theme_name), "%s",
@@ -323,14 +325,17 @@ void toggle_repeat(void)
 
         if (repeat_state == 0) {
                 emit_string_property_changed("loop_status", "None");
+                set_error_message("Repeat Off");
 
                 state->settings.repeatState = 0;
         } else if (repeat_state == 1) {
 
                 emit_string_property_changed("loop_status", "Track");
+                set_error_message("Repeat Track");
                 state->settings.repeatState = 1;
         } else {
                 emit_string_property_changed("loop_status", "List");
+                set_error_message("Repeat List");
                 state->settings.repeatState = 2;
         }
 
@@ -419,14 +424,14 @@ bool can_refresh_player(void)
         PlaybackState *ps = &model->playbackState;
 
         return !ps->skipping &&
-        !is_EOF_reached() &&
-        !is_switching_track() &&
-        !should_exit() &&
-        !model->state.ui.resumed_in_background;
+               !is_EOF_reached() &&
+               !is_switching_track() &&
+               !should_exit() &&
+               !model->state.ui.resumed_in_background;
 }
 
 int load_theme(const char *theme_name,
-               bool is_ansi_theme)
+               bool is_ansi_theme, bool set_info_message)
 {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
@@ -496,6 +501,14 @@ int load_theme(const char *theme_name,
         }
 
         state->settings.themeIsSet = true;
+
+        if (set_info_message) {
+                char error_message[ERROR_MESSAGE_LENGTH];
+                snprintf(error_message, sizeof(error_message), "Theme: %s",
+                         theme_name);
+
+                set_error_message(error_message);
+        }
 
         if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme

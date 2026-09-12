@@ -10,6 +10,9 @@
 #include <signal.h>
 #include <stdbool.h>
 
+#define ERROR_MESSAGE_LENGTH 256
+#define ERROR_MESSAGE_TIMEOUT 3
+
 /**
  * Sets the current error message.
  *
@@ -35,6 +38,13 @@ bool has_error_message(void);
  * Resets the internal error buffer to an empty string.
  */
 void clear_error_message(void);
+
+/**
+ * Clears the current error message if ERROR_MESSAGE_TIMEOUT has elapsed since the error message was set.
+ *
+ * Resets the internal error buffer to an empty string.
+ */
+void clear_error_message_if_timeout(void);
 
 /**
  * Marks the current error message as printed.

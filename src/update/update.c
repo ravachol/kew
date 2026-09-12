@@ -422,6 +422,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                 advance_name_scroll_anim(model);
                 advance_glimmer_anim(model);
 
+                clear_error_message_if_timeout();
+
                 if (model->songdata_ok)
                         model->song_duration = model->songdata->duration;
                 else
@@ -577,6 +579,11 @@ UpdateResult update(Model *model, struct Msg *msg)
                 c_strcpy(settings->allowNotifications,
                          model->state.settings.allowNotifications ? "1" : "0",
                          sizeof(settings->allowNotifications));
+
+                if (model->state.settings.allowNotifications)
+                        set_error_message("Notifications On");
+                else
+                        set_error_message("Notifications Off");
                 break;
 
         case MSG_SHUFFLE:
@@ -667,6 +674,7 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_TOGGLECROSSFADE:
                 model->state.settings.always_crossfade = !model->state.settings.always_crossfade;
+                set_error_message(model->state.settings.always_crossfade ? "Always crossfade" : "Always Crossfade Off");
                 set_dirty(DIRTY_FOOTER);
                 result.cmd.type = CMD_TOGGLECROSSFADE;
                 break;
@@ -918,7 +926,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->progressBar.col = msg->region.col + 1;
                 model->progressBar.row = msg->region.row + 1;
                 model->progressBar.length = msg->region.width;
-                
+
                 if (msg->footer_row != DISABLED_ROW) {
                         model->state.ui.footer_row = msg->footer_row + 1;
                         model->state.ui.footer_col = msg->region.col + 1;

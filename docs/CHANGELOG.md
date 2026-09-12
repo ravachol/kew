@@ -2,6 +2,12 @@
 
 ## kew 4.3.5
 
+#### Enhancements:
+
+- Added info message for common toggles and cycles like theme notifications, shuffle, repeat. These has been a 'Project Joy' request by several people. By @ravachol.
+
+- Error messages time out after 3 seconds. by @ravachol.
+
 #### Bug fixes:
 
 - Fixes issue where scrolling in help view leaves the bottom part cut off. By @ravachol.
