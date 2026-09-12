@@ -199,10 +199,10 @@ void volume_change(int change_percent)
         sound_volume += change_percent;
 
         char error_message[ERROR_MESSAGE_LENGTH];
-        snprintf(error_message, sizeof(error_message), "Volume %d%s", change_percent, "%");
-        set_error_message(error_message);
 
         set_volume(sound_volume);
+        snprintf(error_message, sizeof(error_message), "Volume %d %s%d%s", get_volume(), change_percent > 0 ? "+" : "", change_percent, "%");
+        set_error_message(error_message);
         set_dirty(DIRTY_VISUALIZER);
 }
 
