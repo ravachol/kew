@@ -35,13 +35,14 @@
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
+#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
-#include "utils/k_log.h"
 
 #include <ctype.h>
 #include <gio/gio.h>
 #include <glib.h>
+#include <stdlib.h>
 #include <wchar.h> // Needed for netbsd
 
 #define MAX_TMP_SEQ_LEN 256
@@ -465,16 +466,48 @@ int get_footer_col(void)
         return model->state.ui.footer_col;
 }
 
-#include <stdlib.h>
+static gpointer open_url_thread(gpointer data)
+{
+    char *url = data;
+    GError *error = NULL;
+
+    int stdout_fd = dup(STDOUT_FILENO);
+    int stderr_fd = dup(STDERR_FILENO);
+
+    int devnull = open("/dev/null", O_WRONLY);
+
+    // Redirect stdout or else g_app_info_launch_default_for_uri messes up rendering
+    if (devnull >= 0) {
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        close(devnull);
+    }
+
+    g_app_info_launch_default_for_uri(url, NULL, &error);
+
+    if (error) {
+        g_error_free(error);
+    }
+
+    dup2(stdout_fd, STDOUT_FILENO);
+    dup2(stderr_fd, STDERR_FILENO);
+
+    close(stdout_fd);
+    close(stderr_fd);
+
+    g_free(url);
+    return NULL;
+}
 
 void open_url(const char *url)
 {
-        GError *error = NULL;
-        g_app_info_launch_default_for_uri(url, NULL, &error);
-        if (error) {
-                k_log("Failed to open url: %s\n", error->message);
-                g_error_free(error);
-        }
+    GThread *thread = g_thread_new(
+        "open-url",
+        open_url_thread,
+        g_strdup(url)
+    );
+
+    g_thread_unref(thread);
 }
 
 bool handle_mouse_event(struct tb_event *ev, struct Msg *event, bool do_scroll)
