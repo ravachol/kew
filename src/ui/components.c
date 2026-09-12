@@ -3066,7 +3066,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 // Keybinding lines
 #define HELP_LINE(fmt, ...)                                                 \
         do {                                                                \
-                if (row >= region.row + region.height)                      \
+                if (output_row >= region.row + region.height)               \
                         goto render_scrollbar;                              \
                 if (model->state.ui.chosen_help_row <= row) {               \
                         char _line[512];                                    \
@@ -3180,7 +3180,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         row += 2;
         output_row += 2;
 
-        if (row >= region.row + region.height)
+        if (output_row >= region.row + region.height)
                 goto render_scrollbar;
 
         if (model->state.ui.chosen_help_row <= row) {
@@ -3194,7 +3194,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
 
         row += 2;
 
-        if (row >= region.row + region.height)
+        if (output_row >= region.row + region.height)
                 goto render_scrollbar;
 
         // Wikidata license
@@ -3208,7 +3208,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         }
         row += 2;
 
-        if (row >= region.row + region.height)
+        if (output_row >= region.row + region.height)
                 goto render_scrollbar;
 
         // Copyright
