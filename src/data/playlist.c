@@ -771,6 +771,7 @@ void make_playlist_name(const char *search, int max_size)
 
 Node *read_m3u_file(const char *filepath, PlayList *playlist)
 {
+        Model *model = get_model();
         GError *error = NULL;
         gchar *contents;
         gchar **lines;
@@ -802,14 +803,20 @@ Node *read_m3u_file(const char *filepath, PlayList *playlist)
                         } else {
                                 songPath = g_build_filename(directory,
                                                             trimmed_line, NULL);
+
                         }
 
                         if (songPath == NULL)
                                 continue;
 
                         if (exists_file(songPath) < 0) {
-                                g_free(songPath);
-                                continue;
+                                songPath = g_build_filename(model->library->full_path,
+                                                            trimmed_line, NULL);
+
+                                if (exists_file(songPath) < 0) {
+                                        g_free(songPath);
+                                        continue;
+                                }
                         }
                         // Don't add songs that are already enqueued
                         Node *found = find_path_in_playlist(songPath, playlist);
@@ -1031,6 +1038,7 @@ void generate_m3_u_filename(const char *base_path, const char *file_path,
 void write_m3u_file(const char *filename, const PlayList *playlist)
 {
         FILE *file;
+        Model *model = get_model();
 
 #ifdef _WIN32
         wchar_t *wfilename = utf8_to_wide(filename);
@@ -1046,9 +1054,25 @@ void write_m3u_file(const char *filename, const PlayList *playlist)
         if (file == NULL)
                 return;
 
+        const char *library = model->library->full_path;
+        size_t library_len = strlen(library);
+
         Node *current_node = playlist->head;
+
         while (current_node != NULL) {
-                fprintf(file, "%s\n", current_node->song.file_path);
+                const char *path = current_node->song.file_path;
+
+                // Strip the library prefix if the song is inside
+                if (g_str_has_prefix(path, library)) {
+                        path += library_len;
+
+                        // Remove the separator after the library.
+                        if (*path == '/' || *path == '\\')
+                                path++;
+                }
+
+                fprintf(file, "%s\n", path);
+
                 current_node = current_node->next;
         }
 

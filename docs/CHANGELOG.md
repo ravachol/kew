@@ -10,6 +10,8 @@
 
 - Error messages time out after 3 seconds. by @ravachol.
 
+- Check m3u playlists for relative paths not only for the location of the .m3u but also against the music library. By @ravachol. Suggested by @partisani.
+
 #### Bug fixes:
 
 - Fixes issue where scrolling in help view leaves the bottom part cut off. By @ravachol.
