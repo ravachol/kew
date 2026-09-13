@@ -312,7 +312,8 @@ void toggle_ascii(void)
 
 void toggle_repeat(void)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
+        AppState *state = &model->state;
 
         int repeat_state = get_repeat_state();
 
@@ -328,15 +329,18 @@ void toggle_repeat(void)
                 set_error_message("Repeat Off");
 
                 state->settings.repeatState = 0;
+                model->playbackState.nextSongNeedsRebuilding = true;
         } else if (repeat_state == 1) {
 
                 emit_string_property_changed("loop_status", "Track");
                 set_error_message("Repeat Track");
                 state->settings.repeatState = 1;
+                model->playbackState.nextSongNeedsRebuilding = true;
         } else {
                 emit_string_property_changed("loop_status", "List");
                 set_error_message("Repeat List");
                 state->settings.repeatState = 2;
+                model->playbackState.nextSongNeedsRebuilding = true;
         }
 
         set_dirty(DIRTY_FOOTER);

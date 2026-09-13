@@ -236,14 +236,11 @@ void switch_metadata(sound_system_t *sound)
                 atomic_store(&sound->drain_callbacks_remaining, 0);
         }
 
-        if (!pb_is_repeat_enabled() || (pb_is_repeat_enabled() && pb_is_paused())) {
+        bool using_slot_A = atomic_load(&sound->using_song_slot_A); // fetch
 
-                bool using_slot_A = atomic_load(&sound->using_song_slot_A); // fetch
+        using_slot_A = !using_slot_A; // invert
 
-                using_slot_A = !using_slot_A; // invert
-
-                atomic_store(&sound->using_song_slot_A, using_slot_A); // store
-        }
+        atomic_store(&sound->using_song_slot_A, using_slot_A); // store
 
         long long fade_boundary = atomic_load_explicit(&sound->fade_boundary, memory_order_acquire);
 

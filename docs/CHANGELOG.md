@@ -4,6 +4,8 @@
 
 #### Enhancements:
 
+-  Smooth looping, ie gapless playback on repeated tracks. By @ravachol. Requested by @AnotherPlayer8.
+
 - Added info message for common toggles and cycles like theme notifications, shuffle, repeat. These has been a 'Project Joy' request by several people. By @ravachol.
 
 - Error messages time out after 3 seconds. by @ravachol.
