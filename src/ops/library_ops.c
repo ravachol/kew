@@ -816,6 +816,7 @@ static gchar *normalize_to_library_path(const char *path, FileSystemEntry *libra
 void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                  Node **first_enqueued_node, bool dont_dequeue)
 {
+        Model *model = get_model();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
 
@@ -846,7 +847,7 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                 if (trimmed_line[0] == '#' || trimmed_line[0] == '\0')
                         continue;
 
-                gchar *songPath;
+                gchar *songPath = NULL;
 
                 if (g_path_is_absolute(trimmed_line)) {
                         songPath = g_strdup(trimmed_line);
@@ -864,8 +865,16 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
                         continue;
 
                 if (exists_file(normalized) < 0) {
-                        g_free(normalized);
-                        continue;
+
+                                g_free(normalized);
+
+                                normalized = g_build_filename(model->library->full_path, trimmed_line, NULL);
+
+                                if (exists_file(normalized) < 0) {
+                                        g_free(normalized);
+                                        normalized = NULL;
+                                        continue;
+                                }
                 }
 
                 Node *found = find_path_in_playlist(normalized, playlist);
@@ -918,6 +927,7 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
 
 void dequeue_m3u(const char *filepath, FileSystemEntry *library)
 {
+        Model *model = get_model();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
 
@@ -944,7 +954,7 @@ void dequeue_m3u(const char *filepath, FileSystemEntry *library)
                 if (trimmed_line[0] == '#' || trimmed_line[0] == '\0')
                         continue;
 
-                gchar *songPath;
+                gchar *songPath = NULL;
 
                 if (g_path_is_absolute(trimmed_line)) {
                         songPath = g_strdup(trimmed_line);
@@ -964,6 +974,14 @@ void dequeue_m3u(const char *filepath, FileSystemEntry *library)
                 // Remove one instance of this path — symmetric with enqueue_m3u()
                 // which adds one node per path.
                 Node *node1 = find_last_path_in_playlist(normalized, unshuffled_playlist);
+
+                if (node1 == NULL)
+                {
+                        g_free(normalized);
+
+                        normalized = g_build_filename(model->library->full_path, trimmed_line, NULL);
+                        node1 = find_last_path_in_playlist(normalized, unshuffled_playlist);
+                }
 
                 if (node1 != NULL) {
                         Node *current = get_current_song();
