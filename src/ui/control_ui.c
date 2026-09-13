@@ -506,14 +506,6 @@ int load_theme(const char *theme_name,
 
         state->settings.themeIsSet = true;
 
-        if (set_info_message) {
-                char error_message[ERROR_MESSAGE_LENGTH];
-                snprintf(error_message, sizeof(error_message), "Theme: %s",
-                         theme_name);
-
-                set_error_message(error_message);
-        }
-
         if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme
                 snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
@@ -524,6 +516,14 @@ int load_theme(const char *theme_name,
                 // Truecolor theme: store in settings->theme
                 snprintf(settings->theme, sizeof(settings->theme), "%s",
                          theme_name);
+        }
+
+        if (set_info_message) {
+                char error_message[ERROR_MESSAGE_LENGTH];
+                snprintf(error_message, sizeof(error_message), "Theme %.248s",
+                         state->settings.theme.theme_name);
+
+                set_error_message(error_message);
         }
 
         free(config_path);
