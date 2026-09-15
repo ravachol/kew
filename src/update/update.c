@@ -408,7 +408,7 @@ void refresh_if_timeout(void)
 
         if (difftime(now, refresh_set_time) >= PERIODICAL_REFRESH_TIMEOUT_SECONDS)
         {
-                set_dirty(DIRTY_ALL);
+                set_dirty(DIRTY_SONG);
                 refresh_set_time = now;
         }
 }
