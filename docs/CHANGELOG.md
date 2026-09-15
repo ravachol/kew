@@ -2,6 +2,10 @@
 
 ## kew 4.3.5
 
+The first month of "Project Joy", where we are trying to get people to post about the little annoyances and glitches in kew, went very well. We got a lot of suggestions and I have been implementing those. Just keep going, post more issues. We want to fix the tiny little details.
+
+/Ravachol
+
 #### Enhancements:
 
 -  Smooth looping, ie gapless playback on repeated tracks. By @ravachol. Requested by @AnotherPlayer8.
@@ -19,6 +23,7 @@
 - Fixes when a song is enqueued in library and album colors is the color mode, a song further down gets colored. By @ravahcol.
 
 - Fixes when a mini control is clicked, the song in the library on the same row disappears. By @ravachol.
+- Fix bug in progress bar below side cover. By ®ravachol.
 
 ## kew 4.3.4
 
