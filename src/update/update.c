@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 // kew uses the Model-View-Update pattern.
 //
@@ -53,6 +54,8 @@
 // Audio playback
 // Threading
 // Anything non-deterministic or external
+
+static time_t refresh_set_time;
 
 size_t string_hash(const char *str)
 {
@@ -399,6 +402,17 @@ void set_scrollbar_positions()
         }
 }
 
+void refresh_if_timeout(void)
+{
+        time_t now = time(NULL);
+
+        if (difftime(now, refresh_set_time) >= PERIODICAL_REFRESH_TIMEOUT_SECONDS)
+        {
+                set_dirty(DIRTY_ALL);
+                refresh_set_time = now;
+        }
+}
+
 UpdateResult update(Model *model, struct Msg *msg)
 {
         UpdateResult result;
@@ -423,6 +437,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 advance_glimmer_anim(model);
 
                 clear_error_message_if_timeout();
+                refresh_if_timeout();
 
                 if (model->songdata_ok)
                         model->song_duration = model->songdata->duration;

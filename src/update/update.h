@@ -2,6 +2,8 @@
 
 #include "effects.h"
 
+#define PERIODICAL_REFRESH_TIMEOUT_SECONDS 3
+
 /**
  * @brief Updates the model, the central function in Model-View-Update. Most state maniuplation lives here.
  *
