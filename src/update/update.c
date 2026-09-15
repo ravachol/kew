@@ -404,11 +404,13 @@ void set_scrollbar_positions()
 
 void refresh_if_timeout(void)
 {
+        Model *model = get_model();
         time_t now = time(NULL);
 
         if (difftime(now, refresh_set_time) >= PERIODICAL_REFRESH_TIMEOUT_SECONDS)
         {
-                set_dirty(DIRTY_SONG);
+                if (model->state.currentView != TRACK_VIEW)
+                        set_dirty(DIRTY_SONG);
                 refresh_set_time = now;
         }
 }
