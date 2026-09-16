@@ -30,6 +30,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define MAX_RECURSION_DEPTH 1024
+
 #define FSDB_MAGIC 0x46534442 // "FSDB"
 
 static int last_used_id = 0;
@@ -602,8 +604,6 @@ int compare_entry_natural_reversed(const void *a, const void *b)
 {
         return -compare_entry_natural(a, b);
 }
-
-#define MAX_RECURSION_DEPTH 1024
 
 int remove_empty_directories(FileSystemEntry *node, int depth)
 {

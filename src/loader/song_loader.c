@@ -22,6 +22,7 @@
 #include "utils/img_utils.h"
 #include "utils/k_log.h"
 #include "utils/utils.h"
+#include "utils/choose_album_art.h"
 
 #include "stb_image.h"
 #include "tagLibWrapper.h"
@@ -32,8 +33,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#define MAX_RECURSION_DEPTH 10
 
 /**
  * @brief Data passed to the loading thread for asynchronous decoding.
@@ -200,108 +199,6 @@ void make_file_path(const char *dir_path, char *file_path, size_t file_path_size
         }
 
         // snprintf guarantees null termination if file_path_size > 0
-}
-
-char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int size,
-                       int depth, bool search_sub_dirs)
-{
-        if (!dir_path || !custom_file_name_arr || size <= 0 ||
-            depth > MAX_RECURSION_DEPTH) {
-                return NULL;
-        }
-
-        DIR *directory = opendir(dir_path);
-        if (!directory) {
-                return NULL;
-        }
-
-        struct dirent *entry;
-        struct stat file_stat;
-        char file_path[KEW_PATH_MAX];
-        char resolved_path[KEW_PATH_MAX];
-        char *result = NULL;
-
-        for (int i = 0; i < size && !result; i++) {
-                rewinddir(directory);
-                while ((entry = readdir(directory)) != NULL) {
-                        if (strcmp(entry->d_name, ".") == 0 ||
-                            strcmp(entry->d_name, "..") == 0)
-                                continue;
-
-                        int written = snprintf(file_path, sizeof(file_path),
-                                               "%s/%s", dir_path, entry->d_name);
-                        if (written < 0 || written >= (int)sizeof(file_path)) {
-                                continue; // path too long
-                        }
-
-                        if (path_realpath(file_path, resolved_path) == NULL) {
-                                continue;
-                        }
-
-                        if (strncmp(resolved_path, dir_path, strlen(dir_path)) !=
-                            0) {
-                                continue; // outside allowed directory
-                        }
-
-                        if (stat(resolved_path, &file_stat) == 0 &&
-                            S_ISREG(file_stat.st_mode)) {
-                                if (strcmp(entry->d_name,
-                                           custom_file_name_arr[i]) == 0) {
-                                        result = strdup(resolved_path);
-                                        break;
-                                }
-                        }
-                }
-        }
-
-        // Recursive search for directories
-        if (!result && search_sub_dirs) {
-                rewinddir(directory);
-                while ((entry = readdir(directory)) != NULL && !result) {
-                        if (strcmp(entry->d_name, ".") == 0 ||
-                            strcmp(entry->d_name, "..") == 0)
-                                continue;
-
-                        int written = snprintf(file_path, sizeof(file_path),
-                                               "%s/%s", dir_path, entry->d_name);
-                        if (written < 0 || written >= (int)sizeof(file_path)) {
-                                continue;
-                        }
-
-                        if (path_realpath(file_path, resolved_path) == NULL) {
-                                continue;
-                        }
-
-                        if (strncmp(resolved_path, dir_path, strlen(dir_path)) !=
-                            0) {
-                                continue;
-                        }
-
-                        struct stat link_stat;
-#ifdef _WIN32
-                        if (stat(resolved_path, &link_stat) == 0) {
-#else
-                        if (lstat(resolved_path, &link_stat) == 0) {
-#endif
-#ifdef S_ISLNK
-                                if (S_ISLNK(link_stat.st_mode)) {
-                                        continue; // skip symlink
-                                }
-#endif
-                                if (S_ISDIR(link_stat.st_mode)) {
-                                        result = choose_album_art(
-                                            resolved_path, custom_file_name_arr,
-                                            size, depth + 1, search_sub_dirs);
-                                }
-                        }
-                }
-        }
-
-        closedir(directory);
-
-        k_log("choose_album_art: returning: '%s'\n", result);
-
-        return result;
 }
 
 #ifdef _WIN32
@@ -559,6 +456,7 @@ void load_meta_data(SongData *songdata)
                 get_directory_from_path(songdata->file_path, path);
                 char *tmp = NULL;
                 off_t size = 0;
+                int file_arr_size = 12;
                 char *file_arr[12] = {
                     "front.png",
                     "front.jpg",
@@ -583,7 +481,7 @@ void load_meta_data(SongData *songdata)
                         search_sub_dirs = !paths_equal(path, library_expanded);
                 }
 
-                tmp = choose_album_art(path, file_arr, 12, 0, search_sub_dirs);
+                tmp = choose_album_art(path, file_arr, file_arr_size, search_sub_dirs);
 
                 if (tmp == NULL) {
                         tmp = find_largest_image_file(path, tmp, &size);
@@ -595,7 +493,7 @@ void load_meta_data(SongData *songdata)
 
                         k_log("load_meta_data: largest image file found, path: '%s'\n", songdata->cover_art_path);
 
-                        free(tmp);
+                        g_free(tmp);
                         tmp = NULL;
                         found_image = true;
                 } else {
