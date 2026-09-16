@@ -451,14 +451,50 @@ rnd[6] = '\0';
     }
 }
 
+#if defined(_WIN32)
+
+#include <glib.h>
+#include <windows.h>
+
 char *path_realpath(const char *path, char *out)
 {
-#if defined(_WIN32)
-        return _fullpath(out, path, _MAX_PATH);
-#else
-        return realpath(path, out);
-#endif
+        wchar_t *wide_path =
+            (wchar_t *)g_utf8_to_utf16(path, -1, NULL, NULL, NULL);
+        if (!wide_path)
+                return NULL; /* not valid UTF-8 */
+
+        wchar_t wide_full[KEW_PATH_MAX];
+        DWORD len = GetFullPathNameW(
+            wide_path, (DWORD)(sizeof(wide_full) / sizeof(wide_full[0])),
+            wide_full, NULL);
+        g_free(wide_path);
+
+        /* len == 0 means failure; len >= buffer size means it would
+         * have been truncated -- treat both as failure. */
+        if (len == 0 || len >= sizeof(wide_full) / sizeof(wide_full[0]))
+                return NULL;
+
+        char *utf8_full =
+            g_utf16_to_utf8((gunichar2 *)wide_full, -1, NULL, NULL, NULL);
+        if (!utf8_full)
+                return NULL;
+
+        g_strlcpy(out, utf8_full, KEW_PATH_MAX);
+        g_free(utf8_full);
+
+        return out;
 }
+
+#else
+
+#include <stdlib.h>
+
+char *path_realpath(const char *path, char *out)
+{
+        return realpath(path, out);
+}
+
+#endif
 
 bool paths_equal(const char *a, const char *b)
 {
