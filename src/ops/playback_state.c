@@ -17,9 +17,7 @@
 #include "loader/song_loader.h"
 #include <math.h>
 
-#ifdef DEBUG
 #include "utils/k_log.h"
-#endif
 
 int shuffle_enabled;
 
@@ -119,6 +117,11 @@ void set_volume(int vol)
 
 SongData *get_current_song_data(SongData *previous_songdata)
 {
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("get_current_song_data() entered");
+
         if (get_current_song() == NULL)
         {
                 unload_song_data(&previous_songdata);
@@ -158,12 +161,10 @@ SongData *get_current_song_data(SongData *previous_songdata)
 
         set_dirty(DIRTY_ALL);
 
-        Model *model = get_model();
         model->playbackState.notifySwitch = 1;
 
-#ifdef DEBUG
         // Log basic stats
         k_log("New songdata: %s duration: %f", song_data->file_path, song_data->duration);
-#endif
+
         return songdata_clone(song_data);
 }

@@ -70,6 +70,7 @@ struct sound_system {
         atomic_bool using_song_slot_A;
         atomic_bool clock_reset_done;
         atomic_bool fade_boundary_reached;
+        atomic_bool first_song_log;
         atomic_int clock_reset_ms;
 #endif
 

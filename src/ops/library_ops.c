@@ -508,6 +508,11 @@ void enqueue_song(FileSystemEntry *child)
         if (!child)
                 return;
 
+        Model *model = get_model();
+        
+        if (model->state.settings.verbose_mode)
+                k_log("enqueue_album() entered");
+
         int id = child->id;
 
         if (id <= 0)
@@ -639,10 +644,14 @@ int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry **first_enqueued)
         if (firstChild == NULL)
                 return num_enqueued;
 
+        Model *model = get_model();
         FileSystemEntry *entry = firstChild;
         int numberOfEntries = 0;
 
         FileSystemEntry *discArray[MAX_SORT_SIZE] = {0};
+
+        if (model->state.settings.verbose_mode)
+                k_log("enqueue_album() entered");
 
         while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
                 if (!entry->is_directory && !entry->is_enqueued && is_music_file(entry->name)) {
@@ -685,7 +694,11 @@ int enqueue_children(FileSystemEntry *child,
         if (!child)
                 return num_enqueued;
 
+        Model *model = get_model();
         FileSystemEntry *parent = child->parent;
+
+        if (model->state.settings.verbose_mode)
+                k_log("enqueue_children() entered");
 
         while (child != NULL) {
                 if (child->is_directory) {

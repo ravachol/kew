@@ -23,6 +23,7 @@
 #include "sys/sys_integration.h"
 
 #include "ui/components.h"
+#include "utils/k_log.h"
 #include "utils/utils.h"
 #include <ctype.h>
 #include <stdbool.h>
@@ -157,6 +158,9 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
         Node *first_enqueued_node = NULL;
         int num_enqueued = false;
         bool is_root = false;
+
+        if (model->state.settings.verbose_mode)
+                k_log("enqueue_songs() entered");
 
         if (entry != NULL) {
                 if (entry->is_directory) {
@@ -330,6 +334,9 @@ Node *enqueue(FileSystemEntry *entry, bool dont_dequeue)
         Node *first_enqueued_node = NULL;
         PlaybackState *ps = &model->playbackState;
 
+        if (model->state.settings.verbose_mode)
+                k_log("enqueue() entered");
+
         if (should_start_playing()) {
                 Node *last_song = find_selected_entry_by_id(get_playlist(), ps->lastPlayedId);
                 state->ui.startFromTop = false;
@@ -398,12 +405,14 @@ void view_enqueue(bool play_immediately)
         AppState *state = &model->state;
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
-
         FileSystemEntry *entry = NULL;
         Node *current_song = get_current_song();
         Node *first_enqueued_node = NULL;
         bool start_playing = true;
         bool canGoNext = (current_song != NULL && current_song->next != NULL);
+
+        if (model->state.settings.verbose_mode)
+                k_log("view_enqueue() entered");
 
         if (state->currentView == TRACK_VIEW || state->currentView == HELP_VIEW) {
                 Node *song = current_song;

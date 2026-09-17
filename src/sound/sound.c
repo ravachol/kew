@@ -634,6 +634,11 @@ void write_to_ring_buffer(sound_system_t *sound, ma_uint64 frames_to_read, float
         ma_uint32 framesRemaining = (ma_uint32)frames_to_read;
         ma_uint32 framesWritten = 0;
 
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode && atomic_load(&sound->first_song_log))
+                k_log("write_to_ring_buffer() entered");
+
         while (framesRemaining > 0 && atomic_load(&sound->decode_thread_running)) {
 
                 ma_uint32 framesToWrite = framesRemaining;
@@ -656,6 +661,9 @@ void write_to_ring_buffer(sound_system_t *sound, ma_uint64 frames_to_read, float
                 if (!atomic_load(&sound->buffer_ready))
                         atomic_store(&sound->buffer_ready, 1);
         }
+
+        if (model->state.settings.verbose_mode)
+                k_log("write_to_ring_buffer() done");
 }
 
 static inline void *aligned64_alloc(size_t size)
@@ -1000,6 +1008,11 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
         (void)device;
         (void)input;
 
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log))
+                k_log("on_audio_frames() entered");
+
         if (!atomic_load(&sound_s->buffer_ready)) {
                 memset(pOutput, 0, frameCount * sound_s->channels * sizeof(float));
                 return;
@@ -1092,7 +1105,13 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                         apply_gain_f32((float *)writePtr, total, gain);
                 }
 
+                if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log))
+                        k_log("on_audio_frames() committing read to ringbuffer");
+
                 ma_pcm_rb_commit_read(&pcm_rb, framesToCopy);
+
+                if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log))
+                        k_log("on_audio_frames() committed read to ringbuffer");
 
                 writePtr += bytesToCopy;
                 totalFramesRead += framesToCopy;
@@ -1101,7 +1120,15 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
                 atomic_fetch_add_explicit(&sound_s->track_frames_sent, framesToCopy, memory_order_relaxed);
         }
 
+        if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log))
+                        k_log("on_audio_frames() pushing to visualizer");
+
         visualizer_ringbuffer_push(pOutput, frameCount, sound_s->channels);
+
+        if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log)) {
+                        k_log("on_audio_frames() pushed to visualizer");
+                        atomic_store(&sound_s->first_song_log, false);
+        }
 }
 
 sound_result_t handle_codec(
@@ -1452,6 +1479,12 @@ SongData *sound_get_current_song_data(void)
 int load_decoder(SongData *song_data, bool *song_data_deleted)
 {
         LoaderData *loader_data = get_loader_data();
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+        {
+                k_log("load_decoder() entered");
+        }
 
         int result = 0;
 
@@ -1490,6 +1523,12 @@ void set_song_data(bool slotA, SongData *songdata)
 int assign_loaded_data(void)
 {
         LoaderData *loader_data = get_loader_data();
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+        {
+                k_log("assign_loaded_data() entered");
+        }
 
         int result = 0;
 
@@ -1562,6 +1601,12 @@ void *song_data_reader_thread(void *arg)
         PlaybackState *ps = (PlaybackState *)arg;
         LoaderData *loader_data = get_loader_data();
 
+        Model *model = get_model();
+        if (model->state.settings.verbose_mode)
+        {
+                k_log("song_data_reader_thread() entered");
+        }
+
         pthread_mutex_lock(&(loader_data->mutex));
 
         char filepath[KEW_PATH_MAX];
@@ -1622,6 +1667,11 @@ void *song_data_reader_thread(void *arg)
         ps->skipping = false;
         ps->songLoading = false;
 
+        if (model->state.settings.verbose_mode)
+        {
+                k_log("song_data_reader_thread() done");
+        }
+
         return NULL;
 }
 
@@ -1629,6 +1679,10 @@ sound_result_t sound_load_song(const char *file_path, int is_first_decoder, int 
 {
         LoaderData *loader_data = get_loader_data();
         PlaybackState *ps = get_playback_state();
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("sound_load_song() entered");
 
         sound_result_t sound_result = SOUND_OK;
 

@@ -44,6 +44,7 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
         const char *quit_on_stop2 = "-q";
         const char *exact_option = "--exact";
         const char *exact_option2 = "-e";
+        const char *verbose_option = "--verbose";
 
         int max_len = 1000;
 
@@ -83,6 +84,16 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
                 if (c_strcasestr(argv[i], exact_option, max_len) ||
                     c_strcasestr(argv[i], exact_option2, max_len)) {
                         *exact_search = true;
+                        idx = i;
+                }
+        }
+        if (idx >= 0)
+                remove_arg_element(argv, idx, argc);
+
+        idx = -1;
+        for (int i = 0; i < *argc; i++) {
+                if (c_strcasestr(argv[i], verbose_option, max_len)) {
+                        ui->verbose_mode = true;
                         idx = i;
                 }
         }

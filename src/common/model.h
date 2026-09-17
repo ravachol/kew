@@ -434,6 +434,8 @@ typedef struct
         int fade_quick_ms;
         int fade_medium_ms;
         int fade_slow_ms;
+
+        bool verbose_mode;
 } UISettings;
 
 typedef struct {

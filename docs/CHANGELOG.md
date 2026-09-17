@@ -12,9 +12,11 @@ The first month of "Project Joy", where we are trying to get people to post abou
 
 - Added info message for common toggles and cycles like theme notifications, shuffle, repeat. These has been a 'Project Joy' request by several people. By @ravachol.
 
-- Error messages time out after 3 seconds. by @ravachol.
+- Error messages time out after 3 seconds. By @ravachol.
 
 - Check m3u playlists for relative paths not only for the location of the .m3u but also against the music library. By @ravachol. Suggested by @partisani.
+
+- Added verbose mode, to help with debuggging. Run with --verbose. By @ravachol.
 
 #### Bug fixes:
 
