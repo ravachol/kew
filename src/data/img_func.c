@@ -558,6 +558,11 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         int cell_width = 8;
         int cell_height = 16;
 
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("draw_square_bitmap_to_buf() entered");
+
         // Validate arguments.
         if (!draw_occupied_markers && ! just_mark_cover && (!buf || !buf->cells || !term_size || !pixels)) {
                 k_log("Invalid draw arguments.");
@@ -675,13 +680,6 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 return 0;
         }
 
-        Model *model = get_model();
-
-        if (!model) {
-                k_log("get_model() returned NULL.");
-                return 0;
-        }
-
         // Store the encoded blob in an ImagePayload and place it in the buffer.
         ImagePayload *img = calloc(1, sizeof(ImagePayload));
         if (!img) {
@@ -757,6 +755,9 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         }
 
         pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
+
+        if (model->state.settings.verbose_mode)
+                k_log("draw_square_bitmap_to_buf() done");
 
         return corrected_height;
 }

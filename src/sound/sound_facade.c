@@ -41,6 +41,7 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         int result = song_loader_init();
 
+
         if (result < 0)
                 return SOUND_ERROR_BACKEND_FAILURE;
 
@@ -52,6 +53,8 @@ sound_result_t sound_system_create(sound_system_t **out_system)
 
         sound_s->volume = get_current_volume();
         sound_s->state = SOUND_STATE_STOPPED;
+
+        atomic_store(&sound_s->first_song_log, true);
 
         atomic_store_explicit(&sound_s->fade_boundary_reached, false, memory_order_release);
         atomic_store_explicit(&sound_s->fade_boundary, -1, memory_order_release);
@@ -506,14 +509,14 @@ int sound_system_get_fade_offset_seconds(const sound_system_t *system)
 
 int sound_system_is_decoding_possible(const sound_system_t *system, const char *file_path)
 {
-        k_log("sound_system_is_deconding_possible: entered");
+        k_log("sound_system_is_decoding_possible: entered");
 
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
         const CodecOps *ops = find_codec_ops(file_path);
 
-        k_log("sound_system_is_deconding_possible: codec ops found");
+        k_log("sound_system_is_decoding_possible: codec ops found");
 
         if (is_decoding_possible(file_path, ops) < 0)
                 return 0;

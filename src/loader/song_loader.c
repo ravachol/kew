@@ -491,7 +491,7 @@ void load_meta_data(SongData *songdata)
                         c_strcpy(songdata->cover_art_path, tmp,
                                  sizeof(songdata->cover_art_path));
 
-                        k_log("load_meta_data: largest image file found, path: '%s'\n", songdata->cover_art_path);
+                        k_log("load_meta_data: image file found, path: '%s'\n", songdata->cover_art_path);
 
                         g_free(tmp);
                         tmp = NULL;
@@ -549,6 +549,11 @@ SongData *songdata_clone(const SongData *src)
 {
         if (!src)
                 return NULL;
+
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("songdata_clone() entered");
 
         LoaderData *loader_data = get_loader_data();
 

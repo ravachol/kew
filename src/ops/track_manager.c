@@ -49,6 +49,8 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
 {
         Model *model = get_model();
 
+        k_log("load_song() entered");
+
         if (model->state.settings.replayGainCheckFirst == 3)
                 sound_system_set_replay_gain_check_first(sound_sys, is_shuffle_enabled() ? 0 : 1);
         else
@@ -86,6 +88,9 @@ void load_next_song(bool replace_next_song)
 {
         Model *model = get_model();
         PlaybackState *ps = &model->playbackState;
+
+        if (model->state.settings.verbose_mode)
+                k_log("load_next_song() entered");
 
         ps->songLoading = true;
         ps->nextSongNeedsRebuilding = false;
@@ -257,6 +262,11 @@ int prepare_and_play_song(Node *song, double seconds)
 {
         if (!song)
                 return -1;
+
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("prepare_and_play_song() entered");
 
         set_current_song(song);
 
