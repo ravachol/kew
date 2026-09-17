@@ -20,10 +20,13 @@ The first month of "Project Joy", where we are trying to get people to post abou
 
 - Fixes issue where scrolling in help view leaves the bottom part cut off. By @ravachol.
 
-- Fixes when a song is enqueued in library and album colors is the color mode, a song further down gets colored. By @ravahcol.
+- Fixes when a song is enqueued in library and album colors is the color mode, a song further down gets colored. By @ravachol.
 
 - Fixes when a mini control is clicked, the song in the library on the same row disappears. By @ravachol.
+
 - Fix bug in progress bar below side cover. By ®ravachol.
+
+- Fixes several bugs in choose_album_song. By @ravachol.
 
 ## kew 4.3.4
 
