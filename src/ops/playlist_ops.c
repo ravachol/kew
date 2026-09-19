@@ -857,7 +857,7 @@ void reshuffle_playlist(void)
                 Node *current = get_current_song();
 
                 if (current != NULL)
-                        shuffle_playlist_starting_from_song(playlist, current);
+                        shuffle_playlist_from_node(playlist, current, true);
                 else
                         shuffle_playlist(playlist);
 

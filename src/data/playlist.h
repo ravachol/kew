@@ -140,12 +140,14 @@ void shuffle_playlist(PlayList *playlist);
  * @brief Shuffles the playlist while keeping a specific song first.
  *
  * @param playlist Pointer to the playlist.
- * @param song Pointer to the song that should remain first after shuffle.
+ * @param start Pointer to the song that should remain first after shuffle.
  *
- * @note The playlist is shuffled first, then the specified song
- *       is moved to the head if present.
+ * @param change_library_status Reassign the same set of queue-position values to the new order,
+ *                              so is_enqueued still reflects position within the enqueued segment.
+ *                              (is_enqueued is higher than one depending on the position in the list).
+ * @return the first node in the new sub list
  */
-void shuffle_playlist_starting_from_song(PlayList *playlist, Node *song);
+Node *shuffle_playlist_from_node(PlayList *playlist, Node *start, bool change_library_status);
 
 /**
  * @brief Creates a new playlist node.

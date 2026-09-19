@@ -232,10 +232,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
 
                 if (first_enqueued_node)
                 {
-                        shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
-                        move_down_list(model->playlist, first_enqueued_node, false);
-                        first_enqueued_node = first_enqueued_node->prev ? first_enqueued_node->prev
-                        : first_enqueued_node->next ? first_enqueued_node->next : first_enqueued_node;
+                        first_enqueued_node = shuffle_playlist_from_node(model->playlist, first_enqueued_node, true);
                 }
                 else
                         shuffle_playlist(model->playlist);
@@ -294,7 +291,7 @@ Node *enqueue_playlist(FileSystemEntry *entry, bool dont_dequeue)
 
         if (state->settings.shuffle_enabled) {
                 if (first_enqueued_node)
-                        shuffle_playlist_starting_from_song(model->playlist, first_enqueued_node);
+                        first_enqueued_node = shuffle_playlist_from_node(model->playlist, first_enqueued_node, true);
                 else
                         reshuffle_playlist();
         }

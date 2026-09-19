@@ -34,6 +34,8 @@ The first month of "Project Joy", where we are trying to get people to post abou
 
 - Fix undefined behavior in help view. Reported by @petoem. By ®ravachol.
 
+- Fix shuffle bug where the first enqueued song is played second in the shufle list. Found by @Oyouu. By @ravachol.
+
 ## kew 4.3.4
 
 #### Bug fixes:
