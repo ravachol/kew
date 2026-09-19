@@ -32,6 +32,8 @@ The first month of "Project Joy", where we are trying to get people to post abou
 
 - Fixes wide covers in landscape mode being vertically centerded. By @nhuvaynhe.
 
+- Fix undefined behavior in help view. Reported by @petoem. By ®ravachol.
+
 ## kew 4.3.4
 
 #### Bug fixes:

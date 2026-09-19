@@ -387,7 +387,7 @@ void set_scrollbar_positions()
         }
 
         if (model->state.currentView == HELP_VIEW) {
-                if (model->state.ui.chosen_help_row >= 0) {
+                if (model->state.ui.chosen_help_row >= 0 && model->state.ui.help_region.height > 0) {
                         double position =
                             (double)model->state.ui.chosen_help_row /
                             (double)model->state.ui.help_region.height;
