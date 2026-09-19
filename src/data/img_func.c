@@ -369,8 +369,8 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
                 k_log("convert_image() ENCODE_VERSION(1, 16) symbol map set ");
 
         canvas = chafa_canvas_new(config);
-        frame = chafa_frame_new_borrow((gpointer)pixels, pixel_type,
-                                       pix_width, pix_height, pix_rowstride);
+        frame = chafa_frame_new(pixels, pixel_type,
+                        pix_width, pix_height, pix_rowstride);
         image = chafa_image_new();
         chafa_image_set_frame(image, frame);
 
