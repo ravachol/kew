@@ -317,12 +317,92 @@ void insert_as_first(Node *current_song, PlayList *playlist)
         }
 }
 
-void shuffle_playlist_starting_from_song(PlayList *playlist, Node *song)
+Node *shuffle_playlist_from_node(PlayList *playlist, Node *start, bool change_library_status)
 {
-        shuffle_playlist(playlist);
-        if (song != NULL && playlist->count > 1) {
-                insert_as_first(song, playlist);
+        if (playlist == NULL || start == NULL)
+                return NULL;
+
+        int n = 0;
+        for (Node *cur = start; cur != NULL; cur = cur->next)
+                n++;
+
+        if (n <= 1)
+                return start; // nothing to shuffle, start is already the only one
+
+        Node **nodes = (Node **)malloc(n * sizeof(Node *));
+        if (nodes == NULL) {
+                set_error_message(_("Memory allocation error."));
+                k_log("shuffle_playlist_from_node: memory allocation error.");
+                quit();
         }
+
+        FileSystemEntry *library = NULL;
+        int *enqueued_values = NULL;
+
+        if (change_library_status) {
+                library = get_library();
+                enqueued_values = (int *)malloc(n * sizeof(int));
+                if (enqueued_values == NULL) {
+                        free(nodes);
+                        set_error_message(_("Memory allocation error."));
+                        k_log("shuffle_playlist_from_node: memory allocation error.");
+                        quit();
+                }
+        }
+
+        Node *prev_before_start = start->prev;
+        Node *cur = start;
+
+        for (int i = 0; i < n; i++) {
+                nodes[i] = cur;
+                if (change_library_status) {
+                        FileSystemEntry *entry = find_corresponding_entry(library, cur->song.file_path);
+                        enqueued_values[i] = entry ? entry->is_enqueued : 0;
+                }
+                cur = cur->next;
+        }
+
+        // Fisher-Yates over just this segment
+        for (int j = n - 1; j >= 1; --j) {
+                int k = rand() % (j + 1);
+                Node *tmp = nodes[j];
+                nodes[j] = nodes[k];
+                nodes[k] = tmp;
+        }
+
+        // If there's nothing before `start`, it's currently the real head
+        if (prev_before_start == NULL && nodes[0] == start && n > 1) {
+                int k = 1 + rand() % (n - 1);
+                Node *tmp = nodes[0];
+                nodes[0] = nodes[k];
+                nodes[k] = tmp;
+        }
+
+        // Relink the segment in its new order
+        for (int i = 0; i < n; i++) {
+                nodes[i]->prev = (i == 0) ? prev_before_start : nodes[i - 1];
+                nodes[i]->next = (i == n - 1) ? NULL : nodes[i + 1];
+        }
+
+        if (prev_before_start)
+                prev_before_start->next = nodes[0];
+        else
+                playlist->head = nodes[0];
+
+        playlist->tail = nodes[n - 1];
+
+        if (change_library_status) {
+                for (int i = 0; i < n; i++) {
+                        FileSystemEntry *entry = find_corresponding_entry(library, nodes[i]->song.file_path);
+                        if (entry)
+                                entry->is_enqueued = enqueued_values[i];
+                }
+                free(enqueued_values);
+        }
+
+        Node *new_first = nodes[0];
+        free(nodes);
+        return new_first;
 }
 
 void create_node(Node **node, const char *directory_path, int id)

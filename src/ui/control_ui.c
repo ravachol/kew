@@ -375,7 +375,7 @@ void toggle_shuffle(Model *model)
                 if (model->playlist) {
                         pthread_mutex_lock(&(model->playlist->mutex));
 
-                        shuffle_playlist_starting_from_song(model->playlist, current);
+                        shuffle_playlist_from_node(model->playlist, current, true);
 
                         pthread_mutex_unlock(&(model->playlist->mutex));
                 }
