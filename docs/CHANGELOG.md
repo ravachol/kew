@@ -30,6 +30,8 @@ The first month of "Project Joy", where we are trying to get people to post abou
 
 - Fixes several bugs in choose_album_song. By @ravachol.
 
+- Fixes wide covers in landscape mode being vertically centerded. By @nhuvaynhe.
+
 ## kew 4.3.4
 
 #### Bug fixes:

@@ -294,6 +294,11 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         ChafaCanvas *canvas;
         GString *printable;
 
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() entered");
+
 #if CHAFA_VERSION_CUR_STABLE >= G_ENCODE_VERSION(1, 16)
 
         ChafaPassthrough passthrough;
@@ -336,6 +341,10 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
                 chafa_symbol_map_add_by_tags(symbol_map, style_to_symbol_tag(cover_style));
         }
 
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 16) mode set ");
+
+
         if (passthrough == CHAFA_PASSTHROUGH_TMUX)
                 apply_passthrough_workarounds_tmux();
 
@@ -350,8 +359,14 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
                 chafa_canvas_config_set_cell_geometry(config, cell_width, cell_height);
         }
 
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 16) geometry set ");
+
         chafa_canvas_config_set_passthrough(config, passthrough);
         chafa_canvas_config_set_symbol_map(config, symbol_map);
+
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 16) symbol map set ");
 
         canvas = chafa_canvas_new(config);
         frame = chafa_frame_new_borrow((gpointer)pixels, pixel_type,
@@ -359,11 +374,18 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         image = chafa_image_new();
         chafa_image_set_frame(image, frame);
 
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 16) set frame done ");
+
+
         placement = chafa_placement_new(image, 1);
         chafa_placement_set_tuck(placement, CHAFA_TUCK_FIT);
         chafa_placement_set_halign(placement, CHAFA_ALIGN_CENTER);
         chafa_placement_set_valign(placement, CHAFA_ALIGN_CENTER);
         chafa_canvas_set_placement(canvas, placement);
+
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 16) placement set ");
 
         printable = chafa_canvas_print(canvas, NULL);
 
@@ -381,7 +403,11 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         symbol_map = NULL;
         term_info = NULL;
 
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 16) path done ");
+
         return printable;
+
 #elif CHAFA_VERSION_CUR_STABLE >= G_ENCODE_VERSION(1, 14)
 
         ChafaFrame *frame;
@@ -431,6 +457,9 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         config = NULL;
         symbol_map = NULL;
         term_info = NULL;
+
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() ENCODE_VERSION(1, 14) path done ");
 
         return printable;
 #else
@@ -483,6 +512,11 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         config = NULL;
         symbol_map = NULL;
         term_info = NULL;
+
+        Model *model = get_model();
+
+        if (model->state.settings.verbose_mode)
+                k_log("convert_image() default path done ");
 
         return printable;
 #endif
@@ -721,6 +755,12 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         Cell *anchor = &buf->cells[row * buf->cols + col];
 
+        if (!anchor)
+                return 0;
+
+        if (model->state.settings.verbose_mode)
+                k_log("draw_square_bitmap_to_buf() freeing payloads");
+
         anchor->kind = CELL_NORMAL;
 
         if (anchor->image)
@@ -728,6 +768,9 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
 
         if (anchor->link)
                 free_link_payload(&anchor->link);
+
+        if (model->state.settings.verbose_mode)
+                k_log("draw_square_bitmap_to_buf() freed payloads");
 
         anchor->kind = CELL_IMAGE_ANCHOR;
         anchor->image = img;
