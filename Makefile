@@ -390,7 +390,6 @@ install: all
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(PREFIX)/share/applications"
 	mkdir -p "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps"
-	mkdir -p "$(DESTDIR)$(SERVICEMENU_DIR)"
 
 	# Install binary and man page
 	install -m 0755 kew "$(DESTDIR)$(PREFIX)/bin/kew"
