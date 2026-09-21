@@ -47,10 +47,11 @@ static int centered_indent = 0;
 
 void chroma_set_next_preset(void)
 {
-        g_viz.preset++;
+        if (g_viz.preset >= 0)
+                g_viz.preset++;
 
         if (g_viz.preset == 25)
-                g_viz.preset = 0;
+                g_viz.preset = -1;
 
         AppState *state = get_app_state();
         state->settings.chromaPreset = g_viz.preset;
@@ -100,7 +101,7 @@ static void *chroma_thread(void *arg)
         g_viz.frame_capacity = CHROMA_MAX_BUF;
         g_viz.frame = malloc(g_viz.frame_capacity);
         if (!g_viz.frame) {
-               quit();
+                quit();
         }
 
         g_viz.frame[0] = '\0';
@@ -117,27 +118,38 @@ static void *chroma_thread(void *arg)
                 char cmd[512];
                 int n;
 
-                if(settings->chromaPath[0] == '\0'){
-                        if(settings->chromaDevice[0] == '\0')
+                char preset_arg[32];
+                if (g_viz.preset == -1)
+                        snprintf(preset_arg, sizeof(preset_arg), "random");
+                else
+                        snprintf(preset_arg, sizeof(preset_arg), "%d", g_viz.preset);
+
+                if (settings->chromaPath[0] == '\0') {
+                        if (settings->chromaDevice[0] == '\0')
                                 n = snprintf(cmd, sizeof(cmd),
-                                        "chroma --stream %dx%d --preset %d", g_viz.width, g_viz.height, g_viz.preset);
+                                             "chroma --stream %dx%d --preset %s --preset-interval 30",
+                                             g_viz.width, g_viz.height, preset_arg);
                         else
                                 n = snprintf(cmd, sizeof(cmd),
-                                        "chroma --stream %dx%d --preset %d --audio-device \"%s\"", g_viz.width, g_viz.height, g_viz.preset, settings->chromaDevice);
-                } else{
-                        if(settings->chromaDevice[0] == '\0')
+                                             "chroma --stream %dx%d --preset %s --audio-device \"%s\"",
+                                             g_viz.width, g_viz.height, preset_arg,
+                                             settings->chromaDevice);
+                } else {
+                        if (settings->chromaDevice[0] == '\0')
                                 n = snprintf(cmd, sizeof(cmd),
-                                        "chroma --stream %dx%d -c \"%s\"", g_viz.width, g_viz.height, settings->chromaPath);
+                                             "chroma --stream %dx%d -c \"%s\"",
+                                             g_viz.width, g_viz.height, settings->chromaPath);
                         else
-                               n = snprintf(cmd, sizeof(cmd),
-                                        "chroma --stream %dx%d -c \"%s\" --audio-device \"%s\"", g_viz.width, g_viz.height, settings->chromaPath, settings->chromaDevice);
+                                n = snprintf(cmd, sizeof(cmd),
+                                             "chroma --stream %dx%d -c \"%s\" --audio-device \"%s\"",
+                                             g_viz.width, g_viz.height, settings->chromaPath,
+                                             settings->chromaDevice);
                 }
 
                 //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
 
                 //n = snprintf(cmd, sizeof(cmd),
-                  //      "chroma --stream %dx%d --audio-device PipeWire\\ Sound\\ Server -c %s ", g_viz.width, g_viz.height, settings->chromaPath);
-
+                //      "chroma --stream %dx%d --audio-device PipeWire\\ Sound\\ Server -c %s ", g_viz.width, g_viz.height, settings->chromaPath);
 
                 if (n < 0 || n >= (int)sizeof(cmd)) {
                         // Truncated or error; skip this iteration
@@ -269,8 +281,7 @@ void chroma_shutdown()
 
 void chroma_print_frame(int row, int col, int height, bool centered)
 {
-        if (!chroma_is_started())
-        {
+        if (!chroma_is_started()) {
                 chroma_start(height);
                 return;
         }
@@ -338,13 +349,12 @@ bool chroma_is_installed(void)
         char path[MAX_PATH];
 
         return SearchPathA(
-                NULL,
-                "chroma.exe",
-                NULL,
-                sizeof(path),
-                path,
-                NULL
-        ) != 0;
+                   NULL,
+                   "chroma.exe",
+                   NULL,
+                   sizeof(path),
+                   path,
+                   NULL) != 0;
 }
 
 #else
