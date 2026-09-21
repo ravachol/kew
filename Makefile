@@ -67,6 +67,7 @@ endif
 
 PREFIX    ?= /usr/local
 USE_DB    ?= 1
+USE_KDE_SERVICEMENU ?= 1
 
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(ARCH),arm64)
@@ -416,10 +417,11 @@ else
 	install -m644 shortcut/kew.png \
 		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 
-
+ifeq ($(USE_KDE_SERVICEMENU),1)
 	# Install KDE Dolphin "Play with kew" context menu action
 	install -m 0755 shortcut/kew-play-terminal.sh \
 		"$(DESTDIR)$(PREFIX)/bin/kew-play-terminal.sh"
+endif
 
 	# Install right-click shortcut
 	install -m 0644 shortcut/kew-play.desktop \
