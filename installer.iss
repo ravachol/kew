@@ -58,10 +58,159 @@ Source: "stage\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs igno
 
 [Tasks]
 Name: desktopicon; Description: "Create a desktop shortcut"; Flags: unchecked
+Name: contextmenu; Description: "Add ""Play with kew"" to the File Explorer context menu"; Flags: unchecked
 
 [Icons]
 Name: "{group}\kew"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\kew.ico"
 Name: "{commondesktop}\kew"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\kew.ico"; Tasks: desktopicon
+
+[Registry]
+; ============================================================
+; MP3
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.mp3\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.mp3\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.mp3\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.mp3\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
+
+; ============================================================
+; FLAC
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.flac\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.flac\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.flac\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.flac\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
+
+; ============================================================
+; WAV
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.wav\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.wav\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.wav\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.wav\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
+
+; ============================================================
+; M4A
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.m4a\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.m4a\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.m4a\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.m4a\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
+
+; ============================================================
+; OGG
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.ogg\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.ogg\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.ogg\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.ogg\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
+
+; ============================================================
+; OPUS
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.opus\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.opus\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.opus\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.opus\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
+
+; ============================================================
+; DIRECTORIES
+; ============================================================
+
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\PlayWithKew"; \
+    ValueType: string; ValueName: ""; ValueData: "Play with kew"; \
+    Tasks: contextmenu; Flags: uninsdeletekey
+
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "Icon"; ValueData: "{app}\kew.exe"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\PlayWithKew"; \
+    ValueType: string; ValueName: "MultiSelectModel"; ValueData: "Player"; \
+    Tasks: contextmenu
+
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\PlayWithKew\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\kew.exe"" play ""%1"""; \
+    Tasks: contextmenu
+
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch kew"; Flags: nowait postinstall skipifsilent
