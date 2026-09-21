@@ -2,10 +2,11 @@
 Name=kew
 GenericName=Music Player
 Comment=Music for the Shell
-Exec=kew
+Exec=kew play %F
 Icon=kew
 Terminal=true
 Type=Application
 Categories=Audio;Music;Player;AudioVideo;ConsoleOnly;
 Keywords=music;audio;player;terminal;tui;winamp;radio;podcast;
 StartupNotify=false
+MimeType=audio/mpeg;audio/flac;audio/x-flac;audio/wav;audio/x-wav;audio/mp4;audio/x-m4a;audio/ogg;audio/opus;audio/webm;inode/directory;

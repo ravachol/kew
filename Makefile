@@ -67,7 +67,6 @@ endif
 
 PREFIX    ?= /usr/local
 USE_DB    ?= 1
-USE_KDE_SERVICEMENU ?= 1
 
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(ARCH),arm64)
@@ -276,7 +275,6 @@ THEMESRCDIR := $(shell pwd)/themes
 LAYOUTDIR = $(KEW_DATADIR)/kew/layouts
 LAYOUTSRCDIR := $(shell pwd)/layouts
 VERSION_H = src/ui/version.h
-SERVICEMENU_DIR = $(KEW_DATADIR)/kio/servicemenus
 
 DEFINES += -DLOCALEDIR_RAW=$(LOCALEDIR)
 
@@ -417,16 +415,6 @@ else
 	install -m644 shortcut/kew.png \
 		"$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 
-ifeq ($(USE_KDE_SERVICEMENU),1)
-	# Install KDE Dolphin "Play with kew" context menu action
-	install -m 0755 shortcut/kew-play-terminal.sh \
-		"$(DESTDIR)$(PREFIX)/bin/kew-play-terminal.sh"
-endif
-
-	# Install right-click shortcut
-	install -m 0644 shortcut/kew-play.desktop \
-		"$(DESTDIR)$(SERVICEMENU_DIR)/kew-play.desktop"
-
 endif
 
 	@if [ -d "$(THEMESRCDIR)" ]; then \
@@ -482,8 +470,6 @@ uninstall:
 	rm -f "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo"
 	rm -f "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 	rm -f "$(DESTDIR)$(PREFIX)/share/applications/kew.desktop"
-	rm -f "$(DESTDIR)$(SERVICEMENU_DIR)/kew-play.desktop"
-	rm -f "$(DESTDIR)$(PREFIX)/bin/kew-play-terminal.sh"
 
 .PHONY: clean
 clean:
