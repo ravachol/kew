@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+MimeType=audio/mpeg;audio/flac;audio/x-flac;audio/wav;audio/mp4;audio/x-m4a;audio/ogg;audio/opus;inode/directory;
+Actions=playWithKew;
+Icon=kew
+X-KDE-Priority=TopLevel
+
+[Desktop Action playWithKew]
+Name=Play with kew
+Icon=kew
+Exec=kew-play-terminal.sh %F
+Terminal=true
