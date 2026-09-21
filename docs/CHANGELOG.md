@@ -4,6 +4,8 @@
 
 The first month of "Project Joy", where we are trying to get people to post about the little annoyances and glitches in kew, went very well. We got a lot of suggestions and I have been implementing those. Just keep going, post more issues. We want to fix the tiny little details.
 
+There's a bug on CachyOS that we believe is related to chafa crashing on Zen 5 CPUs. There will be a new version of Chafa soon.
+
 /Ravachol
 
 #### Enhancements:

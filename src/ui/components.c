@@ -1106,8 +1106,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
             .height = 1,
         };
 
-        if (dirty & DIRTY_PROGRESS && model->progressBar.row >= 0 && model->progressBar.col >= 0
-        && model->progressBar.length >= 0) {
+        if (dirty & DIRTY_PROGRESS && model->progressBar.row >= 0 && model->progressBar.col >= 0 && model->progressBar.length >= 0) {
                 progress_rect.row = model->progressBar.row - 1;
                 progress_rect.col = model->progressBar.col - 1;
                 progress_rect.width = model->progressBar.length;
@@ -1230,6 +1229,13 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                 return (ComponentMsg){0};
 
         int cover_indent = 1;
+        int vertical_indent = 1;
+
+        int available_height = region.height - 2;
+        int target_height = available_height;
+
+        if (available_height <= 0)
+                return (ComponentMsg){0};
 
         gint cell_width = 8;
         gint cell_height = 16;
@@ -1241,36 +1247,37 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
         }
 
         float aspect = (float)cell_height / (float)cell_width;
-        int corrected_width = (int)(region.height * aspect);
+        int corrected_width = (int)(target_height * aspect);
 
-        while (corrected_width > region.width - cover_indent && region.height > 0) {
-                region.height--;
-                corrected_width = (int)(region.height * aspect);
+        while (corrected_width > region.width - cover_indent && target_height > 0) {
+                target_height--;
+                corrected_width = (int)(target_height * aspect);
         }
 
-        if (region.height <= MIN_COVER_SIZE)
+        if (target_height <= MIN_COVER_SIZE)
                 return (ComponentMsg){0};
 
-        // Use region as base, row is centered within region, col is offset from region.col
-        int row = region.row + lroundf((float)region.height / 2.0f);
+        int row = region.row + vertical_indent +
+                  (available_height - target_height) / 2;
+
         int col = region.col + cover_indent;
 
         // Clear skipped lines
         if (row > 0) {
                 CellStyle style = cell_style_plain();
 
-                for (int i = 0; i < row; i++) {
+                for (int i = region.row; i < row; i++) {
                         draw_buffer_set_string_truncated(buf, i, region.col,
                                                          "", region.width, style);
                 }
         }
 
-        if (corrected_width <= 0 || region.height <= 0)
+        if (corrected_width <= 0 || target_height <= 0)
                 return (ComponentMsg){0};
 
         if (ui->coverAnsi) {
                 draw_cover_ascii(&model->term_size, songdata->cover_art_path,
-                                 row, col, region.height,
+                                 row, col, target_height,
                                  false, buf, dirty);
         }
 
@@ -1284,7 +1291,7 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                                   songdata->coverWidth,
                                   songdata->coverHeight,
                                   corrected_width,
-                                  region.height,
+                                  target_height,
                                   term_size,
                                   false,
                                   model->current_hash,
