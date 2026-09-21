@@ -1596,7 +1596,7 @@ int sound_get_bit_depth(ma_format format)
         return bit_depth;
 }
 
-void *song_data_reader_thread(void *arg)
+void *songdata_reader_thread(void *arg)
 {
         PlaybackState *ps = (PlaybackState *)arg;
         LoaderData *loader_data = get_loader_data();
@@ -1698,7 +1698,7 @@ sound_result_t sound_load_song(const char *file_path, int is_first_decoder, int 
         loader_data->replaceNextSong = replace_next_song;
 
         pthread_t loading_thread;
-        pthread_create(&loading_thread, NULL, song_data_reader_thread, ps);
+        pthread_create(&loading_thread, NULL, songdata_reader_thread, ps);
 
         return sound_result;
 }
