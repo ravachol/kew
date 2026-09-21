@@ -1215,7 +1215,8 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
         return (ComponentMsg){0};
 }
 
-ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
+ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
+                                       DrawBuffer *buf, DirtyFlags dirty)
 {
         if (!model->songdata_ok)
                 return (ComponentMsg){0};
@@ -1231,10 +1232,10 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
         int cover_indent = 1;
         int vertical_indent = 1;
 
-        int available_height = region.height - 2;
-        int target_height = available_height;
+        int available_height = region.height - 2 * vertical_indent;
+        int available_width = region.width - cover_indent;
 
-        if (available_height <= 0)
+        if (available_height <= 0 || available_width <= 0)
                 return (ComponentMsg){0};
 
         gint cell_width = 8;
@@ -1246,47 +1247,78 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                 cell_height = term_size->height_pixels / term_size->rows;
         }
 
-        float aspect = (float)cell_height / (float)cell_width;
-        int corrected_width = (int)(target_height * aspect);
 
-        while (corrected_width > region.width - cover_indent && target_height > 0) {
-                target_height--;
-                corrected_width = (int)(target_height * aspect);
+        // Calculate the cover's aspect ratio in terminal cells.
+        float image_aspect =
+                (float)songdata->coverWidth /
+                (float)songdata->coverHeight;
+
+        // Width in terminal columns for a given number of rows.
+        float terminal_aspect =
+                image_aspect * (float)cell_height /
+                (float)cell_width;
+
+        int target_height = available_height;
+        int corrected_width =
+                (int)(target_height * terminal_aspect);
+
+        // Fit the cover inside the available region.
+        if (corrected_width > available_width) {
+                corrected_width = available_width;
+
+                target_height =
+                        (int)(corrected_width / terminal_aspect);
         }
 
-        if (target_height <= MIN_COVER_SIZE)
+        if (target_height <= MIN_COVER_SIZE ||
+            corrected_width <= 0)
                 return (ComponentMsg){0};
 
+        // Center the actual rendered cover vertically.
         int row = region.row + vertical_indent +
                   (available_height - target_height) / 2;
 
+        // Keep the existing left alignment.
         int col = region.col + cover_indent;
 
-        // Clear skipped lines
-        if (row > 0) {
+        // Clear the area above the cover so stale cells don't remain visible when the cover becomes shorter.
+        if (row > region.row) {
                 CellStyle style = cell_style_plain();
 
                 for (int i = region.row; i < row; i++) {
-                        draw_buffer_set_string_truncated(buf, i, region.col,
-                                                         "", region.width, style);
+                        draw_buffer_set_string_truncated(buf,
+                                                         i,
+                                                         region.col,
+                                                         "",
+                                                         region.width,
+                                                         style);
                 }
         }
 
-        if (corrected_width <= 0 || target_height <= 0)
-                return (ComponentMsg){0};
-
         if (ui->coverAnsi) {
-                draw_cover_ascii(&model->term_size, songdata->cover_art_path,
-                                 row, col, target_height,
-                                 false, buf, dirty);
+                draw_cover_ascii(&model->term_size,
+                                 songdata->cover_art_path,
+                                 row,
+                                 col,
+                                 target_height,
+                                 false,
+                                 buf,
+                                 dirty);
         }
 
-        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_cover_marker =
+                model->state.settings.coverAnsi ||
+                model->state.ui.chroma_started ||
+                model->state.ui.chroma_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers =
+                !model->state.settings.coverAnsi ||
+                model->state.ui.chroma_started ||
+                model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
-                                  row, col,
+                                  row,
+                                  col,
                                   songdata->cover,
                                   songdata->coverWidth,
                                   songdata->coverHeight,
@@ -1295,10 +1327,13 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region, DrawBu
                                   term_size,
                                   false,
                                   model->current_hash,
-                                  state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
+                                  state->settings.coverStyle,
+                                  draw_cover_marker,
+                                  draw_occupied_markers);
 
         return (ComponentMsg){0};
 }
+
 
 ComponentMsg component_now_playing(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
