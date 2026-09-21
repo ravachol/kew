@@ -4,7 +4,7 @@
 
 #### Enhancements:
 
-- Added right-click action for KDE/Dolphin so you can select files and launch kew from there. Requested by @theDyze. By @ravachol.
+- Added right-click action for KDE/Dolphin and Windows Explorer so you can select files and launch kew from there. Requested by @theDyze. By @ravachol.
 
 ## kew 4.3.5
 
