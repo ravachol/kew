@@ -58,7 +58,7 @@ Source: "stage\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs igno
 
 [Tasks]
 Name: desktopicon; Description: "Create a desktop shortcut"; Flags: unchecked
-Name: contextmenu; Description: "Add ""Play with kew"" to the File Explorer context menu"; Flags: unchecked
+Name: contextmenu; Description: "Add ""Play with kew"" to the File Explorer context menu"; Flags: checked
 
 [Icons]
 Name: "{group}\kew"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\kew.ico"
