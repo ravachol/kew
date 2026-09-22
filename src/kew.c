@@ -525,11 +525,6 @@ void run(bool start_playing)
                 }
         }
 
-        if (model->state.settings.chromaPreset >= 0) {
-                chroma_set_current_preset(model->state.settings.chromaPreset);
-                model->state.settings.visualizations_instead_of_cover = true;
-        }
-
         model->playbackState.loadedNextSong = false;
 
         if (start_playing)

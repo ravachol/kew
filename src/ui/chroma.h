@@ -43,6 +43,8 @@ void chroma_print_frame(int row, int col, int height, bool centered);
  */
 void chroma_set_next_preset(void);
 
+void chroma_start_with_preset(int preset);
+
 /**
  * Returns true if Chroma (externally provided visualisations) is installed.
  *

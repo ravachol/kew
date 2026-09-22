@@ -1865,7 +1865,7 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui)
         if (settings->chromaPreset[0] != '\0') {
                 tmp = get_number(settings->chromaPreset);
 
-                if (tmp >= 0)
+                if (tmp >= -1)
                         ui->chromaPreset = tmp;
         }
 
