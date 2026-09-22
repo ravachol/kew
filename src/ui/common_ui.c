@@ -1259,7 +1259,7 @@ void scrollbar_scroll(int mouse_y, bool dragging)
 
                         model->state.ui.chosen_help_row = new_help_row;
                 }
-                set_dirty(DIRTY_ALL);
+                set_dirty(DIRTY_HELP);
         }
 
         scrollbar->last_position = scrollbar->position;

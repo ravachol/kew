@@ -1,4 +1,4 @@
-version=12
+version=14
 
 [footer_pane]
 
@@ -273,6 +273,7 @@ col=0
 
 pane
 component=help
+dirty=help
 width=auto
 offsetX=2
 
@@ -289,6 +290,7 @@ width=indent_wide
 
 pane
 layout=help_pane
+dirty=help
 width=auto
 
 row

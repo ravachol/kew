@@ -2643,6 +2643,8 @@ static inline DirtyFlags parse_dirty(const char *str)
                 return DIRTY_PLAYLIST;
         if (strcmp(str, "search") == 0)
                 return DIRTY_SEARCH;
+        if (strcmp(str, "help") == 0)
+                return DIRTY_HELP;
         if (strcmp(str, "footer") == 0)
                 return DIRTY_FOOTER;
         if (strcmp(str, "visualizer") == 0)
