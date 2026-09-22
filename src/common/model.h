@@ -50,9 +50,10 @@ typedef enum {
         DIRTY_FOOTER = 1 << 7,
         DIRTY_LAYOUT = 1 << 8,
         DIRTY_CHROMA = 1 << 9,
+        DIRTY_HELP = 1 << 10,
 
         // redraw on full-screen refresh
-        DIRTY_REFRESH = 1 << 9,
+        DIRTY_REFRESH = 1 << 11,
 
         DIRTY_ALL = ~0
 } DirtyFlags;

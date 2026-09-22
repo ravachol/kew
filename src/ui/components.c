@@ -3058,9 +3058,26 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_link_to_buffer(buf, output_row, col + utf8_display_width(_(" Love kew? ❤️ ")), 7,
                                     "https://kewplayer.com/donate.html", "Donate!", link_style);
 
-                output_row += 2;
+                output_row += 1;
         }
-        row += 2;
+        row += 1;
+
+// Keybinding lines
+#define HELP_LINE(fmt, ...)                                                 \
+        do {                                                                \
+                if (output_row >= region.row + region.height)               \
+                        goto render_scrollbar;                              \
+                if (model->state.ui.chosen_help_row <= row) {               \
+                        char _line[512];                                    \
+                        snprintf(_line, sizeof(_line), fmt, ##__VA_ARGS__); \
+                        draw_buffer_set_string(buf, output_row, col,        \
+                                               _line, help_style);          \
+                        output_row++;                                       \
+                }                                                           \
+                row++;                                                      \
+        } while (0)
+
+        HELP_LINE(" ");
 
         if (output_row >= region.row + region.height)
                 goto render_scrollbar;
@@ -3095,28 +3112,15 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                         }
                 }
 
-                output_row += 2;
+                output_row += 1;
         }
 
-        row += 2;
+        row += 1;
+
+        HELP_LINE(" ");
 
         if (output_row >= region.row + region.height)
                 goto render_scrollbar;
-
-// Keybinding lines
-#define HELP_LINE(fmt, ...)                                                 \
-        do {                                                                \
-                if (output_row >= region.row + region.height)               \
-                        goto render_scrollbar;                              \
-                if (model->state.ui.chosen_help_row <= row) {               \
-                        char _line[512];                                    \
-                        snprintf(_line, sizeof(_line), fmt, ##__VA_ARGS__); \
-                        draw_buffer_set_string(buf, output_row, col,        \
-                                               _line, help_style);          \
-                        output_row++;                                       \
-                }                                                           \
-                row++;                                                      \
-        } while (0)
 
         if (model->state.ui.chosen_help_row <= row) {
                 draw_buffer_set_string(buf, output_row, col, _(" Basic"), header_style);
@@ -3215,10 +3219,12 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                   get_binding_string(MSG_ADDTOFAVORITESPLAYLIST, false));
 
-#undef HELP_LINE
 
-        row += 2;
-        output_row += 2;
+
+        row += 1;
+        output_row += 1;
+
+        HELP_LINE(" ");
 
         if (output_row >= region.row + region.height)
                 goto render_scrollbar;
@@ -3229,10 +3235,12 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                 draw_buffer_set_string(buf, output_row, col + utf8_display_width(_(" Homepage: ")),
                                        "https://www.kewplayer.com", link_style);
 
-                output_row += 2;
+                output_row += 1;
         }
 
-        row += 2;
+        row += 1;
+
+        HELP_LINE(" ");
 
         if (output_row >= region.row + region.height)
                 goto render_scrollbar;
@@ -3244,9 +3252,13 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                                                  " Wikidata (https://www.wikidata.org/) License CC BY-SA 4.0",
                                                  max_width, text_style);
 
-                output_row += 2;
+                output_row += 1;
         }
-        row += 2;
+        row += 1;
+
+        HELP_LINE(" ");
+
+#undef HELP_LINE
 
         if (output_row >= region.row + region.height)
                 goto render_scrollbar;
@@ -3259,7 +3271,14 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         }
 
 render_scrollbar: {
+        // Blank remaining rows
         CellStyle plain_style = cell_style_plain();
+        while (output_row < region.row + region.height) {
+                draw_buffer_set_string_truncated(buf, output_row++, region.col,
+                                                 "", region.width, plain_style);
+                output_row++;
+        }
+
         render_scroll_bar(buf, region, model->state.ui.help_scrollbar, plain_style);
 }
         return (ComponentMsg){0};

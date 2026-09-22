@@ -410,9 +410,7 @@ void refresh_if_timeout(void)
         if (difftime(now, refresh_set_time) >= PERIODICAL_REFRESH_TIMEOUT_SECONDS)
         {
                 if (model->state.currentView != TRACK_VIEW)
-                        set_dirty(DIRTY_PROGRESS | DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
-
-                // FIXME: introduce a variable DIRTY_HELP so we can update the help texts too
+                        set_dirty(DIRTY_PROGRESS | DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH | DIRTY_HELP);
 
                 refresh_set_time = now;
         }
