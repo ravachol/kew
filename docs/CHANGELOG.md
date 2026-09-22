@@ -2,9 +2,15 @@
 
 ## kew 4.3.6
 
+Pushing this one out because the screen flickers every 3 seconds on ghostty in 4.3.5.
+
+This also adds kew to the apps that can open with.. in Linux and Windows file explorers.
+
+- Ravachol
+
 #### Enhancements:
 
-- Added an optional right-click action for KDE/Dolphin and Windows Explorer so you can select files and launch kew from there. Requested by @theDyze. By @ravachol.
+- Added Open With kew so you can select files or folders and launch kew from there. Requested by @theDyze. By @ravachol.
 
 - By default, Chroma will cycle through presets every 30 seconds. If you press next preset then it changes to a fixed preset. By @yuri-xyz (Chroma) and @ravachol.
 
