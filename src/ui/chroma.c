@@ -34,7 +34,7 @@ Chroma g_viz = {
     .height = 0,
     .width = 0,
     .running = false,
-    .preset = 0,
+    .preset = -1,
 };
 
 #define CHROMA_MAX_BUF (512 * 1024)
@@ -45,13 +45,28 @@ volatile int chroma_new_frame = 0;
 
 static int centered_indent = 0;
 
+void chroma_start_with_preset(int preset)
+{
+        if (preset == 25)
+                preset = -1;
+
+        chroma_set_current_preset(preset);
+
+        AppState *state = get_app_state();
+        state->settings.chromaPreset = g_viz.preset;
+
+        chroma_shutdown();
+        chroma_start(state->ui.chroma_height);
+}
+
 void chroma_set_next_preset(void)
 {
-        if (g_viz.preset >= 0)
-                g_viz.preset++;
+        int preset = chroma_get_current_preset() + 1;
 
-        if (g_viz.preset == 25)
-                g_viz.preset = -1;
+        if (preset == 25)
+                preset = -1;
+
+        chroma_set_current_preset(preset);
 
         AppState *state = get_app_state();
         state->settings.chromaPreset = g_viz.preset;
@@ -241,6 +256,8 @@ void chroma_start(int height)
                 return;
         g_viz.running = 1;
 
+        chroma_set_current_preset(chroma_get_current_preset());
+
         int *arg = malloc(sizeof(int));
         *arg = height;
 
@@ -404,4 +421,13 @@ int chroma_get_current_preset(void)
 void chroma_set_current_preset(int preset)
 {
         g_viz.preset = preset;
+
+        char error_message[ERROR_MESSAGE_LENGTH];
+
+        if (g_viz.preset == -1)
+                snprintf(error_message, sizeof(error_message), "Chroma Preset Random");
+        else
+                snprintf(error_message, sizeof(error_message), "Chroma Preset %d", preset);
+
+        set_error_message(error_message);
 }
