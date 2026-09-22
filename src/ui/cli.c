@@ -99,6 +99,9 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
         }
         if (idx >= 0)
                 remove_arg_element(argv, idx, argc);
+
+        if (*argc >= 2 && strcmp(argv[1], "shuffle") == 0)
+                ui->shuffle_enabled = true;
 }
 
 void set_music_path(void)

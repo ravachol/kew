@@ -16,6 +16,8 @@
 
 - Improve click detection in minicontrols. By @ravachol.
 
+- Set shuffle mode on when user runs kew shuffle <music>. By @ravachol.
+
 ## kew 4.3.5
 
 The first month of "Project Joy", where we are trying to get people to post about the little annoyances and glitches in kew, went very well. We got a lot of suggestions and I have been implementing those. Just keep going, post more issues. We want to fix the tiny little details.
