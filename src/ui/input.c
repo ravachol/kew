@@ -373,41 +373,44 @@ enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
                 return MSG_NONE;
 
         int view_clicked = 0; // Which section is clicked
-        int col_index = 0;    // terminal column position
+        int col_index = 0;    // Terminal column position
         bool is_space = false;
-        bool count_next = false;
+
         mbstate_t mbs;
         memset(&mbs, 0, sizeof(mbs));
 
         while (*text) {
                 wchar_t wc;
                 size_t bytes = mbrtowc(&wc, text, MB_CUR_MAX, &mbs);
-                if (bytes == (size_t)-1 || bytes == (size_t)-2) {
+
+                if (bytes == (size_t)-1 || bytes == (size_t)-2 || bytes == 0) {
                         bytes = 1;
                         wc = (unsigned char)*text;
+                        memset(&mbs, 0, sizeof(mbs));
                 }
 
-                int w = mk_wcwidth(wc); // number of terminal columns this char takes
+                // Variation selectors and other ignored characters don't
+                // occupy a terminal cell and don't represent a control.
+                if (is_ignored_wc(wc)) {
+                        text += bytes;
+                        continue;
+                }
+
+                int w = mk_wcwidth(wc);
                 if (w < 0)
                         w = 0;
 
+                // Check whether the mouse is inside this character.
                 if (col_index + w > mouse_x_on_text)
-                        break; // cursor is inside this character
+                        break;
 
-                if (count_next) {
-                        is_space = false;
-                        count_next = false;
-                } else if (is_ignored_wc(wc)) {
-                        // Don't count VS15, VS16, or other zero-width characters
-                } else if (wc != L' ') {
+                // Count the control represented by this character.
+                if (wc != L' ') {
                         view_clicked++;
                         is_space = false;
                 } else {
                         is_space = true;
                 }
-
-                if (w == 2) // occupies two cells
-                        count_next = true;
 
                 col_index += w;
                 text += bytes;
@@ -415,6 +418,7 @@ enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
 
         // "⏮  ▶  ⏭  +  -  ∅"
 
+        // Mouse was in a space between controls.
         if (is_space)
                 return MSG_NONE;
 
@@ -446,9 +450,8 @@ enum MsgType get_mouse_minicontrols_event(int mouse_x_on_text, const char *text)
                 set_dirty(DIRTY_ALL);
 
         Model *model = get_model();
-        if (result == MSG_PLAY_PAUSE && model->songdata == NULL) {
+        if (result == MSG_PLAY_PAUSE && model->songdata == NULL)
                 result = MSG_PLAY;
-        }
 
         return result;
 }
