@@ -57,9 +57,11 @@ SetupIconFile=kew.ico
 Source: "stage\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Tasks]
+Name: startmenuicon; \
+    Description: "Create a Start Menu shortcut"; \
+    
 Name: desktopicon; \
     Description: "Create a desktop shortcut"; \
-    Flags: unchecked
 
 Name: fileassoc; \
     Description: "Set kew as the default music player"; \
@@ -69,6 +71,7 @@ Name: fileassoc; \
 Name: "{group}\kew"; \
     Filename: "{app}\{#MyAppExeName}"; \
     IconFilename: "{app}\kew.ico"
+    Tasks: startmenuicon
 
 Name: "{commondesktop}\kew"; \
     Filename: "{app}\{#MyAppExeName}"; \
