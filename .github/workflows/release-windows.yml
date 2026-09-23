@@ -94,15 +94,27 @@ jobs:
       - name: Collect DLLs
         shell: msys2 {0}
         run: |
-          mkdir -p stage/bin
+          set -e
 
+          mkdir -p stage/bin
           cp kew.exe stage/bin/
 
-          ntldd -R kew.exe \
-            | grep -i msys64 \
-            | awk '{print $3}' \
-            | cygpath -f - \
-            | xargs -I{} cp {} stage/bin/
+          ntldd -R kew.exe |
+            grep -E '/(ucrt64|mingw64)/bin/.*\.dll' |
+            sed -E 's/.*[[:space:]]([^[:space:]]+\.dll).*/\1/' |
+            while IFS= read -r dll; do
+              dll="$(cygpath -u "$dll")"
+              echo "Copying $dll"
+              cp "$dll" stage/bin/
+            done
+
+      # -------------------------
+      # Verify DLLs
+      # -------------------------
+      - name: Verify DLLs
+        shell: msys2 {0}
+        run: |
+          ntldd -R stage/bin/kew.exe
 
       # -------------------------
       # FlATTEN DIRECTORY
