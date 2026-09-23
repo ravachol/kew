@@ -29,6 +29,37 @@ static double g_position = 0.0;
 
 static bool g_initialized = false;
 
+
+static HWND g_hwnd = nullptr;
+
+static LRESULT CALLBACK smtc_wndproc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+{
+        return DefWindowProc(hwnd, msg, wp, lp);
+}
+
+static HWND create_hidden_window(void)
+{
+        WNDCLASSEXW wc{};
+        wc.cbSize = sizeof(wc);
+        wc.lpfnWndProc = smtc_wndproc;
+        wc.hInstance = GetModuleHandleW(nullptr);
+        wc.lpszClassName = L"kew_smtc_hidden_window";
+
+        // OK if already registered from a previous init/shutdown cycle.
+        RegisterClassExW(&wc);
+
+        return CreateWindowExW(
+            0,
+            wc.lpszClassName,
+            L"",
+            WS_POPUP,
+            0, 0, 0, 0,
+            HWND_MESSAGE,           // message-only window: no visible top-level window
+            nullptr,
+            wc.hInstance,
+            nullptr);
+}
+
 /*
  * Convert seconds to a Windows TimeSpan.
  *
@@ -81,15 +112,14 @@ extern "C" void smtc_init(void)
         try {
                 init_apartment();
         } catch (const hresult_error &e) {
-                        // COM already initialized in an incompatible mode, etc.
-                    k_log_error("smtc_init: init_apartment failed: 0x%08X", e.code().value);
+                k_log_error("smtc_init: init_apartment failed: 0x%08X", e.code().value);
                 return;
         }
 
-        HWND hwnd = GetConsoleWindow();
+        g_hwnd = create_hidden_window();
 
-        if (!hwnd) {
-                k_log_error("smtc_init: GetConsoleWindow returned NULL, skipping SMTC");
+        if (!g_hwnd) {
+                k_log_error("smtc_init: failed to create hidden window (0x%08X)", GetLastError());
                 return;
         }
 
@@ -99,7 +129,7 @@ extern "C" void smtc_init(void)
 
                 SystemMediaTransportControls smtc{nullptr};
                 check_hresult(
-                    interop->GetForWindow(hwnd, guid_of<SystemMediaTransportControls>(), put_abi(smtc)));
+                    interop->GetForWindow(g_hwnd, guid_of<SystemMediaTransportControls>(), put_abi(smtc)));
 
                 g_smtc = smtc;
 
@@ -266,14 +296,17 @@ extern "C" void smtc_set_playback_position(double position)
 extern "C" void smtc_shutdown(void)
 {
         if (g_smtc) {
-
                 if (g_button_token.value != 0) {
                         g_smtc.ButtonPressed(g_button_token);
                         g_button_token = {};
                 }
-
                 g_smtc.IsEnabled(false);
                 g_smtc = nullptr;
+        }
+
+        if (g_hwnd) {
+                DestroyWindow(g_hwnd);
+                g_hwnd = nullptr;
         }
 
         g_position = 0.0;
