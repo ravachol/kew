@@ -978,6 +978,7 @@ int main(int argc, char *argv[])
         tty_init();
         state_init();
         k_log_init();
+        k_log("main: starting kew...");
         locale_init();
         show_help_and_exit(argc, argv);
         show_version_and_exit(argc, argv);
@@ -998,6 +999,8 @@ int main(int argc, char *argv[])
         ensure_default_themes();
         ensure_default_layouts();
         themes_init(argc, argv);
+
+        k_log("main: themes loaded...");
 
         if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
                  if (make_playlist_from_paths(argc, argv))
