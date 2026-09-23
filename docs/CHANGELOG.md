@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## kew 4.3.7
+
+#### Bug Fixes:
+
+- Respect mouseEnabled=0 (again). This setting was lost during the UI rewrite. By @ravachol. Reported by @jsteitz.
+
+- Fix keybindings with Ctrl+a..z being ignored. By @ravachol. Reported by @jsteitz.
+
 ## kew 4.3.6
 
 Pushing this one out because the screen flickers every 3 seconds on ghostty in 4.3.5.

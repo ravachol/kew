@@ -863,9 +863,14 @@ TBKeyBinding parse_binding(const char *binding_str,
                                 kb.key = TB_KEY_SPACE;
                                 kb.ch = 0;
                         } else {
-                                // Normal key token (including "+" token)
                                 uint16_t code = key_name_to_code(tokenbuf);
-                                if (code >= 0x20 && code < 0x7f) {
+
+                                if ((kb.mods & TB_MOD_CTRL) && token_len == 1 &&
+                                    isalpha((unsigned char)tokenbuf[0])) {
+                                        char c = tolower((unsigned char)tokenbuf[0]);
+                                        kb.key = TB_KEY_CTRL_A + (c - 'a'); // adjust to your enum's actual layout
+                                        kb.ch = 0;
+                                } else if (code >= 0x20 && code < 0x7f) {
                                         kb.key = 0;
                                         kb.ch = code;
                                 } else {
@@ -2447,6 +2452,7 @@ void set_config(AppSettings *settings, UISettings *ui)
                 settings->progressBarCurrentOddChar);
 
         fprintf(file, "\n[key bindings]\n\n");
+        fprintf(file, "Note:Ctrl+h/i/m are indistinguishable from Backspace/Tab/Enter\n\n");
 
         for (size_t i = 0; i < keybinding_count; i++) {
                 fprintf(file, "bind = ");
@@ -2805,36 +2811,36 @@ Layout *load_layout_from_config(const char *layout_name)
 
 const char *get_system_data_dir(void)
 {
-    static char path[KEW_PATH_MAX];
+        static char path[KEW_PATH_MAX];
 
-    GetModuleFileNameA(NULL, path, sizeof(path));
+        GetModuleFileNameA(NULL, path, sizeof(path));
 
-    char *slash = strrchr(path, '\\');
-    if (slash)
-        *slash = '\0';              // remove "kew.exe"
+        char *slash = strrchr(path, '\\');
+        if (slash)
+                *slash = '\0'; // remove "kew.exe"
 
-    strcat(path, "\\share\\kew");
+        strcat(path, "\\share\\kew");
 
-    return path;
+        return path;
 }
 
 const char *get_msys2_root(void)
 {
-    static char root[KEW_PATH_MAX];
+        static char root[KEW_PATH_MAX];
 
-    GetModuleFileNameA(NULL, root, sizeof(root));
+        GetModuleFileNameA(NULL, root, sizeof(root));
 
-    // Find "\home\" / "\ucrt64\" / "\mingw64\" etc.
-    char *p = strstr(root, "\\home\\");
-    if (!p)
-        p = strstr(root, "\\ucrt64\\");
-    if (!p)
-        p = strstr(root, "\\mingw64\\");
+        // Find "\home\" / "\ucrt64\" / "\mingw64\" etc.
+        char *p = strstr(root, "\\home\\");
+        if (!p)
+                p = strstr(root, "\\ucrt64\\");
+        if (!p)
+                p = strstr(root, "\\mingw64\\");
 
-    if (p)
-        *p = '\0';
+        if (p)
+                *p = '\0';
 
-    return root;
+        return root;
 }
 
 #else

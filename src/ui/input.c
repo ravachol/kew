@@ -78,6 +78,11 @@ struct Msg map_tb_key_to_event(struct tb_event *ev)
                         ev->ch = tolower(ev->ch);
                 }
 
+                if (i == 59)
+                {
+                       printf("60");
+                }
+
                 bool keyMatch = (b->key && ev->key == b->key) || (b->ch && ev->ch == b->ch);
                 bool modsMatch = (b->mods == ev->mod);
 
@@ -514,10 +519,11 @@ void open_url(const char *url)
 
 bool handle_mouse_event(struct tb_event *ev, struct Msg *event, bool do_scroll)
 {
-        if (ev->type != TB_EVENT_MOUSE)
+        Model *model = get_model();
+
+        if (ev->type != TB_EVENT_MOUSE || !model->state.settings.mouseEnabled)
                 return false;
 
-        Model *model = get_model();
         int mouse_x = ev->x + 1;
         int mouse_y = ev->y + 1;
         uint16_t mouse_key = ev->key;
@@ -1196,14 +1202,23 @@ static DWORD WINAPI win_input_thread(void *arg)
 
 void input_init(void)
 {
+        Model *model = get_model();
         tb_init();
-        // Enable SGR (1006) + drag-motion (1002)
-        const char *enable_mouse = "\033[?1000h\033[?1002h\033[?1006h";
-        ssize_t result = write(tb_get_output_fd(), enable_mouse, strlen(enable_mouse));
-        if (result < 0)
-                tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_MOUSE | TB_INPUT_ESC);
-        else
+
+        if (model->state.settings.mouseEnabled) {
+                // Enable SGR (1006) + drag-motion (1002)
+                const char *enable_mouse = "\033[?1000h\033[?1002h\033[?1006h";
+                ssize_t result = write(tb_get_output_fd(), enable_mouse,
+                                        strlen(enable_mouse));
+
+                if (result < 0)
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_MOUSE | TB_INPUT_ESC);
+                else
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+        } else {
                 tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+        }
+
         int fd = tb_get_input_fd();
         GIOChannel *chan = g_io_channel_unix_new(fd);
         g_io_channel_set_encoding(chan, NULL, NULL); // binary
@@ -1224,7 +1239,7 @@ void input_init(void)
                 case CTRL_CLOSE_EVENT:
                 case CTRL_SHUTDOWN_EVENT:
                         restore_console();
-                        return FALSE; // Let process exit normally
+                        return FALSE;
                 }
                 return FALSE;
         }
@@ -1234,18 +1249,21 @@ void input_init(void)
 
         global.original_mode = mode;
 
-        mode &= ~ENABLE_QUICK_EDIT_MODE; // Disable QuickEdit
-        mode |= ENABLE_EXTENDED_FLAGS;   // Required
-        mode |= ENABLE_MOUSE_INPUT;
+        mode &= ~ENABLE_QUICK_EDIT_MODE;
+        mode |= ENABLE_EXTENDED_FLAGS;
         mode |= ENABLE_WINDOW_INPUT;
+
+        if (model->state.settings.mouseEnabled)
+                mode |= ENABLE_MOUSE_INPUT;
 
         SetConsoleMode(global.hin, mode);
         SetConsoleCtrlHandler(ctrl_handler, TRUE);
         CreateThread(NULL, 0, win_input_thread, NULL, 0, NULL);
 
 #else
-        g_io_channel_set_encoding(chan, NULL, NULL);
+
         g_io_add_watch(chan, G_IO_IN, on_tb_input, NULL);
+
 #endif
 }
 
