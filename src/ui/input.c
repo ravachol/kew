@@ -78,11 +78,6 @@ struct Msg map_tb_key_to_event(struct tb_event *ev)
                         ev->ch = tolower(ev->ch);
                 }
 
-                if (i == 59)
-                {
-                       printf("60");
-                }
-
                 bool keyMatch = (b->key && ev->key == b->key) || (b->ch && ev->ch == b->ch);
                 bool modsMatch = (b->mods == ev->mod);
 
