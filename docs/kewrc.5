@@ -1,0 +1,384 @@
+.TH KEWRC 5 "2026-09-24" "kew" "File Formats Manual"
+.SH NAME
+kewrc \- configuration file for kew
+.SH SYNOPSIS
+.I ~/.config/kew/kewrc
+.RB ( Linux / FreeBSD / Android ),
+.I ~/Library/Preferences/kew/kewrc
+.RB ( macOS )
+.SH DESCRIPTION
+.B kewrc
+is the configuration file for
+.BR kew (1),
+a terminal music player.
+It is written in INI-style syntax, divided into named sections
+enclosed in square brackets, each containing
+.IR key = value
+pairs.
+Lines beginning with
+.B #
+are comments.
+.PP
+.B kew
+does not write to this file except when the
+.B path
+command is run.
+Runtime changes made from within the application are instead tracked
+in
+.BR kewstaterc (5),
+whose settings take precedence over the corresponding values in
+.BR kewrc .
+.PP
+If
+.B kewrc
+is deleted, kew regenerates it on next launch with all available
+settings and their defaults.
+.SH "MISCELLANEOUS SECTION"
+Settings in the
+.B [miscellaneous]
+section.
+.TP
+.BI path " path"
+Path to the music library directory. Default:
+.IR ~/Music .
+.TP
+.BI useArtistsDb " bool"
+Enable the artist database, which provides clickable artist links in
+track view. Default:
+.IR 1 .
+.TP
+.BI allowNotifications " bool"
+Enable desktop notifications. Default:
+.IR 1 .
+.TP
+.BI stripTrackNumbers " bool"
+Remove leading track numbers from file names as displayed in the
+library and playlist views. Default:
+.IR 1 .
+.TP
+.BI hideLogo " bool"
+Hide the kew logo. Default:
+.IR 0 .
+.TP
+.BI hideHelp " bool"
+Hide the help line. Default:
+.IR 0 .
+.TP
+.BI hideFooter " bool"
+Hide the footer. Default:
+.IR 0 .
+.TP
+.BI hideTimeStatus " bool"
+Hide the track time line from track view. Default:
+.IR 0 .
+.TP
+.BI simpleTimeStatus " bool"
+Toggle display of kHz and bitrate alongside the time status. Default:
+.IR 1 .
+.TP
+.BI hideSideCover " bool"
+Hide the cover art shown on the left-hand side when a song is
+playing, in most views. Default:
+.IR 0 .
+.TP
+.BI collapseTopLevel " bool"
+Show only top-level folders in the library view. Default:
+.IR 0 .
+.TP
+.BI autoResume " bool"
+Resume the last playing song automatically when kew starts. Default:
+.IR 0 .
+.TP
+.BI titleDelay " bool"
+Enable the animated (scrolling) song title. Set to
+.I 0
+to disable. Default:
+.IR 1 .
+.TP
+.BI quitOnStop " bool"
+Exit kew after the whole playlist has finished playing. Equivalent to
+the
+.B \-\-quitonstop
+command-line flag. Default:
+.IR 0 .
+.TP
+.BI clearListClearsAll " bool"
+Whether clearing the playlist also removes the currently playing
+song. Default:
+.IR 1 .
+.TP
+.BI hideGlimmeringText " bool"
+Hide the glimmering text effect on the bottom row. Default:
+.IR 0 .
+.TP
+.BI replayGainCheckFirst " int"
+Which ReplayGain value to check first.
+.RS
+.IP 0 4
+track
+.IP 1 4
+album
+.IP 2 4
+disabled
+.IP 3 4
+auto
+.RE
+.IP
+Default:
+.IR 3 .
+.TP
+.BI saveRepeatShuffleSettings " bool"
+Persist the repeat and shuffle state between sessions. Default:
+.IR 0 .
+.TP
+.BI repeatState " int"
+Repeat mode.
+.RS
+.IP 0 4
+off
+.IP 1 4
+repeat track
+.IP 2 4
+repeat list
+.RE
+.IP
+Default:
+.IR 0 .
+.TP
+.BI shuffleEnabled " bool"
+Enable shuffle playback. Default:
+.IR 0 .
+.TP
+.BI trackTitleAsWindowTitle " bool"
+Set the terminal window title to the title of the currently playing
+track. Default:
+.IR 1 .
+.SH "COLORS SECTION"
+Settings in the
+.B [colors]
+section.
+.TP
+.BI theme " name"
+Name of the theme file to load, located in
+.I ~/.config/kew/themes
+(Linux/FreeBSD/Android) or
+.I ~/Library/Preferences/kew/themes
+(macOS). Empty selects the default theme.
+.TP
+.BI colorMode " int"
+Selects the source of the color palette.
+.RS
+.IP 0 4
+16-bit color palette from the default theme
+.IP 1 4
+colors derived from the One Album Color theme
+.IP 2 4
+colors derived from the TrueColor theme
+.IP 3 4
+colors derived from the Album Colors theme
+.IP 4 4
+neutral, devoid of color
+.RE
+.IP
+Default:
+.IR 3 .
+.SH "CROSSFADE SECTION"
+Settings in the
+.B [crossfade]
+section.
+.TP
+.BI alwaysCrossfade " bool"
+Crossfade at the end of every song. Default:
+.IR 0 .
+.TP
+.BI fadeEnterSongMs " ms"
+Fade in a song starting at this track time, in milliseconds. Default:
+.IR 0 .
+.TP
+.BI fadeQuickMs " ms"
+Duration, in milliseconds, of a quick fade. Default:
+.IR 3000 .
+.TP
+.BI fadeMediumMs " ms"
+Duration, in milliseconds, of a medium fade. Default:
+.IR 5000 .
+.TP
+.BI fadeSlowMs " ms"
+Duration, in milliseconds, of a slow fade. Default:
+.IR 10000 .
+.SH "TRACK COVER SECTION"
+Settings in the
+.B [track cover]
+section.
+.TP
+.BI coverEnabled " bool"
+Enable rendering of cover art. Default:
+.IR 1 .
+.TP
+.BI coverAnsi " bool"
+Render covers using ASCII/ANSI art mode. Default:
+.IR 0 .
+.TP
+.BI coverStyle " style"
+Cover art render style. One of
+.IR auto ,
+.IR kitty ,
+.IR sixels ,
+.IR block ,
+.IR braille ,
+.IR ascii ,
+.IR dot ,
+.IR vhalf ,
+or
+.IR quad .
+Default:
+.IR auto .
+.SH "MOUSE SECTION"
+Settings in the
+.B [mouse]
+section.
+.TP
+.BI mouseEnabled " bool"
+Enable mouse support. Default:
+.IR 1 .
+.SH "DISCORD SECTION"
+Settings in the
+.B [discord]
+section.
+.TP
+.BI discordRPCEnabled " bool"
+Show now-playing status via Discord Rich Presence. Note that enabling
+this reveals your listening habits to Discord. Default:
+.IR 0 .
+.SH "CHROMA SECTION"
+Settings in the
+.B [chroma]
+section.
+.TP
+.BI chromaPath " path"
+Path to custom Chroma presets.
+.TP
+.BI chromaDevice " name"
+Name of the audio device that Chroma should use, for example
+.IR "Pipewire Server" .
+.SH "VISUALIZER SECTION"
+Settings in the
+.B [visualizer]
+section.
+.TP
+.BI visualizerColorType " int"
+Visualizer color mode.
+.RS
+.IP 0 4
+lighten
+.IP 1 4
+flat
+.IP 2 4
+reversed lighten
+.IP 3 4
+party
+.IP 4 4
+vibrant
+.IP 5 4
+lum vibrant
+.IP 6 4
+binning
+.IP 7 4
+two color gradient
+.IP 8 4
+off
+.RE
+.IP
+Default:
+.IR 3 .
+.TP
+.BI visualizerHeight " n"
+Height of the visualizer, in rows. Default:
+.IR 6 .
+.TP
+.BI visualizerBrailleMode " bool"
+Render the visualizer using Braille dots instead of bars. Default:
+.IR 0 .
+.TP
+.BI visualizerBarWidth " int"
+Bar width mode.
+.RS
+.IP 0 4
+thin bars
+.IP 1 4
+bars twice the width
+.IP 2 4
+auto (depends on window size)
+.RE
+.IP
+Default:
+.IR 2 .
+.SH "PROGRESS BAR SECTION"
+Settings in the
+.B [progress\ bar]
+section, controlling the appearance of the track progress bar. Each
+character setting takes a single glyph (which may be an empty space);
+even/odd variants let the bar alternate between two glyphs across its
+length. When editing, always supply every value, including any that
+are blank spaces, or the bar's appearance will be corrupted.
+.TP
+.BI progressBarElapsedEvenChar " char"
+Glyph for even-indexed positions already elapsed. Default:
+.IR \(mi (U+2501).
+.TP
+.BI progressBarElapsedOddChar " char"
+Glyph for odd-indexed positions already elapsed. Default:
+.IR \(mi (U+2501).
+.TP
+.BI progressBarApproachingEvenChar " char"
+Glyph for even-indexed positions not yet reached. Default:
+.IR \(mi (U+2501).
+.TP
+.BI progressBarApproachingOddChar " char"
+Glyph for odd-indexed positions not yet reached. Default:
+.IR \(mi (U+2501).
+.TP
+.BI progressBarCurrentEvenChar " char"
+Glyph for the current position when on an even index. Default:
+.IR \(mi (U+2501).
+.TP
+.BI progressBarCurrentOddChar " char"
+Glyph for the current position when on an odd index. Default:
+.IR \(mi (U+2501).
+.PP
+Commented-out presets are provided in the generated file as examples,
+including a "pill muncher" style (using
+.B \(bu
+.RB ( ᗧ )
+glyphs) and a dotted style using
+.B \(sq
+characters; uncomment and adapt a full set of six values to switch
+styles.
+.SH "KEY BINDINGS SECTION"
+The
+.B [key\ bindings]
+section holds custom key binding assignments.
+.PP
+Note:
+.B Ctrl+h
+,
+.B Ctrl+i
+, and
+.B Ctrl+m
+are indistinguishable from Backspace, Tab, and Enter respectively at
+the terminal level, and cannot be bound separately from them.
+.SH FILES
+.TP
+.I ~/.config/kew/kewrc
+Configuration file on Linux, FreeBSD, and Android.
+.TP
+.I ~/Library/Preferences/kew/kewrc
+Configuration file on macOS.
+.TP
+.I ~/.config/kew/themes
+.TQ
+.I ~/Library/Preferences/kew/themes
+Directories where theme files are looked up.
+.SH "SEE ALSO"
+.BR kew (1),
+.BR kewstaterc (5)

@@ -393,7 +393,10 @@ install: all
 
 	# Install binary and man page
 	install -m 0755 kew "$(DESTDIR)$(PREFIX)/bin/kew"
+	install -d "$(DESTDIR)$(MAN_DIR)/man1" "$(DESTDIR)$(MAN_DIR)/man5"
 	install -m 0644 docs/kew.1 "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
+	install -m 0644 docs/kewrc.5 "$(DESTDIR)$(MAN_DIR)/man5/kewrc.5"
+	install -m 0644 docs/kewstaterc.5 "$(DESTDIR)$(MAN_DIR)/man5/kewstaterc.5"
 
 	# Install Chinese translation
 	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
@@ -462,6 +465,8 @@ endif
 uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/bin/kew"
 	rm -f "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
+	rm -f "$(DESTDIR)$(MAN_DIR)/man5/kewrc.5"
+	rm -f "$(DESTDIR)$(MAN_DIR)/man5/kewstaterc.5"
 	rm -f "$(DESTDIR)$(KEW_DATADIR)/kew/artists.db"
 	rm -rf "$(DESTDIR)$(THEMEDIR)"
 	rm -rf "$(DESTDIR)$(LAYOUTDIR)"
