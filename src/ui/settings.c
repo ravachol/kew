@@ -2296,59 +2296,63 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# kew will then generate the file with all available settings.\n");
         fprintf(file, "# kew tracks all in-app settings changes in kewstaterc, which take precedence over kewrc.\n\n");
         fprintf(file, "[miscellaneous]\n\n");
+        fprintf(file, "# Path to music library.\n\n");
         fprintf(file, "path=%s\n\n", settings->path);
-        fprintf(file, "# Enable artist database, that provides clickable artists links in track view.\n");
+        fprintf(file, "# Enable artist database, that provides clickable artists links in track view.\n\n");
         fprintf(file, "useArtistsDb=%s\n\n", settings->useArtistLink);
+        fprintf(file, "# Allow desktop notification on track change.\n\n");
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
-        fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
-        fprintf(file, "hideLogo=%s\n", settings->hideLogo);
-        fprintf(file, "hideHelp=%s\n", settings->hideHelp);
+        fprintf(file, "\n# Remove leading numbers from track file names, used in library and playlist.\n\n");
+        fprintf(file, "stripTrackNumbers=%s\n\n", settings->stripTrackNumbers);
+        fprintf(file, "hideLogo=%s\n\n", settings->hideLogo);
+        fprintf(file, "hideHelp=%s\n\n", settings->hideHelp);
+        fprintf(file, "hideFooter=%s\n", settings->hideFooter);
+        fprintf(file, "\n# Hide track time line from track view.\n\n");
         fprintf(file, "hideTimeStatus=%s\n\n", settings->hideTimeStatus);
 
-        fprintf(file, "# Toggles showing kHz and bitrate.\n");
+        fprintf(file, "# Toggles showing kHz and bitrate.\n\n");
         fprintf(file, "simpleTimeStatus=%s\n\n", settings->simpleTimeStatus);
 
-        fprintf(file, "hideFooter=%s\n", settings->hideFooter);
+        fprintf(file, "\n# Hide cover shown on the left when a song is playing in most views.\n\n");
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
-        fprintf(file, "collapseTopLevel=%s\n", settings->collapseTopLevel);
+        fprintf(file, "\n# Show only top level folders.\n\n");
+        fprintf(file, "collapseTopLevel=%s\n\n", settings->collapseTopLevel);
+        fprintf(file, "\n# Resume last playing song when starting kew.\n\n");
         fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
 
-        fprintf(file, "# Toggle animated song title, set to 0 to disable.\n");
+        fprintf(file, "# Toggle animated song title, set to 0 to disable.\n\n");
         fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);
 
-        fprintf(file, "# Same as '--quitonstop' flag, exits after playing the "
-                      "whole playlist.\n");
+        fprintf(file, "# Same as '--quitonstop' flag, exits after playing the whole playlist.\n\n");
         fprintf(file, "quitOnStop=%s\n\n", settings->quitAfterStopping);
 
-        fprintf(file, "# Whether clearing the playlist also removes the "
-                      "currently playing song.\n");
+        fprintf(file, "# Whether clearing the playlist also removes the currently playing song.\n\n");
         fprintf(file, "clearListClearsAll=%s\n\n", settings->clearListClearsAll);
 
-        fprintf(file, "# Glimmering text on the bottom row.\n");
+        fprintf(file, "# Glimmering text on the bottom row.\n\n");
         fprintf(file, "hideGlimmeringText=%s\n\n",
                 settings->hideGlimmeringText);
 
-        fprintf(file, "# Replay gain check first, can be either 0=track, "
-                      "1=album, 2=disabled or 3=auto.\n");
+        fprintf(file, "# Replay gain check first, can be either 0=track, 1=album, 2=disabled or 3=auto.\n\n");
         fprintf(file, "replayGainCheckFirst=%s\n\n",
                 settings->replayGainCheckFirst);
 
-        fprintf(file, "# Save Repeat and Shuffle Settings.\n");
-        fprintf(file, "saveRepeatShuffleSettings=%s\n\n",
+        fprintf(file, "# Save Repeat and Shuffle Settings.\n\n");
+        fprintf(file, "saveRepeatShuffleSettings=%s\n",
                 settings->saveRepeatShuffleSettings);
 
+        fprintf(file, "\n# Repeat state 0 = off, 1 = repeat track, 2 = repeat list.\n\n");
         fprintf(file, "repeatState=%s\n\n", settings->repeatState);
         fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
 
-        fprintf(file, "# Set the window title to the title of the currently "
-                      "playing track\n");
+        fprintf(file, "# Set the window title to the title of the currently playing track\n\n");
         fprintf(file, "trackTitleAsWindowTitle=%s\n\n",
                 settings->trackTitleAsWindowTitle);
 
         fprintf(file, "\n[colors]\n\n");
 
         fprintf(file, "# Theme's go in ~/.config/kew/themes (on Linux/FreeBSD/Android), \n");
-        fprintf(file, "# and ~/Library/Preferences/kew/themes (on macOS), \n");
+        fprintf(file, "# and ~/Library/Preferences/kew/themes (on macOS), \n\n");
         fprintf(file, "theme=%s\n\n", settings->theme);
 
         fprintf(file, "# Color Mode is:\n");
@@ -2356,7 +2360,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# 1 = Colors derived from One Album Color Theme, \n");
         fprintf(file, "# 2 = Colors derived from TrueColor theme, \n");
         fprintf(file, "# 3 = Colors derived from Album Colors Theme, \n\n");
-        fprintf(file, "# Color Mode:\n");
+        fprintf(file, "# 4 = Neutral, devoid of color, \n\n");
+        fprintf(file, "# Color Mode:\n\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
 
         fprintf(file, "# Terminal color theme is default.theme in \n");
@@ -2364,37 +2369,46 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# and ~/Library/Preferences/kew/themes (on macOS).\n\n");
 
         fprintf(file, "\n[crossfade]\n\n");
-        fprintf(file, "alwaysCrossfade=%d\n", ui->always_crossfade);
-        fprintf(file, "fadeEnterSongMs=%d\n", ui->fade_enter_song_ms);
-        fprintf(file, "fadeQuickMs=%s\n", settings->fade_quick_ms);
-        fprintf(file, "fadeMediumMs=%s\n", settings->fade_medium_ms);
+        fprintf(file, "\n# Crossfade at end of song.\n\n");
+        fprintf(file, "alwaysCrossfade=%d\n\n", ui->always_crossfade);
+        fprintf(file, "\n# Fade in on song at a certain track time, in milliseconds.\n\n");
+        fprintf(file, "fadeEnterSongMs=%d\n\n", ui->fade_enter_song_ms);
+        fprintf(file, "\n# Fade length in milliseconds of quick fade.\n\n");
+        fprintf(file, "fadeQuickMs=%s\n\n", settings->fade_quick_ms);
+        fprintf(file, "\n# Fade length in milliseconds of medium fade.\n\n");
+        fprintf(file, "fadeMediumMs=%s\n\n", settings->fade_medium_ms);
+        fprintf(file, "\n# Fade length in milliseconds of slow fade.\n\n");
         fprintf(file, "fadeSlowMs=%s\n\n", settings->fade_slow_ms);
 
         fprintf(file, "\n[track cover]\n\n");
-        fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
-        fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
-        fprintf(file, "# Cover render style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad\n");
+        fprintf(file, "coverEnabled=%s\n\n", settings->coverEnabled);
+        fprintf(file, "\n# Show covers in ascii (ansi) mode.\n\n");
+        fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
+        fprintf(file, "# Cover render style: auto, kitty, sixels, block, braille, ascii, dot, vhalf, quad\n\n");
         fprintf(file, "coverStyle=%s\n\n", settings->coverStyle);
 
         fprintf(file, "\n[mouse]\n\n");
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
 
         fprintf(file, "\n[discord]\n\n");
+        fprintf(file, "\n# Show now playing status in Discord. Note: Reveals your listening habits to discord.\n\n");
         fprintf(file, "discordRPCEnabled=%s\n\n", settings->discordRPCEnabled);
 
         fprintf(file, "\n[chroma]\n\n");
+        fprintf(file, "\n# Path to custom chroma presets.\n\n");
         fprintf(file, "chromaPath=%s\n", settings->chromaPath);
+        fprintf(file, "\n# Name of audio device that Chroma should use, for instance Pipewire Server.\n\n");
         fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
 
         fprintf(file, "\n[visualizer]\n\n");
-        fprintf(file, "# Visualizer mode: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning 7=two color gradient 8=off.\n");
+        fprintf(file, "# Visualizer mode: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning 7=two color gradient 8=off.\n\n");
         fprintf(file, "visualizerColorType=%s\n", settings->visualizer_mode);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizer_height);
+        fprintf(file, "\n# Show visualizer as dots instead of bars.\n\n");
         fprintf(file, "visualizerBrailleMode=%s\n\n",
                 settings->visualizerBrailleMode);
 
-        fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends "
-                      "on window size).\n");
+        fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends on window size).\n\n");
         fprintf(file, "visualizerBarWidth=%s\n\n",
                 settings->visualizer_bar_width);
 
