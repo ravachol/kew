@@ -4,13 +4,11 @@
 
 #### Bug Fixes:
 
-- Respect mouseEnabled=0 (again). This setting was lost during the UI rewrite. By @ravachol. Reported by @jsteitz.
+- Respect mouseEnabled=0 and hideTimeStatus=1 again. These settings were lost during the UI rewrite. By @ravachol. Reported by @jsteitz.
 
 - Fix keybindings with Ctrl+a..z being ignored. By @ravachol. Reported by @jsteitz.
 
-- Fix crash when running kew not as a shortcut but from within a terminal. This was caused by adding SMTC windows media key integration and ISystemMediaTransportControlsInterop::GetForWindow checking window ownership internally and throwing E_ACCESSDENIED because the HWND is owned by the terminal.
-
-By @ravachol. Reported by @battlelitany.
+- Fix crash when running kew not as a shortcut but from within a terminal. This was caused by adding SMTC windows media key integration and ISystemMediaTransportControlsInterop::GetForWindow checking window ownership internally and throwing E_ACCESSDENIED because the HWND is owned by the terminal. By @ravachol. Reported by @battlelitany.
 
 ## kew 4.3.6
 
