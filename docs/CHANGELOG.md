@@ -2,6 +2,10 @@
 
 ## kew 4.3.7
 
+#### Enhancements:
+
+- Added man pages for kewrc and kewstaterc. By @ravachol. Suggested by @jsteitz.
+
 #### Bug Fixes:
 
 - Respect mouseEnabled=0 and hideTimeStatus=1 again. These settings were lost during the UI rewrite. By @ravachol. Reported by @jsteitz.
