@@ -534,6 +534,7 @@ typedef struct
         bool chroma_next_preset_requested;
         bool chroma_start_requested;
         int chroma_height;
+        int chroma_width;
 
         bool link_clicked;
 
