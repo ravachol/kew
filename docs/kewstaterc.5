@@ -1,0 +1,161 @@
+.TH KEWSTATERC 5 "2026-09-24" "kew" "File Formats Manual"
+.SH NAME
+kewstaterc \- persisted runtime state file for kew
+.SH SYNOPSIS
+.I ~/.config/kew/kewstaterc
+.RB ( Linux / FreeBSD / Android ),
+.I ~/Library/Preferences/kew/kewstaterc
+.RB ( macOS )
+.SH DESCRIPTION
+.B kewstaterc
+stores settings that
+.BR kew (1)
+changes automatically at runtime as the user interacts with the
+application, such as toggling notifications or adjusting the volume.
+It uses the same INI-style syntax as
+.BR kewrc (5):
+named sections in square brackets, each containing
+.IR key = value
+pairs.
+.PP
+Unlike
+.BR kewrc (5),
+which the user is expected to hand-edit, kew writes to
+.B kewstaterc
+itself whenever the corresponding in-app setting changes. Values in
+.B kewstaterc
+take precedence over the same-named keys in
+.BR kewrc (5),
+so a setting changed from within kew will override its
+.B kewrc
+value on subsequent runs.
+.PP
+If
+.B kewstaterc
+is deleted, kew regenerates it with default values the next time it
+writes state.
+.SH "MISCELLANEOUS SECTION"
+Settings in the
+.B [miscellaneous]
+section.
+.TP
+.BI allowNotifications " bool"
+Whether desktop notifications are enabled. Mirrors and overrides the
+.B kewrc
+setting of the same name. Default:
+.IR 1 .
+.TP
+.BI alwaysCrossfade " bool"
+Whether crossfade at the end of every song is enabled. Mirrors and
+overrides the
+.B kewrc
+setting of the same name. Default:
+.IR 1 .
+.TP
+.BI lastVolume " n"
+The volume level in effect when kew was last closed, on a scale of
+.IR 0 " to " 100 .
+Restored on the next launch if
+.B autoResume
+or equivalent volume-restore behavior applies. Default:
+.IR 5 .
+.SH "TRACK COVER SECTION"
+Settings in the
+.B [track cover]
+section.
+.TP
+.BI coverAnsi " bool"
+Whether covers are rendered using ASCII/ANSI art mode. Mirrors and
+overrides the
+.B kewrc
+setting of the same name. Default:
+.IR 0 .
+.SH "VISUALIZER SECTION"
+Settings in the
+.B [visualizer]
+section.
+.TP
+.BI visualizerColortype " int"
+The active visualizer color mode. Mirrors and overrides the
+.B visualizerColorType
+setting in
+.BR kewrc (5).
+.RS
+.IP 0 4
+lighten
+.IP 1 4
+flat
+.IP 2 4
+reversed lighten
+.IP 3 4
+party
+.IP 4 4
+vibrant
+.IP 5 4
+lum vibrant
+.IP 6 4
+binning
+.IP 7 4
+two color gradient
+.IP 8 4
+off
+.RE
+.IP
+Default:
+.IR 3 .
+.SH "CHROMA SECTION"
+Settings in the
+.B [chroma]
+section.
+.TP
+.BI chromaPreset " n"
+Index of the last-selected Chroma preset. A value of
+.I \-1
+means no preset is selected. Default:
+.IR \-1 .
+.SH "COLORS SECTION"
+Settings in the
+.B [colors]
+section.
+.TP
+.BI colorMode " int"
+The active color palette source. Mirrors and overrides the
+.B colorMode
+setting in
+.BR kewrc (5).
+.RS
+.IP 0 4
+16-bit color palette from the default theme
+.IP 1 4
+colors derived from the One Album Color theme
+.IP 2 4
+colors derived from the TrueColor theme
+.IP 3 4
+colors derived from the Album Colors theme
+.IP 4 4
+neutral, devoid of color
+.RE
+.IP
+Default:
+.IR 3 .
+.TP
+.BI theme " name"
+Name of the currently selected theme file, as found in
+.I ~/.config/kew/themes
+(Linux/FreeBSD/Android) or
+.I ~/Library/Preferences/kew/themes
+(macOS). Mirrors and overrides the
+.B theme
+setting in
+.BR kewrc (5).
+Empty selects the default theme.
+.SH FILES
+.TP
+.I ~/.config/kew/kewstaterc
+State file on Linux, FreeBSD, and Android.
+.TP
+.I ~/Library/Preferences/kew/kewstaterc
+State file on macOS.
+.SH "SEE ALSO"
+.BR kew (1),
+.BR kewrc (5)
