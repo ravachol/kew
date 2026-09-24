@@ -395,6 +395,7 @@ install: all
 	install -m 0755 kew "$(DESTDIR)$(PREFIX)/bin/kew"
 	install -d "$(DESTDIR)$(MAN_DIR)/man1" "$(DESTDIR)$(MAN_DIR)/man5"
 	install -m 0644 docs/kew.1 "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
+	install -m 0644 docs/kew.5 "$(DESTDIR)$(MAN_DIR)/man5/kew.5"
 	install -m 0644 docs/kewrc.5 "$(DESTDIR)$(MAN_DIR)/man5/kewrc.5"
 	install -m 0644 docs/kewstaterc.5 "$(DESTDIR)$(MAN_DIR)/man5/kewstaterc.5"
 
@@ -466,6 +467,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/bin/kew"
 	rm -f "$(DESTDIR)$(MAN_DIR)/man1/kew.1"
 	rm -f "$(DESTDIR)$(MAN_DIR)/man5/kewrc.5"
+	rm -f "$(DESTDIR)$(MAN_DIR)/man5/kew.5"
 	rm -f "$(DESTDIR)$(MAN_DIR)/man5/kewstaterc.5"
 	rm -f "$(DESTDIR)$(KEW_DATADIR)/kew/artists.db"
 	rm -rf "$(DESTDIR)$(THEMEDIR)"
