@@ -4,6 +4,8 @@
 
 #### Enhancements:
 
+- Added ALAC support again. Different lib this time: https://github.com/mikebrady/shairport-sync/blob/master/alac.h. By @ravachol.
+
 - Added man pages for kewrc and kewstaterc. By @ravachol. Suggested by @jsteitz.
 
 #### Bug Fixes:

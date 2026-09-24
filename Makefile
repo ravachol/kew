@@ -121,6 +121,7 @@ LOCAL_INC = \
     -Iinclude/compat \
     -Iinclude/libmp4/src \
     -Iinclude/libmp4/include \
+    -Iinclude/alac \
     -Iinclude/stb_image \
     -Iinclude/miniaudio \
     -Iinclude/nestegg
@@ -323,6 +324,9 @@ LIBMP4_OBJS = $(LIBMP4_SRCS:include/libmp4/src/%.c=$(OBJDIR)/libmp4/%.o)
 NESTEGG_SRCS = include/nestegg/nestegg.c
 NESTEGG_OBJS = $(NESTEGG_SRCS:include/nestegg/%.c=$(OBJDIR)/nestegg/%.o)
 
+ALAC_SRCS = include/alac/alac.c
+ALAC_OBJS = $(ALAC_SRCS:include/alac/%.c=$(OBJDIR)/alac/%.o)
+
 # macOS Now Playing (Objective-C)
 ifeq ($(USE_MACOS_MEDIA), 1)
   MACOS_MEDIA_SRC = src/sys/macos_nowplaying.m
@@ -336,7 +340,7 @@ ifeq ($(USE_SMTC), 1)
 endif
 
 # All objects together
-OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(LIBMP4_OBJS) $(MACOS_MEDIA_OBJ) $(SMTC_OBJ) $(WIN_MANIFEST_OBJ)
+OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(ALAC_OBJS) $(LIBMP4_OBJS) $(MACOS_MEDIA_OBJ) $(SMTC_OBJ) $(WIN_MANIFEST_OBJ)
 
 # Create object directories
 $(OBJDIR):
@@ -364,6 +368,11 @@ $(WRAPPER_OBJ): $(WRAPPER_SRC) Makefile | $(OBJDIR)
 
 # Compile C files in include/nestegg
 $(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
+
+# Compile C files in include/alac
+$(OBJDIR)/alac/%.o: include/alac/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 

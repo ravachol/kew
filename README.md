@@ -61,12 +61,11 @@ https://kewplayer.com
 
 ## Supported formats
 
-Supported: m4a, raw aac, mp3, flac, wav, webm, opus, ogg.
+Supported: m4a (including alac), raw aac, mp3, flac, wav, webm, opus, ogg.
 
 #### With caveats, not supported:
 - HE-AAC.
 - E-AC-3.
-- Alac.
 
 
 ## License
