@@ -16,8 +16,9 @@
  * Launches background rendering.
  *
  * @param height  Height of terminal window in characters
+ * @param width   Width of terminal window in characters
  */
-void chroma_start(int height);
+void chroma_start(int height, int width);
 
 /**
  * Stops Chroma (externally provided visualisations).
@@ -33,9 +34,10 @@ void chroma_shutdown(void);
  * @param row  The row where this frame should be printed
  * @param col  The col where this frame should be printed
  * @param height
+ * @param width
  * @param centered  whether the frame should be centered (col ignored)
  */
-void chroma_print_frame(int row, int col, int height, bool centered);
+void chroma_print_frame(int row, int col, int height, int width, bool centered);
 
 /**
  * Changes the Chroma (externally provided visualisations) preset to the next.
