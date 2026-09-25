@@ -19,6 +19,11 @@
 #include <unistd.h>
 
 typedef struct {
+        int height;
+        int width;
+} ChromaThreadArgs;
+
+typedef struct {
         char *frame;
         pthread_mutex_t lock;
         int height;
@@ -56,7 +61,7 @@ void chroma_start_with_preset(int preset)
         state->settings.chromaPreset = g_viz.preset;
 
         chroma_shutdown();
-        chroma_start(state->ui.chroma_height);
+        chroma_start(state->ui.chroma_height, state->ui.chroma_width);
 }
 
 void chroma_set_next_preset(void)
@@ -72,7 +77,7 @@ void chroma_set_next_preset(void)
         state->settings.chromaPreset = g_viz.preset;
 
         chroma_shutdown();
-        chroma_start(state->ui.chroma_height);
+        chroma_start(state->ui.chroma_height, state->ui.chroma_width);
 }
 
 int calc_chroma_width(int height)
@@ -103,8 +108,11 @@ int calc_chroma_width(int height)
 
 static void *chroma_thread(void *arg)
 {
-        int height = *(int *)arg;
-        free(arg); // Caller must malloc the int
+        ChromaThreadArgs *args = (ChromaThreadArgs *)arg;
+        int height = args->height;
+        int width = args->width;
+
+        free(arg); // Caller must malloc the `ChromaThreadArgs`
 
         if (height <= 0)
                 height = 1;
@@ -127,7 +135,8 @@ static void *chroma_thread(void *arg)
 
                 pthread_mutex_lock(&g_viz.lock);
                 g_viz.height = height;
-                g_viz.width = calc_chroma_width(height);
+                // g_viz.width = calc_chroma_width(height);
+                g_viz.width = width;
                 pthread_mutex_unlock(&g_viz.lock);
 
                 char cmd[512];
@@ -250,7 +259,7 @@ static void *chroma_thread(void *arg)
         return NULL;
 }
 
-void chroma_start(int height)
+void chroma_start(int height, int width)
 {
         if (g_viz.running)
                 return;
@@ -258,8 +267,12 @@ void chroma_start(int height)
 
         chroma_set_current_preset(chroma_get_current_preset());
 
-        int *arg = malloc(sizeof(int));
-        *arg = height;
+        ChromaThreadArgs *arg = malloc(sizeof(ChromaThreadArgs));
+        if (!arg)
+                return;
+
+        arg->height = height;
+        arg->width = width;
 
         pthread_create(&g_viz.thread, NULL, chroma_thread, arg);
 
@@ -267,6 +280,7 @@ void chroma_start(int height)
         model->state.ui.chroma_started = true;
         model->state.ui.chroma_start_requested = false;
         model->state.ui.chroma_height = height;
+        model->state.ui.chroma_width = width;
 }
 
 void chroma_shutdown()
@@ -296,10 +310,10 @@ void chroma_shutdown()
         model->state.ui.chroma_start_requested = false;
 }
 
-void chroma_print_frame(int row, int col, int height, bool centered)
+void chroma_print_frame(int row, int col, int height, int width, bool centered)
 {
         if (!chroma_is_started()) {
-                chroma_start(height);
+                chroma_start(height, width);
                 return;
         }
 

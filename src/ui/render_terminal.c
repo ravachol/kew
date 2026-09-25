@@ -291,7 +291,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                                 if (cell->kind == CELL_IMAGE_ANCHOR) {
 
-                                        chroma_print_frame(row + 1, col + 1, cell->image->screen_h, false);
+                                        chroma_print_frame(row + 1, col + 1, cell->image->screen_h, cell->image->screen_w, false);
 
                                         // Mark rows as dirtys
                                         for (int i = 0; i < cell->image->screen_h; i++) {
