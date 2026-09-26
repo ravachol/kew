@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.3.8
+
+- Fix windows installer error. By @ravachol.
+
 ## kew 4.3.7
 
 #### Enhancements:
@@ -14,7 +18,7 @@
 
 - Fix keybindings with Ctrl+a..z being ignored. By @ravachol. Reported by @jsteitz.
 
-- Fix crash when running kew not as a shortcut but from within a terminal. This was caused by adding SMTC windows media key integration and ISystemMediaTransportControlsInterop::GetForWindow checking window ownership internally and throwing E_ACCESSDENIED because the HWND is owned by the terminal. By @ravachol. Reported by @battlelitany.
+- Windows: Fix crash when running kew not as a shortcut but from within a terminal. This was caused by adding SMTC windows media key integration and ISystemMediaTransportControlsInterop::GetForWindow checking window ownership internally and throwing E_ACCESSDENIED because the HWND is owned by the terminal. By @ravachol. Reported by @battlelitany.
 
 - Fix Chroma printed in the wrong position for songs with non-square album covers. By @nhuvaynhe.
 
