@@ -59,7 +59,7 @@ Source: "stage\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs igno
 [Tasks]
 Name: startmenuicon; \
     Description: "Create a Start Menu shortcut"; \
-    
+
 Name: desktopicon; \
     Description: "Create a desktop shortcut"; \
 
@@ -70,7 +70,7 @@ Name: fileassoc; \
 [Icons]
 Name: "{group}\kew"; \
     Filename: "{app}\{#MyAppExeName}"; \
-    IconFilename: "{app}\kew.ico"
+    IconFilename: "{app}\kew.ico" \
     Tasks: startmenuicon
 
 Name: "{commondesktop}\kew"; \
