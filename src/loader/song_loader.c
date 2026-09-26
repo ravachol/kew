@@ -256,7 +256,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 return largest_image_file;
         }
 
-do {
+        do {
                 if (wcscmp(ffd.cFileName, L".") == 0 ||
                     wcscmp(ffd.cFileName, L"..") == 0)
                         continue;
