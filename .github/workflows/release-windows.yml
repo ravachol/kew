@@ -95,7 +95,7 @@ jobs:
       - name: Collect DLLs
         shell: msys2 {0}
         run: |
-          set -e
+          set -ex
 
           mkdir -p stage/bin
           cp kew.exe stage/bin/
