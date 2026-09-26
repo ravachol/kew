@@ -18,11 +18,11 @@
 #include "data/artists.h"
 #include "data/cache.h"
 
+#include "utils/choose_album_art.h"
 #include "utils/file.h"
 #include "utils/img_utils.h"
 #include "utils/k_log.h"
 #include "utils/utils.h"
-#include "utils/choose_album_art.h"
 
 #include "stb_image.h"
 #include "tagLibWrapper.h"
@@ -256,9 +256,11 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 return largest_image_file;
         }
 
-        do {
-                if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
+do {
+                if (wcscmp(ffd.cFileName, L".") == 0 ||
+                    wcscmp(ffd.cFileName, L"..") == 0)
                         continue;
+
                 if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                         continue;
 
@@ -266,6 +268,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                 const wchar_t *ext = wcsrchr(ffd.cFileName, L'.');
                 if (!ext)
                         continue;
+
                 if (_wcsicmp(ext, L".jpg") != 0 &&
                     _wcsicmp(ext, L".jpeg") != 0 &&
                     _wcsicmp(ext, L".png") != 0 &&
@@ -284,25 +287,42 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
                         continue;
 
                 if (file_size > *largest_file_size) {
-                        *largest_file_size = file_size;
-
                         size_t baselen = wcslen(wbase);
                         size_t namelen = wcslen(ffd.cFileName);
-                        wchar_t *wfull = (wchar_t *)malloc((baselen + namelen + 1) * sizeof(wchar_t));
+
+                        wchar_t *wfull = (wchar_t *)malloc(
+                            (baselen + namelen + 1) * sizeof(wchar_t));
+
                         if (!wfull)
                                 break;
+
                         wcscpy(wfull, wbase);
                         wcscat(wfull, ffd.cFileName);
 
-                        int u8len = WideCharToMultiByte(CP_UTF8, 0, wfull, -1, NULL, 0, NULL, NULL);
+                        int u8len = WideCharToMultiByte(
+                            CP_UTF8, 0, wfull, -1,
+                            NULL, 0, NULL, NULL, NULL);
+
                         if (u8len > 0) {
-                                char *tmp = (char *)malloc(u8len);
+                                char *tmp = (char *)malloc((size_t)u8len);
+
                                 if (tmp) {
-                                        WideCharToMultiByte(CP_UTF8, 0, wfull, -1, tmp, u8len, NULL, NULL);
-                                        free(largest_image_file);
-                                        largest_image_file = tmp;
+                                        int converted = WideCharToMultiByte(
+                                            CP_UTF8, 0,
+                                            wfull, -1,
+                                            tmp, u8len,
+                                            NULL, NULL);
+
+                                        if (converted > 0) {
+                                                free(largest_image_file);
+                                                largest_image_file = tmp;
+                                                *largest_file_size = file_size;
+                                        } else {
+                                                free(tmp);
+                                        }
                                 }
                         }
+
                         free(wfull);
                 }
 
@@ -513,7 +533,7 @@ void load_meta_data(SongData *songdata)
 #else
         char *extension = strrchr(songdata->cover_art_path, '.');
         if (found_image && extension && strcasecmp(extension, ".webp") == 0) {
- #endif
+#endif
                 songdata->cover = twp_read(songdata->cover_art_path, &(songdata->coverWidth), &(songdata->coverHeight), twp_FORMAT_RGBA, 0);
         } else {
 
