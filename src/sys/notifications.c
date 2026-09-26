@@ -377,7 +377,7 @@ int display_song_notification(const char *artist, const char *title, const char 
         remove_blacklisted_chars(artist, blacklist, sanitized_artist, sizeof(sanitized_artist));
         remove_blacklisted_chars(title, blacklist, sanitized_title, sizeof(sanitized_title));
 
-        ensure_non_empty(sanitized_artist, sizeof(sanitized_title));
+        ensure_non_empty(sanitized_artist, sizeof(sanitized_artist));
         ensure_non_empty(sanitized_title, sizeof(sanitized_title));
 
         int coverExists = is_valid_filepath(cover);
