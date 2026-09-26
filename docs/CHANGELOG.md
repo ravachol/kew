@@ -18,6 +18,8 @@
 
 - Fix Chroma printed in the wrong position for songs with non-square album covers. By @nhuvaynhe.
 
+- Fix crash sometimes when there was no song cover. By @ravachol. Found by @SoupKitten.
+
 ## kew 4.3.6
 
 Pushing this one out because the screen flickers every 3 seconds on ghostty in 4.3.5.
