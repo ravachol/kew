@@ -310,16 +310,6 @@ ma_data_source_vtable g_m4a_decoder_ds_vtable =
         NULL,
         (ma_uint64)0};
 
-static ma_result file_on_seek(void *pUserData, ma_int64 offset, ma_seek_origin origin)
-{
-        FILE *fp = (FILE *)pUserData;
-        int whence = (origin == ma_seek_origin_start) ? SEEK_SET : SEEK_CUR;
-        if (fseeko(fp, offset, whence) != 0) {
-                return MA_ERROR;
-        }
-        return MA_SUCCESS;
-}
-
 static ma_result m4a_decoder_init_internal(const ma_decoding_backend_config *p_config, m4a_decoder *pM4a)
 {
         if (pM4a == NULL) {
