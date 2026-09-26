@@ -112,14 +112,12 @@ extern "C" void smtc_init(void)
         try {
                 init_apartment();
         } catch (const hresult_error &e) {
-                k_log_error("smtc_init: init_apartment failed: 0x%08X", e.code().value);
                 return;
         }
 
         g_hwnd = create_hidden_window();
 
         if (!g_hwnd) {
-                k_log_error("smtc_init: failed to create hidden window (0x%08X)", GetLastError());
                 return;
         }
 
@@ -173,7 +171,6 @@ extern "C" void smtc_init(void)
                 g_duration = 0.0;
                 g_initialized = true;
         } catch (const hresult_error &e) {
-                k_log_error("smtc_init: SMTC setup failed: 0x%08X", e.code().value);
                 return;
         }
 }
