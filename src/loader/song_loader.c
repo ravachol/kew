@@ -301,7 +301,7 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
 
                         int u8len = WideCharToMultiByte(
                             CP_UTF8, 0, wfull, -1,
-                            NULL, 0, NULL, NULL, NULL);
+                            NULL, 0, NULL, NULL);
 
                         if (u8len > 0) {
                                 char *tmp = (char *)malloc((size_t)u8len);
