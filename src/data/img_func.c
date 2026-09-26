@@ -331,6 +331,11 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
 #endif
 
+        if (pixels == NULL || pix_width <= 0 || pix_height <= 0 || pix_rowstride <= 0) {
+                k_log("convert_image: no valid image data, skipping");
+                return NULL;
+        }
+
         ChafaPixelMode forced_mode = style_to_pixel_mode(cover_style);
         if (forced_mode != (ChafaPixelMode)-1) {
                 pixel_mode = forced_mode;
@@ -343,7 +348,6 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         if (model->state.settings.verbose_mode)
                 k_log("convert_image() ENCODE_VERSION(1, 16) mode set ");
-
 
         if (passthrough == CHAFA_PASSTHROUGH_TMUX)
                 apply_passthrough_workarounds_tmux();
@@ -370,13 +374,12 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         canvas = chafa_canvas_new(config);
         frame = chafa_frame_new(pixels, pixel_type,
-                        pix_width, pix_height, pix_rowstride);
+                                pix_width, pix_height, pix_rowstride);
         image = chafa_image_new();
         chafa_image_set_frame(image, frame);
 
         if (model->state.settings.verbose_mode)
                 k_log("convert_image() ENCODE_VERSION(1, 16) set frame done ");
-
 
         placement = chafa_placement_new(image, 1);
         chafa_placement_set_tuck(placement, CHAFA_TUCK_FIT);
@@ -598,7 +601,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 k_log("draw_square_bitmap_to_buf() entered");
 
         // Validate arguments.
-        if (!draw_occupied_markers && ! just_mark_cover && (!buf || !buf->cells || !term_size || !pixels)) {
+        if (!just_mark_cover && (!buf || !buf->cells || !term_size || !pixels)) {
                 k_log("Invalid draw arguments.");
                 return 0;
         }
@@ -608,7 +611,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 return 0;
         }
 
-        if (!draw_occupied_markers && ! just_mark_cover && (width <= 0 || height <= 0)) {
+        if (!just_mark_cover && (width <= 0 || height <= 0)) {
                 k_log("Invalid image dimensions.");
                 return 0;
         }
@@ -619,14 +622,14 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         }
 
         // Validate RGBA8 buffer size.
-        if (!draw_occupied_markers && ! just_mark_cover && ((size_t)width > SIZE_MAX / 4)) {
+        if (!draw_occupied_markers && !just_mark_cover && ((size_t)width > SIZE_MAX / 4)) {
                 k_log("Image width overflow.");
                 return 0;
         }
 
         size_t stride = (size_t)width * 4;
 
-        if (!draw_occupied_markers && ! just_mark_cover && ((size_t)height > SIZE_MAX / stride)) {
+        if (!draw_occupied_markers && !just_mark_cover && ((size_t)height > SIZE_MAX / stride)) {
                 k_log("Image size overflow.");
                 return 0;
         }
@@ -666,8 +669,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         // Source image aspect.
         float image_ratio = (float)width / (float)height;
 
-        if (isnan(image_ratio))
-        {
+        if (isnan(image_ratio)) {
                 image_ratio = 1.0;
         }
 
