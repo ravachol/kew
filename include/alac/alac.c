@@ -36,11 +36,7 @@ static const int host_bigendian = 0;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _WIN32
-#include "stdint_win.h"
-#else
 #include <stdint.h>
-#endif
 
 #include "alac.h"
 
