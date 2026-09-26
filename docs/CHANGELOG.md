@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.3.9
+
+- Windows: Remove reference to stdint_win.h in alac.c.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
