@@ -14,6 +14,7 @@
 
 #include <dirent.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -87,23 +88,50 @@ static char **collect_subdirs(const char *dir_path, int *out_count)
         while ((entry_name = g_dir_read_name(directory)) != NULL) {
                 char *candidate = g_build_filename(dir_path, entry_name, NULL);
                 GStatBuf st;
+
                 bool is_dir =
-                    candidate && g_stat(candidate, &st) == 0 && S_ISDIR(st.st_mode);
+                    candidate &&
+                    g_stat(candidate, &st) == 0 &&
+                    S_ISDIR(st.st_mode);
+
                 if (!is_dir) {
                         g_free(candidate);
                         continue;
                 }
 
                 if (count == capacity) {
-                        capacity = capacity ? capacity * 2 : 8;
-                        char **grown =
-                            g_try_realloc(names, capacity * sizeof(*names));
+                        int new_capacity;
+
+                        if (capacity == 0) {
+                                new_capacity = 8;
+                        } else {
+                                if (capacity > INT_MAX / 2) {
+                                        g_free(candidate);
+                                        break;
+                                }
+
+                                new_capacity = capacity * 2;
+                        }
+
+                        if ((size_t)new_capacity >
+                            SIZE_MAX / sizeof(*names)) {
+                                g_free(candidate);
+                                break;
+                        }
+
+                        char **grown = g_try_realloc(
+                            names,
+                            (size_t)new_capacity * sizeof(*names));
+
                         if (!grown) {
                                 g_free(candidate);
-                                break; /* stop collecting; use what we have */
+                                break;
                         }
+
                         names = grown;
+                        capacity = new_capacity;
                 }
+
                 names[count++] = candidate;
         }
 
@@ -124,7 +152,7 @@ static void free_subdirs(char **names, int count)
 }
 
 char *choose_album_art(const char *dir_path, char **custom_file_name_arr,
-                        int arr_size, bool search_sub_dirs)
+                       int arr_size, bool search_sub_dirs)
 {
         if (!dir_path || !custom_file_name_arr || arr_size <= 0)
                 return NULL;
@@ -145,4 +173,3 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr,
 
         return result;
 }
-
