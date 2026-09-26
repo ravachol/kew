@@ -70,7 +70,7 @@ Name: fileassoc; \
 [Icons]
 Name: "{group}\kew"; \
     Filename: "{app}\{#MyAppExeName}"; \
-    IconFilename: "{app}\kew.ico" \
+    IconFilename: "{app}\kew.ico"; \
     Tasks: startmenuicon
 
 Name: "{commondesktop}\kew"; \
