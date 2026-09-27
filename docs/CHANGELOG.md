@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.3.9
+
+- Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
