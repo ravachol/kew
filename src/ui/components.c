@@ -1685,6 +1685,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 {
         (void)dirty;
 
+        static bool skip_mouse_click = false;
         const UISettings *ui = &model->state.settings;
         const PlayList *list = model->playlist;
         const UIState *uis = &model->state.ui;
@@ -1803,7 +1804,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 int is_chosen = false;
                 if (!found_chosen) {
-                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                        if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
                                 is_chosen = model->mouse_y >= region.row &&
                                             model->mouse_x > region.col &&
                                             model->mouse_x <= region.col + rownum_len + spaces + chosen_name_len &&
@@ -1821,8 +1822,13 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         }
                 }
 
-                if (node->next == NULL && !found_chosen)
-                        is_chosen = found_chosen = true; // Chose the last one if none has been found
+                if (node->next == NULL && !found_chosen) {
+                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                                // mouse clicked outside any song in the playlist
+                                skip_mouse_click = true;
+                                return component_playlist_rows(model, region, buf, dirty);
+                        }
+                }
 
                 bool is_playing = false;
 
@@ -1835,6 +1841,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         chosen_row = i;
                         chosen_node = node;
                         found_chosen = true;
+                        skip_mouse_click = false;
                 }
 
                 if (is_playing) {
