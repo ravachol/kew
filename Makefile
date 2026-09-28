@@ -396,6 +396,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(THEMEDIR)"
 	mkdir -p "$(DESTDIR)$(LAYOUTDIR)"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES"
+	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ru/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(PREFIX)/share/applications"
 	mkdir -p "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps"
@@ -415,6 +416,10 @@ install: all
 	# Install Japanese translation
 	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
 		"$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
+
+  # Install Russian translation
+	install -m 0644 locale/ru/LC_MESSAGES/kew.mo \
+		"$(DESTDIR)$(LOCALEDIR)/ru/LC_MESSAGES/kew.mo"
 
 ifeq ($(UNAME_S),Darwin)
 	@true
@@ -482,6 +487,7 @@ uninstall:
 	rm -rf "$(DESTDIR)$(THEMEDIR)"
 	rm -rf "$(DESTDIR)$(LAYOUTDIR)"
 	rm -f "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
+	rm -f "$(DESTDIR)$(LOCALEDIR)/ru/LC_MESSAGES/kew.mo"
 	rm -f "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo"
 	rm -f "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/kew.png"
 	rm -f "$(DESTDIR)$(PREFIX)/share/applications/kew.desktop"
