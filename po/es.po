@@ -1,7 +1,7 @@
 # kew - Music For The Shell
 # Copyright (C) 2022- Ravachol
 # This file is distributed under GPLv2, the same license as the kew package.
-# FIRST AUTHOR <kew-player@proton-me>, 2025.
+# FIRST AUTHOR <victorhck@mailbox.org>, 2026.
 #
 # SPDX-FileCopyrightText: 2026 victorhck <victorhck@mailbox.org>
 msgid ""
