@@ -2,6 +2,14 @@
 
 ## kew 4.3.9
 
+#### Enhancements:
+
+- Spanish translation. By @victorhck.
+
+- Russian translation. By @adem4ik.
+
+#### Bug Fixes:
+
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
 
 ## kew 4.3.8
