@@ -398,6 +398,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/ru/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES"
+	mkdir -p "$(DESTDIR)$(LOCALEDIR)/es/LC_MESSAGES"
 	mkdir -p "$(DESTDIR)$(PREFIX)/share/applications"
 	mkdir -p "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps"
 
@@ -417,9 +418,14 @@ install: all
 	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
 		"$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo"
 
-  # Install Russian translation
+	# Install Russian translation
 	install -m 0644 locale/ru/LC_MESSAGES/kew.mo \
 		"$(DESTDIR)$(LOCALEDIR)/ru/LC_MESSAGES/kew.mo"
+
+	# Install Spanish translation
+	install -m 0644 locale/es/LC_MESSAGES/kew.mo \
+		"$(DESTDIR)$(LOCALEDIR)/es/LC_MESSAGES/kew.mo"
+
 
 ifeq ($(UNAME_S),Darwin)
 	@true
