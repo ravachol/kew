@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-13 13:54+0200\n"
-"PO-Revision-Date: 2026-09-29 18:20+0200\n"
+"PO-Revision-Date: 2026-09-29 19:15+0200\n"
 "Last-Translator: victorhck <victorhck@mailbox.org>\n"
 "Language-Team: Spanish <victorhck@mailbox.org>\n"
 "Language: es\n"
@@ -76,7 +76,7 @@ msgstr "No se pudo obtener el nombre del D-Bus: %s\n"
 #: src/ui/cli.c:143
 #, c-format
 msgid "Music Library: "
-msgstr "Biblioteca musical:"
+msgstr "Biblioteca musical: "
 
 #: src/ui/cli.c:148
 #, c-format
@@ -107,7 +107,7 @@ msgid ""
 "Type a path:\n"
 "\n"
 msgstr ""
-"Por favor, escribe una camino:\n"
+"Por favor, escribe una ruta:\n"
 "\n"
 
 #: src/ui/render_ui.c:150
@@ -210,7 +210,7 @@ msgstr " Autor: "
 
 #: src/ui/components.c:2906
 msgid " Basic"
-msgstr "Básico"
+msgstr " Básico"
 
 #: src/ui/components.c:2907
 #, c-format
