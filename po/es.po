@@ -1,7 +1,7 @@
 # kew - Music For The Shell
 # Copyright (C) 2022- Ravachol
 # This file is distributed under GPLv2, the same license as the kew package.
-# FIRST AUTHOR <victorhck@mailbox.org>, 2026.
+# SPDX-FileCopyrightText: 2026 FIRST AUTHOR <victorhck@mailbox.org>
 #
 # SPDX-FileCopyrightText: 2026 victorhck <victorhck@mailbox.org>
 msgid ""
@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-13 13:54+0200\n"
-"PO-Revision-Date: 2026-09-28 20:03+0200\n"
+"PO-Revision-Date: 2026-09-29 18:20+0200\n"
 "Last-Translator: victorhck <victorhck@mailbox.org>\n"
 "Language-Team: Spanish <victorhck@mailbox.org>\n"
 "Language: es\n"
@@ -344,7 +344,7 @@ msgstr "· Activar el fundido cruzado (experimental) On: %s"
 #: src/ui/components.c:2968
 #, c-format
 msgid " · Crossfade (experimental): quick %s medium %s slow %s"
-msgstr "· Fundido (experimental): rápido %s mediano % lento %s"
+msgstr "· Fundido (experimental): rápido %s mediano %s lento %s"
 
 #: src/ui/components.c:2973
 #, c-format
@@ -354,7 +354,7 @@ msgstr "· Exportar lista de reproducción: %s"
 #: src/ui/components.c:2975
 #, c-format
 msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
-msgstr " · 曲を 'kew favorites.m3u' に追加：%s（'kew .' で実行）"
+msgstr " · Añadir canción a 'kew favorites.m3u': %s (ejecutar con 'kew .')"
 
 #: src/ui/components.c:2985 src/ui/components.c:2986
 msgid " Homepage: "
@@ -378,7 +378,7 @@ msgstr "Por favor, asegúrate de que la ruta esté bien configurada. \n"
 #: src/kew.c:335
 #, c-format
 msgid "To set it type: kew path \"/path/to/Music\". \n"
-msgstr "Para configurarla, tipo: ruta kew \"/ruta/a_la/Música\". \n"
+msgstr "Para configurarla, escribe: ruta kew \"/ruta/a_la/Música\". \n"
 
 #: src/kew.c:337
 #, c-format
