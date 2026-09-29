@@ -31,9 +31,9 @@ msgid "Memory allocation error.\n"
 msgstr "内存分配错误。\n"
 
 #: src/data/playlist.c:334 src/data/playlist.c:347
-#, fuzzy
+#, c-format
 msgid "Memory allocation error."
-msgstr "内存分配错误。\n"
+msgstr "内存分配错误。"
 
 #: src/data/playlist.c:416
 #, c-format
@@ -177,9 +177,9 @@ msgid "kew version: "
 msgstr "kew 版本："
 
 #: src/ui/components.c:3068 src/ui/components.c:3069
-#, fuzzy
+#, c-format
 msgid " Love kew? ❤️ "
-msgstr " Love kew? ❤️  "
+msgstr " Love kew? ❤️ "
 
 #: src/ui/components.c:3098 src/ui/components.c:3099 src/ui/components.c:3106
 #: src/ui/components.c:3107 src/ui/components.c:3114
