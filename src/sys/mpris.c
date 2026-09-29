@@ -448,7 +448,7 @@ static void on_bus_name_lost(GDBusConnection *connection, const gchar *name,
         (void)connection;
         (void)name;
         (void)user_data;
-        k_log("DBUS name lostd");
+        k_log("DBUS name lost");
 }
 
 static gboolean
@@ -1139,6 +1139,7 @@ void mpris_shutdown(void)
 
 void mpris_init(void)
 {
+        k_log("mpris_init entered");
 #ifdef USE_DBUS
         AppState *state = get_app_state();
 
@@ -1217,6 +1218,8 @@ void mpris_init(void)
         smtc_init();
 
 #endif
+
+        k_log("mpris_init done");
 }
 
 gchar *sanitize_title(const gchar *title)
