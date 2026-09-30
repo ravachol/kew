@@ -868,8 +868,11 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUE});
                         else if (model->mouse_key == TB_KEY_MOUSE_MIDDLE)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
-                } else {
-                        if (model->state.ui.check_collapse_top_level) {
+                }
+
+                if (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory))
+                {
+                        if (model->state.ui.check_collapse_top_level || (msg->current_lib_entry && msg->current_lib_entry->is_directory)) {
 
                                 FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
                                 FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
