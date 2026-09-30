@@ -14,6 +14,8 @@
 
 - Fix scrollbar unresponsive on very large terminal sizes. By @ravachol. Found by @LeahTheSlug.
 
+- Fix library view position jumping, when expanding a folder, then scrolling down with the scrollbar, then expanding another one. By @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
