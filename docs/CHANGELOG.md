@@ -12,6 +12,8 @@
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
 
+- Fix scrollbar unresponsive on very large terminal sizes. By @ravachol. Found by @LeahTheSlug.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
