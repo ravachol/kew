@@ -2889,8 +2889,8 @@ static int extract_esc_mouse(struct tb_event *event)
                                 }
 
                                 // the coord is 1,1 for upper left
-                                event->x = ((uint8_t)in->buf[4]) - 0x21;
-                                event->y = ((uint8_t)in->buf[5]) - 0x21;
+                                event->x = ((int32_t)in->buf[4]) - 0x21;
+                                event->y = ((int32_t)in->buf[5]) - 0x21;
 
                                 ret = TB_OK;
                         }
@@ -2981,8 +2981,8 @@ static int extract_esc_mouse(struct tb_event *event)
                                         event->mod |= TB_MOD_MOTION;
                                 }
 
-                                event->x = ((uint8_t)n2) - 1;
-                                event->y = ((uint8_t)n3) - 1;
+                                event->x = ((int32_t)n2) - 1;
+                                event->y = ((int32_t)n3) - 1;
 
                                 ret = TB_OK;
                         }
