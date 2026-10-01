@@ -37,6 +37,7 @@
 
 #include <glib.h>
 #include <math.h>
+#include <stdint.h>
 
 #ifdef USE_DBUS
 
@@ -44,6 +45,9 @@ static guint registration_id;
 static guint bus_name_id;
 static guint player_registration_id;
 static guint track_list_registration_id;
+static GArray *last_track_ids;
+static gchar *last_metadata_id;
+static double last_metadata_duration;
 static gchar *pending_track_path;
 static gdouble rate = 1.0;
 static gdouble volume = 0.5;
@@ -1411,6 +1415,101 @@ static const GDBusInterfaceVTable track_list_interface_vtable = {
     .set_property = set_property_callback};
 #endif
 
+void mpris_update_track_list(void)
+{
+#ifdef USE_DBUS
+        GDBusConnection *connection = get_gd_bus_connection();
+        if (!connection || !track_list_registration_id)
+                return;
+
+        PlayList *playlist = get_playlist();
+        GPtrArray *ids = NULL;
+        GArray *track_ids = NULL;
+        TrackSnapshot *updated_track = NULL;
+        char current_path[96];
+        g_strlcpy(current_path, "/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                  sizeof(current_path));
+        Node *current = get_current_song();
+
+        pthread_mutex_lock(&playlist->mutex);
+        gboolean changed = !last_track_ids;
+        guint index = 0;
+        for (Node *node = playlist->head; node; node = node->next) {
+                if (!changed && (index >= last_track_ids->len ||
+                    node->tracklist_id != g_array_index(last_track_ids, uint64_t, index)))
+                        changed = TRUE;
+                index++;
+                if (node == current) {
+                        char path[96];
+                        track_path(node, path, sizeof(path));
+                        g_strlcpy(current_path, path, sizeof(current_path));
+                        if (g_strcmp0(last_metadata_id, path) == 0 &&
+                            last_metadata_duration != node->song.duration) {
+                                updated_track = g_new0(TrackSnapshot, 1);
+                                updated_track->track_id = g_strdup(path);
+                                updated_track->file_path = g_strdup(node->song.file_path);
+                                updated_track->duration = node->song.duration;
+                        }
+                        last_metadata_duration = node->song.duration;
+                }
+        }
+        if (index != (last_track_ids ? last_track_ids->len : 0))
+                changed = TRUE;
+        if (changed) {
+                ids = g_ptr_array_new_with_free_func(g_free);
+                track_ids = g_array_sized_new(FALSE, FALSE, sizeof(uint64_t), index);
+                for (Node *node = playlist->head; node; node = node->next) {
+                        char path[96];
+                        track_path(node, path, sizeof(path));
+                        g_ptr_array_add(ids, g_strdup(path));
+                        g_array_append_val(track_ids, node->tracklist_id);
+                }
+        }
+        pthread_mutex_unlock(&playlist->mutex);
+
+        if (g_strcmp0(last_metadata_id, current_path) != 0) {
+                g_free(last_metadata_id);
+                last_metadata_id = g_strdup(current_path);
+        }
+        if (updated_track && !changed)
+                g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2",
+                                              "org.mpris.MediaPlayer2.TrackList",
+                                              "TrackMetadataChanged",
+                                              g_variant_new("(o@a{sv})", updated_track->track_id,
+                                                            track_metadata(updated_track)), NULL);
+        if (updated_track)
+                free_track_snapshot(updated_track);
+        if (!changed) {
+                return;
+        }
+
+        GVariantBuilder tracks;
+        g_variant_builder_init(&tracks, G_VARIANT_TYPE("ao"));
+        for (guint i = 0; i < ids->len; i++)
+                g_variant_builder_add(&tracks, "o", (char *)g_ptr_array_index(ids, i));
+        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2",
+                                      "org.mpris.MediaPlayer2.TrackList",
+                                      "TrackListReplaced",
+                                      g_variant_new("(aoo)", &tracks, current_path), NULL);
+
+        GVariantBuilder changed_properties;
+        GVariantBuilder invalidated;
+        g_variant_builder_init(&changed_properties, G_VARIANT_TYPE("a{sv}"));
+        g_variant_builder_init(&invalidated, G_VARIANT_TYPE("as"));
+        g_variant_builder_add(&invalidated, "s", "Tracks");
+        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2",
+                                      "org.freedesktop.DBus.Properties",
+                                      "PropertiesChanged",
+                                      g_variant_new("(sa{sv}as)",
+                                                    "org.mpris.MediaPlayer2.TrackList",
+                                                    &changed_properties, &invalidated), NULL);
+        if (last_track_ids)
+                g_array_unref(last_track_ids);
+        last_track_ids = track_ids;
+        g_ptr_array_unref(ids);
+#endif
+}
+
 void emit_playback_playing()
 {
 #ifdef USE_DBUS
@@ -1464,7 +1563,13 @@ void mpris_shutdown(void)
                                                     track_list_registration_id);
                 track_list_registration_id = 0;
         }
+        if (last_track_ids) {
+                g_array_unref(last_track_ids);
+                last_track_ids = NULL;
+        }
+        g_clear_pointer(&last_metadata_id, g_free);
         g_clear_pointer(&pending_track_path, g_free);
+
         if (bus_name_id != 0) {
                 g_bus_unown_name(bus_name_id);
                 bus_name_id = 0;
