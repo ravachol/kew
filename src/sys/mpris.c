@@ -592,24 +592,24 @@ static gboolean get_shuffle(GDBusConnection *connection, const gchar *sender,
 
 // Convert a filesystem cover path to a properly escaped file:// URI for
 // mpris:artUrl
-static gchar *cover_art_path_to_uri(const char *cover_art_path)
+static gchar *path_to_uri(const char *path)
 {
-        if (!cover_art_path || cover_art_path[0] == '\0')
+        if (!path || path[0] == '\0')
                 return NULL;
 
         GError *error = NULL;
-        gchar *uri = g_filename_to_uri(cover_art_path, NULL, &error);
+        gchar *uri = g_filename_to_uri(path, NULL, &error);
         if (uri)
                 return uri;
 
         if (error) {
-                g_debug("cover_art_path_to_uri: %s", error->message);
+                g_debug("path_to_uri: %s", error->message);
                 g_error_free(error);
         }
 
         // Fallback for absolute Unix paths if g_filename_to_uri fails
-        if (cover_art_path[0] == '/')
-                return g_strdup_printf("file://%s", cover_art_path);
+        if (path[0] == '/')
+                return g_strdup_printf("file://%s", path);
 
         return NULL;
 }
@@ -663,7 +663,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                     g_variant_new_string(current_song_data->metadata->date));
 
                 gchar *coverArtUrl =
-                    cover_art_path_to_uri(current_song_data->cover_art_path);
+                    path_to_uri(current_song_data->cover_art_path);
                 if (coverArtUrl) {
                         g_variant_builder_add(&metadata_builder, "{sv}",
                                               "mpris:artUrl",
@@ -673,6 +673,18 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                         g_variant_builder_add(&metadata_builder, "{sv}",
                                               "mpris:artUrl",
                                               g_variant_new_string(""));
+                }
+
+                gchar *track_uri = path_to_uri(current_song_data->file_path);
+
+                if (track_uri) {
+                        g_variant_builder_add(
+                            &metadata_builder,
+                            "{sv}",
+                            "xesam:url",
+                            g_variant_new_string(track_uri));
+
+                        g_free(track_uri);
                 }
 
                 g_variant_builder_add(
@@ -1420,12 +1432,26 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album",
                               g_variant_new_string(album));
 
-        coverArtUrl = cover_art_path_to_uri(cover_art_path);
+        coverArtUrl = path_to_uri(cover_art_path);
         if (coverArtUrl) {
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl",
                                       g_variant_new_string(coverArtUrl));
                 g_debug("Cover art URL added: %s", coverArtUrl);
                 g_free(coverArtUrl);
+        }
+
+        if (current_song) {
+                gchar *track_uri = path_to_uri(current_song->song.file_path);
+
+                if (track_uri) {
+                        g_variant_builder_add(
+                            &metadata_builder,
+                            "{sv}",
+                            "xesam:url",
+                            g_variant_new_string(track_uri));
+
+                        g_free(track_uri);
+                }
         }
 
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid",
