@@ -45,6 +45,7 @@ static bool shuffle = false;
 static int num_dirs = 0;
 static Node *current_song = NULL;
 static int node_id_counter = 0;
+static uint64_t tracklist_id_counter = 0;
 
 void clear_current_song(void)
 {
@@ -423,6 +424,7 @@ void create_node(Node **node, const char *directory_path, int id)
         (*node)->next = NULL;
         (*node)->prev = NULL;
         (*node)->id = id;
+        (*node)->tracklist_id = ++tracklist_id_counter;
 }
 
 void destroy_node(Node *node)
@@ -1233,11 +1235,8 @@ void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist)
 
         // Position in the playlist is determined by the enqueued variable
         if (root->is_enqueued > 0 && root->is_directory == 0 && !is_m3u_file(root)) {
-                Node *node = malloc(sizeof(Node));
-                node->song.file_path = strdup(root->full_path);
-                node->id = root->id;
-                node->song.duration = 0.0;
-                node->prev = node->next = NULL;
+                Node *node = NULL;
+                create_node(&node, root->full_path, root->id);
 
                 insert_at_position(playlist, node, root->is_enqueued);
                 playlist->count++;
@@ -1332,6 +1331,7 @@ Node *deep_copy_node(Node *original_node)
         new_node->song.duration = original_node->song.duration;
         new_node->prev = NULL;
         new_node->id = original_node->id;
+        new_node->tracklist_id = original_node->tracklist_id;
         new_node->next = deep_copy_node(original_node->next);
 
         if (new_node->next != NULL) {
