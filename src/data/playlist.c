@@ -891,7 +891,7 @@ Node *read_m3u_file(const char *filepath, PlayList *playlist)
                         if (songPath == NULL)
                                 continue;
 
-                        if (exists_file(songPath) < 0) {
+                        if (exists_file(songPath) < 0 && model->library && model->library->full_path) {
                                 songPath = g_build_filename(model->library->full_path,
                                                             trimmed_line, NULL);
 

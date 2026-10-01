@@ -24,6 +24,8 @@
 
 - Fixes issue with unicode string length of folders in library. By @ravachol.
 
+- Fixes stale playlist causing a crash. By @ravachol. Reported by @Needlide.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
