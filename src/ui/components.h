@@ -35,6 +35,8 @@ void component_playlist_helper_reset(Model *model);
 
 void component_playlist_helper_update_view_state(Model *model, bool center);
 
+void prepare_playlist_string(Node *node, char *buffer, int buffer_size);
+
 ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
