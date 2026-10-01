@@ -523,11 +523,13 @@ void enqueue_song(FileSystemEntry *child)
 
         Node *node = NULL;
         create_node(&node, child->full_path, id);
+        uint64_t tracklist_id = node->tracklist_id;
         if (add_to_list(unshuffled_playlist, node) == -1)
                 destroy_node(node);
 
         Node *node2 = NULL;
         create_node(&node2, child->full_path, id);
+        node2->tracklist_id = tracklist_id;
         if (add_to_list(playlist, node2) == -1)
                 destroy_node(node2);
 
@@ -919,6 +921,7 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
 
                         Node *node2 = NULL;
                         create_node(&node2, normalized, id);
+                        node2->tracklist_id = node1->tracklist_id;
                         if (add_to_list(playlist, node2) == -1)
                                 destroy_node(node2);
 
