@@ -82,8 +82,11 @@ void skip(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        sound_system_stop_decoding(sound_sys);
-
+        /*
+         * Keep the current decoder type so that a manual song switch takes the
+         * same seamless path as an end-of-track transition, instead of forcing
+         * a full audio device re-creation in handle_codec().
+         */
         if (is_repeat_enabled())
                 set_repeat_state(0);
 
