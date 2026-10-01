@@ -1680,7 +1680,7 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                 free(args_str);
                 }
 
-                free(lowercase_key);
+                g_free(lowercase_key);
         }
 
         free_key_value_pairs(pairs, count);

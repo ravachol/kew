@@ -605,7 +605,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 if (depth == 1) {
                                         char *upper = string_to_upper(orig_name);
                                         snprintf(orig_name, name_buf_size, "%s", upper);
-                                        free(upper);
+                                        g_free(upper);
                                 }
 
                                 snprintf(dir_name, name_buf_size, "%s", orig_name);
@@ -3541,7 +3541,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                                     entry->name);
 
                                 snprintf(tmp, sizeof(tmp), "%s", upper);
-                                free(upper);
+                                g_free(upper);
 
                         } else {
                                 snprintf(tmp, sizeof(tmp), "[%s]",

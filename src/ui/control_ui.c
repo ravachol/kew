@@ -500,7 +500,7 @@ int load_theme(const char *theme_name,
             load_theme_from_file(themes_dir, lower_filename, &state->settings.theme);
         if (!loaded) {
                 free(config_path);
-                free(lower_filename);
+                g_free(lower_filename);
                 return 0; // failed to load
         }
 

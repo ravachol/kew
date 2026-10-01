@@ -472,12 +472,12 @@ int compare_lib_entries(const struct dirent **a, const struct dirent **b)
 
         // Underscore-prefixed entries go to the end
         if (name_a[0] == '_' && name_b[0] != '_') {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return 1;
         } else if (name_a[0] != '_' && name_b[0] == '_') {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return -1;
         }
 
@@ -485,19 +485,19 @@ int compare_lib_entries(const struct dirent **a, const struct dirent **b)
         bool is_m3u_a = is_m3u((*a)->d_name);
         bool is_m3u_b = is_m3u((*b)->d_name);
         if (is_m3u_a && !is_m3u_b) {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return -1;
         } else if (!is_m3u_a && is_m3u_b) {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return 1;
         }
 
         int result = natural_compare(name_a, name_b);
 
-        free(name_a);
-        free(name_b);
+        g_free(name_a);
+        g_free(name_b);
 
         return result;
 }
@@ -571,12 +571,12 @@ int compare_entry_natural(const void *a, const void *b)
 
         // Underscore-prefixed entries go to the end
         if (name_a[0] == '_' && name_b[0] != '_') {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return 1;
         } else if (name_a[0] != '_' && name_b[0] == '_') {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return -1;
         }
 
@@ -584,19 +584,19 @@ int compare_entry_natural(const void *a, const void *b)
         bool is_m3u_a = is_m3u(entry_a->name);
         bool is_m3u_b = is_m3u(entry_b->name);
         if (is_m3u_a && !is_m3u_b) {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return -1;
         } else if (!is_m3u_a && is_m3u_b) {
-                free(name_a);
-                free(name_b);
+                g_free(name_a);
+                g_free(name_b);
                 return 1;
         }
 
         int result = natural_compare(name_a, name_b);
 
-        free(name_a);
-        free(name_b);
+        g_free(name_a);
+        g_free(name_b);
         return result;
 }
 
