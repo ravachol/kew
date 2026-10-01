@@ -64,8 +64,6 @@ const gchar *introspection_xml =
     "    <method name=\"Raise\"/>\n"
     "    <method name=\"Quit\"/>\n"
     "    <property name=\"CanQuit\" type=\"b\" access=\"read\"/>\n"
-    "    <property name=\"Fullscreen\" type=\"b\" access=\"readwrite\"/>\n"
-    "    <property name=\"CanSetFullscreen\" type=\"b\" access=\"read\"/>\n"
     "    <property name=\"CanRaise\" type=\"b\" access=\"read\"/>\n"
     "    <property name=\"HasTrackList\" type=\"b\" access=\"read\"/>\n"
     "    <property name=\"Identity\" type=\"s\" access=\"read\"/>\n"
@@ -188,6 +186,28 @@ static gboolean get_has_track_list(GDBusConnection *connection,
         *value = g_variant_new_boolean(FALSE);
         return TRUE;
 }
+
+static gboolean get_can_raise(GDBusConnection *connection,
+                                   const gchar *sender,
+                                   const gchar *object_path,
+                                   const gchar *interface_name,
+                                   const gchar *property_name,
+                                   GVariant **value,
+                                   GError **error,
+                                   gpointer user_data)
+{
+        (void)connection;
+        (void)sender;
+        (void)object_path;
+        (void)interface_name;
+        (void)property_name;
+        (void)error;
+        (void)user_data;
+
+        *value = g_variant_new_boolean(FALSE);
+        return TRUE;
+}
+
 
 static gboolean get_desktop_entry(GDBusConnection *connection,
                                   const gchar *sender, const gchar *object_path,
@@ -1016,6 +1036,9 @@ static GVariant *get_property_callback(GDBusConnection *connection,
                 get_has_track_list(connection, sender, object_path,
                                    interface_name, property_name, &value,
                                    error, user_data);
+        } else if (g_strcmp0(property_name, "CanRaise") == 0) {
+                get_can_raise(connection, sender, object_path, interface_name,
+                                property_name, &value, error, user_data);
         } else if (g_strcmp0(property_name, "CanGoNext") == 0) {
                 get_can_go_next(connection, sender, object_path, interface_name,
                                 property_name, &value, error, user_data);
