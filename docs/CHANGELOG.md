@@ -10,6 +10,8 @@
 
 - Add xesam:url to MPRIS metadata. Suggested by @keratomalaciant.
 
+- Add trackslist support to MPRIS. Suggested by @superb-striker. By @superb-striker.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
