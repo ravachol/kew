@@ -711,6 +711,8 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                                       g_variant_new_string(""));
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl",
                                       g_variant_new_string(""));
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:url",
+                                      g_variant_new_string(""));
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "mpris:trackid",
                     g_variant_new_object_path(
