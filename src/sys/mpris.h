@@ -24,6 +24,22 @@
 void mpris_init(void);
 
 /**
+ * @brief Emits TrackList signals for changes to the active playlist.
+ *
+ * Compares the playlist with the previous tick and reports changes to its
+ * order or the current track's known duration.
+ */
+void mpris_update_track_list(void);
+
+/**
+ * @brief Applies a deferred MPRIS GoTo request before the next track is loaded.
+ *
+ * If a GoTo request is pending, resolves the requested TrackList entry and
+ * updates playback so that the selected track becomes the next one loaded.
+ */
+void mpris_apply_pending_goto(void);
+
+/**
  * @brief Emits a D-Bus signal to notify a change in a string property.
  *
  * This function emits a signal indicating that the specified string property

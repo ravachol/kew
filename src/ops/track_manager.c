@@ -423,6 +423,8 @@ void handle_metadata_switch(void)
 
 void load_waiting_music(void)
 {
+        mpris_apply_pending_goto();
+
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
