@@ -319,6 +319,37 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
+static void emit_seeked(gint64 position)
+{
+#ifdef USE_DBUS
+        GDBusConnection *connection = get_gd_bus_connection();
+
+        if (connection == NULL)
+                return;
+
+        GError *error = NULL;
+
+        gboolean result = g_dbus_connection_emit_signal(
+            connection,
+            NULL,
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player",
+            "Seeked",
+            g_variant_new("(x)", position),
+            &error);
+
+        if (!result) {
+                g_warning("Failed to emit Seeked signal: %s",
+                          error ? error->message : "unknown error");
+
+                if (error)
+                        g_error_free(error);
+        }
+#else
+        (void)position;
+#endif
+}
+
 static void handle_seek(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
@@ -339,6 +370,11 @@ static void handle_seek(GDBusConnection *connection, const gchar *sender,
         success = seek_position(offset, model->song_duration);
 
         if (success) {
+                gint64 new_position =
+                    llround(get_elapsed_seconds() * G_USEC_PER_SEC);
+
+                emit_seeked(new_position);
+
                 g_dbus_method_invocation_return_value(invocation, NULL);
         } else {
                 g_dbus_method_invocation_return_error(
@@ -374,6 +410,11 @@ static void handle_set_position(GDBusConnection *connection,
         if (success) {
                 // If setting the position was successful, return success with
                 // no additional value
+                gint64 actual_position =
+                    llround(get_elapsed_seconds() * G_USEC_PER_SEC);
+
+                emit_seeked(actual_position);
+
                 g_dbus_method_invocation_return_value(invocation, NULL);
         } else {
                 // If setting the position failed, return an error
@@ -496,21 +537,19 @@ static gboolean get_loop_status(GDBusConnection *connection,
 
         Model *model = get_model();
 
-        switch(model->state.settings.repeatState)
-        {
-                case SOUND_STATE_REPEAT_OFF:
-                        *value = g_variant_new_string("None");
-                        break;
-                case SOUND_STATE_REPEAT:
-                        *value = g_variant_new_string("Track");
-                        break;
-                case SOUND_STATE_REPEAT_LIST:
-                        *value = g_variant_new_string("Playlist");
-                        break;
-                default:
-                        *value = g_variant_new_string("None");
-                        break;
-
+        switch (model->state.settings.repeatState) {
+        case SOUND_STATE_REPEAT_OFF:
+                *value = g_variant_new_string("None");
+                break;
+        case SOUND_STATE_REPEAT:
+                *value = g_variant_new_string("Track");
+                break;
+        case SOUND_STATE_REPEAT_LIST:
+                *value = g_variant_new_string("Playlist");
+                break;
+        default:
+                *value = g_variant_new_string("None");
+                break;
         }
 
         return TRUE;
@@ -803,7 +842,7 @@ get_can_go_previous(GDBusConnection *connection, const gchar *sender,
         Node *current = get_current_song();
 
         can_go_previous =
-            (current == NULL || current->prev != NULL) ? TRUE : FALSE;
+            (current != NULL && current->prev != NULL);
 
         *value = g_variant_new_boolean(can_go_previous);
 
@@ -974,9 +1013,16 @@ static GVariant *get_property_callback(GDBusConnection *connection,
         }
 
         // Check if value is NULL and set an error if needed
-        if (value == NULL && error == NULL) {
-                g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED,
+        if (value == NULL) {
+                if (error != NULL && *error == NULL) {
+                        g_set_error(
+                            error,
+                            G_IO_ERROR,
+                            G_IO_ERROR_FAILED,
                             "Property value is NULL");
+                }
+
+                return NULL;
         }
 
         return value;
@@ -1017,7 +1063,25 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                         set_dirty(DIRTY_VISUALIZER);
                         return TRUE;
                 } else if (g_strcmp0(property_name, "LoopStatus") == 0) {
-                        toggle_repeat();
+                        const gchar *loop_status;
+
+                        g_variant_get(value, "&s", &loop_status);
+
+                        if (g_strcmp0(loop_status, "None") == 0) {
+                                set_repeat_state(SOUND_STATE_REPEAT_OFF);
+                        } else if (g_strcmp0(loop_status, "Track") == 0) {
+                                set_repeat_state(SOUND_STATE_REPEAT);
+                        } else if (g_strcmp0(loop_status, "Playlist") == 0) {
+                                set_repeat_state(SOUND_STATE_REPEAT_LIST);
+                        } else {
+                                g_set_error(
+                                    error,
+                                    G_IO_ERROR,
+                                    G_IO_ERROR_INVALID_ARGUMENT,
+                                    "Invalid LoopStatus: %s",
+                                    loop_status);
+                                return FALSE;
+                        }
                         return TRUE;
                 } else if (g_strcmp0(property_name, "Shuffle") == 0) {
                         toggle_shuffle(get_model());
@@ -1292,7 +1356,7 @@ void emit_volume_changed(void)
 
         // Emit the PropertiesChanged signal for the volume property
         GVariant *volume_variant = g_variant_new_double(newVolume);
-        emit_properties_changed(get_gd_bus_connection(), "volume", volume_variant);
+        emit_properties_changed(get_gd_bus_connection(), "Volume", volume_variant);
 #endif
 }
 
@@ -1390,21 +1454,27 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
 
         PlayList *playlist = get_playlist();
 
-        can_go_next =
-            (current_song == NULL || current_song->next != NULL) ? TRUE : FALSE;
-        can_go_next =
-            (is_repeat_list_enabled() && playlist->head != NULL) ? TRUE : can_go_next;
+        gboolean can_go_next = FALSE;
+
+        if (current_song != NULL && current_song->next != NULL) {
+                can_go_next = TRUE;
+        } else if (is_repeat_list_enabled() &&
+                   playlist != NULL &&
+                   playlist->head != NULL) {
+                can_go_next = TRUE;
+        }
 
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext",
                               g_variant_new_boolean(can_go_next));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "Shuffle",
                               g_variant_new_boolean(is_shuffle_enabled()));
+
         g_variant_builder_add(
             &changed_properties_builder, "{sv}", "CanPlay",
-            g_variant_new_boolean(length != 0 ? true : false));
+            g_variant_new_boolean(get_current_song() != NULL || playlist->count > 0));
         g_variant_builder_add(
             &changed_properties_builder, "{sv}", "CanPause",
-            g_variant_new_boolean(length != 0 ? true : false));
+            g_variant_new_boolean(get_current_song() != NULL));
 
         if (is_repeat_enabled())
                 g_variant_builder_add(&changed_properties_builder, "{sv}",
@@ -1413,7 +1483,7 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
         else if (is_repeat_list_enabled())
                 g_variant_builder_add(&changed_properties_builder, "{sv}",
                                       "LoopStatus",
-                                      g_variant_new_string("List"));
+                                      g_variant_new_string("Playlist"));
         else
                 g_variant_builder_add(&changed_properties_builder, "{sv}",
                                       "LoopStatus",
