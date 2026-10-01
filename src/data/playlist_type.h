@@ -2,6 +2,7 @@
 #define PLAYLIST_STRUCT
 
 #include <pthread.h>
+#include <stdint.h>
 
 typedef struct
 {
@@ -11,6 +12,7 @@ typedef struct
 
 typedef struct Node {
         int id;
+        uint64_t tracklist_id;
         SongInfo song;
         struct Node *next;
         struct Node *prev;
