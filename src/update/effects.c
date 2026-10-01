@@ -144,6 +144,7 @@ void run_tick_commands(Model *model)
                 return;
 
         process_d_bus_events();
+        mpris_update_track_list();
 
         calc_elapsed_time(model->song_duration);
 
