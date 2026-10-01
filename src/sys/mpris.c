@@ -44,6 +44,7 @@ static guint registration_id;
 static guint bus_name_id;
 static guint player_registration_id;
 static guint track_list_registration_id;
+static gchar *pending_track_path;
 static gdouble rate = 1.0;
 static gdouble volume = 0.5;
 static gdouble minimum_rate = 1.0;
@@ -580,6 +581,14 @@ static void handle_track_list_method(GVariant *parameters,
         }
 
         PlayList *playlist = get_playlist();
+        if (g_strcmp0(method_name, "GoTo") == 0) {
+                const gchar *path;
+                g_variant_get(parameters, "(&o)", &path);
+                g_free(pending_track_path);
+                pending_track_path = g_strdup(path);
+                g_dbus_method_invocation_return_value(invocation, NULL);
+                return;
+        }
 
         if (g_strcmp0(method_name, "GetTracksMetadata") != 0) {
                 g_dbus_method_invocation_return_dbus_error(
@@ -626,6 +635,24 @@ static void handle_track_list_method(GVariant *parameters,
         g_ptr_array_unref(tracks);
         g_dbus_method_invocation_return_value(
             invocation, g_variant_new("(aa{sv})", &metadata_list));
+}
+
+void mpris_apply_pending_goto(void)
+{
+#ifdef USE_DBUS
+        if (!pending_track_path)
+                return;
+
+        gchar *path = g_steal_pointer(&pending_track_path);
+        PlayList *playlist = get_playlist();
+        pthread_mutex_lock(&playlist->mutex);
+        Node *node = find_track_locked(playlist, path);
+        pthread_mutex_unlock(&playlist->mutex);
+
+        if (node)
+                clear_and_play(node);
+        g_free(path);
+#endif
 }
 
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
@@ -1437,6 +1464,7 @@ void mpris_shutdown(void)
                                                     track_list_registration_id);
                 track_list_registration_id = 0;
         }
+        g_clear_pointer(&pending_track_path, g_free);
         if (bus_name_id != 0) {
                 g_bus_unown_name(bus_name_id);
                 bus_name_id = 0;
