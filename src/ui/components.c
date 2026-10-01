@@ -534,8 +534,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         if (name_width < 0)
                                 name_width = 0;
 
-                        char dir_name[256];
-                        char orig_name[256];
+                        int name_buf_size = 256;
+                        char dir_name[name_buf_size];
+                        char orig_name[name_buf_size];
                         dir_name[0] = '\0';
                         char filename[name_width * 4 + 1];
                         filename[0] = '\0';
@@ -551,10 +552,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                         if (entry->is_directory) {
 
-                                snprintf(orig_name, sizeof(orig_name), "%s", entry->name);
+                                snprintf(orig_name, name_buf_size, "%s", entry->name);
 
                                 if (strcmp(orig_name, "root") == 0) {
-                                        snprintf(orig_name, sizeof(orig_name), "%s", _("─ MUSIC LIBRARY ─"));
+                                        snprintf(orig_name, name_buf_size, "%s", _("─ MUSIC LIBRARY ─"));
                                         item_style = cell_style_from_theme(ui->theme.header);
                                 }
 
@@ -603,11 +604,11 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 if (depth == 1) {
                                         char *upper = string_to_upper(orig_name);
-                                        snprintf(orig_name, sizeof(orig_name), "%s", upper);
+                                        snprintf(orig_name, name_buf_size, "%s", upper);
                                         free(upper);
                                 }
 
-                                snprintf(dir_name, sizeof(dir_name), "%s", orig_name);
+                                snprintf(dir_name, name_buf_size, "%s", orig_name);
 
                                 if (found_chosen != NULL)
                                         process_name_scroll(model, orig_name, dir_name, name_width, false, false);

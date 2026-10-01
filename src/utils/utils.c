@@ -113,20 +113,16 @@ char *string_to_lower(const char *str)
                 return NULL;
         }
 
-        size_t length = strnlen(str, KEW_PATH_MAX);
-
-        return g_utf8_strdown(str, length);
+        return g_utf8_strdown(str, -1);
 }
 
 char *string_to_upper(const char *str)
 {
-        if (str == NULL) {
-                return NULL;
-        }
+    if (str == NULL) {
+        return NULL;
+    }
 
-        glong length = g_utf8_strlen(str, KEW_PATH_MAX);
-
-        return g_utf8_strup(str, length);
+    return g_utf8_strup(str, -1);
 }
 
 char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len)

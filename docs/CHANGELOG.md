@@ -20,6 +20,8 @@
 
 - Fixes several smaller issues with MPRIS implementation. By @ravachol.
 
+- Fixes issue with unicode string length of folders in library. By @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
