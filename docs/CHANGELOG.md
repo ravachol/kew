@@ -8,6 +8,8 @@
 
 - Russian translation. By @adem4ik.
 
+- Add xesam:url to MPRIS metadata. Suggested by @keratomalaciant.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
@@ -15,6 +17,8 @@
 - Fix scrollbar unresponsive on very large terminal sizes. By @ravachol. Found by @LeahTheSlug.
 
 - Fix library view position jumping, when expanding a folder, then scrolling down with the scrollbar, then expanding another one. By @ravachol.
+
+- Fixes several smaller issues with MPRIS implementation. By @ravachol.
 
 ## kew 4.3.8
 
