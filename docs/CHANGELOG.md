@@ -12,6 +12,8 @@
 
 - Add trackslist support to MPRIS. Suggested by @superb-striker. By @superb-striker.
 
+- Flatpak package. By @superb-striker. Suggested by @mendhak.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
@@ -24,7 +26,7 @@
 
 - Fixes issue with unicode string length of folders in library. By @ravachol.
 
-- Fixes stale playlist causing a crash. By @ravachol. Reported by @Needlide.
+- Fixes stale .m3u playlist causing a crash. By @ravachol. Reported by @Needlide.
 
 ## kew 4.3.8
 
