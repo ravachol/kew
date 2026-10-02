@@ -87,8 +87,8 @@ void volume_change(int change_percent);
  * @brief Seek relative to the current playback position.
  *
  * Adds a relative offset in seconds to the internal seek accumulator.
- * Has no effect if playback is paused, no song is loaded, the duration
- * is invalid, or the current format does not support seeking.
+ * Seeking is supported while playback is paused. Has no effect if
+ * no song is loaded, the duration is invalid, or the current format cannot seek.
  *
  * @param seconds Number of seconds to seek forward (positive) or backward
  *                (negative).
