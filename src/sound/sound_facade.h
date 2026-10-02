@@ -244,7 +244,8 @@ sound_result_t sound_system_toggle_pause(sound_system_t *system);
  *
  * @param system Pointer to the sound system instance.
  * @param percent Target position as a percentage (typically 0.0f to 100.0f).
- * @return sound_result_t Result code indicating success or failure.
+ * @return sound_result_t Result code indicating success or failure. Returns
+ * SOUND_ERROR_UNSUPPORTED_FORMAT when the active decoder cannot seek.
  */
 sound_result_t sound_system_seek_percentage(sound_system_t *system, float percent);
 
