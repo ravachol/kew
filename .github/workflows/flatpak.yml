@@ -1,0 +1,59 @@
+name: Build Flatpak
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flatpak:
+    name: Build x86_64 Flatpak
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
+      options: --privileged
+
+    steps:
+      - name: Check out kew
+        uses: actions/checkout@v4
+
+      - name: Build Flatpak bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
+        with:
+          manifest-path: com.kewplayer.kew.yml
+          bundle: kew.flatpak
+          artifact-name: kew-flatpak-x86_64
+          branch: stable
+          cache-key: kew-flatpak-${{ hashFiles('com.kewplayer.kew.yml') }}
+          upload-artifact: true
+
+  release:
+    name: Upload Flatpak to GitHub release
+    if: github.server_url == 'https://github.com' && github.event_name == 'release'
+    needs: flatpak
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Flatpak artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kew-flatpak-x86_64
+
+      - name: Upload Flatpak to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kew.flatpak

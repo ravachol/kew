@@ -1,0 +1,50 @@
+app-id: com.kewplayer.kew
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+command: kew
+
+finish-args:
+  - --socket=pulseaudio
+  - --filesystem=home
+  - --own-name=org.mpris.MediaPlayer2.kew
+  - --talk-name=org.freedesktop.Notifications
+
+modules:
+  - name: chafa
+    buildsystem: autotools
+    sources:
+      - type: git
+        url: https://github.com/hpjansson/chafa.git
+        tag: 1.18.3
+
+  - name: opusfile
+    buildsystem: autotools
+    sources:
+      - type: git
+        url: https://github.com/xiph/opusfile.git
+        tag: v0.12
+
+  - name: kew
+    buildsystem: simple
+    build-commands:
+      - make clean
+      - >-
+        make -j$FLATPAK_BUILDER_N_JOBS
+        USE_FAAD=0
+        USE_DBUS=1
+        PREFIX=/app
+        MAN_DIR=/app/share/man
+        KEW_DATADIR=/app/share
+        LOCALEDIR=/app/share/locale
+      - >-
+        make install
+        USE_FAAD=0
+        USE_DBUS=1
+        PREFIX=/app
+        MAN_DIR=/app/share/man
+        KEW_DATADIR=/app/share
+        LOCALEDIR=/app/share/locale
+    sources:
+      - type: dir
+        path: .
