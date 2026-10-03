@@ -34,6 +34,8 @@
 
 - Fix Help view doesn't clear bottom lines cleanly when scrolling, showing duplicate lines. By @ravachol.
 
+- Prevent open_url from firing twice. By @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.

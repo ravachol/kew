@@ -501,8 +501,24 @@ static gpointer open_url_thread(gpointer data)
     return NULL;
 }
 
+static GMutex open_url_mutex;
+static gint64 last_open_url_time = 0;
+
 void open_url(const char *url)
 {
+    gint64 now = g_get_monotonic_time();
+
+    g_mutex_lock(&open_url_mutex);
+
+    if (now - last_open_url_time < G_USEC_PER_SEC) {
+        g_mutex_unlock(&open_url_mutex);
+        return;
+    }
+
+    last_open_url_time = now;
+
+    g_mutex_unlock(&open_url_mutex);
+
     GThread *thread = g_thread_new(
         "open-url",
         open_url_thread,
