@@ -40,8 +40,8 @@ modules:
         url: https://github.com/knik0/faad2.git
         tag: 2.11.4
         x-checker-data:
-        type: git
-        tag-pattern: ^([0-9.]+)$
+          type: git
+          tag-pattern: ^([0-9.]+)$
 
   - name: kew
     buildsystem: simple
