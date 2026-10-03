@@ -14,10 +14,12 @@ modules:
   - name: chafa
     buildsystem: autotools
     sources:
-      - type: git
-        url: https://github.com/hpjansson/chafa.git
-        tag: 1.18.3
-        # x-checker here too, if you want automatic chafa updates
+    - type: git
+      url: https://github.com/hpjansson/chafa.git
+      tag: 1.18.3
+      x-checker-data:
+        type: git
+        tag-pattern: ^([0-9.]+)$
 
   - name: opusfile
     buildsystem: autotools
@@ -25,6 +27,9 @@ modules:
       - type: git
         url: https://github.com/xiph/opusfile.git
         tag: v0.12
+        x-checker-data:
+          type: git
+          tag-pattern: ^([0-9.]+)$
 
   - name: faad2
     buildsystem: cmake
@@ -33,7 +38,10 @@ modules:
     sources:
       - type: git
         url: https://github.com/knik0/faad2.git
-        tag: 2.11.2
+        tag: 2.11.4
+        x-checker-data:
+        type: git
+        tag-pattern: ^([0-9.]+)$
 
   - name: kew
     buildsystem: simple
