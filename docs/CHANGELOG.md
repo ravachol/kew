@@ -2,6 +2,12 @@
 
 ## kew 4.3.9 "PUNK TACTICS" EDITION
 
+It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared!
+
+Now it seems we are out of the woodwork and those bugs have largely been solved. Thanks for sticking with us!
+
+/Ravachol
+
 #### Enhancements:
 
 - Spanish translation. By @victorhck.
