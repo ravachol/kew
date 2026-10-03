@@ -8,6 +8,8 @@ Now it seems we are out of the woodwork and those bugs have largely been solved.
 
 Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
 
+Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot!
+
 /Ravachol
 
 #### Enhancements:
