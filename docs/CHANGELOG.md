@@ -6,6 +6,8 @@ It has been a bit of a bumpy ride since we rewrote the UI more properly from scr
 
 Now it seems we are out of the woodwork and those bugs have largely been solved. Thanks for sticking with us!
 
+Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
+
 /Ravachol
 
 #### Enhancements:
@@ -41,8 +43,6 @@ Now it seems we are out of the woodwork and those bugs have largely been solved.
 - Fix Help view doesn't clear bottom lines cleanly when scrolling, showing duplicate lines. By @ravachol.
 
 - Prevent open_url from firing twice. By @ravachol.
-
-Punk Tactics: https://www.youtube.com/watch?v=OklSZmIx9-o
 
 ## kew 4.3.8
 
