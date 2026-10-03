@@ -1,104 +1,76 @@
-name: Build Flatpak
+app-id: com.kewplayer.kew
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+command: kew
 
-on:
-  push:
-    branches:
-      - main
-      - develop
+finish-args:
+  - --socket=pulseaudio
+  - --filesystem=home
+  - --own-name=org.mpris.MediaPlayer2.kew
+  - --talk-name=org.freedesktop.Notifications
 
-  release:
-    types:
-      - published
+modules:
+  - name: chafa
+    buildsystem: autotools
+    sources:
+    - type: git
+      url: https://github.com/hpjansson/chafa.git
+      tag: 1.18.3
+      x-checker-data:
+        type: git
+        tag-pattern: ^([0-9.]+)$
 
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: 'GitHub release tag to attach the Flatpak to (leave empty to only build)'
-        required: false
-        type: string
+  - name: opusfile
+    buildsystem: autotools
+    sources:
+      - type: git
+        url: https://github.com/xiph/opusfile.git
+        tag: v0.12
+        x-checker-data:
+          type: git
+          tag-pattern: ^([0-9.]+)$
 
-permissions:
-  contents: write
+  - name: faad2
+    buildsystem: cmake
+    config-opts:
+      - -DFAAD_BUILD_CLI=OFF
+    sources:
+      - type: git
+        url: https://github.com/knik0/faad2.git
+        tag: 2.11.4
+        x-checker-data:
+        type: git
+        tag-pattern: ^([0-9.]+)$
 
-jobs:
-  flatpak:
-    name: Build x86_64 Flatpak
-    runs-on: ubuntu-latest
+  - name: kew
+    buildsystem: simple
 
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
-      options: --privileged
+    build-commands:
+      - make clean
+      - >-
+        make -j$FLATPAK_BUILDER_N_JOBS
+        USE_FAAD=1
+        USE_DBUS=1
+        PREFIX=/app
+        MAN_DIR=/app/share/man
+        KEW_DATADIR=/app/share
+        LOCALEDIR=/app/share/locale
 
-    steps:
-      - name: Check out kew
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - >-
+        make install
+        USE_FAAD=1
+        USE_DBUS=1
+        PREFIX=/app
+        MAN_DIR=/app/share/man
+        KEW_DATADIR=/app/share
+        LOCALEDIR=/app/share/locale
 
-      - name: Get latest dependency versions
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          CHAPA_VERSION=$(curl -fsSL \
-            https://api.github.com/repos/hpjansson/chafa/releases/latest \
-            | jq -r '.tag_name')
-
-          OPUSFILE_VERSION=$(curl -fsSL \
-            https://api.github.com/repos/xiph/opusfile/releases/latest \
-            | jq -r '.tag_name')
-
-          FAAD2_VERSION=$(curl -fsSL \
-            https://api.github.com/repos/knik0/faad2/releases/latest \
-            | jq -r '.tag_name')
-
-          echo "Chafa:     $CHAPA_VERSION"
-          echo "Opusfile:  $OPUSFILE_VERSION"
-          echo "FAAD2:     $FAAD2_VERSION"
-
-          echo "CHAPA_VERSION=$CHAPA_VERSION" >> "$GITHUB_ENV"
-          echo "OPUSFILE_VERSION=$OPUSFILE_VERSION" >> "$GITHUB_ENV"
-          echo "FAAD2_VERSION=$FAAD2_VERSION" >> "$GITHUB_ENV"
-
-      - name: Update dependency versions
-        shell: bash
-        run: |
-          sed -i \
-            "s/tag: 1.18.3/tag: ${CHAPA_VERSION}/" \
-            com.kewplayer.kew.yml
-
-          sed -i \
-            "s/tag: v0.12/tag: ${OPUSFILE_VERSION}/" \
-            com.kewplayer.kew.yml
-
-          sed -i \
-            "s/tag: 2.11.4/tag: ${FAAD2_VERSION}/" \
-            com.kewplayer.kew.yml
-
-      - name: Build Flatpak bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
-        with:
-          manifest-path: com.kewplayer.kew.yml
-          bundle: kew.flatpak
-          artifact-name: kew-flatpak-x86_64
-          branch: stable
-          cache-key: kew-flatpak-${{ hashFiles('com.kewplayer.kew.yml') }}
-          upload-artifact: true
-
-      - name: Upload Flatpak to release
-        if: github.event_name == 'release' || inputs.release_tag != ''
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            TAG="${{ github.event.release.tag_name }}"
-          else
-            TAG="${{ inputs.release_tag }}"
-          fi
-
-          echo "Uploading kew.flatpak to release $TAG"
-
-          gh release upload "$TAG" kew.flatpak \
-            --repo "${{ github.repository }}" \
-            --clobber
+    sources:
+      - type: git
+        url: https://github.com/ravachol/kew.git
+        tag: v4.3.8
+        commit: ff241fec593e6b2367fbdd199fa8ffae0f50778f
+        x-checker-data:
+          type: git
+          tag-pattern: ^v([0-9.]+)$
