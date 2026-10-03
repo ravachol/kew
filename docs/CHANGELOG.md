@@ -32,6 +32,8 @@
 
 - Fix raw AAC ADTS support. By @ravachol. Found by @superb-striker.
 
+- Fix Help view doesn't clear bottom lines cleanly when scrolling, showing duplicate lines. By @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.

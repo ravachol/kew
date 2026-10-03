@@ -649,21 +649,22 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                 (*iter)++;
         }
 
-traverse_children: { // Call render_tree_node recursively
-        FileSystemEntry *child = entry->children;
-        while (child != NULL) {
+traverse_children:
+        { // Call render_tree_node recursively
+                FileSystemEntry *child = entry->children;
+                while (child != NULL) {
 
-                FileSystemEntry *result;
+                        FileSystemEntry *result;
 
-                result = component_library_helper_render_node(model, child, depth + 1, max_list_size,
-                                                              max_name_width, region, buf, row_count, iter, chosen_row, chosen_name_len, clicked_song, first, last);
+                        result = component_library_helper_render_node(model, child, depth + 1, max_list_size,
+                                                                      max_name_width, region, buf, row_count, iter, chosen_row, chosen_name_len, clicked_song, first, last);
 
-                if (result && !found_chosen)
-                        found_chosen = result;
+                        if (result && !found_chosen)
+                                found_chosen = result;
 
-                child = child->next;
+                        child = child->next;
+                }
         }
-}
         return found_chosen;
 }
 
@@ -1248,27 +1249,26 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
                 cell_height = term_size->height_pixels / term_size->rows;
         }
 
-
         // Calculate the cover's aspect ratio in terminal cells.
         float image_aspect =
-                (float)songdata->coverWidth /
-                (float)songdata->coverHeight;
+            (float)songdata->coverWidth /
+            (float)songdata->coverHeight;
 
         // Width in terminal columns for a given number of rows.
         float terminal_aspect =
-                image_aspect * (float)cell_height /
-                (float)cell_width;
+            image_aspect * (float)cell_height /
+            (float)cell_width;
 
         int target_height = available_height;
         int corrected_width =
-                (int)(target_height * terminal_aspect);
+            (int)(target_height * terminal_aspect);
 
         // Fit the cover inside the available region.
         if (corrected_width > available_width) {
                 corrected_width = available_width;
 
                 target_height =
-                        (int)(corrected_width / terminal_aspect);
+                    (int)(corrected_width / terminal_aspect);
         }
 
         if (target_height <= MIN_COVER_SIZE ||
@@ -1308,14 +1308,14 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
         }
 
         bool draw_cover_marker =
-                model->state.settings.coverAnsi ||
-                model->state.ui.chroma_started ||
-                model->state.ui.chroma_start_requested;
+            model->state.settings.coverAnsi ||
+            model->state.ui.chroma_started ||
+            model->state.ui.chroma_start_requested;
 
         bool draw_occupied_markers =
-                !model->state.settings.coverAnsi ||
-                model->state.ui.chroma_started ||
-                model->state.ui.chroma_start_requested;
+            !model->state.settings.coverAnsi ||
+            model->state.ui.chroma_started ||
+            model->state.ui.chroma_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   row,
@@ -1334,7 +1334,6 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
 
         return (ComponentMsg){0};
 }
-
 
 ComponentMsg component_now_playing(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
@@ -2945,8 +2944,7 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
                         component_time_simple_and_vol(model, time_rect, buf, dirty);
                 else
                         component_time(model, time_rect, buf, dirty);
-        }
-        else {
+        } else {
                 timeStatus_height = 0;
         }
 
@@ -3231,8 +3229,6 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                   get_binding_string(MSG_ADDTOFAVORITESPLAYLIST, false));
 
-
-
         row += 1;
         output_row += 1;
 
@@ -3282,17 +3278,18 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
                                                  max_width, text_style);
         }
 
-render_scrollbar: {
-        // Blank remaining rows
-        CellStyle plain_style = cell_style_plain();
-        while (output_row < region.row + region.height) {
-                draw_buffer_set_string_truncated(buf, output_row++, region.col,
-                                                 "", region.width, plain_style);
-                output_row++;
-        }
+render_scrollbar:
+        {
+                // Blank remaining rows
+                CellStyle plain_style = cell_style_plain();
+                while (output_row < region.row + region.height) {
+                        draw_buffer_set_string_truncated(buf, output_row, region.col,
+                                                         "", region.width, plain_style);
+                        output_row++;
+                }
 
-        render_scroll_bar(buf, region, model->state.ui.help_scrollbar, plain_style);
-}
+                render_scroll_bar(buf, region, model->state.ui.help_scrollbar, plain_style);
+        }
         return (ComponentMsg){0};
 }
 
