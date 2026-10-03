@@ -279,14 +279,10 @@ static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpoin
 
 GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeout_ms)
 {
-        // Allocate and initialize the data structure
         BusConnectionData *data = g_new0(BusConnectionData, 1);
         GMainContext *context = g_main_context_new();
 
         data->loop = g_main_loop_new(context, FALSE);
-        data->connected = FALSE;
-        data->connection = NULL;
-        data->timeout_triggered = FALSE;
         data->ref_count = 1; // Start with a single reference
 
         // Increment reference count for each callback
@@ -306,17 +302,15 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
         g_source_attach(source, context);
         g_source_unref(source);
 
-        k_log("Before g_main_loop_run()\n");
-
         // Run the main loop
         g_main_loop_run(data->loop);
-
-        k_log("After g_main_loop_run()\n");
-
         // Store the connection result before cleaning up
         GDBusConnection *connection = data->connection;
 
-        // Decrement reference count for the main loop
+        // Remove source from context and run its destroy notify
+        g_source_destroy(source);
+        g_source_unref(source);
+
         bus_connection_data_unref(data);
         g_main_context_unref(context);
 

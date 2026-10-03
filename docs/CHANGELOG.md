@@ -46,6 +46,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Prevent open_url from firing twice. By @ravachol.
 
+- Fix resources not being freed correctly in get_dbus_connection_with_timeout(). By @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
