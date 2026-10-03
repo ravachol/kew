@@ -17,6 +17,7 @@ modules:
       - type: git
         url: https://github.com/hpjansson/chafa.git
         tag: 1.18.3
+        # x-checker here too, if you want automatic chafa updates
 
   - name: opusfile
     buildsystem: autotools
@@ -36,6 +37,7 @@ modules:
 
   - name: kew
     buildsystem: simple
+
     build-commands:
       - make clean
       - >-
@@ -46,6 +48,7 @@ modules:
         MAN_DIR=/app/share/man
         KEW_DATADIR=/app/share
         LOCALEDIR=/app/share/locale
+
       - >-
         make install
         USE_FAAD=1
@@ -54,6 +57,12 @@ modules:
         MAN_DIR=/app/share/man
         KEW_DATADIR=/app/share
         LOCALEDIR=/app/share/locale
+
     sources:
-      - type: dir
-        path: .
+      - type: git
+        url: https://github.com/ravachol/kew.git
+        tag: v4.3.8
+        commit: ff241fe
+        x-checker-data:
+          type: git
+          tag-pattern: ^v([0-9.]+)$
