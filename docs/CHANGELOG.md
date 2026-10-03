@@ -36,6 +36,8 @@
 
 - Prevent open_url from firing twice. By @ravachol.
 
+Punk Tactics: https://www.youtube.com/watch?v=OklSZmIx9-o
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
