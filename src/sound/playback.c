@@ -26,9 +26,8 @@
 static ma_device device = {0};
 static bool device_initialized = false;
 
-static bool seek_requested = false;
-static float seek_percent = 0.0;
-static double seek_elapsed;
+static _Atomic bool seek_requested = false;
+static _Atomic float seek_percent = 0.0f;
 
 static _Atomic bool EOF_reached = false;
 static _Atomic bool metadata_switch_reached = false;
@@ -53,12 +52,12 @@ void set_seek_elapsed(double value)
 
 float get_seek_percentage(void)
 {
-        return seek_percent;
+        return atomic_load(&seek_percent);
 }
 
 bool is_seek_requested(void)
 {
-        return seek_requested;
+        return atomic_load(&seek_requested);
 }
 
 bool is_device_initialized(void)
@@ -73,7 +72,7 @@ void set_device_initialized(bool value)
 
 void set_seek_requested(bool value)
 {
-        seek_requested = value;
+        atomic_store(&seek_requested, value);
 }
 
 bool request_crossfade(int fade_ms, int enter_song_ms)
@@ -110,7 +109,7 @@ bool request_crossfade(int fade_ms, int enter_song_ms)
 void seek_percentage(float percent)
 {
         if (percent >= 0.0f) {
-                seek_percent = percent;
+                atomic_store(&seek_percent, percent);
                 set_seek_requested(true);
         }
 }

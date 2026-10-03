@@ -68,7 +68,8 @@ void add_to_accumulated_seconds(double value);
  *
  * Calculates the difference between the requested position and the current
  * playback position, and updates the internal seek accumulator accordingly.
- * Has no effect if playback is paused or duration is zero.
+ * Seeking is supported while playback is paused. Requests fail if the duration
+ * is zero or unavailable.
  *
  * @param new_position Target position in microseconds.
  *
@@ -80,7 +81,8 @@ bool set_position(gint64 new_position);
  * @brief Seek playback by a relative offset.
  *
  * Adds a relative offset (in microseconds) to the accumulated seek amount.
- * Has no effect if playback is paused or duration is zero.
+ * Seeking is supported while playback is paused. Requests fail if the duration
+ * is zero or unavailable.
  *
  * @param offset Relative offset in microseconds.
  * @param duration Total duration of the current track in seconds.

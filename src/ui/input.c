@@ -662,7 +662,9 @@ void handle_cooldown(void)
                                 state->ui.isFastForwarding = false;
                                 state->ui.isRewinding = false;
 
-                                if (state->currentView != TRACK_VIEW) {
+                                if (state->currentView == TRACK_VIEW) {
+                                        set_dirty(DIRTY_VISUALIZER);
+                                } else {
                                         set_dirty(DIRTY_ALL);
                                 }
                         }
