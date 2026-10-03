@@ -1351,6 +1351,10 @@ void sort_file_system_tree(FileSystemEntry *root,
 unsigned long count_directories_in_directory(FileSystemEntry *directory)
 {
         unsigned long dir_count = 0;
+
+        if (!directory)
+                return dir_count;
+
         FileSystemEntry *child = directory->children;
 
         while (child != NULL) {
