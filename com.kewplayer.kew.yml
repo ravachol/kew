@@ -31,7 +31,7 @@ modules:
       - make clean
       - >-
         make -j$FLATPAK_BUILDER_N_JOBS
-        USE_FAAD=0
+        USE_FAAD=1
         USE_DBUS=1
         PREFIX=/app
         MAN_DIR=/app/share/man
@@ -39,7 +39,7 @@ modules:
         LOCALEDIR=/app/share/locale
       - >-
         make install
-        USE_FAAD=0
+        USE_FAAD=1
         USE_DBUS=1
         PREFIX=/app
         MAN_DIR=/app/share/man
