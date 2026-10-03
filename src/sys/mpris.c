@@ -656,7 +656,10 @@ void mpris_apply_pending_goto(void)
         if (node)
                 clear_and_play(node);
         g_free(path);
+#else
+        return;
 #endif
+
 }
 
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
