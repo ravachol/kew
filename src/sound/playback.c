@@ -264,12 +264,6 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
                 device_initialized = true;
         }
 
-        result = ma_device_start(device);
-
-        if (result != MA_SUCCESS) {
-                set_error_message("Failed to start miniaudio device.");
-                return -1;
-        }
 
         if (sound_s->state != SOUND_STATE_PAUSED)
                 sound_s->state = SOUND_STATE_PLAYING;

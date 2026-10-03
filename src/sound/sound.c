@@ -314,18 +314,18 @@ void switch_current_decoder(sound_system_t *sound)
 static gint64 rtkit_rttime_usec_max(GDBusConnection *bus)
 {
         GVariant *reply = g_dbus_connection_call_sync(
-                bus,
-                "org.freedesktop.RealtimeKit1",
-                "/org/freedesktop/RealtimeKit1",
-                "org.freedesktop.DBus.Properties",
-                "Get",
-                g_variant_new("(ss)", "org.freedesktop.RealtimeKit1",
-                              "RTTimeUSecMax"),
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                RTKIT_CALL_TIMEOUT_MS,
-                NULL,
-                NULL);
+            bus,
+            "org.freedesktop.RealtimeKit1",
+            "/org/freedesktop/RealtimeKit1",
+            "org.freedesktop.DBus.Properties",
+            "Get",
+            g_variant_new("(ss)", "org.freedesktop.RealtimeKit1",
+                          "RTTimeUSecMax"),
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            RTKIT_CALL_TIMEOUT_MS,
+            NULL,
+            NULL);
 
         if (reply == NULL)
                 return RTKIT_RTTIME_USEC_DEFAULT;
@@ -382,7 +382,7 @@ static bool set_decode_thread_priority_rtkit(void)
 
         GError *error = NULL;
         GDBusConnection *bus =
-                g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
+            g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
 
         if (bus == NULL) {
                 k_log("RTKit: failed to connect to system bus: %s",
@@ -395,17 +395,17 @@ static bool set_decode_thread_priority_rtkit(void)
 
         /* First try realtime scheduling. */
         GVariant *result = g_dbus_connection_call_sync(
-                bus,
-                "org.freedesktop.RealtimeKit1",
-                "/org/freedesktop/RealtimeKit1",
-                "org.freedesktop.RealtimeKit1",
-                "MakeThreadRealtime",
-                g_variant_new("(tu)", (guint64)tid, (guint32)1),
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                RTKIT_CALL_TIMEOUT_MS,
-                NULL,
-                &error);
+            bus,
+            "org.freedesktop.RealtimeKit1",
+            "/org/freedesktop/RealtimeKit1",
+            "org.freedesktop.RealtimeKit1",
+            "MakeThreadRealtime",
+            g_variant_new("(tu)", (guint64)tid, (guint32)1),
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            RTKIT_CALL_TIMEOUT_MS,
+            NULL,
+            &error);
 
         if (result != NULL) {
                 g_variant_unref(result);
@@ -423,17 +423,17 @@ static bool set_decode_thread_priority_rtkit(void)
         gint32 nice_level = -5;
 
         result = g_dbus_connection_call_sync(
-                bus,
-                "org.freedesktop.RealtimeKit1",
-                "/org/freedesktop/RealtimeKit1",
-                "org.freedesktop.RealtimeKit1",
-                "MakeThreadHighPriority",
-                g_variant_new("(ti)", (guint64)tid, nice_level),
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                RTKIT_CALL_TIMEOUT_MS,
-                NULL,
-                &error);
+            bus,
+            "org.freedesktop.RealtimeKit1",
+            "/org/freedesktop/RealtimeKit1",
+            "org.freedesktop.RealtimeKit1",
+            "MakeThreadHighPriority",
+            g_variant_new("(ti)", (guint64)tid, nice_level),
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            RTKIT_CALL_TIMEOUT_MS,
+            NULL,
+            &error);
 
         g_object_unref(bus);
 
@@ -477,17 +477,15 @@ void set_decode_thread_priority(pthread_t thread)
                 if (!set_decode_thread_priority_rtkit()) {
                         setpriority(PRIO_PROCESS, 0, -5);
                         k_log("decode_loop: thread priority, nice -5 used");
-                }
-                else {
+                } else {
                         k_log("decode_loop: thread priority, rtkit used");
-               }
+                }
 #else
                 setpriority(PRIO_PROCESS, 0, -5);
                 k_log("decode_loop: thread priority, nice -5 used");
 #endif
-        }
-        else {
-                        k_log("decode_loop: thread priority, SCHED_RR used directly");
+        } else {
+                k_log("decode_loop: thread priority, SCHED_RR used directly");
         }
 
 #elif defined(__FreeBSD__)
@@ -1130,13 +1128,13 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
         }
 
         if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log))
-                        k_log("on_audio_frames() pushing to visualizer");
+                k_log("on_audio_frames() pushing to visualizer");
 
         visualizer_ringbuffer_push(pOutput, frameCount, sound_s->channels);
 
         if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log)) {
-                        k_log("on_audio_frames() pushed to visualizer");
-                        atomic_store(&sound_s->first_song_log, false);
+                k_log("on_audio_frames() pushed to visualizer");
+                atomic_store(&sound_s->first_song_log, false);
         }
 }
 
@@ -1226,6 +1224,13 @@ sound_result_t handle_codec(
                                NULL,
                                decode_loop,
                                sound_s);
+
+                ma_result res = ma_device_start(get_device());
+
+                if (res != MA_SUCCESS) {
+                        set_error_message("Failed to start miniaudio device.");
+                        return -1;
+                }
         }
 
         return result;
@@ -1490,8 +1495,7 @@ int load_decoder(SongData *song_data, bool *song_data_deleted)
         LoaderData *loader_data = get_loader_data();
         Model *model = get_model();
 
-        if (model->state.settings.verbose_mode)
-        {
+        if (model->state.settings.verbose_mode) {
                 k_log("load_decoder() entered");
         }
 
@@ -1534,8 +1538,7 @@ int assign_loaded_data(void)
         LoaderData *loader_data = get_loader_data();
         Model *model = get_model();
 
-        if (model->state.settings.verbose_mode)
-        {
+        if (model->state.settings.verbose_mode) {
                 k_log("assign_loaded_data() entered");
         }
 
@@ -1611,8 +1614,7 @@ void *songdata_reader_thread(void *arg)
         LoaderData *loader_data = get_loader_data();
 
         Model *model = get_model();
-        if (model->state.settings.verbose_mode)
-        {
+        if (model->state.settings.verbose_mode) {
                 k_log("song_data_reader_thread() entered");
         }
 
@@ -1676,8 +1678,7 @@ void *songdata_reader_thread(void *arg)
         ps->skipping = false;
         ps->songLoading = false;
 
-        if (model->state.settings.verbose_mode)
-        {
+        if (model->state.settings.verbose_mode) {
                 k_log("song_data_reader_thread() done");
         }
 
