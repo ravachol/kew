@@ -2025,7 +2025,7 @@ ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *b
                         }
 
                         if (artist) {
-                                if (model->state.settings.useAristsLink && strnlen(metadata->url, 3) > 0) {
+                                if (model->state.settings.useArtistsLink && strnlen(metadata->url, 3) > 0) {
                                         draw_link_to_buffer(buf, region.row + 1, region.col, utf8_display_width(line),
                                                             metadata->url, artist, style);
                                 } else {
