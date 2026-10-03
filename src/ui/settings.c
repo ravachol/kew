@@ -2205,7 +2205,7 @@ void set_config(AppSettings *settings, UISettings *ui)
                     : c_strcpy(settings->hideGlimmeringText, "0",
                                sizeof(settings->hideGlimmeringText));
         if (settings->useArtistLink[0] == '\0')
-                ui->useAristsLink
+                ui->useArtistsLink
                     ? c_strcpy(settings->useArtistLink, "1",
                                sizeof(settings->useArtistLink))
                     : c_strcpy(settings->useArtistLink, "0",

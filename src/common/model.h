@@ -392,7 +392,7 @@ typedef struct
         bool quitAfterStopping;   /**< Exit application automatically after playback stops. */
         bool clearListClearsAll;  /**< Whether clearing the playlist also removes the currently playing song. */
         bool hideGlimmeringText;  /**< Disable animated/glimmering bottom row text. */
-        bool useAristsLink;       /**< Whether to make links out of homepage URLs. */
+        bool useArtistsLink;       /**< Whether to make links out of homepage URLs. */
         time_t last_time_app_ran; /**< Timestamp of last run, used to detect library changes. */
 
         int visualizer_bar_mode;        /**< 0=Thin bars, 1=Double width bars, 2=Auto (default). */

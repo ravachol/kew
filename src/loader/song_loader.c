@@ -458,7 +458,7 @@ void load_meta_data(SongData *songdata)
         generate_temp_file_path(songdata->cover_art_path, KEW_PATH_MAX, "cover", ".jpg");
 
         int res = extractTags(songdata->file_path, songdata->metadata,
-                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useAristsLink);
+                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics), model->state.settings.useArtistsLink);
 
         if (!songdata->lyrics) {
 
@@ -541,7 +541,7 @@ void load_meta_data(SongData *songdata)
         }
 
         // Fetch homepage from artist db
-        if (model->state.settings.useAristsLink) {
+        if (model->state.settings.useArtistsLink) {
 
                 const ArtistRecord *record = NULL;
                 const char *homepage = NULL;
