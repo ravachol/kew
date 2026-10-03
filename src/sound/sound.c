@@ -1015,6 +1015,13 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
         (void)device;
         (void)input;
 
+        // Prefill / early callbacks: output silence, don't consume the ring buffer
+        if (ma_device_get_state(device) != ma_device_state_started) {
+                memset(pOutput, 0, frameCount * sound_s->channels * sizeof(float));
+                return;
+        }
+        atomic_store_explicit(&sound_s->streaming_confirmed, true, memory_order_release);
+
         Model *model = get_model();
 
         if (model->state.settings.verbose_mode && atomic_load(&sound_s->first_song_log))
@@ -1138,6 +1145,35 @@ void on_audio_frames(ma_device *device, void *pOutput, const void *input, ma_uin
         }
 }
 
+static bool wait_for_streaming(int timeout_ms)
+{
+        struct timespec ts = {0, 1000000}; // 1 ms
+        for (int i = 0; i < timeout_ms; i++) {
+                if (atomic_load_explicit(&sound_s->streaming_confirmed, memory_order_acquire))
+                        return true;
+                nanosleep(&ts, NULL);
+        }
+        return false;
+}
+
+static ma_result start_device_verified(ma_device *dev)
+{
+        for (int attempt = 0; attempt < 3; attempt++) {
+                atomic_store(&sound_s->streaming_confirmed, false);
+
+                ma_result res = ma_device_start(dev);
+                if (res != MA_SUCCESS)
+                        return res;
+
+                if (wait_for_streaming(200))
+                        return MA_SUCCESS;
+
+                k_log("Audio stalled after start, retry %d", attempt + 1);
+                ma_device_stop(dev);
+        }
+        return MA_ERROR;
+}
+
 sound_result_t handle_codec(
     const char *file_path,
     CodecOps ops,
@@ -1225,7 +1261,7 @@ sound_result_t handle_codec(
                                decode_loop,
                                sound_s);
 
-                ma_result res = ma_device_start(get_device());
+                ma_result res = start_device_verified(get_device());
 
                 if (res != MA_SUCCESS) {
                         set_error_message("Failed to start miniaudio device.");
