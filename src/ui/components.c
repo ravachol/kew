@@ -244,7 +244,7 @@ void library_collapse_directory(Model *model, int direction)
         int num_first_children = 0;
         bool collapse_top = false;
 
-        if (library_nothing_more_to_scroll_to(model, current) && model->state.settings.collapseTopLevel) {
+        if (library_nothing_more_to_scroll_to(model, current) && model->state.settings.collapseTopLevel && first_parent) {
 
                 FileSystemEntry *child = first_parent->children;
 
@@ -263,7 +263,7 @@ void library_collapse_directory(Model *model, int direction)
             chosen_dir) {
                 int num_dirs = count_directories_in_directory(first_parent);
                 int num_children = 0;
-                if (chosen_dir && chosen_dir->id != first_parent->id) {
+                if (chosen_dir && first_parent && chosen_dir->id != first_parent->id) {
                         FileSystemEntry *child = chosen_dir->children;
 
                         while (child != NULL) {
@@ -280,7 +280,7 @@ void library_collapse_directory(Model *model, int direction)
                                 model->state.ui.chosen_lib_row -= num_dirs;
                 }
 
-                if (chosen_dir->id == first_parent->id && !chosen_dir->next)
+                if (chosen_dir && first_parent && chosen_dir->id == first_parent->id && !chosen_dir->next)
                         model->state.ui.chosen_lib_row -= 1; // Last row in the library should go up not down
 
                 model->state.ui.chosen_dir = chosen_dir = NULL;
