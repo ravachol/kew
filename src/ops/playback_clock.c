@@ -127,36 +127,30 @@ bool set_position(gint64 new_position)
         Model *model = get_model();
         double duration = model->song_duration;
 
-        if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED)
-                return false;
+        double current_position_seconds =
+            model->elapsed_seconds + seek_accumulated_seconds;
+        gint64 current_position_microseconds =
+            llround(current_position_seconds * G_USEC_PER_SEC);
 
-        gint64 currentPositionMicroseconds =
-            llround(model->elapsed_seconds * G_USEC_PER_SEC);
-
-        if (duration != 0.0) {
-                gint64 step = new_position - currentPositionMicroseconds;
-                step = step / G_USEC_PER_SEC;
-
-                seek_accumulated_seconds += step;
+        if (duration > 0.0) {
+                seek_accumulated_seconds +=
+                    ((double)new_position - (double)current_position_microseconds) /
+                    G_USEC_PER_SEC;
                 return true;
-        } else {
-                return false;
         }
+
+        return false;
 }
 
 bool seek_position(gint64 offset, double duration)
 {
-        if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED)
-                return false;
-
-        if (duration != 0.0) {
-                gint64 step = offset;
-                step = step / G_USEC_PER_SEC;
-                seek_accumulated_seconds += step;
+        if (duration > 0.0) {
+                seek_accumulated_seconds +=
+                    (double)offset / G_USEC_PER_SEC;
                 return true;
-        } else {
-                return false;
         }
+
+        return false;
 }
 
 void add_to_accumulated_seconds(double value)
@@ -174,19 +168,46 @@ bool flush_seek(void)
         Model *model = get_model();
 
         if (seek_accumulated_seconds != 0.0) {
-
-                sound_system_set_seek_elapsed(sound_system_get_seek_elapsed() + seek_accumulated_seconds);
-                seek_accumulated_seconds = 0.0;
                 double duration = model->song_duration;
-                calc_elapsed_time(duration);
-                float percentage = model->elapsed_seconds / (float)duration * 100.0;
-
-                if (percentage < 0.0) {
-                        sound_system_set_seek_elapsed(0.0);
-                        percentage = 0.0;
+                if (duration <= 0.0) {
+                        seek_accumulated_seconds = 0.0;
+                        return false;
                 }
 
-                sound_system_seek_percentage(sound_sys, percentage);
+                double seek_offset = seek_accumulated_seconds;
+                seek_accumulated_seconds = 0.0;
+
+                if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
+                        double target_position = model->elapsed_seconds + seek_offset;
+                        if (target_position < 0.0)
+                                target_position = 0.0;
+                        if (target_position > duration)
+                                target_position = duration;
+
+                        float percentage =
+                            target_position / (float)duration * 100.0;
+                        if (sound_system_seek_percentage(sound_sys, percentage) !=
+                            SOUND_OK)
+                                return false;
+
+                        double applied_offset = target_position - model->elapsed_seconds;
+                        model->elapsed_seconds = target_position;
+                        sound_system_set_seek_elapsed(
+                            sound_system_get_seek_elapsed() + applied_offset);
+                } else {
+                        sound_system_set_seek_elapsed(
+                            sound_system_get_seek_elapsed() + seek_offset);
+                        calc_elapsed_time(duration);
+                        float percentage =
+                            model->elapsed_seconds / (float)duration * 100.0;
+
+                        if (percentage < 0.0) {
+                                sound_system_set_seek_elapsed(0.0);
+                                percentage = 0.0;
+                        }
+
+                        sound_system_seek_percentage(sound_sys, percentage);
+                }
 
                 emit_seeked_signal(model->elapsed_seconds);
 

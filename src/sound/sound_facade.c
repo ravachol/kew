@@ -252,9 +252,10 @@ sound_result_t sound_system_seek_percentage(sound_system_t *system, float percen
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        if (can_decoder_seek(get_current_decoder()))
-                seek_percentage(percent);
+        if (!can_decoder_seek(get_current_decoder()))
+                return SOUND_ERROR_UNSUPPORTED_FORMAT;
 
+        seek_percentage(percent);
         return SOUND_OK;
 }
 
