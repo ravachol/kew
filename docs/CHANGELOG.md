@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## kew 4.3.9
+## kew 4.3.9 "PUNK TACTICS" EDITION
 
 #### Enhancements:
 
