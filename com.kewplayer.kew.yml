@@ -25,6 +25,15 @@ modules:
         url: https://github.com/xiph/opusfile.git
         tag: v0.12
 
+  - name: faad2
+    buildsystem: cmake
+    config-opts:
+      - -DFAAD_BUILD_CLI=OFF
+    sources:
+      - type: git
+        url: https://github.com/knik0/faad2.git
+        tag: 2.11.2
+
   - name: kew
     buildsystem: simple
     build-commands:
