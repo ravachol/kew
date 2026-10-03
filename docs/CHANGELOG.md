@@ -14,6 +14,8 @@
 
 - Flatpak package. By @superb-striker. Suggested by @mendhak.
 
+- Add ability to seek while playback is paused. By @superb-striker. Suggested by @eilvelia.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
