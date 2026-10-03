@@ -1,11 +1,6 @@
 name: Build Flatpak
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-
   release:
     types:
       - published
@@ -13,8 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'GitHub release tag to attach the Flatpak to (leave empty to only build)'
-        required: false
+        description: 'Release tag to build (e.g. v4.3.9)'
+        required: true
         type: string
 
 permissions:
