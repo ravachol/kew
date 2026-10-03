@@ -30,6 +30,8 @@
 
 - Fixes stale .m3u playlist causing a crash. By @ravachol. Reported by @Needlide.
 
+- Fix raw AAC ADTS support. By @ravachol. Found by @superb-striker.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
