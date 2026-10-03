@@ -300,7 +300,6 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
         GSource *source = g_timeout_source_new(timeout_ms);
         g_source_set_callback(source, on_timeout, data, (GDestroyNotify)bus_connection_data_unref);
         g_source_attach(source, context);
-        g_source_unref(source);
 
         // Run the main loop
         g_main_loop_run(data->loop);
@@ -309,6 +308,7 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
 
         // Remove source from context and run its destroy notify
         g_source_destroy(source);
+        g_source_unref(source);
 
         bus_connection_data_unref(data);
         g_main_context_unref(context);
