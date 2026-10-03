@@ -70,7 +70,7 @@ modules:
       - type: git
         url: https://github.com/ravachol/kew.git
         tag: v4.3.8
-        commit: ff241fe
+        commit: ff241fec593e6b2367fbdd199fa8ffae0f50778f
         x-checker-data:
           type: git
           tag-pattern: ^v([0-9.]+)$
