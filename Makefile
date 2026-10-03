@@ -224,15 +224,25 @@ DEFINES += -DPREFIX_RAW=$(PREFIX)
 
 # Conditionally add faad2 support if USE_FAAD is enabled
 ifeq ($(USE_FAAD), 1)
-  ifeq ($(ARCH), arm64)
-    CFLAGS += -I/opt/homebrew/opt/faad2/include
-    LIBS += -L/opt/homebrew/opt/faad2/lib -lfaad
-  else ifeq ($(UNAME_O),Android)
-    CFLAGS += -I$(PREFIX)/include
-    LIBS += -L$(PREFIX)/lib -lfaad
-  else
-    CFLAGS += -I/usr/local/include
-    LIBS += -L/usr/local/lib -lfaad
+  ifneq ($(shell command -v $(PKG_CONFIG) 2>/dev/null),)
+    ifeq ($(shell $(PKG_CONFIG) --exists faad2 2>/dev/null && echo 1),1)
+      CFLAGS += $(shell $(PKG_CONFIG) --cflags faad2)
+      LIBS += $(shell $(PKG_CONFIG) --libs faad2)
+    else ifeq ($(UNAME_S),Darwin)
+      ifeq ($(ARCH),arm64)
+        CFLAGS += -I/opt/homebrew/opt/faad2/include
+        LIBS += -L/opt/homebrew/opt/faad2/lib -lfaad
+      else
+        CFLAGS += -I/usr/local/include
+        LIBS += -L/usr/local/lib -lfaad
+      endif
+    else ifeq ($(IS_ANDROID),1)
+      CFLAGS += -I$(PREFIX)/include
+      LIBS += -L$(PREFIX)/lib -lfaad
+    else
+      CFLAGS += -I/usr/local/include
+      LIBS += -L/usr/local/lib -lfaad
+    endif
   endif
   DEFINES += -DUSE_FAAD
 endif
