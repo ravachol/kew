@@ -37,27 +37,25 @@ int mp4_track_is_sync_sample(const struct mp4_track *track,
 			     unsigned int sampleIdx,
 			     int *prevSyncSampleIdx)
 {
-	unsigned int i;
-
 	ULOG_ERRNO_RETURN_ERR_IF(track == NULL, EINVAL);
 
 	if (!track->syncSampleEntries)
 		return 1;
 
-	for (i = 0; i < track->syncSampleEntryCount; i++) {
-		if (track->syncSampleEntries[i] - 1 == sampleIdx)
-			return 1;
-		else if (track->syncSampleEntries[i] - 1 > sampleIdx) {
-			if (prevSyncSampleIdx && (i > 0)) {
-				*prevSyncSampleIdx =
-					track->syncSampleEntries[i - 1] - 1;
-			}
-			return 0;
-		}
+	/* Fragment indexes may mark every audio packet as a sync sample. */
+	uint32_t low = 0, high = track->syncSampleEntryCount;
+	while (low < high) {
+		uint32_t mid = low + (high - low) / 2;
+		if (track->syncSampleEntries[mid] - 1 < sampleIdx)
+			low = mid + 1;
+		else
+			high = mid;
 	}
-
-	if (prevSyncSampleIdx && (i > 0))
-		*prevSyncSampleIdx = track->syncSampleEntries[i - 1] - 1;
+	if (low < track->syncSampleEntryCount &&
+	    track->syncSampleEntries[low] - 1 == sampleIdx)
+		return 1;
+	if (prevSyncSampleIdx && low > 0)
+		*prevSyncSampleIdx = track->syncSampleEntries[low - 1] - 1;
 	return 0;
 }
 
