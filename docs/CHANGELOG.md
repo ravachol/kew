@@ -4,7 +4,7 @@
 
 It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared!
 
-Now it seems we are out of the woodwork and those bugs have largely been solved. Thanks for sticking with us!
+Now it seems we are out of the woods and those bugs have largely been solved. Thanks for sticking with us!
 
 Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
 
@@ -20,7 +20,7 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Add xesam:url to MPRIS metadata. Suggested by @keratomalaciant.
 
-- Add trackslist support to MPRIS. Suggested by @superb-striker. By @superb-striker.
+- Add trackslist support to MPRIS. By @superb-striker.
 
 - Flatpak package. By @superb-striker. Suggested by @mendhak.
 
