@@ -559,9 +559,6 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                         item_style = cell_style_from_theme(ui->theme.header);
                                 }
 
-                                *chosen_name_len = (int)g_utf8_strlen(orig_name, KEW_PATH_MAX);
-                        } else {
-                                *chosen_name_len = (int)process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
                         }
 
                         bool is_chosen = false;
@@ -611,7 +608,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 snprintf(dir_name, name_buf_size, "%s", orig_name);
 
                                 if (found_chosen != NULL)
-                                        process_name_scroll(model, orig_name, dir_name, name_width, false, false);
+                                        *chosen_name_len = (int)process_name_scroll(model, orig_name, dir_name, name_width, false, false);
                                 else
                                         process_name(orig_name, dir_name, name_width, false, false);
 
@@ -638,7 +635,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 }
 
                                 if (found_chosen != NULL)
-                                        process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
+                                        *chosen_name_len = (int)process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
+                                else
+                                        process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
                         }
