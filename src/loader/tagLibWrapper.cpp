@@ -104,6 +104,17 @@ static std::wstring utf8ToWide(const char *s)
 
 #endif
 
+std::string toLower(const std::string &str)
+{
+        std::string lowerStr = str;
+        std::transform(
+            lowerStr.begin(),
+            lowerStr.end(),
+            lowerStr.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+        return lowerStr;
+}
+
 std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 {
         const size_t MAX_DECODED_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -1467,16 +1478,7 @@ static bool loadLyricsFromSYLTTag(TagLib::ID3v2::Tag *id3v2Tag, Lyrics **lyricsO
         return true;
 }
 
-std::string toLower(const std::string &str)
-{
-        std::string lowerStr = str;
-        std::transform(
-            lowerStr.begin(),
-            lowerStr.end(),
-            lowerStr.begin(),
-            [](unsigned char c) { return std::tolower(c); });
-        return lowerStr;
-}
+
 
 static bool loadLyricsFromLyricsTag(TagLib::ID3v2::Tag *id3v2Tag,
                                     Lyrics **lyricsOut)
