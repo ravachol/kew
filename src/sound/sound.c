@@ -1158,14 +1158,14 @@ static bool wait_for_streaming(int timeout_ms)
 
 static ma_result start_device_verified(ma_device *dev)
 {
-        for (int attempt = 0; attempt < 4; attempt++) {
+        for (int attempt = 0; attempt < 10; attempt++) {
                 atomic_store(&sound_s->streaming_confirmed, false);
 
                 ma_result res = ma_device_start(dev);
                 if (res != MA_SUCCESS)
                         return res;
 
-                if (wait_for_streaming(500))
+                if (wait_for_streaming(200))
                         return MA_SUCCESS;
 
                 k_log("Audio stalled after start, retry %d", attempt + 1);
