@@ -641,27 +641,6 @@ static void handle_track_list_method(GVariant *parameters,
             invocation, g_variant_new("(aa{sv})", &metadata_list));
 }
 
-void mpris_apply_pending_goto(void)
-{
-#ifdef USE_DBUS
-        if (!pending_track_path)
-                return;
-
-        gchar *path = g_steal_pointer(&pending_track_path);
-        PlayList *playlist = get_playlist();
-        pthread_mutex_lock(&playlist->mutex);
-        Node *node = find_track_locked(playlist, path);
-        pthread_mutex_unlock(&playlist->mutex);
-
-        if (node)
-                clear_and_play(node);
-        g_free(path);
-#else
-        return;
-#endif
-
-}
-
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
                                const gchar *object_path,
                                const gchar *interface_name,
@@ -710,6 +689,27 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
         }
 }
 #endif
+
+void mpris_apply_pending_goto(void)
+{
+#ifdef USE_DBUS
+        if (!pending_track_path)
+                return;
+
+        gchar *path = g_steal_pointer(&pending_track_path);
+        PlayList *playlist = get_playlist();
+        pthread_mutex_lock(&playlist->mutex);
+        Node *node = find_track_locked(playlist, path);
+        pthread_mutex_unlock(&playlist->mutex);
+
+        if (node)
+                clear_and_play(node);
+        g_free(path);
+#else
+        return;
+#endif
+
+}
 
 #ifdef USE_DBUS
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name,
