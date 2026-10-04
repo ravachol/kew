@@ -1823,11 +1823,12 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 }
 
                 if (node->next == NULL && !found_chosen) {
-                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                        if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
                                 // mouse clicked outside any song in the playlist
                                 skip_mouse_click = true;
                                 return component_playlist_rows(model, region, buf, dirty);
                         }
+                        skip_mouse_click = false;
                 }
 
                 bool is_playing = false;
