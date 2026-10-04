@@ -398,7 +398,7 @@ void component_library_helper_reset(Model *model)
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
                                                              int max_list_size, int max_name_width,
-                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
+                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len,int *chosen_name_col, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
 {
         if (entry == NULL)
                 return NULL;
@@ -608,8 +608,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 snprintf(dir_name, name_buf_size, "%s", orig_name);
 
                                 if (found_chosen != NULL)
+                                {
                                         *chosen_name_len = (int)process_name_scroll(model, orig_name, dir_name, name_width, false, false);
-                                else
+                                        *chosen_name_col = text_col;
+                                } else
                                         process_name(orig_name, dir_name, name_width, false, false);
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, dir_name, name_width, item_style);
@@ -634,9 +636,10 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                         name_width -= 2;
                                 }
 
-                                if (found_chosen != NULL)
+                                if (found_chosen != NULL) {
                                         *chosen_name_len = (int)process_name_scroll(model, entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
-                                else
+                                        *chosen_name_col = text_col;
+                                } else
                                         process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
 
                                 draw_buffer_set_string_truncated(buf, draw_row, text_col, filename, name_width, file_style);
@@ -656,7 +659,7 @@ traverse_children:
                         FileSystemEntry *result;
 
                         result = component_library_helper_render_node(model, child, depth + 1, max_list_size,
-                                                                      max_name_width, region, buf, row_count, iter, chosen_row, chosen_name_len, clicked_song, first, last);
+                                                                      max_name_width, region, buf, row_count, iter, chosen_row, chosen_name_len, chosen_name_col, clicked_song, first, last);
 
                         if (result && !found_chosen)
                                 found_chosen = result;
@@ -3311,10 +3314,11 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
         bool clicked_chosen = false;
         int chosen_row = model->state.ui.chosen_lib_row;
         int chosen_name_len = 0;
+        int chosen_name_col = 0;
         FileSystemEntry *first = NULL;
         FileSystemEntry *last = NULL;
 
-        FileSystemEntry *chosen_lib_entry = component_library_helper_render_node(model, model->library, 0, region.height, max_name_width, region, buf, &row_count, &iter, &chosen_row, &chosen_name_len, &clicked_chosen, &first, &last);
+        FileSystemEntry *chosen_lib_entry = component_library_helper_render_node(model, model->library, 0, region.height, max_name_width, region, buf, &row_count, &iter, &chosen_row, &chosen_name_len, &chosen_name_col, &clicked_chosen, &first, &last);
 
         // Clear remaining rows
         CellStyle empty = cell_style_plain();
@@ -3335,6 +3339,7 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
             .chosen_row = chosen_row,
             .clicked_song = clicked_chosen,
             .chosen_name_len = chosen_name_len,
+            .chosen_name_col = chosen_name_col,
             .num_rows = iter,
             .found_chosen = (chosen_lib_entry != NULL)};
 
