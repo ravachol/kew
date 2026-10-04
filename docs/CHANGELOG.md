@@ -26,6 +26,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Add ability to seek while playback is paused. By @superb-striker. Suggested by @eilvelia.
 
+- Don't re-create device on song switching when the format is the same. By @Cai-kunkun.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
@@ -47,6 +49,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 - Prevent open_url from firing twice. By @ravachol.
 
 - Fix resources not being freed correctly in get_dbus_connection_with_timeout(). By @ravachol.
+
+- Fix stalling of audio on 192khz songs on Pipewire. By @ravachol. Found by @Cai-kunkun.
 
 ## kew 4.3.8
 
