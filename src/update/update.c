@@ -860,7 +860,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->state.ui.chosen_lib_row = msg->chosen_row;
                 }
 
-                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.library_region.width))
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len + msg->chosen_name_col < model->state.ui.library_region.width))
                         model->name_scroll.active = false;
 
                 if (msg->clicked_song) {

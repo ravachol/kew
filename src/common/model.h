@@ -182,6 +182,7 @@ struct Msg {
 
         int chosen_row;
         int chosen_name_len;
+        int chosen_name_col;
         bool found_chosen;
 
         Node *chosen_song;
