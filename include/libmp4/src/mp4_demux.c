@@ -368,59 +368,67 @@ static int get_metadata_sample_from_ref_track(const struct mp4_track *ref_tk,
 }
 
 
+static int seek_track(struct mp4_track *tk,
+		      uint64_t time_offset,
+		      enum mp4_seek_method method)
+{
+	int found = 0;
+	int idx = 0;
+	if (!tk->sampleCount)
+		return -ENOENT;
+	uint64_t ts = mp4_usec_to_sample_time(time_offset, tk->timescale);
+	uint64_t newPendingSeekTime = 0;
+	/* Search timestamps directly: fragmented tracks need not have constant
+	 * sample durations or start at timestamp zero. */
+	uint32_t low = 0, high = tk->sampleCount;
+	while (low < high) {
+		uint32_t mid = low + (high - low) / 2;
+		if (tk->sampleDecodingTime[mid] <= ts)
+			low = mid + 1;
+		else
+			high = mid;
+	}
+	if (low == 0) {
+		/* A media timeline may begin at a nonzero tfdt. */
+		idx = 0;
+		found = 1;
+	} else {
+		int start = (int)low - 1;
+		idx = get_seek_sample(tk, start, ts, method);
+		if (idx >= 0) {
+			newPendingSeekTime =
+				(idx == start) ? 0 : tk->sampleDecodingTime[start];
+			found = 1;
+		}
+	}
+	if (!found) {
+		ULOGE("unable to seek in track");
+		return -ENOENT;
+	}
+	tk->nextSample = idx;
+	tk->pendingSeekTime = newPendingSeekTime;
+	ULOGD("seek to %" PRIu64 " -> sample #%d time %" PRIu64,
+	      time_offset,
+	      idx,
+	      mp4_sample_time_to_usec(tk->sampleDecodingTime[idx], tk->timescale));
+	return 0;
+}
+
 int mp4_demux_seek(const struct mp4_demux *demux,
 		   uint64_t time_offset,
 		   enum mp4_seek_method method)
 {
 	struct mp4_track *tk = NULL;
-	const struct mp4_file *mp4;
 
 	ULOG_ERRNO_RETURN_ERR_IF(demux == NULL, EINVAL);
 
-	mp4 = &demux->mp4;
-
-	list_walk_entry_forward(&mp4->tracks, tk, node)
+	list_walk_entry_forward(&demux->mp4.tracks, tk, node)
 	{
-		int found = 0;
-		int idx = 0;
-		uint64_t ts =
-			mp4_usec_to_sample_time(time_offset, tk->timescale);
-		uint64_t newPendingSeekTime = 0;
-		int start = (unsigned int)(((uint64_t)tk->sampleCount * ts +
-					    tk->duration - 1) /
-					   tk->duration);
-		if (start < 0)
-			start = 0;
-		if ((unsigned)start >= tk->sampleCount)
-			start = tk->sampleCount - 1;
-		while (((unsigned)start < tk->sampleCount - 1) &&
-		       (tk->sampleDecodingTime[start] < ts))
-			start++;
-		for (int i = start; i >= 0; i--) {
-			if (tk->sampleDecodingTime[i] <= ts) {
-				idx = get_seek_sample(tk, i, ts, method);
-				if (idx < 0)
-					break;
-				newPendingSeekTime =
-					(idx == i) ? 0
-						   : tk->sampleDecodingTime[i];
-				found = 1;
-				break;
-			}
-		}
-		if (found) {
-			tk->nextSample = idx;
-			tk->pendingSeekTime = newPendingSeekTime;
-			ULOGD("seek to %" PRIu64 " -> sample #%d time %" PRIu64,
-			      time_offset,
-			      idx,
-			      mp4_sample_time_to_usec(
-				      tk->sampleDecodingTime[idx],
-				      tk->timescale));
-		} else {
-			ULOGE("unable to seek in track");
-			return -ENOENT;
-		}
+		if (!tk->sampleCount)
+			continue;
+		int ret = seek_track(tk, time_offset, method);
+		if (ret < 0)
+			return ret;
 	}
 
 	return 0;
