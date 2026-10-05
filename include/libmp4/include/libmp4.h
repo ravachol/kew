@@ -233,6 +233,8 @@ struct mp4_track_sample {
 	uint64_t next_dts;
 	uint64_t prev_sync_dts;
 	uint64_t next_sync_dts;
+	/* Zero-based index in the track.*/
+	uint32_t index;
 };
 
 

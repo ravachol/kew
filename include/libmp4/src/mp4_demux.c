@@ -695,6 +695,7 @@ int mp4_demux_get_track_sample(const struct mp4_demux *demux,
 	sample_size = tk->sampleSize[tk->nextSample];
 	sample_offset = tk->sampleOffset[tk->nextSample];
 	track_sample->size = sample_size;
+	track_sample->index = tk->nextSample;
 	track_sample->offset = sample_offset;
 	if (sample_buffer && (sample_size > 0) &&
 	    (sample_size <= sample_buffer_size)) {
