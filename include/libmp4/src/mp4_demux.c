@@ -414,6 +414,21 @@ static int seek_track(struct mp4_track *tk,
 	return 0;
 }
 
+
+int mp4_demux_seek_track(const struct mp4_demux *demux,
+			 unsigned int track_id,
+			 uint64_t time_offset,
+			 enum mp4_seek_method method)
+{
+	ULOG_ERRNO_RETURN_ERR_IF(demux == NULL, EINVAL);
+	struct mp4_track *tk =
+		mp4_track_find_by_id(&demux->mp4, track_id);
+	if (tk == NULL)
+		return -ENOENT;
+	return seek_track(tk, time_offset, method);
+}
+
+
 int mp4_demux_seek(const struct mp4_demux *demux,
 		   uint64_t time_offset,
 		   enum mp4_seek_method method)

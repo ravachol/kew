@@ -448,6 +448,19 @@ MP4_API int mp4_demux_seek(const struct mp4_demux *demux,
 			   uint64_t time_offset,
 			   enum mp4_seek_method method);
 
+/**
+ * Seek one track to a time offset.
+ * @param demux: demuxer instance handle
+ * @param track_id: track ID
+ * @param time_offset: timestamp in microseconds
+ * @param method: seek method
+ * @return 0 on success, negative errno value in case of error
+ */
+MP4_API int mp4_demux_seek_track(const struct mp4_demux *demux,
+				 unsigned int track_id,
+				 uint64_t time_offset,
+				 enum mp4_seek_method method);
+
 
 /**
  * Seek to the previous sample of a track.
