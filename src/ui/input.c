@@ -35,6 +35,7 @@
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
+#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -470,35 +471,35 @@ int get_footer_col(void)
 
 static gpointer open_url_thread(gpointer data)
 {
-    char *url = data;
-    GError *error = NULL;
+        char *url = data;
+        GError *error = NULL;
 
-    int stdout_fd = dup(STDOUT_FILENO);
-    int stderr_fd = dup(STDERR_FILENO);
+        int stdout_fd = dup(STDOUT_FILENO);
+        int stderr_fd = dup(STDERR_FILENO);
 
-    int devnull = open("/dev/null", O_WRONLY);
+        int devnull = open("/dev/null", O_WRONLY);
 
-    // Redirect stdout or else g_app_info_launch_default_for_uri messes up rendering
-    if (devnull >= 0) {
-        dup2(devnull, STDOUT_FILENO);
-        dup2(devnull, STDERR_FILENO);
-        close(devnull);
-    }
+        // Redirect stdout or else g_app_info_launch_default_for_uri messes up rendering
+        if (devnull >= 0) {
+                dup2(devnull, STDOUT_FILENO);
+                dup2(devnull, STDERR_FILENO);
+                close(devnull);
+        }
 
-    g_app_info_launch_default_for_uri(url, NULL, &error);
+        g_app_info_launch_default_for_uri(url, NULL, &error);
 
-    if (error) {
-        g_error_free(error);
-    }
+        if (error) {
+                g_error_free(error);
+        }
 
-    dup2(stdout_fd, STDOUT_FILENO);
-    dup2(stderr_fd, STDERR_FILENO);
+        dup2(stdout_fd, STDOUT_FILENO);
+        dup2(stderr_fd, STDERR_FILENO);
 
-    close(stdout_fd);
-    close(stderr_fd);
+        close(stdout_fd);
+        close(stderr_fd);
 
-    g_free(url);
-    return NULL;
+        g_free(url);
+        return NULL;
 }
 
 static GMutex open_url_mutex;
@@ -506,26 +507,25 @@ static gint64 last_open_url_time = 0;
 
 void open_url(const char *url)
 {
-    gint64 now = g_get_monotonic_time();
+        gint64 now = g_get_monotonic_time();
 
-    g_mutex_lock(&open_url_mutex);
+        g_mutex_lock(&open_url_mutex);
 
-    if (now - last_open_url_time < G_USEC_PER_SEC) {
+        if (now - last_open_url_time < G_USEC_PER_SEC) {
+                g_mutex_unlock(&open_url_mutex);
+                return;
+        }
+
+        last_open_url_time = now;
+
         g_mutex_unlock(&open_url_mutex);
-        return;
-    }
 
-    last_open_url_time = now;
+        GThread *thread = g_thread_new(
+            "open-url",
+            open_url_thread,
+            g_strdup(url));
 
-    g_mutex_unlock(&open_url_mutex);
-
-    GThread *thread = g_thread_new(
-        "open-url",
-        open_url_thread,
-        g_strdup(url)
-    );
-
-    g_thread_unref(thread);
+        g_thread_unref(thread);
 }
 
 bool handle_mouse_event(struct tb_event *ev, struct Msg *event, bool do_scroll)
@@ -1218,11 +1218,14 @@ void input_init(void)
         Model *model = get_model();
         tb_init();
 
+#ifndef _WIN32
         if (model->state.settings.mouseEnabled) {
                 // Enable SGR (1006) + drag-motion (1002)
-                const char *enable_mouse = "\033[?1000h\033[?1002h\033[?1006h";
+                const char *enable_mouse =
+                    "\033[?1002h"  // button press/release + drag
+                    "\033[?1006h"; // SGR extended mouse encoding
                 ssize_t result = write(tb_get_output_fd(), enable_mouse,
-                                        strlen(enable_mouse));
+                                       strlen(enable_mouse));
 
                 if (result < 0)
                         tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_MOUSE | TB_INPUT_ESC);
@@ -1236,7 +1239,9 @@ void input_init(void)
         GIOChannel *chan = g_io_channel_unix_new(fd);
         g_io_channel_set_encoding(chan, NULL, NULL); // binary
 
-#ifdef _WIN32
+        g_io_add_watch(chan, G_IO_IN, on_tb_input, NULL);
+
+#else
 
         void restore_console(void)
         {
@@ -1272,18 +1277,28 @@ void input_init(void)
         SetConsoleMode(global.hin, mode);
         SetConsoleCtrlHandler(ctrl_handler, TRUE);
         CreateThread(NULL, 0, win_input_thread, NULL, 0, NULL);
-
-#else
-
-        g_io_add_watch(chan, G_IO_IN, on_tb_input, NULL);
-
 #endif
 }
 
 void input_shutdown(void)
 {
-#ifdef _WIN32
-        SetConsoleMode(global.hin, global.original_mode);
+#ifndef _WIN32
+        Model *model = get_model();
+
+        if (model->state.settings.mouseEnabled) {
+        const char *disable_mouse =
+                "\033[?1002l"
+                "\033[?1006l";
+
+        ssize_t result = write(tb_get_output_fd(), disable_mouse,
+                               strlen(disable_mouse));
+
+        if (result < 0) {
+                k_log("Failed to disable mouse.");
+        }
+        }
+#else
+ SetConsoleMode(global.hin, global.original_mode);
 #endif
 
         tb_shutdown();
