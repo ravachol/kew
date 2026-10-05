@@ -197,6 +197,9 @@ int mp4_demux_open(const char *filename, struct mp4_demux **ret_obj)
 	ret = mp4_tracks_build(mp4);
 	if (ret < 0)
 		goto error;
+	ret = mp4_fragments_read(mp4);
+	if (ret < 0)
+		goto error;
 
 	ret = mp4_metadata_build(mp4);
 	if (ret < 0)

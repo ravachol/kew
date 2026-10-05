@@ -429,8 +429,8 @@ int mp4_tracks_build(struct mp4_file *mp4)
 		}
 
 		if (sampleCount == 0) {
-			ULOGE("invalid sample count");
-			return -EPROTO;
+			/* Fragmented files carry their samples in moof boxes. */
+			goto track_info;
 		}
 		tk->sampleOffset = malloc(sampleCount * sizeof(uint64_t));
 		if (tk->sampleOffset == NULL) {
@@ -517,6 +517,7 @@ int mp4_tracks_build(struct mp4_file *mp4)
 			}
 		}
 
+	track_info:
 		switch (tk->type) {
 		case MP4_TRACK_TYPE_VIDEO:
 			videoTrackCount++;
