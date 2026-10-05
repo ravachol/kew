@@ -327,6 +327,7 @@ LIBMP4_SRCS = \
     include/libmp4/src/mp4.c \
     include/libmp4/src/mp4_box_reader.c \
     include/libmp4/src/mp4_demux.c \
+    include/libmp4/src/mp4_fragment.c \
     include/libmp4/src/mp4_track.c
 
 LIBMP4_OBJS = $(LIBMP4_SRCS:include/libmp4/src/%.c=$(OBJDIR)/libmp4/%.o)
