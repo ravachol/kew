@@ -288,6 +288,11 @@ struct mp4_track {
 	uint64_t pendingSeekTime;
 	uint32_t sampleCount;
 	uint32_t *sampleSize;
+	/* Fragment defaults and index allocation state (demux only). */
+	bool fragmentDefaults;
+	uint32_t fragmentDescription, fragmentDuration, fragmentSize, fragmentFlags;
+	uint32_t fragmentCapacity;
+	uint64_t fragmentDecodeEnd;
 	uint32_t sampleMaxSize;
 	uint64_t *sampleDecodingTime;
 	uint64_t *sampleOffset;
@@ -841,6 +846,7 @@ void mp4_tracks_destroy(const struct mp4_file *mp4);
 
 
 int mp4_tracks_build(struct mp4_file *mp4);
+int mp4_fragments_read(struct mp4_file *mp4);
 
 
 void mp4_video_decoder_config_destroy(struct mp4_video_decoder_config *vdc);
