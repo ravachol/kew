@@ -550,6 +550,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 strip_suffix = false;
                         }
 
+                        int name_len = 0;
                         if (entry->is_directory) {
 
                                 snprintf(orig_name, name_buf_size, "%s", entry->name);
@@ -559,6 +560,9 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                         item_style = cell_style_from_theme(ui->theme.header);
                                 }
 
+                                name_len = (int)g_utf8_strlen(orig_name, KEW_PATH_MAX);
+                        } else {
+                                name_len = (int)process_name(entry->name, filename, name_width, strip_unneeded_chars, strip_suffix);
                         }
 
                         bool is_chosen = false;
@@ -568,7 +572,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                                 bool clicked_row = (model->mouse_y >= region.row &&
                                                     model->mouse_y <= region.row + region.height) &&
                                                    (model->mouse_x > region.col + (entry->is_enqueued ? 0 : prefix_len) + extra_indent &&
-                                                    model->mouse_x <= region.col + extra_indent + prefix_len + *chosen_name_len + 3) && // 3 = "└─ "
+                                                    model->mouse_x <= region.col + extra_indent + prefix_len + name_len + 3) && // 3 = "└─ "
                                                    *row_count == model->mouse_y - 1 - region.row;
 
                                 if (clicked_row) {
