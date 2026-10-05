@@ -1264,7 +1264,7 @@ sound_result_t handle_codec(
                 ma_result res = start_device_verified(get_device());
 
                 if (res != MA_SUCCESS) {
-                        set_error_message("Failed to start miniaudio device.");
+                        k_log("Failed to start miniaudio device.");
                         return -1;
                 }
         }
