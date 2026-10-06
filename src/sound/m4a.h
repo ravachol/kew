@@ -930,7 +930,17 @@ MA_API ma_result m4a_decoder_init_file(
                 pM4a->audio_track_id = info.id;
                 pM4a->track = info;
 
-                pM4a->buffer = malloc(info.sample_max_size);
+                /* The ALAC bit reader can look ahead beyond the encoded
+                 * packet. Keep a small zero-filled guard at the end. */
+                size_t allocation_size = info.sample_max_size;
+                if (allocation_size > SIZE_MAX - 3) {
+                        mp4_demux_close(pM4a->mp4);
+                        pM4a->mp4 = NULL;
+                        fclose(fp);
+                        pM4a->file = NULL;
+                        return MA_OUT_OF_MEMORY;
+                }
+                pM4a->buffer = calloc(allocation_size + 3, 1);
                 if (pM4a->buffer == NULL) {
                         mp4_demux_close(pM4a->mp4);
                         pM4a->mp4 = NULL;
@@ -1817,6 +1827,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                         pM4a->current_sample++;
 
                         int outSize = (int)pM4a->alacScratchSize;
+                        memset(pM4a->buffer + sample.size, 0, 3);
                         alac_decode_frame(pM4a->alac, pM4a->buffer, pM4a->alacScratch, &outSize);
 
                         if (outSize <= 0) {
