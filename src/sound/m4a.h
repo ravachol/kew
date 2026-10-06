@@ -1807,7 +1807,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
 
                         struct mp4_track_sample sample;
                         int ret = mp4_demux_get_track_sample(
-                            pM4a->mp4, pM4a->audio_track_id, pM4a->current_sample,
+                            pM4a->mp4, pM4a->audio_track_id, 1,
                             pM4a->buffer, pM4a->buffer_size, NULL, 0, &sample);
 
                         if (ret < 0) {
@@ -1883,7 +1883,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                             mp4_demux_get_track_sample(
                                 pM4a->mp4,
                                 pM4a->audio_track_id,
-                                pM4a->current_sample,
+                                1,
                                 pM4a->buffer,
                                 pM4a->buffer_size,
                                 NULL,
