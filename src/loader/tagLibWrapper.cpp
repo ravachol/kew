@@ -2109,7 +2109,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
         } else if (extension == "flac") {
                 coverArtExtracted =
                     extractCoverArtFromFlac(&f, coverFilePathStr);
-        } else if (extension == "m4a" || extension == "aac") {
+        } else if (extension == "m4a" || extension == "mp4" || extension == "aac") {
                 coverArtExtracted =
                     extractCoverArtFromMp4(&f, coverFilePathStr);
         }

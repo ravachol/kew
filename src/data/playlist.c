@@ -1478,7 +1478,7 @@ int is_music_file(const char *filename)
         if (filename == NULL)
                 return 0;
 
-        const char *extensions[] = {".m4a", ".aac", ".mp3", ".ogg",
+        const char *extensions[] = {".m4a", ".mp4", ".aac", ".mp3", ".ogg",
                                     ".flac", ".wav", ".opus", ".webm", ".aiff"};
 
         size_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
