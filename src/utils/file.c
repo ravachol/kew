@@ -15,6 +15,8 @@
 #include "utils.h"
 #include "k_log.h"
 
+#include <libmp4.h>
+
 #include <dirent.h>
 #include <glib.h>
 #include <libgen.h>
@@ -37,6 +39,42 @@
 
 
 #define MAX_RECURSION_DEPTH 64
+
+bool should_include_in_library(const char *path)
+{
+        if (path == NULL)
+                return false;
+
+        if (!path_ends_with(path, ".mp4"))
+                return true;
+
+        struct mp4_demux *demux = NULL;
+        if (mp4_demux_open(path, &demux) < 0)
+                return false;
+
+        bool has_audio = false;
+        bool has_normal_video = false;
+        int track_count = mp4_demux_get_track_count(demux);
+
+        for (int i = 0; i < track_count; i++) {
+                struct mp4_track_info track;
+                if (mp4_demux_get_track_info(demux, i, &track) < 0) {
+                        has_audio = false;
+                        break;
+                }
+
+                if (track.type == MP4_TRACK_TYPE_AUDIO &&
+                    track.sample_count > 0)
+                        has_audio = true;
+                else if (track.type == MP4_TRACK_TYPE_VIDEO &&
+                         (track.video_codec != MP4_VIDEO_CODEC_UNKNOWN ||
+                          track.sample_count > 1))
+                        has_normal_video = true;
+        }
+
+        mp4_demux_close(demux);
+        return has_audio && !has_normal_video;
+}
 
 const char *get_temp_dir()
 {
@@ -223,6 +261,8 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
                         extract_extension(entry->d_name, sizeof(ext) - 1, ext);
                         if (match_regex(&regex, ext) != 0)
+                                continue;
+                        if (!should_include_in_library(entry_path))
                                 continue;
 
                         char *folded_name = g_utf8_casefold(entry->d_name, -1);
