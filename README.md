@@ -66,7 +66,6 @@ Supported: mp3, flac, opus, ogg, m4a (including alac), raw aac, wav, webm.
 #### With caveats, not supported:
 - HE-AAC.
 - E-AC-3.
-- M4a with fragmented mp4's.
 
 
 ## License
