@@ -54,6 +54,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Allow seeking back on small sound files. By @superb-strike.
 
+- Fix crash because of NULL in scroll_next() by @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
