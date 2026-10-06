@@ -52,7 +52,7 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix stalling of audio on 192khz songs on Pipewire. By @ravachol. Found by @Cai-kunkun.
 
-- Allow seeking back on small sound files. By @ravachol. Found by @superb-striker.
+- Allow seeking back on small sound files. By @superb-strike.
 
 ## kew 4.3.8
 
