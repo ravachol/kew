@@ -890,8 +890,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                 k_log("Error initializing decoder.\n");
                 set_error_message(
-                    "Error initializing decoder (possibly a fragmented mp4 file) "
-                    "in the current or next file.");
+                    "Error reading the MP4 container in the current or next file.");
 
                 return MA_ERROR;
         }
