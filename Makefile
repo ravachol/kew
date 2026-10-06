@@ -332,6 +332,8 @@ LIBMP4_SRCS = \
 
 LIBMP4_OBJS = $(LIBMP4_SRCS:include/libmp4/src/%.c=$(OBJDIR)/libmp4/%.o)
 
+$(OBJDIR)/sound/m4a.o: src/sound/m4a.h
+
 NESTEGG_SRCS = include/nestegg/nestegg.c
 NESTEGG_OBJS = $(NESTEGG_SRCS:include/nestegg/%.c=$(OBJDIR)/nestegg/%.o)
 
