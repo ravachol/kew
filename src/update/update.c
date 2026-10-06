@@ -230,7 +230,13 @@ void scroll_next(Model *model)
                         component_search_helper_collapse_view(model, 1);
 
                 set_dirty(DIRTY_SEARCH);
-        } else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
+        } else if (model->state.currentView == HELP_VIEW) {
+
+                model->state.ui.chosen_help_row++;
+
+                set_dirty(DIRTY_HELP);
+        }
+        else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
                 model->state.ui.chosen_lyrics_row++;
         }
 }
@@ -267,6 +273,11 @@ void scroll_prev(Model *model)
                         component_search_helper_collapse_view(model, -1);
 
                 set_dirty(DIRTY_SEARCH);
+        } else if (model->state.currentView == HELP_VIEW) {
+
+                model->state.ui.chosen_help_row--;
+
+                set_dirty(DIRTY_HELP);
         } else if (model->state.currentView == TRACK_VIEW && (model->state.ui.showLyricsPage)) {
                 model->state.ui.chosen_lyrics_row--;
         }
@@ -860,7 +871,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->state.ui.chosen_lib_row = msg->chosen_row;
                 }
 
-                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.library_region.width))
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len + msg->chosen_name_col < model->state.ui.library_region.width))
                         model->name_scroll.active = false;
 
                 if (msg->clicked_song) {
