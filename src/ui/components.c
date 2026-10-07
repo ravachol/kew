@@ -1828,15 +1828,6 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         }
                 }
 
-                if (node->next == NULL && !found_chosen) {
-                        if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
-                                // mouse clicked outside any song in the playlist
-                                skip_mouse_click = true;
-                                return component_playlist_rows(model, region, buf, dirty);
-                        }
-                        skip_mouse_click = false;
-                }
-
                 bool is_playing = false;
 
                 Node *current = get_current_song();
@@ -1848,6 +1839,15 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         chosen_row = i;
                         chosen_node = node;
                         found_chosen = true;
+                        skip_mouse_click = false;
+                }
+
+                if (node->next == NULL && !found_chosen) {
+                        if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
+                                // mouse clicked outside any song in the playlist
+                                skip_mouse_click = true;
+                                return component_playlist_rows(model, region, buf, dirty);
+                        }
                         skip_mouse_click = false;
                 }
 
