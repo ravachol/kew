@@ -2649,7 +2649,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                     .width = visualizer_width,
                     .height = 1,
                 };
-                if (dirty & DIRTY_VISUALIZER)
+                if (dirty & DIRTY_FOOTER)
                         component_error_row(model, error_rect, buf, dirty);
         }
 
