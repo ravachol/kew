@@ -467,7 +467,7 @@ int can_decoder_seek(void *decoder)
         if (get_current_decoder_decoder_type() == M4A) {
                 ma_m4a *dec = (ma_m4a *)decoder;
                 if (dec != NULL && dec->file_type == k_rawAAC)
-                        return 0;
+                        return dec->adts_frame_count > 0;
         }
 #else
         (void)decoder;
