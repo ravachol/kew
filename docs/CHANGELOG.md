@@ -58,7 +58,9 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix landscape mode info message is very brief. Found by @LeahTheSlug. By @ArrBrants.
 
-- Fix use-after-free error when song was loading during the cleanup of decoders. By @ravachol
+- Fix use-after-free error when song was loading during the cleanup of decoders. By @ravachol.
+
+- Fix sometimes the selected song in the library moves up until it disappears. By @ravachol.
 
 ## kew 4.3.8
 

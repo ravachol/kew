@@ -890,7 +890,8 @@ UpdateResult update(Model *model, struct Msg *msg)
 
                 if (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory))
                 {
-                        if (model->state.ui.check_collapse_top_level || (msg->current_lib_entry && msg->current_lib_entry->is_directory)) {
+                        if (model->state.ui.check_collapse_top_level ||
+                                (msg->current_lib_entry && msg->current_lib_entry->is_directory && model->state.ui.chosen_dir)) {
 
                                 FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
                                 FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
@@ -904,7 +905,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                                         else
                                                 library_collapse_view(model, 1);
                                 }
-                                model->state.ui.check_collapse_top_level = false;
+                                 model->state.ui.check_collapse_top_level = false;
                         }
                 }
 
