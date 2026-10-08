@@ -2068,6 +2068,9 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
 
                 pM4a->current_sample = (ma_uint32)(frame_index / samplesPerFrame);
 
+                if (pM4a->sample_rate == 0)
+                        return MA_ERROR;
+
                 uint64_t time_us =
                     ((uint64_t)pM4a->current_sample * samplesPerFrame * 1000000ULL) / pM4a->sample_rate;
 
