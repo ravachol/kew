@@ -1232,6 +1232,23 @@ void input_init(void)
                 else
                         tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_MOUSE | TB_INPUT_ESC);
         } else {
+                // Disable all mouse reporting.
+                const char *disable_mouse =
+                    "\033[?1000l"  // basic mouse reporting
+                    "\033[?1002l"  // button + drag reporting
+                    "\033[?1003l"  // all-motion reporting
+                    "\033[?1006l"; // SGR mouse encoding
+
+                ssize_t result = write(tb_get_output_fd(), disable_mouse,
+                                       strlen(disable_mouse));
+
+                if (result < 0) {
+                        // Failed to disable terminal mouse reporting.
+                        // Still make sure termbox doesn't parse mouse input.
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+                } else {
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+                }
                 tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
         }
 
