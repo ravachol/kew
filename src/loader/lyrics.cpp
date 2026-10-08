@@ -81,7 +81,7 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
             if (ptr == NULL) ptr = start;
             else {
                 karaokeStringSize += ptr - start;
-                if (karaokeStringSize < 256)
+                if (karaokeStringSize < sizeof(karaokeString))
                     strncat(karaokeString, start, ptr - start);
                 
                 if (numberOfTimestamps < METADATA_MAX_LENGTH)
@@ -103,7 +103,7 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
                 substringEnd = ptr + strlen(ptr);
 
             karaokeStringSize += substringEnd - ptr;
-            if (karaokeStringSize < 256)
+            if (karaokeStringSize < sizeof(karaokeString))
                 strncat(karaokeString, ptr, substringEnd - ptr);
 
             ptr = substringEnd;
