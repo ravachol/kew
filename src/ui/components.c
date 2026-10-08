@@ -206,7 +206,7 @@ bool library_entry_has_visible_children(Model *model, FileSystemEntry *entry)
         return false;
 }
 
-bool library_nothing_more_to_scroll_to(Model *model, FileSystemEntry *current)
+bool library_no_more_entries_in_folder_to_scroll_to(Model *model, FileSystemEntry *current)
 {
         FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
 
@@ -244,7 +244,7 @@ void library_collapse_directory(Model *model, int direction)
         int num_first_children = 0;
         bool collapse_top = false;
 
-        if (library_nothing_more_to_scroll_to(model, current) && model->state.settings.collapseTopLevel && first_parent) {
+        if (library_no_more_entries_in_folder_to_scroll_to(model, current) && model->state.settings.collapseTopLevel && first_parent) {
 
                 FileSystemEntry *child = first_parent->children;
 
@@ -309,7 +309,7 @@ bool library_chosen_dir_should_collapse(Model *model, int diff_rows)
 
         // Collapse if there's nothing more to scroll to
         if (((collapseTopLevelSet && chosenIsTopLevel) || !chosenIsTopLevel) && !movingUp)
-                if (library_nothing_more_to_scroll_to(model, current))
+                if (library_no_more_entries_in_folder_to_scroll_to(model, current))
                         return true;
 
         return false;
