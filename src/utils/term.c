@@ -172,6 +172,7 @@ void restore_terminal_mode(void)
 
 static struct termios orig_termios;
 static int termios_saved = 0;
+static int mouse_mode_saved = 0;
 static int tty_fd = -1;
 
 static int get_tty_fd(void)
@@ -226,6 +227,56 @@ void restore_terminal_mode(void)
 
     tty_fd = -1;
     termios_saved = 0;
+}
+
+void save_terminal_mouse_mode(void)
+{
+    int fd = get_tty_fd();
+    if (fd == -1)
+        return;
+
+    /*
+     * Save the current state of the mouse-related DEC private modes.
+     *
+     * 1000 = basic mouse reporting
+     * 1002 = button + drag reporting
+     * 1003 = all-motion reporting
+     * 1006 = SGR mouse encoding
+     *
+     * The terminal emulator stores the current state internally.
+     */
+    static const char seq[] =
+        "\033[?1000s"
+        "\033[?1002s"
+        "\033[?1003s"
+        "\033[?1006s";
+
+    if (write(fd, seq, sizeof(seq) - 1) == (ssize_t)(sizeof(seq) - 1))
+        mouse_mode_saved = 1;
+}
+
+void restore_terminal_mouse_mode(void)
+{
+    if (!mouse_mode_saved)
+        return;
+
+    int fd = get_tty_fd();
+    if (fd == -1)
+        return;
+
+    /*
+     * Restore exactly the states that existed when
+     * save_terminal_mouse_mode() was called.
+     */
+    static const char seq[] =
+        "\033[?1000r"
+        "\033[?1002r"
+        "\033[?1003r"
+        "\033[?1006r";
+
+    write(fd, seq, sizeof(seq) - 1);
+
+    mouse_mode_saved = 0;
 }
 #endif
 

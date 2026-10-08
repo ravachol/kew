@@ -201,7 +201,7 @@ void terminal_shutdown(void)
         set_default_text_color();
         show_cursor();
         exit_alternate_screen_buffer();
-        disable_terminal_mouse_buttons();
+        restore_terminal_mouse_mode();
         restore_terminal_mode();
         restore_terminal_window_title();
         set_default_text_color();
@@ -592,6 +592,7 @@ void locale_init(void)
 void terminal_init(void)
 {
         save_terminal_mode();
+        save_terminal_mouse_mode();
         set_nonblocking_mode();
 
 #ifdef _WIN32
