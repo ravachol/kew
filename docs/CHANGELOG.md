@@ -62,6 +62,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix sometimes the selected song in the library moves up until it disappears. By @ravachol.
 
+- Fix kb/s on songs of different kHz not displayed back to back. By @ravachol. Found by @LeahTheSlug.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
