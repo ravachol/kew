@@ -92,7 +92,7 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
         while (*ptr == '<') {
             ptr = parseTimestamp(ptr, &timestamp, '<');
             if (ptr == NULL) break;
-            if (numberOfTimestamps > METADATA_MAX_LENGTH) break;
+            if (numberOfTimestamps >= METADATA_MAX_LENGTH) break;
             timestampArr[numberOfTimestamps++] = timestamp;
             lyrics->isKaraoke = 1;
             if (*ptr == '>') ptr++;
