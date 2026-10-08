@@ -42,7 +42,7 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fixes stale .m3u playlist causing a crash. By @ravachol. Reported by @Needlide.
 
-- Fix raw AAC ADTS support. By @ravachol. Found by @superb-striker.
+- Fix raw AAC ADTS support. By @superb-striker.
 
 - Fix Help view doesn't clear bottom lines cleanly when scrolling, showing duplicate lines. By @ravachol.
 
