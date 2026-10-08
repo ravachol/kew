@@ -66,6 +66,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix windows build issue. By @AcidRain.
 
+- Fix off-by-one in length check. By @dirkmueller.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
