@@ -727,6 +727,13 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         }
 #endif
 
+        if (ops->decoder_type == WEBM)
+        {
+                song->duration = ((ma_webm *)decoder)->duration;
+        }
+
+        set_avg_bit_rate(song, song->file_path);
+
         if (!sameFormat) {
                 ops->uninit(decoder);
                 free(decoder);
@@ -735,13 +742,6 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
 
         if (ops->setup_decoder)
                 ops->setup_decoder(decoder, first_decoder);
-
-        if (ops->decoder_type == WEBM)
-        {
-                song->duration = ((ma_webm *)decoder)->duration;
-        }
-
-        set_avg_bit_rate(song, song->file_path);
 
         set_next_decoder(decoder, ops->decoder_type);
 
