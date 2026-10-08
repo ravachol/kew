@@ -264,7 +264,6 @@ int init_playback_device(ma_context *context, sound_system_t *sound,
                 device_initialized = true;
         }
 
-
         if (sound_s->state != SOUND_STATE_PAUSED)
                 sound_s->state = SOUND_STATE_PLAYING;
 
@@ -295,7 +294,13 @@ void cleanup_playback_device(void)
 
         stop_playback();
         stop_decode_thread();
+
+        LoaderData *loader = get_loader_data();
+
+        pthread_mutex_lock(&loader->mutex);
         reset_decoders();
+        pthread_mutex_unlock(&loader->mutex);
+
         sound_ringbuffer_cleanup();
         ma_device_uninit(&device);
         memset(&device, 0, sizeof(device));

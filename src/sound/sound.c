@@ -1230,7 +1230,12 @@ sound_result_t handle_codec(
 
                 cleanup_playback_device();
 
+                LoaderData *loader = get_loader_data();
+
+                pthread_mutex_lock(&loader->mutex);
                 reset_decoders();
+                pthread_mutex_unlock(&loader->mutex);
+
                 reset_audio_buffer();
 
                 sound->sample_rate = sample_rate;
