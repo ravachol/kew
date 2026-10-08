@@ -35,7 +35,6 @@
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
-#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
