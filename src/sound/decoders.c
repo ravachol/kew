@@ -463,15 +463,7 @@ enum decoder_type_t get_current_decoder_decoder_type(void)
 
 int can_decoder_seek(void *decoder)
 {
-#ifdef USE_FAAD
-        if (get_current_decoder_decoder_type() == M4A) {
-                ma_m4a *dec = (ma_m4a *)decoder;
-                if (dec != NULL && dec->file_type == k_rawAAC)
-                        return 0;
-        }
-#else
         (void)decoder;
-#endif
 
         if (get_current_decoder_decoder_type() == WEBM) {
                 return 0;
