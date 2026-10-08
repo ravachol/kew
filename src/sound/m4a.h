@@ -74,6 +74,12 @@ typedef struct m4a_decoder {
         uint32_t current_sample; // Index of the next MP4 track sample to decode. This is not a PCM frame counter.
         uint32_t total_samples;
 
+        // Raw ADTS frame index, built once so seeking does not rescan the file.
+        uint64_t *adts_frame_offsets;
+        uint64_t *adts_pcm_offsets;
+        uint32_t adts_frame_count;
+        uint64_t adts_total_pcm_frames;
+
         uint8_t leftoverBuffer[MAX_SAMPLES *
                                MAX_CHANNELS *
                                MAX_SAMPLE_SIZE];
@@ -459,46 +465,85 @@ MA_API ma_result m4a_decoder_init(
         return MA_SUCCESS;
 }
 
-double calculate_aac_duration(FILE *fp, unsigned long sample_rate, unsigned long *totalFrames)
+static ma_result build_adts_index(m4a_decoder *decoder)
 {
-        if (fp == NULL || sample_rate == 0 || totalFrames == NULL) {
-                return -1.0;
+        if (decoder == NULL || decoder->file == NULL || decoder->file_size <= 0)
+                return MA_INVALID_ARGS;
+
+        uint32_t capacity = 0;
+        uint64_t offset = 0;
+        uint64_t pcm_offset = 0;
+        while (offset < (uint64_t)decoder->file_size) {
+                uint8_t header[7];
+
+                if ((uint64_t)decoder->file_size - offset < sizeof(header) ||
+                    fseeko(decoder->file, (off_t)offset, SEEK_SET) != 0 ||
+                    fread(header, 1, sizeof(header), decoder->file) !=
+                        sizeof(header))
+                        return MA_INVALID_FILE;
+                if (header[0] != 0xff || (header[1] & 0xf6) != 0xf0)
+                        return MA_INVALID_FILE;
+
+                // lowest bit of header[1] is the protection_absent flag
+                // that shows if CRC protection is present or not
+                // if its protected then header is 9 bytes, otherwise 7 bytes
+                uint32_t header_size = (header[1] & 1) ? 7u : 9u;
+
+                uint32_t frame_size =
+                    ((uint32_t)(header[3] & 3) << 11) |
+                    ((uint32_t)header[4] << 3) |
+                    ((uint32_t)(header[5] & 0xe0) >> 5);
+
+                if (frame_size < header_size ||
+                    frame_size > 8191 ||            // frame length = 13 bits & largest 13 bit number = 8191
+                    frame_size > (uint64_t)decoder->file_size - offset)
+                        return MA_INVALID_FILE;
+
+                // filled all currently allocated index slots - allocate more slots
+                if (decoder->adts_frame_count == capacity) {
+                        uint32_t new_capacity = capacity ? capacity * 2 : 1024;
+                        size_t allocation_size =
+                            (size_t)new_capacity * sizeof(uint64_t);
+                        if (new_capacity < capacity ||
+                            allocation_size / sizeof(uint64_t) != new_capacity)
+                                return MA_OUT_OF_MEMORY;
+                        void *new_offsets = realloc(
+                            decoder->adts_frame_offsets,
+                            allocation_size);
+                        if (new_offsets == NULL)
+                                return MA_OUT_OF_MEMORY;
+                        decoder->adts_frame_offsets = new_offsets;
+                        void *new_pcm_offsets = realloc(
+                            decoder->adts_pcm_offsets,
+                            allocation_size);
+                        if (new_pcm_offsets == NULL)
+                                return MA_OUT_OF_MEMORY;
+                        decoder->adts_pcm_offsets = new_pcm_offsets;
+                        capacity = new_capacity;
+                }
+
+                decoder->adts_frame_offsets[decoder->adts_frame_count] = offset;
+                decoder->adts_pcm_offsets[decoder->adts_frame_count] = pcm_offset;
+                decoder->adts_frame_count++;
+                // lowest 2 bytes of header[6] hold number_of_raw_data_blocks_in_frame - 1
+                uint64_t frame_pcm_count = ((uint64_t)(header[6] & 3) + 1) * 1024;
+                if (pcm_offset > UINT64_MAX - frame_pcm_count)
+                        return MA_OUT_OF_MEMORY;
+                pcm_offset += frame_pcm_count;
+                offset += frame_size;
         }
 
-        unsigned char buffer[7];
-        unsigned long file_size = 0;
-        *totalFrames = 0;
-
-        // Get file size
-        fseek(fp, 0, SEEK_END);
-        file_size = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
-
-        // Loop to count frames
-        while (ftell(fp) < (long)(file_size - 7)) // Ensure at least an ADTS header remains
-        {
-                // Read header
-                if (fread(buffer, 1, 7, fp) < 7)
-                        break;
-
-                // Extract frame size
-                unsigned int frameSize = ((buffer[3] & 0x03) << 11) | ((buffer[4] & 0xFF) << 3) | ((buffer[5] & 0xE0) >> 5);
-
-                if (frameSize <= 7)
-                        break;
-
-                // Skip to next frame
-                fseek(fp, frameSize - 7, SEEK_CUR);
-
-                (*totalFrames)++;
-        }
-
-        // Compute duration using: duration = (totalFrames * 1024) / sample_rate
-        double duration = (double)(*totalFrames * 1024) / sample_rate;
-
-        fseek(fp, 0, SEEK_SET);
-
-        return duration;
+        if (decoder->adts_frame_count == 0)
+                return MA_INVALID_FILE;
+        decoder->adts_total_pcm_frames = pcm_offset;
+        decoder->totalFrames = decoder->adts_frame_count;
+        decoder->duration = (double)pcm_offset / decoder->sample_rate;
+        if (decoder->duration > 0.0)
+                decoder->avg_bit_rate = (ma_uint32)
+                    (((double)decoder->file_size * 8.0) / decoder->duration);
+        if (fseeko(decoder->file, 0, SEEK_SET) != 0)
+                return MA_ERROR;
+        return MA_SUCCESS;
 }
 
 uint32_t read_u32be(FILE *fp)
@@ -617,6 +662,10 @@ MA_API ma_result m4a_decoder_init_file(
 
         pM4a->current_sample = 0;
         pM4a->total_samples = 0;
+        pM4a->adts_frame_offsets = NULL;
+        pM4a->adts_pcm_offsets = NULL;
+        pM4a->adts_frame_count = 0;
+        pM4a->adts_total_pcm_frames = 0;
 
         pM4a->leftoverSampleCount = 0;
         pM4a->cursor = 0;
@@ -877,6 +926,12 @@ MA_API ma_result m4a_decoder_init_file(
 
                         pM4a->leftoverSampleCount = 0;
                         pM4a->cursor = 0;
+
+                        ma_result index_result = build_adts_index(pM4a);
+                        if (index_result != MA_SUCCESS) {
+                                m4a_decoder_uninit(pM4a, NULL);
+                                return index_result;
+                        }
 
                         return MA_SUCCESS;
                 }
@@ -1424,6 +1479,13 @@ MA_API void m4a_decoder_uninit(m4a_decoder *pM4a, const ma_allocation_callbacks 
                 pM4a->buffer_size = 0;
         }
 
+        free(pM4a->adts_frame_offsets);
+        pM4a->adts_frame_offsets = NULL;
+        free(pM4a->adts_pcm_offsets);
+        pM4a->adts_pcm_offsets = NULL;
+        pM4a->adts_frame_count = 0;
+        pM4a->adts_total_pcm_frames = 0;
+
         if (pM4a->file) {
                 fclose(pM4a->file);
                 pM4a->file = NULL;
@@ -1969,7 +2031,34 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
                 return MA_INVALID_ARGS;
 
         if (pM4a->file_type == k_rawAAC) {
-                return MA_ERROR;
+                if (pM4a->adts_frame_count == 0)
+                        return MA_INVALID_OPERATION;
+
+                uint32_t low = 0, high = pM4a->adts_frame_count;
+                while (low < high) {
+                        uint32_t mid = low + (high - low) / 2;
+                        if (pM4a->adts_pcm_offsets[mid] <= frame_index)
+                                low = mid + 1;
+                        else
+                                high = mid;
+                }
+
+                uint32_t index = low ? low - 1 : 0;
+
+                if (pM4a->adts_frame_offsets[index] > (uint64_t)INT64_MAX ||
+                    fseeko(pM4a->file,
+                           (off_t)pM4a->adts_frame_offsets[index],
+                           SEEK_SET) != 0)
+                        return MA_ERROR;
+
+                pM4a->current_sample = index;
+                pM4a->cursor = pM4a->adts_pcm_offsets[index];
+                pM4a->leftoverSampleCount = 0;
+
+                NeAACDecPostSeekReset(pM4a->hDecoder, (long)index);
+
+                return MA_SUCCESS;
+
         } else if (pM4a->file_type == k_ALAC) {
 
                 ma_uint32 samplesPerFrame = pM4a->alac->setinfo_max_samples_per_frame;
@@ -2149,9 +2238,17 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a,
                 return MA_INVALID_ARGS;
         }
 
-        if (pM4a->sample_rate == 0 || pM4a->track.timescale == 0) {
+        if (pM4a->sample_rate == 0) {
                 return MA_ERROR;
         }
+
+        if (pM4a->file_type == k_rawAAC) {
+                *p_length = pM4a->adts_total_pcm_frames;
+                return *p_length ? MA_SUCCESS : MA_ERROR;
+        }
+
+        if (pM4a->track.timescale == 0)
+                return MA_ERROR;
 
         *p_length =
             ((ma_uint64)pM4a->track.duration * pM4a->sample_rate) /
