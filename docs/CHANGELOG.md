@@ -70,6 +70,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix off-by-one in length check. By @dirkmueller.
 
+- Fix issue where collapse library to top level led to enqueueing requireing several key presses sometimes. By @ravachol.
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
