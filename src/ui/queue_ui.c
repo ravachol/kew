@@ -164,7 +164,7 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
 
         if (entry != NULL) {
                 if (entry->is_directory) {
-                        if ((!has_song_children(entry) && !model->state.settings.collapseTopLevel) ||
+                        if ((!has_song_children(entry) && !(model->state.settings.collapseTopLevel && model->state.currentView != SEARCH_VIEW)) ||
                             entry->parent == NULL ||
                             ((*chosen_dir) != NULL &&
                              strcmp(entry->full_path, (*chosen_dir)->full_path) == 0)) {
