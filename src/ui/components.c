@@ -398,7 +398,7 @@ void component_library_helper_reset(Model *model)
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
                                                              int max_list_size, int max_name_width,
-                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len,int *chosen_name_col, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
+                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len, int *chosen_name_col, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
 {
         if (entry == NULL)
                 return NULL;
@@ -611,8 +611,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 snprintf(dir_name, name_buf_size, "%s", orig_name);
 
-                                if (found_chosen != NULL)
-                                {
+                                if (found_chosen != NULL) {
                                         *chosen_name_len = (int)process_name_scroll(model, orig_name, dir_name, name_width, false, false);
                                         *chosen_name_col = text_col;
                                 } else
@@ -2855,10 +2854,48 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
 
         ComponentMsg result = (ComponentMsg){0};
 
+        int info_box_col = 0;
+
+        if (model->songdata && model->songdata->cover) {
+
+                float aspect = get_aspect_ratio();
+
+                if (aspect == 0.0f)
+                        aspect = 1.0f;
+
+                info_box_col = region.height * aspect;
+        }
+
+        if (model->songdata && model->songdata->cover && (dirty & DIRTY_SONG)) {
+
+                float aspect = get_aspect_ratio();
+
+                if (aspect == 0.0f)
+                        aspect = 1.0f;
+
+                // Full lyrics page
+                k_Rect cover_rect = {
+                    .row = 0,
+                    .col = 0,
+                    .width = info_box_col,
+                    .height = region.height,
+                };
+
+                component_landscape_cover(model, cover_rect, buf, dirty);
+        }
+
+                // Full lyrics page
+                k_Rect info_rect = {
+                    .row = 0,
+                    .col = info_box_col,
+                    .width = region.width - info_box_col,
+                    .height = region.height,
+                };
+
         if (state->ui.showLyricsPage)
-                result = component_track_landscape_lyrics(model, region, buf, dirty);
+                result = component_track_landscape_lyrics(model, info_rect, buf, dirty);
         else
-                result = component_track_landscape_normal(model, region, buf, dirty);
+                result = component_track_landscape_normal(model, info_rect, buf, dirty);
 
         return result;
 }
