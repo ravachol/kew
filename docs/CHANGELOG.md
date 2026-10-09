@@ -72,6 +72,10 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix issue where collapse library to top level led to enqueueing requireing several key presses sometimes. By @ravachol.
 
+#### Sponsors
+
+Thank you to new sponsor @Demorome!
+
 ## kew 4.3.8
 
 - Fix windows installer error. By @ravachol.
