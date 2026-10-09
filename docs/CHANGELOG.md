@@ -28,6 +28,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Don't re-create device on song switching when the format is the same. By @Cai-kunkun.
 
+- Prettier landscape mode when there's no cover (cover area disappears). By @ravachol after issue by @lianchu114514.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
