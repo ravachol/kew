@@ -2,7 +2,7 @@
 
 First download kew, for instance from the latest release:
 
-https://codeberg.org/ravachol/kew/release/latest
+https://codeberg.org/ravachol/kew/releases/latest
 
 Or use git clone:
 
