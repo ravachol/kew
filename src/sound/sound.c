@@ -128,6 +128,9 @@ static bool perform_seek_if_requested(sound_system_t *sound, ma_decoder *decoder
         if (seek_percent > 100.0)
                 seek_percent = 100.0;
 
+        if (isnan(seek_percent))
+                seek_percent = 0.0;
+
         ma_uint64 targetFrame =
             (ma_uint64)((totalFrames - 1) * seek_percent / 100.0);
         if (targetFrame >= totalFrames)
