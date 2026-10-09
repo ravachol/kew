@@ -18,6 +18,20 @@ Install dependencies:
 sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
 ```
 
+#### Gentoo
+
+```bash
+
+emerge --ask --noreplace dev-util/pkgconf media-libs/faad2 media-libs/taglib sci-libs/fftw media-libs/opus media-libs/opusfile media-libs/libogg dev-vcs/git sys-devel/gcc dev-build/make media-gfx/chafa dev-libs/glib:2 x11-libs/gdk-pixbuf
+
+cd kew
+
+make -j
+
+sudo make install
+
+```
+
 #### FreeBSD
 
 ```bash
