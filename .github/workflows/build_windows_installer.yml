@@ -1,4 +1,4 @@
-name: Release Windows
+name: Build Windows Installer
 
 on:
   release:
