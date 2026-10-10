@@ -130,12 +130,19 @@ jobs:
           test "$(find stage/bin -maxdepth 1 -iname '*.dll' | wc -l)" -gt 0
 
       # -------------------------
-      # Verify DLLs
+      # VERIFY DLLs
       # -------------------------
       - name: Verify DLLs
         shell: msys2 {0}
         run: |
-          ntldd -R stage/bin/kew.exe
+          set -euo pipefail
+
+          ntldd -R stage/bin/kew.exe | tee staged-dependencies.txt
+
+          if grep -qi 'not found' staged-dependencies.txt; then
+            echo "ERROR: Missing DLL dependency"
+            exit 1
+          fi
 
       # -------------------------
       # FlATTEN DIRECTORY
