@@ -1064,80 +1064,83 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
         }
 
         ComponentMsg result = (ComponentMsg){0};
-        CellStyle style = cell_style_from_theme(ui->theme.logo);
-        MinicontrolMode mode;
-        int width;
 
-        if (corrected_width >= 16) {
-                mode = MINICONTROLS_FULL;
-                width = 16;
-        } else if (corrected_width >= 13) {
-                mode = MINICONTROLS_NAV_VOL;
-                width = 13;
-        } else if (corrected_width >= 7) {
-                mode = MINICONTROLS_NAV;
-                width = 7;
-        } else {
-                mode = MINICONTROLS_NAV;
-                width = 0;
-        }
+        if (model->state.settings.mouseEnabled) {
+                CellStyle style = cell_style_from_theme(ui->theme.logo);
+                MinicontrolMode mode;
+                int width;
 
-        char controls[100];
-        if (width > 0)
-                get_minicontrols_text(controls, sizeof controls, mode);
-        else
-                controls[0] = '\0';
-
-        int minicontrols_row = model->miniControls.row - 1;
-        int minicontrols_col = model->miniControls.col - 1;
-
-        if (dirty & DIRTY_SONG) {
-                minicontrols_row = row + corrected_height;
-                if (corrected_width > width)
-                        minicontrols_col = col + ((corrected_width - width) / 2);
-                else
-                        minicontrols_col = col;
-        }
-
-        draw_buffer_set_string_truncated(buf,
-                                         minicontrols_row,
-                                         minicontrols_col,
-                                         controls,
-                                         width,
-                                         style);
-
-        k_Rect progress_rect = {
-            .row = row + corrected_height - 1,
-            .col = col,
-            .width = corrected_width,
-            .height = 1,
-        };
-
-        if (dirty & DIRTY_PROGRESS && model->progressBar.row >= 0 && model->progressBar.col >= 0 && model->progressBar.length >= 0) {
-                progress_rect.row = model->progressBar.row - 1;
-                progress_rect.col = model->progressBar.col - 1;
-                progress_rect.width = model->progressBar.length;
-                progress_rect.height = 1;
-        };
-
-        if (dirty & (DIRTY_SONG | DIRTY_PROGRESS))
-                result = component_progress_bar(model, progress_rect, buf, dirty);
-
-        if (dirty & DIRTY_SONG) {
-
-                if (result.has_msg) {
-                        result.msg.type = MSG_MINICONTROLS_SET;
-                        result.msg.minicontrols_row = minicontrols_row + 1;
-                        result.msg.minicontrols_col = minicontrols_col + 1;
-                        result.msg.minicontrols_width = width;
+                if (corrected_width >= 16) {
+                        mode = MINICONTROLS_FULL;
+                        width = 16;
+                } else if (corrected_width >= 13) {
+                        mode = MINICONTROLS_NAV_VOL;
+                        width = 13;
+                } else if (corrected_width >= 7) {
+                        mode = MINICONTROLS_NAV;
+                        width = 7;
                 } else {
-                        result.has_msg = true;
-                        result.msg = (struct Msg){
-                            .type = MSG_MINICONTROLS_SET,
-                            .minicontrols_row = minicontrols_row + 1,
-                            .minicontrols_col = minicontrols_col + 1,
-                            .minicontrols_width = width,
-                        };
+                        mode = MINICONTROLS_NAV;
+                        width = 0;
+                }
+
+                char controls[100];
+                if (width > 0)
+                        get_minicontrols_text(controls, sizeof controls, mode);
+                else
+                        controls[0] = '\0';
+
+                int minicontrols_row = model->miniControls.row - 1;
+                int minicontrols_col = model->miniControls.col - 1;
+
+                if (dirty & DIRTY_SONG) {
+                        minicontrols_row = row + corrected_height;
+                        if (corrected_width > width)
+                                minicontrols_col = col + ((corrected_width - width) / 2);
+                        else
+                                minicontrols_col = col;
+                }
+
+                draw_buffer_set_string_truncated(buf,
+                                                 minicontrols_row,
+                                                 minicontrols_col,
+                                                 controls,
+                                                 width,
+                                                 style);
+
+                k_Rect progress_rect = {
+                    .row = row + corrected_height - 1,
+                    .col = col,
+                    .width = corrected_width,
+                    .height = 1,
+                };
+
+                if (dirty & DIRTY_PROGRESS && model->progressBar.row >= 0 && model->progressBar.col >= 0 && model->progressBar.length >= 0) {
+                        progress_rect.row = model->progressBar.row - 1;
+                        progress_rect.col = model->progressBar.col - 1;
+                        progress_rect.width = model->progressBar.length;
+                        progress_rect.height = 1;
+                };
+
+                if (dirty & (DIRTY_SONG | DIRTY_PROGRESS))
+                        result = component_progress_bar(model, progress_rect, buf, dirty);
+
+                if (dirty & DIRTY_SONG) {
+
+                        if (result.has_msg) {
+                                result.msg.type = MSG_MINICONTROLS_SET;
+                                result.msg.minicontrols_row = minicontrols_row + 1;
+                                result.msg.minicontrols_col = minicontrols_col + 1;
+                                result.msg.minicontrols_width = width;
+                        } else {
+                                result.has_msg = true;
+                                result.msg = (struct Msg){
+                                    .type = MSG_MINICONTROLS_SET,
+                                    .minicontrols_row = minicontrols_row + 1,
+                                    .minicontrols_col = minicontrols_col + 1,
+                                    .minicontrols_width = width,
+                                };
+                        }
                 }
         }
 
@@ -2884,13 +2887,13 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
                 component_landscape_cover(model, cover_rect, buf, dirty);
         }
 
-                // Full lyrics page
-                k_Rect info_rect = {
-                    .row = region.row,
-                    .col = info_box_col,
-                    .width = region.width - info_box_col,
-                    .height = region.height,
-                };
+        // Full lyrics page
+        k_Rect info_rect = {
+            .row = region.row,
+            .col = info_box_col,
+            .width = region.width - info_box_col,
+            .height = region.height,
+        };
 
         if (state->ui.showLyricsPage)
                 result = component_track_landscape_lyrics(model, info_rect, buf, dirty);
