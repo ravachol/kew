@@ -2,17 +2,15 @@
 
 ## kew 4.3.9 "PUNK TACTICS" EDITION
 
-Fixes 21 bugs and leaves the repo without any open bugs!
+This version fixes 21 bugs and leaves the repo without any open bugs!
 
-It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared.
+It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared. Now it seems we are out of the woods and those bugs have largely been solved.
 
-Now it seems we are out of the woods and those bugs have largely been solved.
+Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot.
+
+Thank you to new sponsor @Demorome.
 
 Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
-
-Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot!
-
-Thank you to new sponsor @Demorome!
 
 /Ravachol
 
