@@ -162,6 +162,17 @@ jobs:
 
           echo "All direct dependencies are bundled or provided by Windows."
 
+
+      # -------------------------
+      # FlATTEN DIRECTORY
+      # -------------------------
+      - name: Flatten stage layout
+        shell: msys2 {0}
+        run: |
+          mv stage/bin/kew.exe stage/
+          mv stage/bin/*.dll stage/ 2>/dev/null || true
+          rmdir stage/bin 2>/dev/null || true
+
       # -------------------------
       # SMOKE TEST
       # -------------------------
@@ -173,16 +184,6 @@ jobs:
             Write-Error "STATUS_DLL_NOT_FOUND: a DLL is missing from stage/"
             exit 1
           }
-
-      # -------------------------
-      # FlATTEN DIRECTORY
-      # -------------------------
-      - name: Flatten stage layout
-        shell: msys2 {0}
-        run: |
-          mv stage/bin/kew.exe stage/
-          mv stage/bin/*.dll stage/ 2>/dev/null || true
-          rmdir stage/bin 2>/dev/null || true
 
       # -------------------------
       # BUNDLE DOCS
