@@ -60,16 +60,12 @@ jobs:
       - name: Get version
         id: version
         shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME}"
-          fi
-
-          VERSION="${VERSION#v}"
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then VERSION="$INPUT_VERSION"; else VERSION="$GITHUB_REF_NAME"; fi
+          echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"
 
       # -------------------------
       # BUILD
@@ -95,30 +91,26 @@ jobs:
       - name: Collect DLLs
         shell: msys2 {0}
         run: |
-      - name: Collect DLLs
-        shell: msys2 {0}
-        run: |
           set -euo pipefail
 
           mkdir -p stage/bin
           cp kew.exe stage/bin/
 
-          ntldd -R kew.exe | tee dependencies.txt
+          ntldd -R kew.exe > dependencies.txt
 
-          if grep -qi 'not found' dependencies.txt; then
-            echo "ERROR: Unresolved DLL dependencies"
-            exit 1
-          fi
-
-          grep -Ei '(ucrt64|mingw64)[\\/]+bin[\\/].*\.dll' dependencies.txt |
-            sed -E 's/.*[[:space:]]([^[:space:]]+\.dll).*/\1/' |
+          # Extract resolved DLL paths from the MSYS2 UCRT64 tree.
+          sed -nE \
+            's/.*=>[[:space:]]*([A-Za-z]:\\.*\\ucrt64\\bin\\[^[:space:]]+\.dll).*/\1/ip' \
+            dependencies.txt |
             sort -fu |
             while IFS= read -r dll; do
               dll="$(cygpath -u "$dll")"
-              test -f "$dll" || {
-                echo "ERROR: DLL not found: $dll"
+
+              if [[ ! -f "$dll" ]]; then
+                echo "ERROR: Resolved DLL does not exist: $dll"
                 exit 1
-              }
+              fi
+
               echo "Copying $dll"
               cp -f "$dll" stage/bin/
             done
@@ -126,8 +118,16 @@ jobs:
           echo "==== Bundled DLLs ===="
           find stage/bin -maxdepth 1 -type f -printf '%f\n' | sort
 
-          test -f stage/bin/kew.exe
-          test "$(find stage/bin -maxdepth 1 -iname '*.dll' | wc -l)" -gt 0
+          echo "==== Checking required runtime DLLs ===="
+          for dll in \
+            libstdc++-6.dll \
+            libgcc_s_seh-1.dll \
+            libwinpthread-1.dll; do
+            if [[ ! -f "stage/bin/$dll" ]]; then
+              echo "ERROR: Required runtime DLL missing: $dll"
+              exit 1
+            fi
+          done
 
       # -------------------------
       # VERIFY DLLs
@@ -139,10 +139,27 @@ jobs:
 
           ntldd -R stage/bin/kew.exe | tee staged-dependencies.txt
 
-          if grep -qi 'not found' staged-dependencies.txt; then
-            echo "ERROR: Missing DLL dependency"
+          # API-set stubs always show as "not found" in ntldd; the Windows loader resolves them.
+          missing="$(grep -i 'not found' staged-dependencies.txt \
+          | grep -viE 'api-ms-win-|ext-ms-win-' || true)"
+
+          if [[ -n "$missing" ]]; then
+            echo "::error::Missing DLL dependencies:"
+            echo "$missing"
             exit 1
           fi
+
+      # -------------------------
+      # SMOKE TEST
+      # -------------------------
+      - name: Smoke test (no MSYS2 on PATH)
+        shell: pwsh
+        run: |
+          & .\stage\kew.exe --version
+          if ($LASTEXITCODE -eq -1073741515) {
+            Write-Error "STATUS_DLL_NOT_FOUND: a DLL is missing from stage/"
+            exit 1
+          }
 
       # -------------------------
       # FlATTEN DIRECTORY

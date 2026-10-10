@@ -1,11 +1,12 @@
 #include "smtc.h"
 
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 #include <windows.media.h>
-#include <winsock2.h>
 
 #include <systemmediatransportcontrolsinterop.h>
+#include <unknwn.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Media.h>
 #include <winrt/Windows.Storage.Streams.h>
