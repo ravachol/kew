@@ -72,6 +72,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix issue where collapse library to top level led to enqueueing requireing several key presses sometimes. By @ravachol.
 
+- Fix hide mini-controls below the side cover if mouseEnabled=0. By @ravachol.
+
 #### Sponsors
 
 Thank you to new sponsor @Demorome!
