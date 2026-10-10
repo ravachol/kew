@@ -102,7 +102,7 @@ jobs:
 
           ntldd -R kew.exe |
             grep -Ei '(ucrt64|mingw64)[\\/]bin[\\/].*\.dll' |
-            sed -E 's/.*[[:space:]]([^[:space:]]+\.dll).*/\1/'
+            sed -E 's/.*[[:space:]]([^[:space:]]+\.dll).*/\1/' |
             while IFS= read -r dll; do
               dll="$(cygpath -u "$dll")"
               echo "Copying $dll"
