@@ -137,17 +137,30 @@ jobs:
         run: |
           set -euo pipefail
 
-          ntldd -R stage/bin/kew.exe | tee staged-dependencies.txt
+          sys32="$(cygpath -u "$SYSTEMROOT")/System32"
+          : > missing.txt
 
-          # API-set stubs always show as "not found" in ntldd; the Windows loader resolves them.
-          missing="$(grep -i 'not found' staged-dependencies.txt \
-          | grep -viE 'api-ms-win-|ext-ms-win-' || true)"
+          for f in stage/bin/*.exe stage/bin/*.dll; do
+            ntldd "$f" \
+              | sed -nE 's/^[[:space:]]*([^[:space:]]+\.dll)[[:space:]]+=>.*/\1/Ip' \
+              | sort -fu \
+              | while IFS= read -r name; do
+                  case "${name,,}" in
+                    api-ms-win-*|ext-ms-*) continue ;;
+                  esac
+                  [[ -f "stage/bin/$name" ]] && continue
+                  [[ -f "$sys32/$name" ]] && continue
+                  echo "$(basename "$f") needs $name" >> missing.txt
+                done
+          done
 
-          if [[ -n "$missing" ]]; then
-            echo "::error::Missing DLL dependencies:"
-            echo "$missing"
+          if [[ -s missing.txt ]]; then
+            echo "::error::DLLs not bundled and not part of Windows:"
+            cat missing.txt
             exit 1
           fi
+
+          echo "All direct dependencies are bundled or provided by Windows."
 
       # -------------------------
       # SMOKE TEST
