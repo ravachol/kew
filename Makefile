@@ -200,7 +200,7 @@ else ifeq ($(UNAME_S), Darwin)
   endif
 else ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
   LIBS += -lws2_32 -lgnurx
-  LIBS += -lwindowsapp -lruntimeobject
+  LIBS += -lwindowsapp -lruntimeobject -lole32 -loleaut32
   WIN_MANIFEST_OBJ = manifest.res
   WINDRES = windres
 endif
