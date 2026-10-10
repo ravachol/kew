@@ -1,22 +1,52 @@
 ## Manually Installing kew
 
+First download kew, for instance from the latest release:
+
+https://codeberg.org/ravachol/kew/releases/latest
+
+Or use git clone:
+
+```bash
+
+git clone https://codeberg.org/ravachol/kew.git
+
+```
+
 #### Debian/Ubuntu
 
 Install dependencies:
 
 ```bash
+
 sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev libgdk-pixbuf-2.0-dev
+
 ```
 
 [Install kew](#install-kew)
+
 
 #### Arch Linux
 
 Install dependencies:
 
 ```bash
+
 sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
+
 ```
+
+[Install kew](#install-kew)
+
+
+#### Gentoo
+
+```bash
+
+emerge --ask --noreplace dev-util/pkgconf media-libs/faad2 media-libs/taglib sci-libs/fftw media-libs/opus media-libs/opusfile media-libs/libogg dev-vcs/git sys-devel/gcc dev-build/make media-gfx/chafa dev-libs/glib:2 x11-libs/gdk-pixbuf
+
+```
+
+[Install kew](#install-kew)
 
 #### FreeBSD
 
@@ -178,7 +208,8 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 
 3) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
 
-#### Install kew {#install-kew}
+<a id="install-kew"></a>
+#### Install kew
 
 Download the latest release (recommended) or, if you are feeling adventurous, clone from the latest in main:
 

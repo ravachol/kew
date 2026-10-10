@@ -317,4 +317,8 @@ long str_truncate_display_width(const char *str, char *dst, int max_width);
 // FIXME document
 void save_terminal_mode();
 
+void save_terminal_mouse_mode();
+
+void restore_terminal_mouse_mode();
+
 #endif

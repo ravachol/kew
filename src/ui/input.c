@@ -35,7 +35,6 @@
 #include "ops/search_ops.h"
 #include "ops/track_manager.h"
 
-#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -1228,10 +1227,27 @@ void input_init(void)
                                        strlen(enable_mouse));
 
                 if (result < 0)
-                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_MOUSE | TB_INPUT_ESC);
-                else
                         tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+                else
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_MOUSE | TB_INPUT_ESC);
         } else {
+                // Disable all mouse reporting.
+                const char *disable_mouse =
+                    "\033[?1000l"  // basic mouse reporting
+                    "\033[?1002l"  // button + drag reporting
+                    "\033[?1003l"  // all-motion reporting
+                    "\033[?1006l"; // SGR mouse encoding
+
+                ssize_t result = write(tb_get_output_fd(), disable_mouse,
+                                       strlen(disable_mouse));
+
+                if (result < 0) {
+                        // Failed to disable terminal mouse reporting.
+                        // Still make sure termbox doesn't parse mouse input.
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+                } else {
+                        tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
+                }
                 tb_set_input_mode(TB_INPUT_ALT | TB_INPUT_ESC);
         }
 
@@ -1282,23 +1298,9 @@ void input_init(void)
 
 void input_shutdown(void)
 {
-#ifndef _WIN32
-        Model *model = get_model();
-
-        if (model->state.settings.mouseEnabled) {
-        const char *disable_mouse =
-                "\033[?1002l"
-                "\033[?1006l";
-
-        ssize_t result = write(tb_get_output_fd(), disable_mouse,
-                               strlen(disable_mouse));
-
-        if (result < 0) {
-                k_log("Failed to disable mouse.");
-        }
-        }
-#else
- SetConsoleMode(global.hin, global.original_mode);
+// restoring mouse in *nix is handled by terminal_shutdown()
+#ifdef _WIN32
+        SetConsoleMode(global.hin, global.original_mode);
 #endif
 
         tb_shutdown();

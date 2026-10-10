@@ -211,9 +211,15 @@ void scroll_next(Model *model)
                         if (model->state.settings.collapseTopLevel) {
 
                                 if (!(model->state.ui.current_lib_entry && model->state.ui.current_lib_entry->children &&
+                                        model->state.ui.treeCtx.chosen_dir &&
                                       model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
-                                    (model->state.ui.current_lib_entry->parent->parent && model->state.ui.current_lib_entry->parent->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
-                                    (model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id && !model->state.ui.current_lib_entry->next))
+                                    (model->state.ui.current_lib_entry && model->state.ui.current_lib_entry->parent &&
+                                        model->state.ui.current_lib_entry->parent->parent &&
+                                        model->state.ui.treeCtx.chosen_dir &&
+                                        model->state.ui.current_lib_entry->parent->parent->id == model->state.ui.treeCtx.chosen_dir->id) ||
+                                    (model->state.ui.current_lib_entry && model->state.ui.current_lib_entry->parent &&
+                                        model->state.ui.treeCtx.chosen_dir &&
+                                        model->state.ui.current_lib_entry->parent->id == model->state.ui.treeCtx.chosen_dir->id && !model->state.ui.current_lib_entry->next))
                                         library_collapse_view(model, 1);
                         } else {
                                 library_collapse_view(model, 1);
@@ -269,7 +275,8 @@ void scroll_prev(Model *model)
 
                 if (model->state.ui.current_lib_entry && (model->state.ui.current_search_entry && model->state.ui.current_search_entry->parent &&
                                                           (model->state.ui.current_search_entry == model->state.ui.current_search_entry->parent->children ||
-                                                           (model->state.ui.chosen_search_dir && model->state.ui.current_search_entry->id == model->state.ui.chosen_search_dir->id))))
+                                                           (model->state.ui.current_search_entry && model->state.ui.chosen_search_dir &&
+                                                                model->state.ui.current_search_entry->id == model->state.ui.chosen_search_dir->id))))
                         component_search_helper_collapse_view(model, -1);
 
                 set_dirty(DIRTY_SEARCH);
@@ -883,7 +890,8 @@ UpdateResult update(Model *model, struct Msg *msg)
 
                 if (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory))
                 {
-                        if (model->state.ui.check_collapse_top_level || (msg->current_lib_entry && msg->current_lib_entry->is_directory)) {
+                        if (model->state.ui.check_collapse_top_level ||
+                                (msg->current_lib_entry && msg->current_lib_entry->is_directory && model->state.ui.chosen_dir)) {
 
                                 FileSystemEntry *first_parent = get_first_parent(model->state.ui.treeCtx.chosen_dir);
                                 FileSystemEntry *entry_first_parent = get_first_parent(msg->current_lib_entry);
@@ -897,7 +905,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                                         else
                                                 library_collapse_view(model, 1);
                                 }
-                                model->state.ui.check_collapse_top_level = false;
+                                 model->state.ui.check_collapse_top_level = false;
                         }
                 }
 

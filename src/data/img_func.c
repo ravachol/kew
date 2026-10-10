@@ -516,7 +516,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         symbol_map = NULL;
         term_info = NULL;
 
-        Model *model = get_model();
+        model = get_model();
 
         if (model->state.settings.verbose_mode)
                 k_log("convert_image() default path done ");

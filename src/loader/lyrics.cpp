@@ -81,9 +81,9 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
             if (ptr == NULL) ptr = start;
             else {
                 karaokeStringSize += ptr - start;
-                if (karaokeStringSize < 256)
+                if (karaokeStringSize < (int)sizeof(karaokeString))
                     strncat(karaokeString, start, ptr - start);
-                
+
                 if (numberOfTimestamps < METADATA_MAX_LENGTH)
                     timestampArr[numberOfTimestamps++] = firstStamp;
             }
@@ -92,7 +92,7 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
         while (*ptr == '<') {
             ptr = parseTimestamp(ptr, &timestamp, '<');
             if (ptr == NULL) break;
-            if (numberOfTimestamps > METADATA_MAX_LENGTH) break;
+            if (numberOfTimestamps >= METADATA_MAX_LENGTH) break;
             timestampArr[numberOfTimestamps++] = timestamp;
             lyrics->isKaraoke = 1;
             if (*ptr == '>') ptr++;
@@ -103,7 +103,7 @@ int parseKaraokeLine(char* ptr, Lyrics* lyrics, double firstStamp) {
                 substringEnd = ptr + strlen(ptr);
 
             karaokeStringSize += substringEnd - ptr;
-            if (karaokeStringSize < 256)
+            if (karaokeStringSize < (int)sizeof(karaokeString))
                 strncat(karaokeString, ptr, substringEnd - ptr);
 
             ptr = substringEnd;
@@ -180,7 +180,7 @@ int parseTimedLyricsLine(char* line, Lyrics* lyrics, size_t* lyricsCapacity) {
                 else {
                     numberOfTimestamps = parseKaraokeLine(ptr, lyrics, timestamp);
                 }
-                
+
 
                 if (!lyrics->lines[lyrics->count].text) {
                         freeLyricLines(lyrics);

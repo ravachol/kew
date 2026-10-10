@@ -99,6 +99,9 @@ void seek_back(Model *model)
 
         int seconds = (int)(duration * (step_percent / 100.0));
 
+        if (seconds == 0)
+                seconds = 1;
+
         seek(-seconds);
 
         set_dirty(DIRTY_FOOTER);

@@ -134,6 +134,9 @@ static bool perform_seek_if_requested(sound_system_t *sound, void *decoder)
         if (seek_percent > 100.0)
                 seek_percent = 100.0;
 
+        if (isnan(seek_percent))
+                seek_percent = 0.0;
+
         ma_uint64 targetFrame =
             (ma_uint64)((totalFrames - 1) * seek_percent / 100.0);
         if (targetFrame >= totalFrames)
@@ -1238,7 +1241,12 @@ sound_result_t handle_codec(
 
                 cleanup_playback_device();
 
+                LoaderData *loader = get_loader_data();
+
+                pthread_mutex_lock(&loader->mutex);
                 reset_decoders();
+                pthread_mutex_unlock(&loader->mutex);
+
                 reset_audio_buffer();
 
                 sound->sample_rate = sample_rate;

@@ -206,7 +206,7 @@ bool library_entry_has_visible_children(Model *model, FileSystemEntry *entry)
         return false;
 }
 
-bool library_nothing_more_to_scroll_to(Model *model, FileSystemEntry *current)
+bool library_no_more_entries_in_folder_to_scroll_to(Model *model, FileSystemEntry *current)
 {
         FileSystemEntry *chosen_dir = model->state.ui.treeCtx.chosen_dir;
 
@@ -244,7 +244,7 @@ void library_collapse_directory(Model *model, int direction)
         int num_first_children = 0;
         bool collapse_top = false;
 
-        if (library_nothing_more_to_scroll_to(model, current) && model->state.settings.collapseTopLevel && first_parent) {
+        if (library_no_more_entries_in_folder_to_scroll_to(model, current) && model->state.settings.collapseTopLevel && first_parent) {
 
                 FileSystemEntry *child = first_parent->children;
 
@@ -309,7 +309,7 @@ bool library_chosen_dir_should_collapse(Model *model, int diff_rows)
 
         // Collapse if there's nothing more to scroll to
         if (((collapseTopLevelSet && chosenIsTopLevel) || !chosenIsTopLevel) && !movingUp)
-                if (library_nothing_more_to_scroll_to(model, current))
+                if (library_no_more_entries_in_folder_to_scroll_to(model, current))
                         return true;
 
         return false;
@@ -398,7 +398,7 @@ void component_library_helper_reset(Model *model)
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
                                                              int max_list_size, int max_name_width,
-                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len,int *chosen_name_col, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
+                                                             k_Rect region, DrawBuffer *buf, int *row_count, int *iter, int *chosen_row, int *chosen_name_len, int *chosen_name_col, bool *clicked_song, FileSystemEntry **first, FileSystemEntry **last)
 {
         if (entry == NULL)
                 return NULL;
@@ -611,8 +611,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                                 snprintf(dir_name, name_buf_size, "%s", orig_name);
 
-                                if (found_chosen != NULL)
-                                {
+                                if (found_chosen != NULL) {
                                         *chosen_name_len = (int)process_name_scroll(model, orig_name, dir_name, name_width, false, false);
                                         *chosen_name_col = text_col;
                                 } else
@@ -1828,15 +1827,6 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         }
                 }
 
-                if (node->next == NULL && !found_chosen) {
-                        if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
-                                // mouse clicked outside any song in the playlist
-                                skip_mouse_click = true;
-                                return component_playlist_rows(model, region, buf, dirty);
-                        }
-                        skip_mouse_click = false;
-                }
-
                 bool is_playing = false;
 
                 Node *current = get_current_song();
@@ -1848,6 +1838,15 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         chosen_row = i;
                         chosen_node = node;
                         found_chosen = true;
+                        skip_mouse_click = false;
+                }
+
+                if (node->next == NULL && !found_chosen) {
+                        if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
+                                // mouse clicked outside any song in the playlist
+                                skip_mouse_click = true;
+                                return component_playlist_rows(model, region, buf, dirty);
+                        }
                         skip_mouse_click = false;
                 }
 
@@ -2649,7 +2648,7 @@ ComponentMsg component_track_landscape_normal(const Model *model, k_Rect region,
                     .width = visualizer_width,
                     .height = 1,
                 };
-                if (dirty & DIRTY_VISUALIZER)
+                if (dirty & DIRTY_FOOTER)
                         component_error_row(model, error_rect, buf, dirty);
         }
 
@@ -2855,10 +2854,48 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
 
         ComponentMsg result = (ComponentMsg){0};
 
+        int info_box_col = 0;
+
+        if (model->songdata && model->songdata->cover) {
+
+                float aspect = get_aspect_ratio();
+
+                if (aspect == 0.0f)
+                        aspect = 1.0f;
+
+                info_box_col = region.height * aspect;
+        }
+
+        if (model->songdata && model->songdata->cover && (dirty & DIRTY_SONG)) {
+
+                float aspect = get_aspect_ratio();
+
+                if (aspect == 0.0f)
+                        aspect = 1.0f;
+
+                // Full lyrics page
+                k_Rect cover_rect = {
+                    .row = 0,
+                    .col = 0,
+                    .width = info_box_col,
+                    .height = region.height,
+                };
+
+                component_landscape_cover(model, cover_rect, buf, dirty);
+        }
+
+                // Full lyrics page
+                k_Rect info_rect = {
+                    .row = 0,
+                    .col = info_box_col,
+                    .width = region.width - info_box_col,
+                    .height = region.height,
+                };
+
         if (state->ui.showLyricsPage)
-                result = component_track_landscape_lyrics(model, region, buf, dirty);
+                result = component_track_landscape_lyrics(model, info_rect, buf, dirty);
         else
-                result = component_track_landscape_normal(model, region, buf, dirty);
+                result = component_track_landscape_normal(model, info_rect, buf, dirty);
 
         return result;
 }

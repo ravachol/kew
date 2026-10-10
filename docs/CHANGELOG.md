@@ -28,6 +28,8 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Don't re-create device on song switching when the format is the same. By @Cai-kunkun.
 
+- Prettier landscape mode when there's no cover (cover area disappears). By @ravachol after issue by @lianchu114514.
+
 #### Bug Fixes:
 
 - Fix when clicking in the playlist view, the selection bar can go to the bottom of the playlist. By @nhuvaynhe. Reported by @jsteitz.
@@ -42,7 +44,7 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fixes stale .m3u playlist causing a crash. By @ravachol. Reported by @Needlide.
 
-- Fix raw AAC ADTS support. By @ravachol. Found by @superb-striker.
+- Fix raw AAC ADTS support. By @superb-striker.
 
 - Fix Help view doesn't clear bottom lines cleanly when scrolling, showing duplicate lines. By @ravachol.
 
@@ -51,6 +53,28 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 - Fix resources not being freed correctly in get_dbus_connection_with_timeout(). By @ravachol.
 
 - Fix stalling of audio on 192khz songs on Pipewire. By @ravachol. Found by @Cai-kunkun.
+
+- Allow seeking back on small sound files. By @superb-strike.
+
+- Fix crash because of NULL in scroll_next() by @ravachol.
+
+- Fix landscape mode info message is very brief. Found by @LeahTheSlug. By @ArrBrants.
+
+- Fix use-after-free error when song was loading during the cleanup of decoders. By @ravachol.
+
+- Fix sometimes the selected song in the library moves up until it disappears. By @ravachol.
+
+- Fix kb/s on songs of different kHz not displayed back to back. By @ravachol. Found by @LeahTheSlug.
+
+- Fix windows build issue. By @AcidRain.
+
+- Fix off-by-one in length check. By @dirkmueller.
+
+- Fix issue where collapse library to top level led to enqueueing requireing several key presses sometimes. By @ravachol.
+
+#### Sponsors
+
+Thank you to new sponsor @Demorome!
 
 ## kew 4.3.8
 
