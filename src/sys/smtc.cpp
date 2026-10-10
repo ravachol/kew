@@ -1,16 +1,16 @@
 #include "smtc.h"
 
 #ifdef _WIN32
-#include <winsock2.h>
 #include <windows.h>
 #include <windows.media.h>
+#include <winsock2.h>
 
-#include <winrt/base.h>
+#include <systemmediatransportcontrolsinterop.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Media.h>
-#include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
-#include <systemmediatransportcontrolsinterop.h>
+#include <winrt/Windows.Storage.h>
+#include <winrt/base.h>
 
 #include "common/events.h"
 #include "update/messages.h"
@@ -29,6 +29,7 @@ static double g_position = 0.0;
 
 static bool g_initialized = false;
 
+static bool g_apartment_initialied = false;
 
 static HWND g_hwnd = nullptr;
 
@@ -54,7 +55,7 @@ static HWND create_hidden_window(void)
             L"",
             WS_POPUP,
             0, 0, 0, 0,
-            HWND_MESSAGE,           // message-only window: no visible top-level window
+            HWND_MESSAGE, // message-only window: no visible top-level window
             nullptr,
             wc.hInstance,
             nullptr);
@@ -109,8 +110,12 @@ static void update_timeline(void)
 
 extern "C" void smtc_init(void)
 {
+        if (g_initialized)
+                return;
+
         try {
                 init_apartment();
+                g_apartment_initialied = true;
         } catch (const hresult_error &e) {
                 return;
         }
@@ -118,6 +123,8 @@ extern "C" void smtc_init(void)
         g_hwnd = create_hidden_window();
 
         if (!g_hwnd) {
+                uninit_apartment();
+                g_apartment_initialied = false;
                 return;
         }
 
@@ -171,6 +178,13 @@ extern "C" void smtc_init(void)
                 g_duration = 0.0;
                 g_initialized = true;
         } catch (const hresult_error &e) {
+                g_smtc = nullptr;
+
+                DestroyWindow(g_hwnd);
+                g_hwnd = nullptr;
+
+                uninit_apartment();
+                g_apartment_initialied = false;
                 return;
         }
 }
@@ -181,67 +195,70 @@ extern "C" void smtc_update_metadata(const char *title,
                                      const char *cover_art_path,
                                      double duration)
 {
-        if (!g_smtc)
+        if (!g_smtc || !g_initialized)
                 return;
 
-        // Store duration for the timeline.
         if (duration < 0.0)
                 duration = 0.0;
 
         g_duration = duration;
 
-        // Get the SMTC display updater.
-        auto updater = g_smtc.DisplayUpdater();
+        try {
+                auto updater = g_smtc.DisplayUpdater();
+                updater.Type(MediaPlaybackType::Music);
 
-        updater.Type(MediaPlaybackType::Music);
+                auto properties = updater.MusicProperties();
 
-        // Update music metadata.
-        auto properties = updater.MusicProperties();
+                properties.Title(
+                    title ? winrt::to_hstring(title) : L"");
 
-        properties.Title(
-            title ? winrt::to_hstring(title) : L"");
+                properties.Artist(
+                    artist ? winrt::to_hstring(artist) : L"");
 
-        properties.Artist(
-            artist ? winrt::to_hstring(artist) : L"");
+                properties.AlbumTitle(
+                    album ? winrt::to_hstring(album) : L"");
 
-        properties.AlbumTitle(
-            album ? winrt::to_hstring(album) : L"");
-
-        // Album artwork.
-        // cover_art_path is expected to be a local filesystem path.
-        if (cover_art_path && cover_art_path[0] != '\0') {
+                // Artwork is optional. Failure to load it should
+                // not prevent metadata from being published.
                 try {
-                        auto path = winrt::to_hstring(cover_art_path);
+                        if (cover_art_path && cover_art_path[0] != '\0') {
+                                auto path = winrt::to_hstring(cover_art_path);
+                                auto file =
+                                    winrt::Windows::Storage::StorageFile::
+                                        GetFileFromPathAsync(path)
+                                            .get();
 
-                        auto file =
-                            winrt::Windows::Storage::StorageFile::
-                                GetFileFromPathAsync(path)
-                                    .get();
+                                auto thumbnail =
+                                    winrt::Windows::Storage::Streams::
+                                        RandomAccessStreamReference::
+                                            CreateFromFile(file);
 
-                        auto thumbnail =
-                            winrt::Windows::Storage::Streams::
-                                RandomAccessStreamReference::CreateFromFile(file);
-
-                        updater.Thumbnail(thumbnail);
+                                updater.Thumbnail(thumbnail);
+                        } else {
+                                updater.Thumbnail(nullptr);
+                        }
                 } catch (const winrt::hresult_error &) {
-                        // Artwork is optional
-                        updater.Thumbnail(nullptr);
+                        try {
+                                updater.Thumbnail(nullptr);
+                        } catch (const winrt::hresult_error &) {
+                                // Artwork is optional.
+                        }
                 }
-        } else {
-                // Explicitly clear artwork from the previous track.
-                updater.Thumbnail(nullptr);
+
+                updater.Update();
+                update_timeline();
+        } catch (const winrt::hresult_error &) {
+                // SMTC is optional; don't let its failure
+                // disrupt normal playback.
         }
-
-        // Publish the metadata to Windows.
-        updater.Update();
-
-        // Update the timeline as well, preserving the current position.
-        update_timeline();
 }
 
 extern "C" void smtc_set_playback_playing(void)
 {
         if (!g_smtc)
+                return;
+
+        if (!g_initialized)
                 return;
 
         g_smtc.PlaybackStatus(
@@ -255,6 +272,9 @@ extern "C" void smtc_set_playback_paused(void)
         if (!g_smtc)
                 return;
 
+        if (!g_initialized)
+                return;
+
         g_smtc.PlaybackStatus(
             MediaPlaybackStatus::Paused);
 
@@ -264,6 +284,9 @@ extern "C" void smtc_set_playback_paused(void)
 extern "C" void smtc_set_playback_stopped(void)
 {
         if (!g_smtc)
+                return;
+
+        if (!g_initialized)
                 return;
 
         g_position = 0.0;
@@ -277,6 +300,9 @@ extern "C" void smtc_set_playback_stopped(void)
 extern "C" void smtc_set_playback_position(double position)
 {
         if (!g_smtc)
+                return;
+
+        if (!g_initialized)
                 return;
 
         if (position < 0.0)
@@ -310,7 +336,10 @@ extern "C" void smtc_shutdown(void)
         g_duration = 0.0;
         g_initialized = false;
 
-        uninit_apartment();
+        if (g_apartment_initialied) {
+                uninit_apartment();
+                g_apartment_initialied = false;
+        }
 }
 
 #else
