@@ -2856,7 +2856,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
 
         int info_box_col = 0;
 
-        if (model->songdata && model->songdata->cover) {
+        if (model->songdata && model->songdata->cover && state->settings.coverEnabled) {
 
                 float aspect = get_aspect_ratio();
 
@@ -2866,7 +2866,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
                 info_box_col = region.height * aspect;
         }
 
-        if (model->songdata && model->songdata->cover && (dirty & DIRTY_SONG)) {
+        if (model->songdata && model->songdata->cover && state->settings.coverEnabled && (dirty & DIRTY_SONG)) {
 
                 float aspect = get_aspect_ratio();
 
@@ -2875,8 +2875,8 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
 
                 // Full lyrics page
                 k_Rect cover_rect = {
-                    .row = 0,
-                    .col = 0,
+                    .row = region.row,
+                    .col = region.col,
                     .width = info_box_col,
                     .height = region.height,
                 };
@@ -2886,7 +2886,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
 
                 // Full lyrics page
                 k_Rect info_rect = {
-                    .row = 0,
+                    .row = region.row,
                     .col = info_box_col,
                     .width = region.width - info_box_col,
                     .height = region.height,
