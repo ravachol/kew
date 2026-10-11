@@ -4,6 +4,8 @@
 
 This version fixes 21 bugs and leaves the repo without any open bugs!
 
+We also now finally have fragmented mp4 support, which means we can add mp4 as a supported type, thanks to the great work of @superb-striker.
+
 It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared. Now it seems we are out of the woods and those bugs have largely been solved.
 
 Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot.
@@ -15,6 +17,8 @@ Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
 /Ravachol
 
 #### Enhancements:
+
+- MP4 support, including fragmented mp4's. By @superb-striker.
 
 - Spanish translation. By @victorhck.
 
