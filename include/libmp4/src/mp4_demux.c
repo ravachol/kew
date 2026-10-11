@@ -376,7 +376,9 @@ static int seek_track(struct mp4_track *tk,
 	int idx = 0;
 	if (!tk->sampleCount)
 		return -ENOENT;
-	uint64_t ts = mp4_usec_to_sample_time(time_offset, tk->timescale);
+	uint64_t ts;
+	if (mp4_rescale_time(time_offset, 1000000, tk->timescale, &ts) < 0)
+		return -EOVERFLOW;
 	uint64_t newPendingSeekTime = 0;
 	/* Search timestamps directly: fragmented tracks need not have constant
 	 * sample durations or start at timestamp zero. */

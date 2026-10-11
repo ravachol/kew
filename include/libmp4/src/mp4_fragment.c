@@ -431,8 +431,14 @@ int mp4_fragments_read(struct mp4_file *mp4)
 	list_walk_entry_forward(&mp4->tracks, t, node)
 	{
 		if (t->fragmentDefaults && t->timescale && mp4->timescale) {
-			uint64_t duration = mp4_convert_timescale(
-			    t->duration, t->timescale, mp4->timescale);
+			uint64_t duration;
+			if (mp4_rescale_time(t->duration,
+					     t->timescale,
+					     mp4->timescale,
+					     &duration) < 0) {
+				ret = -EOVERFLOW;
+				break;
+			}
 			if (duration > mp4->duration)
 				mp4->duration = duration;
 		}

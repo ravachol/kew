@@ -1037,10 +1037,14 @@ MA_API ma_result m4a_decoder_init_file(
         /*
      * Calculate average bitrate from container duration.
      */
-        uint64_t duration_us =
-            mp4_sample_time_to_usec(
-                pM4a->track.duration,
-                pM4a->track.timescale);
+        uint64_t duration_us = 0;
+        if (mp4_rescale_time(pM4a->track.duration,
+                             pM4a->track.timescale,
+                             1000000,
+                             &duration_us) < 0) {
+                m4a_decoder_uninit(pM4a, NULL);
+                return MA_ERROR;
+        }
 
         if (duration_us > 0 && pM4a->file_size > 0) {
                 uint64_t bps =
@@ -2049,6 +2053,8 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
 {
         if (pM4a == NULL)
                 return MA_INVALID_ARGS;
+        if (pM4a->sample_rate == 0)
+                return MA_ERROR;
 
         ma_uint64 length;
         if (m4a_decoder_get_length_in_pcm_frames(pM4a, &length) != MA_SUCCESS ||
@@ -2084,13 +2090,21 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
 
                 return MA_SUCCESS;
         } else {
-                uint64_t relative_us =
-                    frame_index / pM4a->sample_rate * 1000000ULL +
-                    frame_index % pM4a->sample_rate * 1000000ULL /
-                        pM4a->sample_rate;
-                uint64_t time_us = relative_us +
-                    mp4_sample_time_to_usec(pM4a->start_dts,
-                                            pM4a->track.timescale);
+                if (pM4a->track.timescale == 0)
+                        return MA_ERROR;
+                uint64_t relative_us;
+                uint64_t start_us;
+                if (mp4_rescale_time_floor(frame_index,
+                                           pM4a->sample_rate,
+                                           1000000,
+                                           &relative_us) < 0 ||
+                    mp4_rescale_time(pM4a->start_dts,
+                                     pM4a->track.timescale,
+                                     1000000,
+                                     &start_us) < 0 ||
+                    relative_us > UINT64_MAX - start_us)
+                        return MA_ERROR;
+                uint64_t time_us = relative_us + start_us;
                 if (mp4_demux_seek_track(pM4a->mp4,
                                          pM4a->audio_track_id,
                                          time_us,
@@ -2106,9 +2120,13 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
                         return MA_ERROR;
 
                 pM4a->current_sample = sample.index;
-                pM4a->cursor =
-                    (sample.dts - pM4a->start_dts) *
-                    (uint64_t)pM4a->sample_rate / pM4a->track.timescale;
+                uint64_t cursor;
+                if (mp4_rescale_time_floor(sample.dts - pM4a->start_dts,
+                                           pM4a->track.timescale,
+                                           pM4a->sample_rate,
+                                           &cursor) < 0)
+                        return MA_ERROR;
+                pM4a->cursor = cursor;
                 pM4a->leftoverSampleCount = 0;
                 if (pM4a->file_type != k_ALAC)
                         NeAACDecPostSeekReset(pM4a->hDecoder,
@@ -2224,9 +2242,13 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a,
         if (pM4a->track.timescale == 0)
                 return MA_ERROR;
 
-        *p_length =
-            ((ma_uint64)pM4a->track.duration * pM4a->sample_rate) /
-            pM4a->track.timescale;
+        uint64_t length;
+        if (mp4_rescale_time_floor(pM4a->track.duration,
+                                   pM4a->track.timescale,
+                                   pM4a->sample_rate,
+                                   &length) < 0)
+                return MA_ERROR;
+        *p_length = length;
 
         return MA_SUCCESS;
 }

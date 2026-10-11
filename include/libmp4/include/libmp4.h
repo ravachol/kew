@@ -824,19 +824,73 @@ MP4_API const char *
 mp4_metadata_cover_type_str(enum mp4_metadata_cover_type type);
 
 
+static inline int mp4_rescale_time_internal(uint64_t time,
+					    uint32_t src_timescale,
+					    uint32_t dest_timescale,
+					    uint32_t rounding,
+					    uint64_t *result)
+{
+	if (!src_timescale || !dest_timescale || !result)
+		return -1;
+	if (src_timescale == dest_timescale) {
+		*result = time;
+		return 0;
+	}
+	uint64_t quotient = time / src_timescale;
+	uint64_t remainder = time % src_timescale;
+	if (dest_timescale && quotient > UINT64_MAX / dest_timescale)
+		return -1;
+	uint64_t scaled_remainder =
+		(remainder * dest_timescale + rounding) /
+		src_timescale;
+	uint64_t scaled = quotient * dest_timescale;
+	if (scaled_remainder > UINT64_MAX - scaled)
+		return -1;
+	*result = scaled + scaled_remainder;
+	return 0;
+}
+
+
+static inline int mp4_rescale_time(uint64_t time,
+				   uint32_t src_timescale,
+				   uint32_t dest_timescale,
+				   uint64_t *result)
+{
+	return mp4_rescale_time_internal(time,
+					 src_timescale,
+					 dest_timescale,
+					 src_timescale / 2,
+					 result);
+}
+
+
+static inline int mp4_rescale_time_floor(uint64_t time,
+					 uint32_t src_timescale,
+					 uint32_t dest_timescale,
+					 uint64_t *result)
+{
+	return mp4_rescale_time_internal(
+		time, src_timescale, dest_timescale, 0, result);
+}
+
+
 static inline uint64_t mp4_usec_to_sample_time(uint64_t time,
 					       uint32_t timescale)
 {
-	return (time * timescale + 500000) / 1000000;
+	uint64_t result;
+	return mp4_rescale_time(time, 1000000, timescale, &result) == 0
+		       ? result
+		       : UINT64_MAX;
 }
 
 
 static inline uint64_t mp4_sample_time_to_usec(uint64_t time,
 					       uint32_t timescale)
 {
-	if (timescale == 0)
-		return 0;
-	return (time * 1000000 + timescale / 2) / timescale;
+	uint64_t result;
+	return mp4_rescale_time(time, timescale, 1000000, &result) == 0
+		       ? result
+		       : UINT64_MAX;
 }
 
 
@@ -844,9 +898,11 @@ static inline uint64_t mp4_convert_timescale(uint64_t time,
 					     uint32_t src_timescale,
 					     uint32_t dest_timescale)
 {
-	if (src_timescale == dest_timescale)
-		return time;
-	return (time * dest_timescale + src_timescale / 2) / src_timescale;
+	uint64_t result;
+	return mp4_rescale_time(
+		       time, src_timescale, dest_timescale, &result) == 0
+		       ? result
+		       : UINT64_MAX;
 }
 
 
