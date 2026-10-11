@@ -4,10 +4,20 @@
 #define BOX(a, b, c, d)                                                        \
 	((uint32_t)(a) << 24 | (uint32_t)(b) << 16 | (c) << 8 | (d))
 
+#define FRAGMENT_READ_BUFFER_SIZE 16384
+
+struct fragment_cache {
+	uint64_t offset;
+	size_t length;
+	unsigned char data[FRAGMENT_READ_BUFFER_SIZE];
+};
+
 struct fragment_reader {
 	struct mp4_file *file;
+	struct fragment_cache *cache;
 	uint64_t pos, end;
 	int error;
+	bool buffered;
 };
 struct fragment_box {
 	uint32_t type;
@@ -36,18 +46,49 @@ struct track_checkpoint {
 
 static uint32_t word(struct fragment_reader *r)
 {
-	unsigned char b[4];
 	if (r->error)
 		return 0;
 	if (r->pos > r->end || r->end - r->pos < 4) {
 		r->error = -EPROTO;
 		return 0;
 	}
-	if (lseek(r->file->fd, (off_t)r->pos, SEEK_SET) < 0 ||
-	    read(r->file->fd, b, 4) != 4) {
-		r->error = -EIO;
-		return 0;
+	struct fragment_cache *cache = r->cache;
+	if (!cache || r->pos < cache->offset ||
+	    r->pos - cache->offset > cache->length ||
+	    cache->length - (r->pos - cache->offset) < 4) {
+		if (!cache) {
+			r->error = -EINVAL;
+			return 0;
+		}
+		uint64_t available = r->end - r->pos;
+		size_t limit = r->buffered ? sizeof(cache->data) : 16;
+		size_t wanted = available < limit ? (size_t)available : limit;
+		if (lseek(r->file->fd, (off_t)r->pos, SEEK_SET) < 0) {
+			r->error = -errno;
+			return 0;
+		}
+		cache->offset = r->pos;
+		cache->length = 0;
+		while (cache->length < wanted) {
+			ssize_t count = read(r->file->fd,
+					     cache->data + cache->length,
+					     wanted - cache->length);
+			if (count < 0) {
+				if (errno == EINTR)
+					continue;
+				r->error = -errno;
+				return 0;
+			}
+			if (!count)
+				break;
+			cache->length += (size_t)count;
+		}
+		if (cache->length < 4) {
+			r->error = -ENODATA;
+			return 0;
+		}
 	}
+	const unsigned char *b = cache->data + (r->pos - cache->offset);
 	r->pos += 4;
 	return (uint32_t)b[0] << 24 | (uint32_t)b[1] << 16 |
 	       (uint32_t)b[2] << 8 | b[3];
@@ -84,6 +125,7 @@ static int next_box(struct fragment_reader *r, struct fragment_box *box)
 /* Only descend into moov/mvex; media payloads are never read during indexing.*/
 static int defaults_read(struct fragment_reader r, unsigned depth)
 {
+	r.buffered = true;
 	struct fragment_box b;
 	while (next_box(&r, &b)) {
 		if ((depth == 0 && b.type == BOX('m', 'v', 'e', 'x'))) {
@@ -344,7 +386,9 @@ static int traf_read(struct fragment_index *idx, struct fragment_reader r,
 int mp4_fragments_read(struct mp4_file *mp4)
 {
 	struct fragment_index idx = {.file = mp4};
-	struct fragment_reader root = {.file = mp4, .end = mp4->fileSize};
+	struct fragment_cache cache = {0};
+	struct fragment_reader root = {
+		.file = mp4, .cache = &cache, .end = mp4->fileSize};
 	struct fragment_reader r = root;
 	struct fragment_box b;
 	struct mp4_track *t;
@@ -405,6 +449,7 @@ int mp4_fragments_read(struct mp4_file *mp4)
 				goto out;
 		}
 		struct fragment_reader children = b.data;
+		children.buffered = true;
 		struct fragment_box child;
 		uint64_t base = b.start;
 		while (next_box(&children, &child)) {
