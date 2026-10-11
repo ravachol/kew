@@ -638,6 +638,9 @@ void build_playlist_recursive(const char *directory_path,
 
                         if (match_regex(&regex, exto) == 0) {
 
+                                if (!should_include_in_library(file_path))
+                                        continue;
+
                                 snprintf(file_path,
                                          sizeof(file_path),
                                          "%s/%s",
@@ -775,6 +778,9 @@ void build_playlist_recursive(const char *directory_path,
                         extract_extension(entry->d_name, sizeof(exto) - 1, exto);
 
                         if (match_regex(&regex, exto) == 0) {
+
+                                if (!should_include_in_library(file_path))
+                                        continue;
 
                                 snprintf(file_path, sizeof(file_path), "%s/%s",
                                          directory_path, entry->d_name);
@@ -1472,7 +1478,7 @@ int is_music_file(const char *filename)
         if (filename == NULL)
                 return 0;
 
-        const char *extensions[] = {".m4a", ".aac", ".mp3", ".ogg",
+        const char *extensions[] = {".m4a", ".mp4", ".aac", ".mp3", ".ogg",
                                     ".flac", ".wav", ".opus", ".webm", ".aiff"};
 
         size_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);

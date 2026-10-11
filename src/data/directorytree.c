@@ -714,6 +714,11 @@ static int read_directory(const char *path, FileSystemEntry *parent)
 
                 int is_audio = match_regex(&regex, exto);
 
+                char child_path[KEW_PATH_MAX];
+                snprintf(child_path, sizeof(child_path), "%s/%s", path, utf8_name);
+                if (!is_dir && is_audio == 0 && !should_include_in_library(child_path))
+                        continue;
+
                 if (is_audio == 0 || is_dir) {
 
                         FileSystemEntry *child =
@@ -780,6 +785,7 @@ static int read_directory(const char *path, FileSystemEntry *parent)
 
                         struct stat file_stats;
                         if (stat(child_path, &file_stats) == -1) {
+                                free(entry);
                                 continue;
                         }
 
@@ -794,18 +800,26 @@ static int read_directory(const char *path, FileSystemEntry *parent)
 
                         int is_audio = match_regex(&regex, exto);
 
+                        if (!is_dir && is_audio == 0 && !should_include_in_library(child_path)) {
+                                free(entry);
+                                continue;
+                        }
+
                         if (is_audio == 0 || is_dir) {
 
                                 FileSystemEntry *child =
                                     create_entry(entry->d_name, is_dir, parent, file_stats.st_mtime);
 
-                                if (child == NULL)
+                                if (child == NULL) {
+                                        free(entry);
                                         continue;
+                                }
 
                                 set_full_path(child, path, entry->d_name);
 
                                 if (child->full_path == NULL) {
                                         free(child);
+                                        free(entry);
                                         continue;
                                 }
 

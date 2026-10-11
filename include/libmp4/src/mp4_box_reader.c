@@ -1462,7 +1462,8 @@ static off_t mp4_box_stsd_read(const struct mp4_file *mp4,
 		case MP4_TRACK_TYPE_VIDEO: {
 			ULOGD("- stsd: video handler type");
 
-			CHECK_SIZE(maxBytes, 102);
+			CHECK_SIZE(maxBytes - boxReadBytes, 8);
+			off_t entryStart = boxReadBytes;
 
 			/* 'size' */
 			MP4_READ_32(mp4->fd, val32, boxReadBytes);
@@ -1477,6 +1478,21 @@ static off_t mp4_box_stsd_read(const struct mp4_file *mp4,
 			      (char)((type >> 16) & 0xFF),
 			      (char)((type >> 8) & 0xFF),
 			      (char)(type & 0xFF));
+
+			if (size < 8 || size > (uint64_t)(maxBytes - entryStart)) {
+				ULOGE("invalid video sample entry size");
+				return -EINVAL;
+			}
+
+			/* if attached artwork is a non-AVC/HEVC video track in
+			 * fragmented M4A files, then ignore such entries without rejecting
+			 * the audio track or the complete container. */
+			if (type != MP4_AVC1 && type != MP4_HVC1) {
+				MP4_READ_SKIP(mp4->fd, size - 8, boxReadBytes);
+				break;
+			}
+
+			CHECK_SIZE(size, 102);
 
 			/* 'reserved' */
 			MP4_READ_32(mp4->fd, val32, boxReadBytes);

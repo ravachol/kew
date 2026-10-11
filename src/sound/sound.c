@@ -90,7 +90,8 @@ static bool should_switch(ma_uint64 frames_to_read,
         return at_end;
 }
 
-static bool execute_seek(sound_system_t *sound, ma_decoder *decoder, ma_uint64 targetFrame, const CodecOps *ops)
+static bool execute_seek(sound_system_t *sound, ma_data_source *decoder,
+                         ma_uint64 targetFrame, const CodecOps *ops)
 {
         bool was_paused = pb_is_paused();
         stop_playback();
@@ -113,7 +114,8 @@ static bool execute_seek(sound_system_t *sound, ma_decoder *decoder, ma_uint64 t
         return (result == MA_SUCCESS);
 }
 
-static bool perform_seek_if_requested(sound_system_t *sound, ma_decoder *decoder)
+static bool perform_seek_if_requested(sound_system_t *sound,
+                                      ma_data_source *decoder)
 {
         if (!is_seek_requested())
                 return false;
@@ -122,9 +124,14 @@ static bool perform_seek_if_requested(sound_system_t *sound, ma_decoder *decoder
 
         ma_uint64 totalFrames = 0;
 
-        ma_data_source_get_length_in_pcm_frames(decoder, &totalFrames);
+        ma_result length_result =
+            ma_data_source_get_length_in_pcm_frames(decoder, &totalFrames);
+        if (length_result != MA_SUCCESS || totalFrames == 0)
+                return false;
 
         double seek_percent = get_seek_percentage();
+        if (seek_percent < 0.0)
+                seek_percent = 0.0;
         if (seek_percent > 100.0)
                 seek_percent = 100.0;
 
@@ -137,6 +144,8 @@ static bool perform_seek_if_requested(sound_system_t *sound, ma_decoder *decoder
                 targetFrame = totalFrames - 1;
 
         const CodecOps *ops = get_codec_ops(get_current_decoder_decoder_type());
+        if (ops == NULL || ops->seek_to_pcm_frame == NULL)
+                return false;
 
         return execute_seek(sound, decoder, targetFrame, ops);
 }

@@ -73,6 +73,7 @@ typedef struct m4a_decoder {
         int32_t audio_track_index;
         uint32_t current_sample; // Index of the next MP4 track sample to decode. This is not a PCM frame counter.
         uint32_t total_samples;
+        uint64_t start_dts;
 
         // Raw ADTS frame index, built once so seeking does not rescan the file.
         uint64_t *adts_frame_offsets;
@@ -945,8 +946,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                 k_log("Error initializing decoder.\n");
                 set_error_message(
-                    "Error initializing decoder (possibly a fragmented mp4 file) "
-                    "in the current or next file.");
+                    "Error reading the MP4 container in the current or next file.");
 
                 return MA_ERROR;
         }
@@ -986,7 +986,17 @@ MA_API ma_result m4a_decoder_init_file(
                 pM4a->audio_track_id = info.id;
                 pM4a->track = info;
 
-                pM4a->buffer = malloc(info.sample_max_size);
+                /* The ALAC bit reader can look ahead beyond the encoded
+                 * packet. Keep a small zero-filled guard at the end. */
+                size_t allocation_size = info.sample_max_size;
+                if (allocation_size > SIZE_MAX - 3) {
+                        mp4_demux_close(pM4a->mp4);
+                        pM4a->mp4 = NULL;
+                        fclose(fp);
+                        pM4a->file = NULL;
+                        return MA_OUT_OF_MEMORY;
+                }
+                pM4a->buffer = calloc(allocation_size + 3, 1);
                 if (pM4a->buffer == NULL) {
                         mp4_demux_close(pM4a->mp4);
                         pM4a->mp4 = NULL;
@@ -1014,14 +1024,27 @@ MA_API ma_result m4a_decoder_init_file(
 
         pM4a->current_sample = 0;
         pM4a->total_samples = pM4a->track.sample_count;
+        struct mp4_track_sample first_sample;
+        if (mp4_demux_get_track_sample(pM4a->mp4, pM4a->audio_track_id,
+                                       0, NULL, 0, NULL, 0,
+                                       &first_sample) < 0 ||
+            first_sample.size == 0 || pM4a->track.timescale == 0) {
+                m4a_decoder_uninit(pM4a, NULL);
+                return MA_ERROR;
+        }
+        pM4a->start_dts = first_sample.dts;
 
         /*
      * Calculate average bitrate from container duration.
      */
-        uint64_t duration_us =
-            mp4_sample_time_to_usec(
-                pM4a->track.duration,
-                pM4a->track.timescale);
+        uint64_t duration_us = 0;
+        if (mp4_rescale_time(pM4a->track.duration,
+                             pM4a->track.timescale,
+                             1000000,
+                             &duration_us) < 0) {
+                m4a_decoder_uninit(pM4a, NULL);
+                return MA_ERROR;
+        }
 
         if (duration_us > 0 && pM4a->file_size > 0) {
                 uint64_t bps =
@@ -1869,7 +1892,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
 
                         struct mp4_track_sample sample;
                         int ret = mp4_demux_get_track_sample(
-                            pM4a->mp4, pM4a->audio_track_id, pM4a->current_sample,
+                            pM4a->mp4, pM4a->audio_track_id, 1,
                             pM4a->buffer, pM4a->buffer_size, NULL, 0, &sample);
 
                         if (ret < 0) {
@@ -1880,6 +1903,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                         pM4a->current_sample++;
 
                         int outSize = (int)pM4a->alacScratchSize;
+                        memset(pM4a->buffer + sample.size, 0, 3);
                         alac_decode_frame(pM4a->alac, pM4a->buffer, pM4a->alacScratch, &outSize);
 
                         if (outSize <= 0) {
@@ -1945,7 +1969,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                             mp4_demux_get_track_sample(
                                 pM4a->mp4,
                                 pM4a->audio_track_id,
-                                pM4a->current_sample,
+                                1,
                                 pM4a->buffer,
                                 pM4a->buffer_size,
                                 NULL,
@@ -2029,6 +2053,13 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
 {
         if (pM4a == NULL)
                 return MA_INVALID_ARGS;
+        if (pM4a->sample_rate == 0)
+                return MA_ERROR;
+
+        ma_uint64 length;
+        if (m4a_decoder_get_length_in_pcm_frames(pM4a, &length) != MA_SUCCESS ||
+            frame_index >= length)
+                return MA_INVALID_ARGS;
 
         if (pM4a->file_type == k_rawAAC) {
                 if (pM4a->adts_frame_count == 0)
@@ -2058,111 +2089,69 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
                 NeAACDecPostSeekReset(pM4a->hDecoder, (long)index);
 
                 return MA_SUCCESS;
-
-        } else if (pM4a->file_type == k_ALAC) {
-
-                ma_uint32 samplesPerFrame = pM4a->alac->setinfo_max_samples_per_frame;
-
-                if (frame_index >= (ma_uint64)pM4a->total_samples * samplesPerFrame)
-                        return MA_INVALID_ARGS;
-
-                pM4a->current_sample = (ma_uint32)(frame_index / samplesPerFrame);
-
-                if (pM4a->sample_rate == 0)
-                        return MA_ERROR;
-
-                uint64_t time_us =
-                    ((uint64_t)pM4a->current_sample * samplesPerFrame * 1000000ULL) / pM4a->sample_rate;
-
-                int seek_ret = mp4_demux_seek(
-                    pM4a->mp4,
-                    time_us,
-                    MP4_SEEK_METHOD_PREVIOUS_SYNC);
-
-                if (seek_ret < 0)
-                        return MA_ERROR;
-
-                struct mp4_track_sample sample;
-                int ret = mp4_demux_get_track_sample(
-                    pM4a->mp4, pM4a->audio_track_id, pM4a->current_sample,
-                    NULL, 0, NULL, 0, &sample);
-
-                k_log("ALAC seek: frame_index=%llu target_sample=%u time_us=%llu ret=%d\n",
-                      (unsigned long long)frame_index, pM4a->current_sample,
-                      (unsigned long long)time_us, ret);
-
-                if (ret < 0)
-                        return MA_ERROR;
-
-                pM4a->leftoverSampleCount = 0;
-
-                uint64_t actual_pcm_frame =
-                    (sample.dts * (uint64_t)pM4a->sample_rate) / pM4a->track.timescale;
-
-                pM4a->current_sample = (ma_uint32)(actual_pcm_frame / samplesPerFrame);
-                pM4a->cursor = actual_pcm_frame;
-
-                k_log("ALAC seek result: dts=%llu actual_pcm_frame=%llu final_sample=%u\n",
-                      (unsigned long long)sample.dts, (unsigned long long)actual_pcm_frame,
-                      pM4a->current_sample);
-
-                return MA_SUCCESS;
         } else {
+                if (pM4a->track.timescale == 0)
+                        return MA_ERROR;
+                uint64_t relative_us;
+                uint64_t start_us;
+                if (mp4_rescale_time_floor(frame_index,
+                                           pM4a->sample_rate,
+                                           1000000,
+                                           &relative_us) < 0 ||
+                    mp4_rescale_time(pM4a->start_dts,
+                                     pM4a->track.timescale,
+                                     1000000,
+                                     &start_us) < 0 ||
+                    relative_us > UINT64_MAX - start_us)
+                        return MA_ERROR;
+                uint64_t time_us = relative_us + start_us;
+                if (mp4_demux_seek_track(pM4a->mp4,
+                                         pM4a->audio_track_id,
+                                         time_us,
+                                         MP4_SEEK_METHOD_PREVIOUS_SYNC) < 0)
+                        return MA_ERROR;
 
-                if (frame_index >= pM4a->total_samples * 1024)
-                        return MA_INVALID_ARGS;
-
-                pM4a->current_sample = (ma_uint32)(frame_index / 1024);
-
-                unsigned int frame_bytes = 0;
                 struct mp4_track_sample sample;
-
-                // frame_index -> PCM frame count -> microseconds
-                // time_us = frames / sample_rate * 1,000,000
-                uint64_t time_us =
-                    ((uint64_t)pM4a->current_sample * 1024ULL * 1000000ULL) / pM4a->sample_rate;
-
-                int seek_ret = mp4_demux_seek(
-                    pM4a->mp4,
-                    time_us,
-                    MP4_SEEK_METHOD_PREVIOUS_SYNC);
-
-                if (seek_ret < 0)
+                if (mp4_demux_get_track_sample(pM4a->mp4,
+                                               pM4a->audio_track_id,
+                                               0, NULL, 0, NULL, 0,
+                                               &sample) < 0 ||
+                    sample.size == 0 || sample.dts < pM4a->start_dts)
                         return MA_ERROR;
 
-                int ret =
-                    mp4_demux_get_track_sample(
-                        pM4a->mp4,
-                        pM4a->audio_track_id,
-                        pM4a->current_sample,
-                        NULL,
-                        0,
-                        NULL,
-                        0,
-                        &sample);
-
-                if (ret < 0)
+                pM4a->current_sample = sample.index;
+                uint64_t cursor;
+                if (mp4_rescale_time_floor(sample.dts - pM4a->start_dts,
+                                           pM4a->track.timescale,
+                                           pM4a->sample_rate,
+                                           &cursor) < 0)
                         return MA_ERROR;
-
-                frame_bytes = sample.size;
-                ma_int64 sample_offset = sample.offset;
-
-                if (sample_offset < 0 || frame_bytes == 0) {
-                        return MA_ERROR;
-                }
-
-                uint64_t actual_pcm_frame =
-                    (sample.dts * (uint64_t)pM4a->sample_rate) / pM4a->track.timescale;
-
-                pM4a->current_sample = (ma_uint32)(actual_pcm_frame / 1024);
-
-                NeAACDecPostSeekReset(pM4a->hDecoder, (long)pM4a->current_sample);
-
+                pM4a->cursor = cursor;
                 pM4a->leftoverSampleCount = 0;
-                pM4a->cursor = actual_pcm_frame;
-
-                return MA_SUCCESS;
+                if (pM4a->file_type != k_ALAC)
+                        NeAACDecPostSeekReset(pM4a->hDecoder,
+                                              (long)sample.index);
         }
+
+        /* Decode and discard the part of the indexed packet preceding the
+         * exact requested PCM frame. The normal read path keeps any decoded
+         * remainder in leftoverBuffer. */
+        unsigned char scratch[MAX_CHANNELS * MAX_SAMPLE_SIZE * 256];
+        size_t bytes_per_frame = pM4a->channels * pM4a->sampleSize;
+        if (bytes_per_frame == 0 || bytes_per_frame > sizeof(scratch))
+                return MA_ERROR;
+        while (pM4a->cursor < frame_index) {
+                ma_uint64 count = frame_index - pM4a->cursor;
+                ma_uint64 read = 0;
+                if (count > sizeof(scratch) / bytes_per_frame)
+                        count = sizeof(scratch) / bytes_per_frame;
+                ma_result result = m4a_decoder_read_pcm_frames(
+                    pM4a, scratch, count, &read);
+                if (read == 0 ||
+                    (result != MA_SUCCESS && result != MA_AT_END))
+                        return MA_ERROR;
+        }
+        return MA_SUCCESS;
 }
 
 MA_API ma_result m4a_decoder_get_data_format(
@@ -2253,9 +2242,13 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a,
         if (pM4a->track.timescale == 0)
                 return MA_ERROR;
 
-        *p_length =
-            ((ma_uint64)pM4a->track.duration * pM4a->sample_rate) /
-            pM4a->track.timescale;
+        uint64_t length;
+        if (mp4_rescale_time_floor(pM4a->track.duration,
+                                   pM4a->track.timescale,
+                                   pM4a->sample_rate,
+                                   &length) < 0)
+                return MA_ERROR;
+        *p_length = length;
 
         return MA_SUCCESS;
 }
