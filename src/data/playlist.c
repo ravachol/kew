@@ -638,9 +638,6 @@ void build_playlist_recursive(const char *directory_path,
 
                         if (match_regex(&regex, exto) == 0) {
 
-                                if (!should_include_in_library(file_path))
-                                        continue;
-
                                 snprintf(file_path,
                                          sizeof(file_path),
                                          "%s/%s",
@@ -778,9 +775,6 @@ void build_playlist_recursive(const char *directory_path,
                         extract_extension(entry->d_name, sizeof(exto) - 1, exto);
 
                         if (match_regex(&regex, exto) == 0) {
-
-                                if (!should_include_in_library(file_path))
-                                        continue;
 
                                 snprintf(file_path, sizeof(file_path), "%s/%s",
                                          directory_path, entry->d_name);

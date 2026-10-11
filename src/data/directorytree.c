@@ -714,11 +714,6 @@ static int read_directory(const char *path, FileSystemEntry *parent)
 
                 int is_audio = match_regex(&regex, exto);
 
-                char child_path[KEW_PATH_MAX];
-                snprintf(child_path, sizeof(child_path), "%s/%s", path, utf8_name);
-                if (!is_dir && is_audio == 0 && !should_include_in_library(child_path))
-                        continue;
-
                 if (is_audio == 0 || is_dir) {
 
                         FileSystemEntry *child =
@@ -799,11 +794,6 @@ static int read_directory(const char *path, FileSystemEntry *parent)
                         extract_extension(entry->d_name, sizeof(exto) - 1, exto);
 
                         int is_audio = match_regex(&regex, exto);
-
-                        if (!is_dir && is_audio == 0 && !should_include_in_library(child_path)) {
-                                free(entry);
-                                continue;
-                        }
 
                         if (is_audio == 0 || is_dir) {
 

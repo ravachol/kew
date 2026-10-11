@@ -22,15 +22,6 @@
 
 #define AUDIO_EXTENSIONS "(m4a|mp4|aac|mp3|ogg|flac|wav|aiff|opus|webm|m3u|m3u8)$"
 
-/**
- * Decide whether a discovered file belongs in the music library.
- *
- * Non-MP4 files pass through unchanged. MP4 files must contain audio and may
- * contain only still-image video tracks. This filter is intended for directory
- * scans; explicitly requested files are allowed to reach the decoder directly.
- */
-bool should_include_in_library(const char *path);
-
 enum SearchType {
         SearchAny = 0,
         DirOnly = 1,
