@@ -2,13 +2,15 @@
 
 ## kew 4.3.9 "PUNK TACTICS" EDITION
 
-It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared!
+This version fixes 21 bugs and leaves the repo without any open bugs!
 
-Now it seems we are out of the woods and those bugs have largely been solved. Thanks for sticking with us!
+It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared. Now it seems we are out of the woods and those bugs have largely been solved.
+
+Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot.
+
+Thank you to new sponsor @Demorome.
 
 Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
-
-Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot!
 
 /Ravachol
 
@@ -72,9 +74,7 @@ Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who hel
 
 - Fix issue where collapse library to top level led to enqueueing requireing several key presses sometimes. By @ravachol.
 
-#### Sponsors
-
-Thank you to new sponsor @Demorome!
+- Fix hide mini-controls below the side cover if mouseEnabled=0. By @ravachol.
 
 ## kew 4.3.8
 

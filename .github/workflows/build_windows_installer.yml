@@ -1,4 +1,4 @@
-name: Release Windows
+name: Build Windows Installer
 
 on:
   release:
@@ -60,16 +60,12 @@ jobs:
       - name: Get version
         id: version
         shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME}"
-          fi
-
-          VERSION="${VERSION#v}"
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then VERSION="$INPUT_VERSION"; else VERSION="$GITHUB_REF_NAME"; fi
+          echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"
 
       # -------------------------
       # BUILD
@@ -95,27 +91,77 @@ jobs:
       - name: Collect DLLs
         shell: msys2 {0}
         run: |
-          set -ex
+          set -euo pipefail
 
           mkdir -p stage/bin
           cp kew.exe stage/bin/
 
-          ntldd -R kew.exe |
-            grep -Ei '(ucrt64|mingw64)[\\/]bin[\\/].*\.dll' |
-            sed -E 's/.*[[:space:]]([^[:space:]]+\.dll).*/\1/'
+          ntldd -R kew.exe > dependencies.txt
+
+          # Extract resolved DLL paths from the MSYS2 UCRT64 tree.
+          sed -nE \
+            's/.*=>[[:space:]]*([A-Za-z]:\\.*\\ucrt64\\bin\\[^[:space:]]+\.dll).*/\1/ip' \
+            dependencies.txt |
+            sort -fu |
             while IFS= read -r dll; do
               dll="$(cygpath -u "$dll")"
+
+              if [[ ! -f "$dll" ]]; then
+                echo "ERROR: Resolved DLL does not exist: $dll"
+                exit 1
+              fi
+
               echo "Copying $dll"
-              cp "$dll" stage/bin/
+              cp -f "$dll" stage/bin/
             done
 
+          echo "==== Bundled DLLs ===="
+          find stage/bin -maxdepth 1 -type f -printf '%f\n' | sort
+
+          echo "==== Checking required runtime DLLs ===="
+          for dll in \
+            libstdc++-6.dll \
+            libgcc_s_seh-1.dll \
+            libwinpthread-1.dll; do
+            if [[ ! -f "stage/bin/$dll" ]]; then
+              echo "ERROR: Required runtime DLL missing: $dll"
+              exit 1
+            fi
+          done
+
       # -------------------------
-      # Verify DLLs
+      # VERIFY DLLs
       # -------------------------
       - name: Verify DLLs
         shell: msys2 {0}
         run: |
-          ntldd -R stage/bin/kew.exe
+          set -euo pipefail
+
+          sys32="$(cygpath -u "$SYSTEMROOT")/System32"
+          : > missing.txt
+
+          for f in stage/bin/*.exe stage/bin/*.dll; do
+            ntldd "$f" \
+              | sed -nE 's/^[[:space:]]*([^[:space:]]+\.dll)[[:space:]]+=>.*/\1/Ip' \
+              | sort -fu \
+              | while IFS= read -r name; do
+                  case "${name,,}" in
+                    api-ms-win-*|ext-ms-*) continue ;;
+                  esac
+                  [[ -f "stage/bin/$name" ]] && continue
+                  [[ -f "$sys32/$name" ]] && continue
+                  echo "$(basename "$f") needs $name" >> missing.txt
+                done
+          done
+
+          if [[ -s missing.txt ]]; then
+            echo "::error::DLLs not bundled and not part of Windows:"
+            cat missing.txt
+            exit 1
+          fi
+
+          echo "All direct dependencies are bundled or provided by Windows."
+
 
       # -------------------------
       # FlATTEN DIRECTORY
@@ -126,6 +172,18 @@ jobs:
           mv stage/bin/kew.exe stage/
           mv stage/bin/*.dll stage/ 2>/dev/null || true
           rmdir stage/bin 2>/dev/null || true
+
+      # -------------------------
+      # SMOKE TEST
+      # -------------------------
+      - name: Smoke test (no MSYS2 on PATH)
+        shell: pwsh
+        run: |
+          & .\stage\kew.exe --version
+          if ($LASTEXITCODE -eq -1073741515) {
+            Write-Error "STATUS_DLL_NOT_FOUND: a DLL is missing from stage/"
+            exit 1
+          }
 
       # -------------------------
       # BUNDLE DOCS

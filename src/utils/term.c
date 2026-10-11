@@ -166,6 +166,16 @@ void restore_terminal_mode(void)
                 SetConsoleMode(hStdin, orig_mode);
 }
 
+void save_terminal_mouse_mode(void)
+{
+        return;
+}
+
+void restore_terminal_mouse_mode(void)
+{
+        return;
+}
+
 #else
 #include <termios.h>
 #include <unistd.h>
