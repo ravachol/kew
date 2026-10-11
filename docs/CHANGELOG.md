@@ -8,7 +8,7 @@ We also now finally have fragmented mp4 support, which means we can add mp4 as a
 
 It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Now it seems we are out of the woods and kew is stable again.
 
-Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot.
+Special thanks to @superb-striker, @arrbrants  (@Cai-kunkun), @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot.
 
 Thank you to new sponsor @Demorome.
 
