@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## kew 4.3.9 "PUNK TACTICS" EDITION
+## kew 4.4.0 "PUNK TACTICS" EDITION
 
 This version fixes 21 bugs and leaves the repo without any open bugs!
 
