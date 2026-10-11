@@ -284,9 +284,8 @@ void restore_terminal_mouse_mode(void)
         "\033[?1003r"
         "\033[?1006r";
 
-    write(fd, seq, sizeof(seq) - 1);
-
-    mouse_mode_saved = 0;
+    if (write(fd, seq, sizeof(seq) - 1))
+            mouse_mode_saved = 0;
 }
 #endif
 
