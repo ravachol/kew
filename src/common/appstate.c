@@ -90,7 +90,7 @@ void artists_db_init(void)
 
         snprintf(filepath, sizeof(filepath), "%s/kew/%s", KEW_DATADIR, ARTISTS_DB_FILE);
 
-        if (!exists_file(filepath)) {
+        if (exists_file(filepath) < 0) {
                 snprintf(filepath, sizeof(filepath), "/usr/share/kew/%s", ARTISTS_DB_FILE);
 
                 if (!exists_file(filepath))

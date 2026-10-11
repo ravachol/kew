@@ -2,7 +2,7 @@
 
 ## kew 4.4.0 "PUNK TACTICS" EDITION
 
-This version fixes 21 bugs and leaves the repo without any open bugs!
+This version fixes 22 bugs and leaves the repo without any open bugs!
 
 We also now finally have fragmented mp4 support, which means we can add mp4 as a supported type, thanks to the great work of @superb-striker.
 
@@ -79,6 +79,8 @@ Punk Tactics video: https://www.youtube.com/watch?v=OklSZmIx9-o
 - Fix issue where collapse library to top level led to enqueueing requireing several key presses sometimes. By @ravachol.
 
 - Fix hide mini-controls below the side cover if mouseEnabled=0. By @ravachol.
+
+- Fix check for artists db returning a false positive. By @ravachol.
 
 ## kew 4.3.8
 
