@@ -90,7 +90,7 @@ static bool should_switch(ma_uint64 frames_to_read,
         return at_end;
 }
 
-static bool execute_seek(sound_system_t *sound, void *decoder,
+static bool execute_seek(sound_system_t *sound, ma_data_source *decoder,
                          ma_uint64 targetFrame, const CodecOps *ops)
 {
         bool was_paused = pb_is_paused();
@@ -114,7 +114,8 @@ static bool execute_seek(sound_system_t *sound, void *decoder,
         return (result == MA_SUCCESS);
 }
 
-static bool perform_seek_if_requested(sound_system_t *sound, void *decoder)
+static bool perform_seek_if_requested(sound_system_t *sound,
+                                      ma_data_source *decoder)
 {
         if (!is_seek_requested())
                 return false;
@@ -123,8 +124,8 @@ static bool perform_seek_if_requested(sound_system_t *sound, void *decoder)
 
         ma_uint64 totalFrames = 0;
 
-        ma_result length_result = ma_data_source_get_length_in_pcm_frames(
-            (ma_data_source *)decoder, &totalFrames);
+        ma_result length_result =
+            ma_data_source_get_length_in_pcm_frames(decoder, &totalFrames);
         if (length_result != MA_SUCCESS || totalFrames == 0)
                 return false;
 
