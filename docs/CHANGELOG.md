@@ -6,7 +6,7 @@ This version fixes 21 bugs and leaves the repo without any open bugs!
 
 We also now finally have fragmented mp4 support, which means we can add mp4 as a supported type, thanks to the great work of @superb-striker.
 
-It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Lots of bugs appeared. Now it seems we are out of the woods and those bugs have largely been solved.
+It has been a bit of a bumpy ride since we rewrote the UI more properly from scratch. Now it seems we are out of the woods and kew is stable again.
 
 Special thanks to @superb-striker, @nhuvaynhe, @jsteitz and @LeahTheSlug who helped out a lot.
 
