@@ -799,7 +799,7 @@ typedef struct
 
 typedef struct SearchResult {
         FileSystemEntry *entry;
-        struct FileSystemEntry *parent;
+        struct FileSystemEntry *group; /*Direct match whose rows stay grouped together.*/
         int distance;
         int groupDistance;
         int num_children;
