@@ -9,6 +9,11 @@ enum {
         SCORE_EXACT_DIRECTORY = 100,
 };
 
+static bool is_apostrophe(gunichar c)
+{
+        return c == '\'' || c == 0x2019 || c == 0x02BC;
+}
+
 static char *normalize_search_text(const char *text, bool strip_extension)
 {
         if (text == NULL)
@@ -35,6 +40,7 @@ static char *normalize_search_text(const char *text, bool strip_extension)
                 return g_strdup("");
 
         GString *result = g_string_sized_new(strlen(decomposed));
+        bool last_was_separator = true;
 
         for (const char *p = decomposed; *p; p = g_utf8_next_char(p)) {
                 gunichar c = g_utf8_get_char(p);
@@ -42,11 +48,21 @@ static char *normalize_search_text(const char *text, bool strip_extension)
 
                 if (type == G_UNICODE_NON_SPACING_MARK ||
                     type == G_UNICODE_SPACING_MARK ||
-                    type == G_UNICODE_ENCLOSING_MARK)
+                    type == G_UNICODE_ENCLOSING_MARK || is_apostrophe(c)) {
                         continue;
+                }
 
-                g_string_append_unichar(result, c);
+                if (g_unichar_isalnum(c)) {
+                        g_string_append_unichar(result, c);
+                        last_was_separator = false;
+                } else if (!last_was_separator) {
+                        g_string_append_c(result, ' ');
+                        last_was_separator = true;
+                }
         }
+
+        if (result->len > 0 && result->str[result->len - 1] == ' ')
+                g_string_truncate(result, result->len - 1);
 
         g_free(decomposed);
         return g_string_free(result, FALSE);
