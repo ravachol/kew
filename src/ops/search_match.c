@@ -28,7 +28,28 @@ static char *normalize_search_text(const char *text, bool strip_extension)
         if (casefolded == NULL)
                 return g_strdup("");
 
-        return casefolded;
+        char *decomposed = g_utf8_normalize(casefolded, -1, G_NORMALIZE_NFD);
+        g_free(casefolded);
+
+        if (decomposed == NULL)
+                return g_strdup("");
+
+        GString *result = g_string_sized_new(strlen(decomposed));
+
+        for (const char *p = decomposed; *p; p = g_utf8_next_char(p)) {
+                gunichar c = g_utf8_get_char(p);
+                GUnicodeType type = g_unichar_type(c);
+
+                if (type == G_UNICODE_NON_SPACING_MARK ||
+                    type == G_UNICODE_SPACING_MARK ||
+                    type == G_UNICODE_ENCLOSING_MARK)
+                        continue;
+
+                g_string_append_unichar(result, c);
+        }
+
+        g_free(decomposed);
+        return g_string_free(result, FALSE);
 }
 
 int search_match_entry(const char *query, const FileSystemEntry *entry)
