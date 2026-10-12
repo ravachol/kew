@@ -8,6 +8,7 @@ enum {
         SCORE_EXACT_SONG = 0,
         SCORE_EXACT_DIRECTORY = 100,
         SCORE_NAME_SEQUENCE = 200,
+        SCORE_HIERARCHY_SEQUENCE = 400,
 };
 
 static bool is_apostrophe(gunichar c)
@@ -127,7 +128,36 @@ static int ordered_token_score(const char *normalized_query,
         return score;
 }
 
-int search_match_entry(const char *query, const FileSystemEntry *entry)
+static char *normalized_hierarchy(const FileSystemEntry *entry)
+{
+        GPtrArray *ancestors = g_ptr_array_new();
+        for (const FileSystemEntry *cursor = entry;
+             cursor != NULL && cursor->parent != NULL;
+             cursor = cursor->parent) {
+                g_ptr_array_add(ancestors, (gpointer)cursor);
+        }
+
+        GString *path = g_string_new("");
+        for (gint i = (gint)ancestors->len - 1; i >= 0; i--) {
+                const FileSystemEntry *component = g_ptr_array_index(ancestors, i);
+                bool is_entry = component == entry;
+                char *normalized = normalize_search_text(
+                    component->name, is_entry && !component->is_directory);
+
+                if (normalized[0] != '\0') {
+                        if (path->len > 0)
+                                g_string_append_c(path, ' ');
+                        g_string_append(path, normalized);
+                }
+                g_free(normalized);
+        }
+
+        g_ptr_array_free(ancestors, TRUE);
+        return g_string_free(path, FALSE);
+}
+
+int search_match_entry(const char *query, const FileSystemEntry *entry,
+                       bool search_hierarchy)
 {
         if (query == NULL || entry == NULL || entry->name == NULL)
                 return SEARCH_NO_MATCH;
@@ -149,8 +179,16 @@ int search_match_entry(const char *query, const FileSystemEntry *entry)
         } else {
                 int name_score = ordered_token_score(normalized_query,
                                                      normalized_name);
-                if (name_score != SEARCH_NO_MATCH)
+                if (name_score != SEARCH_NO_MATCH) {
                         score = SCORE_NAME_SEQUENCE + name_score;
+                } else if (search_hierarchy) {
+                        char *hierarchy = normalized_hierarchy(entry);
+                        int hierarchy_score = ordered_token_score(normalized_query,
+                                                                  hierarchy);
+                        if (hierarchy_score != SEARCH_NO_MATCH)
+                                score = SCORE_HIERARCHY_SEQUENCE + hierarchy_score;
+                        g_free(hierarchy);
+                }
         }
 
         g_free(normalized_query);
