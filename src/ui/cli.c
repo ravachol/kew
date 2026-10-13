@@ -186,7 +186,7 @@ void set_music_path(void)
 
         // No standard music folder was found
         if (found < 1) {
-                printf(_("Type a path:\n\n"));
+                printf(_("\n\nType a path:\n\n"));
                 print_blank_spaces(indent);
                 apply_color(ui->kewColorRGB);
 
