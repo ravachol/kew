@@ -1,0 +1,60 @@
+name: Update WinGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 4.4.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  update-winget:
+    runs-on: windows-latest
+
+    steps:
+      - name: Validate version
+        id: version
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          $version = $env:INPUT_VERSION -replace '^v', ''
+
+          if ($version -notmatch '^\d+\.\d+\.\d+([.-][0-9A-Za-z.-]+)?$') {
+            throw "Invalid release version: $version"
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Verify release asset
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $url = "https://github.com/ravachol/kew/releases/download/v$env:VERSION/kew-$env:VERSION-windows-x64.exe"
+          Invoke-WebRequest -Uri $url -Method Head -ErrorAction Stop | Out-Null
+          "Installer URL verified: $url"
+
+      - name: Download WinGetCreate
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+
+      - name: Submit WinGet update
+        shell: pwsh
+        env:
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_CREATE_GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $url = "https://github.com/ravachol/kew/releases/download/v$env:VERSION/kew-$env:VERSION-windows-x64.exe"
+
+          .\wingetcreate.exe update Ravachol.kew `
+            --version $env:VERSION `
+            --urls "$url|x64" `
+            --release-notes-url "https://github.com/ravachol/kew/releases/tag/v$env:VERSION" `
+            --submit `
+            --no-open
