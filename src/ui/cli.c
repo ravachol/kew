@@ -136,7 +136,7 @@ void set_music_path(void)
             "Music", "Música", "Musique", "Musik", "Musica", "Muziek",
             "Музыка", "音乐", "音楽", "음악", "موسيقى", "संगीत",
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
-            "Zene", "Muzică", "เพลง", "מוזיקה"};
+            "Zene", "Muzică", "เพลง", "מוזיקה", "storage/shared/music", "storage/music"};
 
         char path[KEW_PATH_MAX];
         int found = -1;
