@@ -133,10 +133,10 @@ void set_music_path(void)
 
         // Music folder names in different languages
         const char *music_folder_names[] = {
-            "Music", "Música", "Musique", "Musik", "Musica", "Muziek",
+            "Music", "storage/music", "Música", "Musique", "Musik", "Musica", "Muziek",
             "Музыка", "音乐", "音楽", "음악", "موسيقى", "संगीत",
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
-            "Zene", "Muzică", "เพลง", "מוזיקה", "storage/shared/music", "storage/music"};
+            "Zene", "Muzică", "เพลง", "מוזיקה"};
 
         char path[KEW_PATH_MAX];
         int found = -1;
