@@ -15,9 +15,11 @@
 
 #include "common/appstate.h"
 
+#include "ops/search_match.h"
+
 #include "utils/file.h"
-#include "utils/utils.h"
 #include "utils/k_log.h"
+#include "utils/utils.h"
 
 #include <dirent.h>
 #include <glib.h>
@@ -1188,33 +1190,21 @@ char *strip_file_extension(const char *filename)
 
 // Traverses the tree and applies fuzzy search on each node
 void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
-                            int threshold,
+                            bool search_hierarchy,
                             void (*callback)(FileSystemEntry *, int))
 {
         if (node == NULL) {
                 return;
         }
 
-        // Convert search term, name, and full_path to lowercase
-        char *lower_search_term = g_utf8_casefold(search_term, -1);
-        char *lower_name = g_utf8_casefold(node->name, -1);
+        int score = search_match_entry(search_term, node, search_hierarchy);
+        if (score != SEARCH_NO_MATCH)
+                callback(node, score);
 
-        int name_distance =
-            calculate_search_distance(lower_search_term, lower_name, node->is_directory);
-
-        // Partial matching with lowercase strings
-        if (strstr(lower_name, lower_search_term) != NULL) {
-                callback(node, name_distance);
-        } else if (name_distance <= threshold) {
-                callback(node, name_distance);
-        }
-
-        // Free the allocated memory for lowercase strings
-        g_free(lower_search_term);
-        g_free(lower_name);
-
-        fuzzy_search_recursive(node->children, search_term, threshold, callback);
-        fuzzy_search_recursive(node->next, search_term, threshold, callback);
+        fuzzy_search_recursive(node->children, search_term, search_hierarchy,
+                               callback);
+        fuzzy_search_recursive(node->next, search_term, search_hierarchy,
+                               callback);
 }
 
 FileSystemEntry *find_corresponding_entry(FileSystemEntry *root,

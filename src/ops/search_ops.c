@@ -266,7 +266,7 @@ void sort_search_results(void)
         qsort(model->search_results, model->state.ui.search_results_count, sizeof(SearchResult), compare_results);
 }
 
-void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
+void fuzzy_search(char *search_term, FileSystemEntry *root)
 {
         Model *model = get_model();
         terminal_height = model->term_h;
@@ -274,7 +274,8 @@ void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
         search_shutdown();
 
         if (num_search_letters > min_search_letters) {
-                fuzzy_search_recursive(root, search_term, threshold,
+                fuzzy_search_recursive(root, search_term,
+                                       false,
                                        collect_result);
         }
 

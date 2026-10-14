@@ -60,13 +60,12 @@ void search_shutdown(void);
  * @brief Performs a fuzzy search on the file system entries.
  *
  * This function performs a fuzzy search starting from the provided root entry, with the given
- * threshold value for distance. The search results are collected during the process.
+ * The search results are collected and ranked during the process.
  *
  * @param search_term
  * @param root The root entry to begin the search from.
- * @param threshold The maximum allowed fuzzy search distance.
  */
-void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold);
+void fuzzy_search(char *search_term, FileSystemEntry *root);
 
 /**
  * @brief Gets the chosen search directory.
