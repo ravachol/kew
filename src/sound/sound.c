@@ -1773,13 +1773,13 @@ void sound_switch_track_immediate(void)
 
 void sound_shutdown(void)
 {
-        pthread_mutex_destroy(&sound_s->decoder_mutex);
-        pthread_cond_destroy(&sound_s->decoder_cond);
-
         if (is_context_initialized()) {
                 cleanup_playback_device();
                 cleanup_audio_context();
         }
+
+        pthread_mutex_destroy(&sound_s->decoder_mutex);
+        pthread_cond_destroy(&sound_s->decoder_cond);
 }
 
 void sound_ringbuffer_cleanup(void)

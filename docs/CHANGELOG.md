@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## kew 4.4.1
+
+- Fixes termux package not running. By @ravachol.
+
 ## kew 4.4.0 "PUNK TACTICS" EDITION
 
 This version fixes 22 bugs and leaves the repo without any open bugs!

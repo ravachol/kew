@@ -12,29 +12,28 @@
 
 #include "file.h"
 
-#include "utils.h"
 #include "k_log.h"
+#include "utils.h"
 
 #include <dirent.h>
 #include <glib.h>
 #include <libgen.h>
 #include <regex.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
 #ifdef _WIN32
-#include <windows.h>
 #include <direct.h>
+#include <windows.h>
 #else
-#include <sys/types.h>
 #include <errno.h>
 #include <pwd.h>
+#include <sys/types.h>
 #endif
-
 
 #define MAX_RECURSION_DEPTH 64
 
@@ -252,81 +251,82 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
 int expand_path(const char *input, char *out, size_t max_size)
 {
-    if (!input || !out || max_size == 0)
-        return -1;
+        if (!input || !out || max_size == 0)
+                return -1;
 
-    if (input[0] == '\0' || input[0] == '\r')
-        return -1;
+        if (input[0] == '\0' || input[0] == '\r')
+                return -1;
 
-    const char *home = get_home_path();
-    if (!home)
-        return -1;
+        const char *home = get_home_path();
+        if (!home)
+                return -1;
 
-    /* Handle ~ */
-    if (input[0] == '~' &&
-        (input[1] == '\0' || input[1] == '/')) {
+        /* Handle ~ */
+        if (input[0] == '~' &&
+            (input[1] == '\0' || input[1] == '/')) {
 
-        size_t home_len = strlen(home);
-        size_t rest_len = strlen(input + 1); /* includes "/" or "\0" */
+                size_t home_len = strlen(home);
+                size_t rest_len = strlen(input + 1); /* includes "/" or "\0" */
 
-        if (home_len + rest_len + 1 > max_size)
-            return -1;
+                if (home_len + rest_len + 1 > max_size)
+                        return -1;
 
-        memcpy(out, home, home_len);
-        memcpy(out + home_len, input + 1, rest_len + 1); /* include null */
-        return 0;
-    }
+                memcpy(out, home, home_len);
+                memcpy(out + home_len, input + 1, rest_len + 1); /* include null */
+                return 0;
+        }
 
 #ifdef _WIN32
-    /* Windows/MSYS2: do NOT rely on realpath always */
-    if (_fullpath(out, input, max_size) == NULL)
-        return -1;
+        /* Windows/MSYS2: do NOT rely on realpath always */
+        if (_fullpath(out, input, max_size) == NULL)
+                return -1;
 #else
-    if (!realpath(input, out))
-        return -1;
+        if (!realpath(input, out))
+                return -1;
 #endif
 
-    return 0;
+        return 0;
 }
 
 void collapse_path(const char *input, char *out, size_t max_size)
 {
-    if (!input || !out || max_size == 0) {
-        if (out && max_size) out[0] = '\0';
-        return;
-    }
-
-    const char *home = get_home_path();
-    if (!home) {
-        snprintf(out, max_size, "%s", input);
-        return;
-    }
-
-    size_t home_len = strlen(home);
-    size_t in_len = strlen(input);
-
-    /* match HOME prefix */
-    if (in_len >= home_len &&
-        strncmp(input, home, home_len) == 0 &&
-        (input[home_len] == '/' || input[home_len] == '\0')) {
-
-        if (input[home_len] == '\0') {
-            snprintf(out, max_size, "~");
-        } else {
-            snprintf(out, max_size, "~%s", input + home_len);
+        if (!input || !out || max_size == 0) {
+                if (out && max_size)
+                        out[0] = '\0';
+                return;
         }
-        return;
-    }
 
-    snprintf(out, max_size, "%s", input);
+        const char *home = get_home_path();
+        if (!home) {
+                snprintf(out, max_size, "%s", input);
+                return;
+        }
+
+        size_t home_len = strlen(home);
+        size_t in_len = strlen(input);
+
+        /* match HOME prefix */
+        if (in_len >= home_len &&
+            strncmp(input, home, home_len) == 0 &&
+            (input[home_len] == '/' || input[home_len] == '\0')) {
+
+                if (input[home_len] == '\0') {
+                        snprintf(out, max_size, "~");
+                } else {
+                        snprintf(out, max_size, "~%s", input + home_len);
+                }
+                return;
+        }
+
+        snprintf(out, max_size, "%s", input);
 }
 
 static int dir_mkdir(const char *path)
 {
 #ifdef _WIN32
-    return mkdir(path);
+        return mkdir(path);
 #else
-    return mkdir(path, 0700);
+        return mkdir(path, 0700);
 #endif
 }
 
@@ -334,19 +334,38 @@ int create_directory(const char *path)
 {
         struct stat st;
 
-        // Check if directory already exists
+        // Check if the directory already exists
         if (stat(path, &st) == 0) {
-                if (S_ISDIR(st.st_mode))
-                        return 0; // Directory already exists
-                else
-                        return -1; // Path exists but is not a directory
+                return S_ISDIR(st.st_mode) ? 0 : -1;
         }
 
-        // Directory does not exist, so create it
-        if (dir_mkdir(path) == 0)
-                return 1; // Directory created successfully
+        // Create parent directories first
+        char *parent = strdup(path);
+        if (parent == NULL)
+                return -1;
 
-        return -1; // Failed to create directory
+        char *slash = strrchr(parent, '/');
+
+        if (slash != NULL && slash != parent) {
+                *slash = '\0';
+
+                if (create_directory(parent) < 0) {
+                        free(parent);
+                        return -1;
+                }
+        }
+
+        free(parent);
+
+        // Create this directory
+        if (dir_mkdir(path) == 0)
+                return 1;
+
+        // Another process may have created it already
+        if (stat(path, &st) == 0 && S_ISDIR(st.st_mode))
+                return 0;
+
+        return -1;
 }
 
 int delete_file(const char *file_path)
@@ -381,21 +400,23 @@ int is_in_temp_dir(const char *path)
 static const char *get_tmp_dir(void)
 {
 #ifdef _WIN32
-    const char *tmp = getenv("TEMP");
-    if (tmp && *tmp) return tmp;
+        const char *tmp = getenv("TEMP");
+        if (tmp && *tmp)
+                return tmp;
 
-    tmp = getenv("TMP");
-    if (tmp && *tmp) return tmp;
+        tmp = getenv("TMP");
+        if (tmp && *tmp)
+                return tmp;
 
-    static char win_tmp[MAX_PATH];
-    DWORD len = GetTempPathA(MAX_PATH, win_tmp);
-    if (len > 0 && len < MAX_PATH)
-        return win_tmp;
+        static char win_tmp[MAX_PATH];
+        DWORD len = GetTempPathA(MAX_PATH, win_tmp);
+        if (len > 0 && len < MAX_PATH)
+                return win_tmp;
 
-    return "C:\\Temp";
+        return "C:\\Temp";
 #else
-    const char *tmp = getenv("TMPDIR");
-    return (tmp && *tmp) ? tmp : "/tmp";
+        const char *tmp = getenv("TMPDIR");
+        return (tmp && *tmp) ? tmp : "/tmp";
 #endif
 }
 
@@ -404,51 +425,54 @@ void generate_temp_file_path(char *file_path,
                              const char *prefix,
                              const char *suffix)
 {
-    if (!file_path || max_size == 0) return;
+        if (!file_path || max_size == 0)
+                return;
 
-    const char *tmp_dir = get_tmp_dir();
+        const char *tmp_dir = get_tmp_dir();
 
-    /* username (optional, Windows-safe fallback) */
-    const char *username = getenv("USER");
+        /* username (optional, Windows-safe fallback) */
+        const char *username = getenv("USER");
 #ifdef _WIN32
-    if (!username) username = getenv("USERNAME");
+        if (!username)
+                username = getenv("USERNAME");
 #endif
-    if (!username) username = "unknown";
+        if (!username)
+                username = "unknown";
 
-    char base_dir[512];
-    char user_dir[512];
+        char base_dir[512];
+        char user_dir[512];
 
 #ifdef _WIN32
-    snprintf(base_dir, sizeof(base_dir), "%s\\kew", tmp_dir);
-    snprintf(user_dir, sizeof(user_dir), "%s\\kew\\%s", tmp_dir, username);
+        snprintf(base_dir, sizeof(base_dir), "%s\\kew", tmp_dir);
+        snprintf(user_dir, sizeof(user_dir), "%s\\kew\\%s", tmp_dir, username);
 #else
-    snprintf(base_dir, sizeof(base_dir), "%s/kew", tmp_dir);
-    snprintf(user_dir, sizeof(user_dir), "%s/kew/%s", tmp_dir, username);
+        snprintf(base_dir, sizeof(base_dir), "%s/kew", tmp_dir);
+        snprintf(user_dir, sizeof(user_dir), "%s/kew/%s", tmp_dir, username);
 #endif
 
-    create_directory(base_dir);
-    create_directory(user_dir);
+        create_directory(base_dir);
+        create_directory(user_dir);
 
-    /* random string */
-char rnd[7];
+        /* random string */
+        char rnd[7];
 
-for (int i = 0; i < 6; i++)
-    rnd[i] = 'a' + g_random_int_range(0, 26);
+        for (int i = 0; i < 6; i++)
+                rnd[i] = 'a' + g_random_int_range(0, 26);
 
-rnd[6] = '\0';
+        rnd[6] = '\0';
 
-    /* final path */
+        /* final path */
 #ifdef _WIN32
-    int written = snprintf(file_path, max_size, "%s\\%s%s%s",
-                           user_dir, prefix, rnd, suffix);
+        int written = snprintf(file_path, max_size, "%s\\%s%s%s",
+                               user_dir, prefix, rnd, suffix);
 #else
-    int written = snprintf(file_path, max_size, "%s/%s%s%s",
-                           user_dir, prefix, rnd, suffix);
+        int written = snprintf(file_path, max_size, "%s/%s%s%s",
+                               user_dir, prefix, rnd, suffix);
 #endif
 
-    if (written < 0 || (size_t)written >= max_size) {
-        file_path[0] = '\0';
-    }
+        if (written < 0 || (size_t)written >= max_size) {
+                file_path[0] = '\0';
+        }
 }
 
 #if defined(_WIN32)
@@ -498,16 +522,14 @@ char *path_realpath(const char *path, char *out)
 
 bool paths_equal(const char *a, const char *b)
 {
-    size_t len_a = strlen(a);
-    size_t len_b = strlen(b);
+        size_t len_a = strlen(a);
+        size_t len_b = strlen(b);
 
-    while (len_a > 1 && a[len_a - 1] == '/')
-        len_a--;
+        while (len_a > 1 && a[len_a - 1] == '/')
+                len_a--;
 
-    while (len_b > 1 && b[len_b - 1] == '/')
-        len_b--;
+        while (len_b > 1 && b[len_b - 1] == '/')
+                len_b--;
 
-    return len_a == len_b && strncmp(a, b, len_a) == 0;
+        return len_a == len_b && strncmp(a, b, len_a) == 0;
 }
-
-
