@@ -133,7 +133,7 @@ void set_music_path(void)
 
         // Music folder names in different languages
         const char *music_folder_names[] = {
-            "Musixc", "storage/music", "Música", "Musique", "Musik", "Musica", "Muziek",
+            "Music", "storage/music", "Música", "Musique", "Musik", "Musica", "Muziek",
             "Музыка", "音乐", "音楽", "음악", "موسيقى", "संगीत",
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
             "Zene", "Muzică", "เพลง", "מוזיקה"};
