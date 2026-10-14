@@ -146,6 +146,7 @@ void transfer_settings_to_ui(void)
         ui->hideFooter = (settings->hideFooter[0] == '1');
         ui->hideSideCover = (settings->hideSideCover[0] == '1');
         ui->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
+        ui->searchHierarchy = (settings->searchHierarchy[0] == '1');
         ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
         ui->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
         ui->auto_resume = (settings->auto_resume[0] == '1');
