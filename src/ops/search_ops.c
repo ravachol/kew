@@ -275,7 +275,7 @@ void fuzzy_search(char *search_term, FileSystemEntry *root)
 
         if (num_search_letters > min_search_letters) {
                 fuzzy_search_recursive(root, search_term,
-                                       false,
+                                       model->state.settings.searchHierarchy,
                                        collect_result);
         }
 
