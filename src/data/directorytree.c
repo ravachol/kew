@@ -15,9 +15,11 @@
 
 #include "common/appstate.h"
 
+#include "ops/search_match.h"
+
 #include "utils/file.h"
-#include "utils/utils.h"
 #include "utils/k_log.h"
+#include "utils/utils.h"
 
 #include <dirent.h>
 #include <glib.h>
@@ -1024,197 +1026,23 @@ FileSystemEntry *read_tree_from_binary(
         return root;
 }
 
-// Calculates the Levenshtein distance.
-// The Levenshtein distance between two strings is the minimum number of
-// single-character edits (insertions, deletions, or substitutions) required to
-// change one string into the other.
-int utf8_levenshteinDistance(const char *s1, const char *s2)
-{
-        // Get the length of s1 and s2 in terms of characters, not bytes
-        int len1 = g_utf8_strlen(s1, -1);
-        int len2 = g_utf8_strlen(s2, -1);
-
-        // Allocate a 2D matrix (only two rows at a time are needed)
-        int *prev_row = malloc((len2 + 1) * sizeof(int));
-        int *curr_row = malloc((len2 + 1) * sizeof(int));
-
-        if (prev_row == NULL) {
-                if (curr_row != NULL)
-                        free(curr_row);
-                perror("malloc");
-                return 0;
-        }
-
-        if (curr_row == NULL) {
-                free(prev_row);
-                perror("malloc");
-                return 0;
-        }
-
-        // Initialize the first row (for empty s1)
-        for (int j = 0; j <= len2; j++) {
-                prev_row[j] = j;
-        }
-
-        // Iterate over the characters of both strings
-        const char *p1 = s1;
-        for (int i = 1; i <= len1; i++, p1 = g_utf8_next_char(p1)) {
-                curr_row[0] = i;
-                const char *p2 = s2;
-                for (int j = 1; j <= len2; j++, p2 = g_utf8_next_char(p2)) {
-                        // Compare Unicode characters using g_utf8_get_char
-                        gunichar c1 = g_utf8_get_char(p1);
-                        gunichar c2 = g_utf8_get_char(p2);
-
-                        int cost = (c1 == c2) ? 0 : 1;
-
-                        // Fill the current row with the minimum of deletion,
-                        // insertion, or substitution
-                        curr_row[j] =
-                            MIN(prev_row[j] + 1,              // Deletion
-                                MIN(curr_row[j - 1] + 1,      // Insertion
-                                    prev_row[j - 1] + cost)); // Substitution
-                }
-
-                // Swap rows (current becomes previous for the next iteration)
-                int *tmp = prev_row;
-                prev_row = curr_row;
-                curr_row = tmp;
-        }
-
-        // The last value in prev_row contains the Levenshtein distance
-        int distance = prev_row[len2];
-
-        // Free the allocated memory
-        free(prev_row);
-        free(curr_row);
-
-        return distance;
-}
-
-// Helper function to normalize and remove accents
-char *normalize_string(const char *str)
-{
-        // First normalize to NFD (decomposed form) which separates base chars from accents
-        char *normalized = g_utf8_normalize(str, -1, G_NORMALIZE_NFD);
-        if (!normalized)
-                return g_utf8_strdown(str, -1);
-
-        // Then remove combining diacritical marks (accents)
-        GString *result = g_string_new("");
-        for (const char *p = normalized; *p; p = g_utf8_next_char(p)) {
-                gunichar c = g_utf8_get_char(p);
-                GUnicodeType type = g_unichar_type(c);
-                // Skip combining marks (accents, diacritics)
-                if (type != G_UNICODE_NON_SPACING_MARK &&
-                    type != G_UNICODE_SPACING_MARK &&
-                    type != G_UNICODE_ENCLOSING_MARK) {
-                        g_string_append_unichar(result, g_unichar_tolower(c));
-                }
-        }
-
-        g_free(normalized);
-        return g_string_free(result, FALSE);
-}
-
-int calculate_search_distance(const char *needle, const char *haystack, int is_directory)
-{
-        // Convert to lowercase for case-insensitive matching
-        char *needle_lower = normalize_string(needle);
-        char *haystack_lower = normalize_string(haystack);
-
-        int distance;
-
-        // Check for exact match (distance 0)
-        if (strcmp(haystack_lower, needle_lower) == 0) {
-                distance = 0;
-        }
-        // Check for substring match (low distance based on extra chars)
-        else if (strstr(haystack_lower, needle_lower) != NULL) {
-                // Substring match: distance = extra characters
-                int needle_len = g_utf8_strlen(needle_lower, -1);
-                int haystack_len = g_utf8_strlen(haystack_lower, -1);
-                distance = haystack_len - needle_len;
-        }
-        // Check if haystack starts with needle (prefix match)
-        else if (g_str_has_prefix(haystack_lower, needle_lower)) {
-                int needle_len = g_utf8_strlen(needle_lower, -1);
-                int haystack_len = g_utf8_strlen(haystack_lower, -1);
-                distance = haystack_len - needle_len;
-        }
-        // No substring match: use Levenshtein but add penalty
-        else {
-                int levenshtein = utf8_levenshteinDistance(needle_lower, haystack_lower);
-                // Add large penalty to ensure substring matches rank higher
-                int needle_len = g_utf8_strlen(needle_lower, -1);
-                distance = needle_len + levenshtein + 100;
-        }
-
-        // Add penalty for files (non-directories) to prioritize albums
-        if (!is_directory) {
-                distance += 25;
-        }
-
-        g_free(needle_lower);
-        g_free(haystack_lower);
-
-        return distance;
-}
-
-char *strip_file_extension(const char *filename)
-{
-        if (filename == NULL)
-                return NULL;
-
-        const char *dot = strrchr(filename, '.');
-
-        // Don't treat a leading '.' as an extension (e.g. ".bashrc")
-        if (dot == NULL || dot == filename)
-                dot = filename + strlen(filename);
-
-        size_t length = (size_t)(dot - filename);
-
-        char *result = malloc(length + 1);
-        if (!result) {
-                perror("malloc");
-                return NULL;
-        }
-
-        memcpy(result, filename, length);
-        result[length] = '\0';
-
-        return result;
-}
-
 // Traverses the tree and applies fuzzy search on each node
 void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
-                            int threshold,
+                            bool search_hierarchy,
                             void (*callback)(FileSystemEntry *, int))
 {
         if (node == NULL) {
                 return;
         }
 
-        // Convert search term, name, and full_path to lowercase
-        char *lower_search_term = g_utf8_casefold(search_term, -1);
-        char *lower_name = g_utf8_casefold(node->name, -1);
+        int score = search_match_entry(search_term, node, search_hierarchy);
+        if (score != SEARCH_NO_MATCH)
+                callback(node, score);
 
-        int name_distance =
-            calculate_search_distance(lower_search_term, lower_name, node->is_directory);
-
-        // Partial matching with lowercase strings
-        if (strstr(lower_name, lower_search_term) != NULL) {
-                callback(node, name_distance);
-        } else if (name_distance <= threshold) {
-                callback(node, name_distance);
-        }
-
-        // Free the allocated memory for lowercase strings
-        g_free(lower_search_term);
-        g_free(lower_name);
-
-        fuzzy_search_recursive(node->children, search_term, threshold, callback);
-        fuzzy_search_recursive(node->next, search_term, threshold, callback);
+        fuzzy_search_recursive(node->children, search_term, search_hierarchy,
+                               callback);
+        fuzzy_search_recursive(node->next, search_term, search_hierarchy,
+                               callback);
 }
 
 FileSystemEntry *find_corresponding_entry(FileSystemEntry *root,

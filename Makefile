@@ -265,7 +265,7 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
        src/sound/sound_facade.c src/sound/sound.c src/sound/m4a.c src/sound/audiobuffer.c \
        src/sound/decoders.c src/sound/audio_file_info.c src/sound/playback.c src/sound/volume.c \
        src/sys/sys_integration.c src/sys/notifications.c src/sys/mpris.c src/sys/discord_rpc.c \
-       src/ops/playback_ops.c src/ops/playback_clock.c src/ops/search_ops.c  src/ops/playback_system.c \
+       src/ops/playback_ops.c src/ops/playback_clock.c src/ops/search_ops.c src/ops/search_match.c src/ops/playback_system.c \
        src/ops/playlist_ops.c src/ops/library_ops.c src/ops/track_manager.c src/ops/playback_state.c \
        src/ui/control_ui.c src/ui/components.c src/ui/input.c src/ui/playlist_ui.c src/ui/render_ui.c src/ui/render_terminal.c \
        src/ui/visuals.c src/ui/visualizations.c src/ui/queue_ui.c src/ui/settings.c src/ui/anims.c src/ui/cli.c \

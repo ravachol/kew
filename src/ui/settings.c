@@ -949,6 +949,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
         c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
         c_strcpy(settings->collapseTopLevel, "0", sizeof(settings->collapseTopLevel));
+        c_strcpy(settings->searchHierarchy, "0", sizeof(settings->searchHierarchy));
         c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
         c_strcpy(settings->simpleTimeStatus, "1", sizeof(settings->simpleTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
@@ -1515,6 +1516,11 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "collapsetoplevel") == 0) {
                         snprintf(settings->collapseTopLevel, sizeof(settings->collapseTopLevel),
                                  "%s", pair->value);
+                } else if (strcmp(lowercase_key, "searchhierarchy") == 0) {
+                        if (!is_prefs)
+                                snprintf(settings->searchHierarchy,
+                                         sizeof(settings->searchHierarchy),
+                                         "%s", pair->value);
                 } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
                                  sizeof(settings->quitAfterStopping), "%s",
@@ -2162,6 +2168,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->stripTrackNumbers))
                     : c_strcpy(settings->stripTrackNumbers, "0",
                                sizeof(settings->stripTrackNumbers));
+        if (settings->searchHierarchy[0] == '\0')
+                ui->searchHierarchy
+                    ? c_strcpy(settings->searchHierarchy, "1",
+                               sizeof(settings->searchHierarchy))
+                    : c_strcpy(settings->searchHierarchy, "0",
+                               sizeof(settings->searchHierarchy));
         if (settings->coverEnabled[0] == '\0')
                 ui->coverEnabled ? c_strcpy(settings->coverEnabled, "1",
                                             sizeof(settings->coverEnabled))
@@ -2315,6 +2327,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "\n# Remove leading numbers from track file names, used in library and playlist.\n\n");
         fprintf(file, "stripTrackNumbers=%s\n\n", settings->stripTrackNumbers);
+        fprintf(file, "# Match search terms across directory and file names.\n\n");
+        fprintf(file, "searchHierarchy=%s\n\n", settings->searchHierarchy);
         fprintf(file, "hideLogo=%s\n\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n\n", settings->hideHelp);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
