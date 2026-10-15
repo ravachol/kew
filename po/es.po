@@ -145,7 +145,7 @@ msgstr "Versión de kew: "
 
 #: src/ui/components.c:3114 src/ui/components.c:3115
 msgid " Love kew? ❤️ "
-msgstr " ¿Te gusta kew? ❤️  "
+msgstr " ¿Te gusta kew? ❤️ "
 
 #: src/ui/components.c:3144 src/ui/components.c:3145 src/ui/components.c:3152
 #: src/ui/components.c:3153 src/ui/components.c:3160
@@ -369,7 +369,7 @@ msgstr ""
 #: src/ui/cli.c:229
 #, c-format
 msgid "Music Library not found.\n"
-msgstr "Música no encontrada.\n"
+msgstr "No se encontró la biblioteca de música.\n"
 
 #: src/kew.c:215
 #, c-format

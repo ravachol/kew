@@ -145,7 +145,7 @@ msgstr "версия kew: "
 
 #: src/ui/components.c:3114 src/ui/components.c:3115
 msgid " Love kew? ❤️ "
-msgstr " Нравится kew? ❤️  "
+msgstr " Нравится kew? ❤️ "
 
 #: src/ui/components.c:3144 src/ui/components.c:3145 src/ui/components.c:3152
 #: src/ui/components.c:3153 src/ui/components.c:3160
