@@ -2,7 +2,7 @@
 
 #include "common/model.h"
 
-#include "ui/chroma.h"
+#include "ui/visualizations.h"
 #include "ui/common_ui.h"
 #include "utils/img_utils.h"
 #include "utils/term.h"
@@ -291,7 +291,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                                 if (cell->kind == CELL_IMAGE_ANCHOR) {
 
-                                        chroma_print_frame(row + 1, col + 1, cell->image->screen_h, cell->image->screen_w, false);
+                                        visualizations_print_frame(row + 1, col + 1, cell->image->screen_h, cell->image->screen_w, false);
 
                                         // Mark rows as dirtys
                                         for (int i = 0; i < cell->image->screen_h; i++) {

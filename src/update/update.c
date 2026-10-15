@@ -22,7 +22,7 @@
 #include "ui/common_ui.h"
 #include "ui/components.h"
 #include "ui/control_ui.h"
-#include "ui/chroma.h"
+#include "ui/visualizations.h"
 #include "ui/termbox2_input.h"
 #include "ui/visuals.h"
 
@@ -528,7 +528,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView != PLAYLIST_VIEW)
                         model->state.ui.resetPlaylistDisplay = true;
 
-                if (model->state.ui.chroma_start_requested && !model->state.ui.chroma_started && chroma_is_installed() &&
+                if (model->state.ui.visualizations_start_requested && !model->state.ui.visualizations_started && visualizations_are_installed("pmstream") &&
                     model->state.currentView == TRACK_VIEW)
                         set_dirty(DIRTY_ALL);
 

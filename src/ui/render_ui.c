@@ -11,7 +11,7 @@
 
 #include "common/events.h"
 
-#include "chroma.h"
+#include "visualizations.h"
 #include "common_ui.h"
 #include "components.h"
 #include "control_ui.h"
@@ -60,8 +60,8 @@ void request_stop_visualization(void)
 {
         AppState *state = get_app_state();
         state->settings.visualizations_instead_of_cover = false;
-        state->ui.chroma_next_preset_requested = false;
-        chroma_shutdown();
+        state->ui.visualizations_next_preset_requested = false;
+        visualizations_shutdown();
 }
 
 bool themes_init(int argc, char *argv[])
@@ -1087,7 +1087,7 @@ void calc_visualizer_width(Model *model)
             (visualizer_width > model->term_w - 2) ? model->term_w - 2 : visualizer_width;
         visualizer_width -= 1;
 
-        model->state.ui.visualizer_width = visualizer_width;
+        model->state.ui.visualizations_width = visualizer_width;
 }
 
 void rebuild_layout(Model *model)
@@ -1297,7 +1297,7 @@ void layout_render_dirty(const Layout *layout,
                                     pane->fn == component_track_landscape ||
                                     pane->fn == component_track_landscape_normal ||
                                     pane->fn == component_vis_and_progress_bar ||
-                                    model->state.ui.chroma_started) {
+                                    model->state.ui.visualizations_started) {
 
                                         ctx->render_often = true;
                                 }
@@ -1308,7 +1308,7 @@ void layout_render_dirty(const Layout *layout,
                                     pane->fn == component_track_landscape_normal ||
                                     pane->fn == component_vis_and_progress_bar) {
 
-                                        if (!model->title_delay.active && (model->dirty & DIRTY_SONG || model->dirty == DIRTY_ALL) && !model->state.ui.chroma_started)
+                                        if (!model->title_delay.active && (model->dirty & DIRTY_SONG || model->dirty == DIRTY_ALL) && !model->state.ui.visualizations_started)
 
                                                 dispatch_msg((struct Msg){
                                                     .type = MSG_START_TITLE_ANIM});
@@ -1379,7 +1379,7 @@ void render_ui(Model *model, RenderContext *ctx)
 
         rendering = true;
 
-        s_backend_state.render_chroma = (model->state.ui.chroma_start_requested || model->state.ui.chroma_started) &&
+        s_backend_state.render_chroma = (model->state.ui.visualizations_start_requested || model->state.ui.visualizations_started) &&
                                         model->state.currentView == TRACK_VIEW;
 
         layout_render_dirty(s_layout, model, s_buf, ctx);

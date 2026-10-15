@@ -52,7 +52,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "sound/sound_facade.h"
 
-#include "ui/chroma.h"
+#include "ui/visualizations.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"
 #include "ui/control_ui.h"
@@ -255,7 +255,7 @@ void kew_shutdown()
 
         songdata_shutdown();
         sound_system_shutdown();
-        chroma_shutdown();
+        visualizations_shutdown();
         chafa_shutdown();
         input_shutdown();
         discord_rpc_shutdown();
@@ -264,7 +264,7 @@ void kew_shutdown()
         settings_shutdown();
         library_shutdown();
         ui_shutdown();
-        visualizer_shutdown();
+        visualizations_shutdown();
         k_log_shutdown();
         notifications_shutdown();
         model_shutdown();
@@ -759,7 +759,7 @@ void state_init(void)
         state->settings.kewColorRGB.g = 43;
         state->settings.kewColorRGB.b = 77;
         state->settings.kewColorRGB.a = 255;
-        state->settings.chromaPreset = -1;
+        state->settings.visualizationsPreset = -1;
         state->settings.visualizations_instead_of_cover = false;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
@@ -768,6 +768,7 @@ void state_init(void)
         state->settings.fade_quick_ms = 2000;
         state->settings.fade_medium_ms = 3000;
         state->settings.fade_slow_ms = 5000;
+        state->settings.visualizationsMode = 1;
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
         state->ui.chosen_node_id = 0;
@@ -791,9 +792,9 @@ void state_init(void)
         state->ui.last_search_parent = NULL;
         state->ui.chosen_dir = NULL;
         state->ui.aspect_ratio = 0;
-        state->ui.visualizer_width = 0;
+        state->ui.visualizations_width = 0;
         state->ui.previous_chosen_song = -1;
-        state->ui.has_chroma = -1;
+        state->ui.has_visualizations = -1;
         state->ui.check_collapse_top_level = false;
         state->ui.start_lib_iter = 0;
         state->ui.chosen_lib_row = 0;
@@ -809,10 +810,10 @@ void state_init(void)
         state->ui.render_often = false;
         state->ui.render_search = false;
         state->ui.chosen_lyrics_row = 0;
-        state->ui.chroma_started = false;
-        state->ui.chroma_next_preset_requested = false;
-        state->ui.chroma_start_requested = false;
-        state->ui.chroma_height = 0;
+        state->ui.visualizations_started = false;
+        state->ui.visualizations_next_preset_requested = false;
+        state->ui.visualizations_start_requested = false;
+        state->ui.visualizations_height = 0;
         state->ui.metadata_switched = 0;
         state->ui.decoder_switched = 0;
         state->ui.naming_playlist = false;
@@ -907,7 +908,7 @@ void register_singnal_handlers(void)
         signal(SIGABRT, force_terminal_restore);
 
 #ifndef _WIN32
-        signal(SIGPIPE, SIG_IGN); // This is to not stop Chroma when we can't keep up with it, instead just return an error
+        signal(SIGPIPE, SIG_IGN); // This is to not stop Visualizations when we can't keep up with it, instead just return an error
         signal(SIGTSTP, handle_sigtstp);
         signal(SIGCONT, handle_sigcont);
 #endif

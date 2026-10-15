@@ -1208,13 +1208,19 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->theme, sizeof(settings->theme), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "chromapreset") == 0) {
-                        snprintf(settings->chromaPreset, sizeof(settings->chromaPreset), "%s",
+                        snprintf(settings->visualizationsPreset, sizeof(settings->visualizationsPreset), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "chromapath") == 0) {
                         snprintf(settings->chromaPath, sizeof(settings->chromaPath), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "chromadevice") == 0) {
-                        snprintf(settings->chromaDevice, sizeof(settings->chromaDevice), "%s",
+                        snprintf(settings->visualizationsDevice, sizeof(settings->visualizationsDevice), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "visualizationspath") == 0) {
+                        snprintf(settings->visualizationsPath, sizeof(settings->visualizationsPath), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "visualizationsmode") == 0) {
+                        snprintf(settings->visualizationsMode, sizeof(settings->visualizationsMode), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "coverenabled") == 0) {
                         snprintf(settings->coverEnabled,
@@ -1853,35 +1859,35 @@ void migrate_prefs_file(char *new_filepath)
         return;
 }
 
-void load_settings_into_ui(AppSettings *settings, UISettings *ui)
+void load_settings_into_ui(AppSettings *settings, UISettings *ui_settings)
 {
         double sec = get_float(settings->currentSongSeconds);
         if (sec > 0)
-                ui->currentSongSeconds = sec;
+                ui_settings->currentSongSeconds = sec;
 
         int tmp = get_number(settings->currentSongId);
         if (tmp > 0)
-                ui->currentSongId = tmp;
+                ui_settings->currentSongId = tmp;
 
         tmp = get_number(settings->repeatState);
         if (tmp >= 0)
                 set_repeat_state(tmp);
 
-        if (settings->chromaPreset[0] != '\0') {
-                tmp = get_number(settings->chromaPreset);
+        if (settings->visualizationsPreset[0] != '\0') {
+                tmp = get_number(settings->visualizationsPreset);
 
                 if (tmp >= -1)
-                        ui->chromaPreset = tmp;
+                        ui_settings->visualizationsPreset = tmp;
         }
 
         tmp = get_number(settings->colorMode);
         if (tmp >= 0 && tmp <= 4) {
-                ui->colorMode = tmp;
+                ui_settings->colorMode = tmp;
         }
 
         tmp = get_number(settings->visualizer_mode);
         if (tmp >= 0 && tmp <= 10) {
-                ui->visualizer_mode = tmp;
+                ui_settings->visualizer_mode = tmp;
         }
 
         tmp = get_number(settings->lastVolume);
@@ -1890,31 +1896,35 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui)
 
         tmp = get_number(settings->fade_enter_song_ms);
         if (tmp > 0) {
-                ui->fade_enter_song_ms = tmp;
+                ui_settings->fade_enter_song_ms = tmp;
         }
 
         tmp = get_number(settings->fade_quick_ms);
         if (tmp >= 0) {
-                ui->fade_quick_ms = tmp;
+                ui_settings->fade_quick_ms = tmp;
         }
 
         tmp = get_number(settings->fade_medium_ms);
         if (tmp >= 0) {
-                ui->fade_medium_ms = tmp;
+                ui_settings->fade_medium_ms = tmp;
         }
 
         tmp = get_number(settings->fade_slow_ms);
         if (tmp >= 0) {
-                ui->fade_slow_ms = tmp;
+                ui_settings->fade_slow_ms = tmp;
         }
 
-        if (ui->colorMode != COLOR_MODE_ALBUM &&
-            ui->colorMode != COLOR_MODE_ALBUM_ONE &&
-            ui->colorMode != COLOR_MODE_DEFAULT &&
-            ui->colorMode != COLOR_MODE_NEUTRAL)
-                snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
+        tmp = get_number(settings->visualizationsMode);
+        if (tmp >= 0)
+                ui_settings->visualizationsMode = tmp;
+
+        if (ui_settings->colorMode != COLOR_MODE_ALBUM &&
+            ui_settings->colorMode != COLOR_MODE_ALBUM_ONE &&
+            ui_settings->colorMode != COLOR_MODE_DEFAULT &&
+            ui_settings->colorMode != COLOR_MODE_NEUTRAL)
+                snprintf(ui_settings->theme_name, sizeof(ui_settings->theme_name), "%s", settings->theme);
         else
-                ui->theme_name[0] = '\0';
+                ui_settings->theme_name[0] = '\0';
 }
 
 void get_prefs(AppSettings *settings, UISettings *ui)
@@ -1987,7 +1997,7 @@ void get_config(AppSettings *settings, UISettings *ui)
         free(configdir);
 }
 
-void set_prefs(AppSettings *settings, UISettings *ui)
+void set_prefs(AppSettings *settings, UISettings *ui_settings)
 {
         // Create the file path
         char *filepath = get_prefs_file_path(STATE_FILE);
@@ -2002,32 +2012,32 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         }
 
         if (settings->allowNotifications[0] == '\0')
-                ui->allowNotifications
+                ui_settings->allowNotifications
                     ? c_strcpy(settings->allowNotifications, "1",
                                sizeof(settings->allowNotifications))
                     : c_strcpy(settings->allowNotifications, "0",
                                sizeof(settings->allowNotifications));
 
         if (settings->coverEnabled[0] == '\0')
-                ui->coverEnabled ? c_strcpy(settings->coverEnabled, "1",
+                ui_settings->coverEnabled ? c_strcpy(settings->coverEnabled, "1",
                                             sizeof(settings->coverEnabled))
                                  : c_strcpy(settings->coverEnabled, "0",
                                             sizeof(settings->coverEnabled));
         if (settings->coverAnsi[0] == '\0')
-                ui->coverAnsi ? c_strcpy(settings->coverAnsi, "1",
+                ui_settings->coverAnsi ? c_strcpy(settings->coverAnsi, "1",
                                          sizeof(settings->coverAnsi))
                               : c_strcpy(settings->coverAnsi, "0",
                                          sizeof(settings->coverAnsi));
 
         snprintf(settings->visualizer_mode,
                  sizeof(settings->visualizer_mode), "%d",
-                 ui->visualizer_mode);
+                 ui_settings->visualizer_mode);
 
-        if (ui->saveRepeatShuffleSettings) {
+        if (ui_settings->saveRepeatShuffleSettings) {
                 snprintf(settings->repeatState, sizeof(settings->repeatState), "%d",
-                         ui->repeatState);
+                         ui_settings->repeatState);
 
-                ui->shuffle_enabled ? c_strcpy(settings->shuffle_enabled, "1",
+                ui_settings->shuffle_enabled ? c_strcpy(settings->shuffle_enabled, "1",
                                                sizeof(settings->shuffle_enabled))
                                     : c_strcpy(settings->shuffle_enabled, "0",
                                                sizeof(settings->shuffle_enabled));
@@ -2040,9 +2050,9 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
-        fprintf(file, "alwaysCrossfade=%d\n\n", ui->always_crossfade);
+        fprintf(file, "alwaysCrossfade=%d\n\n", ui_settings->always_crossfade);
 
-        if (ui->saveRepeatShuffleSettings) {
+        if (ui_settings->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
                 fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
         }
@@ -2052,12 +2062,13 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
         fprintf(file, "[visualizer]\n\n");
         fprintf(file, "visualizerColortype=%s\n\n", settings->visualizer_mode);
-        fprintf(file, "[chroma]\n\n");
-        fprintf(file, "chromaPreset=%d\n\n", ui->chromaPreset);
-        fprintf(file, "[colors]\n\n");
-        fprintf(file, "colorMode=%d\n\n", ui->colorMode);
+        fprintf(file, "[visualizations]\n\n");
+        fprintf(file, "chromaPreset=%d\n\n", ui_settings->visualizationsPreset);
 
-        if (ui->colorMode != COLOR_MODE_THEME)
+        fprintf(file, "[colors]\n\n");
+        fprintf(file, "colorMode=%d\n\n", ui_settings->colorMode);
+
+        if (ui_settings->colorMode != COLOR_MODE_THEME)
                 settings->theme[0] = '\0';
 
         fprintf(file, "theme=%s\n\n", settings->theme);
@@ -2394,14 +2405,18 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n# Show now playing status in Discord. Note: Reveals your listening habits to discord.\n\n");
         fprintf(file, "discordRPCEnabled=%s\n\n", settings->discordRPCEnabled);
 
-        fprintf(file, "\n[chroma]\n\n");
-        fprintf(file, "\n# Path to custom chroma presets.\n\n");
+        fprintf(file, "\n[visualizations]\n\n");
+        fprintf(file, "\n# Path to chroma presets. Named chroma for backwardcompatibility\n\n");
         fprintf(file, "chromaPath=%s\n", settings->chromaPath);
-        fprintf(file, "\n# Name of audio device that Chroma should use, for instance Pipewire Server.\n\n");
-        fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
+        fprintf(file, "\n# Name of audio device that the visualizations should use, for instance Pipewire Server.\n\n");
+        fprintf(file, "chromaDevice=%s\n\n", settings->visualizationsDevice);
+        fprintf(file, "\n# Path to generic visualizations presets, for instance projectm presets for pmstream.\n\n");
+        fprintf(file, "visualizationsPath=%s\n", settings->visualizationsPath);
+        fprintf(file, "\n# Visualizations mode 0 = ASCII 1 = SIXELS.\n\n");
+        fprintf(file, "visualizationsMode=%d\n\n", ui->visualizationsMode);
 
-        fprintf(file, "\n[visualizer]\n\n");
-        fprintf(file, "# Visualizer mode: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning 7=two color gradient 8=off.\n\n");
+        fprintf(file, "\n[spectrum visualizer]\n\n");
+        fprintf(file, "# Spectrum Visualizer mode: 0=lighten, 1=flat, 2=reversed lighten, 3=party, 4=vibrant. 5=lum vibrant 6=binning 7=two color gradient 8=off.\n\n");
         fprintf(file, "visualizerColorType=%s\n", settings->visualizer_mode);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizer_height);
         fprintf(file, "\n# Show visualizer as dots instead of bars.\n\n");
