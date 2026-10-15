@@ -6,7 +6,7 @@
 #include "common/model.h"
 #include "messages.h"
 
-#include "ui/chroma.h"
+#include "ui/visualizations.h"
 #include "ui/components.h"
 #include "ui/control_ui.h"
 #include "ui/queue_ui.h"
@@ -62,9 +62,9 @@ void ui_resize(Model *model)
 
         model->state.ui.num_progress_bars = model->term_w / 2 - model->indent;
 
-        if (model->state.ui.chroma_started) {
-                chroma_shutdown();
-                model->state.ui.chroma_start_requested = true;
+        if (model->state.ui.visualizations_started) {
+                visualizations_shutdown();
+                model->state.ui.visualizations_start_requested = true;
         }
 
         set_dirty(DIRTY_ALL);
@@ -186,9 +186,9 @@ void run_tick_commands(Model *model)
                 model->last_paused_state = is_paused();
         }
 
-        if (model->state.ui.chroma_started && model->state.last_view != model->state.currentView &&  model->state.currentView != TRACK_VIEW) {
-                chroma_shutdown();
-                model->state.ui.chroma_start_requested = true;
+        if (model->state.ui.visualizations_started && model->state.last_view != model->state.currentView &&  model->state.currentView != TRACK_VIEW) {
+                visualizations_shutdown();
+                model->state.ui.visualizations_start_requested = true;
         }
 
         if (is_refresh_triggered() && model->state.settings.trackTitleAsWindowTitle) {
@@ -202,8 +202,8 @@ void run_tick_commands(Model *model)
                         set_terminal_window_title("kew");
                 }
 
-                if (model->state.currentView != TRACK_VIEW && chroma_is_started())
-                        chroma_shutdown();
+                if (model->state.currentView != TRACK_VIEW && visualizations_are_started())
+                        visualizations_shutdown();
         }
 }
 
@@ -262,8 +262,8 @@ void run_command(UpdateResult result)
                 break;
 
         case CMD_CYCLE_VISUALIZATION:
-                if (model->state.ui.chroma_next_preset_requested)
-                        chroma_set_next_preset();
+                if (model->state.ui.visualizations_next_preset_requested)
+                        visualizations_set_next_preset();
                 break;
 
         case CMD_QUIT:
@@ -373,9 +373,9 @@ void run_command(UpdateResult result)
                 break;
 
         case CMD_VIEW_CHANGED:
-                if (model->state.ui.chroma_started) {
-                        chroma_shutdown();
-                        model->state.ui.chroma_start_requested = true;
+                if (model->state.ui.visualizations_started) {
+                        visualizations_shutdown();
+                        model->state.ui.visualizations_start_requested = true;
                 }
                 break;
 

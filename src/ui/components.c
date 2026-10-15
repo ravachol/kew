@@ -1168,9 +1168,9 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
                                  region.height, false, buf, dirty);
         }
 
-        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   row, region.col,
@@ -1206,9 +1206,9 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
                                  region.height, true, buf, dirty);
         }
 
-        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   region.row, region.col,
@@ -1317,13 +1317,13 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
 
         bool draw_cover_marker =
             model->state.settings.coverAnsi ||
-            model->state.ui.chroma_started ||
-            model->state.ui.chroma_start_requested;
+            model->state.ui.visualizations_started ||
+            model->state.ui.visualizations_start_requested;
 
         bool draw_occupied_markers =
             !model->state.settings.coverAnsi ||
-            model->state.ui.chroma_started ||
-            model->state.ui.chroma_start_requested;
+            model->state.ui.visualizations_started ||
+            model->state.ui.visualizations_start_requested;
 
         draw_square_bitmap_to_buf(buf,
                                   row,
@@ -2908,7 +2908,7 @@ ComponentMsg component_vis_and_progress_bar(const Model *model, k_Rect region, D
         const AppState *state = &model->state;
         const UISettings *ui = &state->settings;
 
-        int visualizer_width = model->state.ui.visualizer_width;
+        int visualizer_width = model->state.ui.visualizations_width;
         int visualizer_height = region.height;
 
         if (ui->visualizer_mode == VIZ_OFF)
@@ -2951,8 +2951,8 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
         if (!songdata)
                 return (ComponentMsg){0};
 
-        int visualizer_width = model->state.ui.visualizer_width;
-        int visualizer_height = model->state.settings.visualizer_height;
+        int visualizations_width = model->state.ui.visualizations_width;
+        int visualizations_height = model->state.settings.visualizer_height;
         int metadata_height = 4;
         int timeStatus_height = 1;
 
@@ -3012,8 +3012,8 @@ ComponentMsg component_track_portrait_normal(const Model *model, k_Rect region, 
         k_Rect viz_rect = {
             .row = meta_row + metadata_height + timeStatus_height + 1,
             .col = indent,
-            .width = visualizer_width + 1,
-            .height = visualizer_height,
+            .width = visualizations_width + 1,
+            .height = visualizations_height,
         };
         if (dirty & DIRTY_VISUALIZER)
                 result = component_vis_and_progress_bar(model, viz_rect, buf, dirty);

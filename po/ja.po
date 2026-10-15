@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 16:28+0200\n"
+"POT-Creation-Date: 2026-10-15 03:48+0200\n"
 "PO-Revision-Date: 2025-11-05 15:05+0100\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -351,7 +351,7 @@ msgstr " ホームページ: "
 msgid "Search:"
 msgstr "検索："
 
-#: src/ui/render_ui.c:152
+#: src/ui/cli.c:157 src/ui/cli.c:191
 #, c-format
 msgid "Run man kew for help.\n"
 msgstr "ヘルプを見るには man kew を実行してください。\n"
@@ -363,8 +363,29 @@ msgstr "   kew バージョン："
 
 #: src/ui/settings.c:447
 #, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s プレイリスト|%s ライブラリ|%s トラック|%s 検索|%s ヘルプ"
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"またはパスを入力してください：\n"
+"\n"
+
+#: src/ui/cli.c:171 src/ui/cli.c:201
+#, c-format
+msgid "Error reading input.\n"
+msgstr "入力の読み取り中にエラーが発生しました。\n"
+
+#: src/ui/cli.c:196
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:229
+#, c-format
+msgid "Music Library not found.\n"
+msgstr "ミュージックライブラリが見つかりません。\n"
 
 #: src/kew.c:215
 #, c-format
@@ -390,6 +411,14 @@ msgstr "音楽が見つかりません。\n"
 #, c-format
 msgid "%s\n"
 msgstr "%s\n"
+
+#, c-format
+#~ msgid ""
+#~ "Type a path:\n"
+#~ "\n"
+#~ msgstr ""
+#~ "パスを入力してください：\n"
+#~ "\n"
 
 #, c-format
 #~ msgid " · Export Playlist: %s (named after the first song)"

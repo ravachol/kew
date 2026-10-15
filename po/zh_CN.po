@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 16:28+0200\n"
+"POT-Creation-Date: 2026-10-15 03:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -348,7 +348,7 @@ msgstr " 首页： "
 msgid "Search:"
 msgstr "搜索："
 
-#: src/ui/render_ui.c:152
+#: src/ui/cli.c:157 src/ui/cli.c:191
 #, c-format
 msgid "Run man kew for help.\n"
 msgstr "运行 man kew 获取帮助。\n"
@@ -360,8 +360,29 @@ msgstr "   kew 版本："
 
 #: src/ui/settings.c:447
 #, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s 播放列表|%s 音乐库|%s 曲目|%s 搜索|%s 帮助"
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"或者输入路径：\n"
+"\n"
+
+#: src/ui/cli.c:171 src/ui/cli.c:201
+#, c-format
+msgid "Error reading input.\n"
+msgstr "读取输入时出错。\n"
+
+#: src/ui/cli.c:196
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:229
+#, c-format
+msgid "Music Library not found.\n"
+msgstr "未找到音乐库。\n"
 
 #: src/kew.c:215
 #, c-format
@@ -387,6 +408,14 @@ msgstr "未找到音乐。\n"
 #, c-format
 msgid "%s\n"
 msgstr "%s\n"
+
+#, c-format
+#~ msgid ""
+#~ "Type a path:\n"
+#~ "\n"
+#~ msgstr ""
+#~ "输入路径：\n"
+#~ "\n"
 
 #, c-format
 #~ msgid " · Export Playlist: %s (named after the first song)"

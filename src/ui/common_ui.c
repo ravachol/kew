@@ -122,43 +122,42 @@ void transfer_settings_to_ui(void)
 {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
-        UISettings *ui = &(state->settings);
+        UISettings *ui_settings = &(state->settings);
 
-        ui->allowNotifications = (settings->allowNotifications[0] == '1');
-        ui->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
-        ui->coverEnabled = (settings->coverEnabled[0] == '1');
-        ui->coverAnsi = (settings->coverAnsi[0] == '1');
-        snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
+        ui_settings->allowNotifications = (settings->allowNotifications[0] == '1');
+        ui_settings->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
+        ui_settings->coverEnabled = (settings->coverEnabled[0] == '1');
+        ui_settings->coverAnsi = (settings->coverAnsi[0] == '1');
+        snprintf(ui_settings->coverStyle, sizeof(ui_settings->coverStyle), "%s",
                  settings->coverStyle[0] ? settings->coverStyle : "auto");
-        ui->hideHelp = (settings->hideHelp[0] == '1');
-        ui->visualizer_mode = get_number(settings->visualizer_mode);
-        ui->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
-        ui->simpleTimeStatus = (settings->simpleTimeStatus[0] == '1');
-        ui->discordRPCEnabled = (settings->discordRPCEnabled[0] == '1');
-        ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
-        ui->clearListClearsAll = (settings->clearListClearsAll[0] == '1');
-        ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
-        ui->useArtistsLink = (settings->useArtistLink[0] == '1');
-        ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
-        ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
-        ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
-        ui->hideLogo = (settings->hideLogo[0] == '1');
-        ui->hideFooter = (settings->hideFooter[0] == '1');
-        ui->hideSideCover = (settings->hideSideCover[0] == '1');
-        ui->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
-        ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
-        ui->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
-        ui->auto_resume = (settings->auto_resume[0] == '1');
-        ui->always_crossfade = (settings->always_crossfade[0] == '1');
-        ui->allowNotifications = (settings->allowNotifications[0] == '1');
-        ui->coverEnabled = (settings->coverEnabled[0] == '1');
-        ui->coverAnsi = (settings->coverAnsi[0] == '1');
-        snprintf(ui->coverStyle, sizeof(ui->coverStyle), "%s",
+        ui_settings->hideHelp = (settings->hideHelp[0] == '1');
+        ui_settings->visualizer_mode = get_number(settings->visualizer_mode);
+        ui_settings->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
+        ui_settings->simpleTimeStatus = (settings->simpleTimeStatus[0] == '1');
+        ui_settings->discordRPCEnabled = (settings->discordRPCEnabled[0] == '1');
+        ui_settings->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
+        ui_settings->clearListClearsAll = (settings->clearListClearsAll[0] == '1');
+        ui_settings->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
+        ui_settings->useArtistsLink = (settings->useArtistLink[0] == '1');
+        ui_settings->mouseEnabled = (settings->mouseEnabled[0] == '1');
+        ui_settings->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
+        ui_settings->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
+        ui_settings->hideLogo = (settings->hideLogo[0] == '1');
+        ui_settings->hideFooter = (settings->hideFooter[0] == '1');
+        ui_settings->hideSideCover = (settings->hideSideCover[0] == '1');
+        ui_settings->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
+        ui_settings->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
+        ui_settings->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
+        ui_settings->auto_resume = (settings->auto_resume[0] == '1');
+        ui_settings->always_crossfade = (settings->always_crossfade[0] == '1');
+        ui_settings->allowNotifications = (settings->allowNotifications[0] == '1');
+        snprintf(ui_settings->coverStyle, sizeof(ui_settings->coverStyle), "%s",
                  settings->coverStyle[0] ? settings->coverStyle : "auto");
-        ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
+        ui_settings->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
 
-        snprintf(ui->chromaPath, sizeof(ui->chromaPath), "%s", settings->chromaPath);
-        snprintf(ui->chromaDevice, sizeof(ui->chromaDevice), "%s", settings->chromaDevice);
+        snprintf(ui_settings->chromaPath, sizeof(ui_settings->chromaPath), "%s", settings->chromaPath);
+        snprintf(ui_settings->visualizationsPath, sizeof(ui_settings->visualizationsPath), "%s", settings->visualizationsPath);
+        snprintf(ui_settings->visualizationsDevice, sizeof(ui_settings->visualizationsDevice), "%s", settings->visualizationsDevice);
 
         int tmp_num_bytes =
             get_bytes_in_first_char(settings->progressBarElapsedEvenChar);
@@ -189,74 +188,74 @@ void transfer_settings_to_ui(void)
 
         int tmp = get_number(settings->repeatState);
         if (tmp >= 0)
-                ui->repeatState = tmp;
+                ui_settings->repeatState = tmp;
 
         tmp = get_number(settings->colorMode);
         if (tmp >= 0 && tmp < 4) {
-                ui->colorMode = tmp;
+                ui_settings->colorMode = tmp;
         }
 
         tmp = get_number(settings->replayGainCheckFirst);
         if (tmp >= 0)
-                ui->replayGainCheckFirst = tmp;
+                ui_settings->replayGainCheckFirst = tmp;
 
         tmp = get_number(settings->mouseLeftClickAction);
 
         enum MsgType tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseLeftClickAction = tmp_event;
+                ui_settings->mouseLeftClickAction = tmp_event;
 
         tmp = get_number(settings->mouseMiddleClickAction);
         tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseMiddleClickAction = tmp_event;
+                ui_settings->mouseMiddleClickAction = tmp_event;
 
         tmp = get_number(settings->mouseRightClickAction);
         tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseRightClickAction = tmp_event;
+                ui_settings->mouseRightClickAction = tmp_event;
 
         tmp = get_number(settings->mouseScrollUpAction);
         tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseScrollUpAction = tmp_event;
+                ui_settings->mouseScrollUpAction = tmp_event;
 
         tmp = get_number(settings->mouseScrollDownAction);
         tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseScrollDownAction = tmp_event;
+                ui_settings->mouseScrollDownAction = tmp_event;
 
         tmp = get_number(settings->mouseAltScrollUpAction);
         tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseAltScrollUpAction = tmp_event;
+                ui_settings->mouseAltScrollUpAction = tmp_event;
 
         tmp = get_number(settings->mouseAltScrollDownAction);
         tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseAltScrollDownAction = tmp_event;
+                ui_settings->mouseAltScrollDownAction = tmp_event;
 
         tmp = get_number(settings->visualizer_height);
         if (tmp > 0)
-                ui->visualizer_height = tmp;
+                ui_settings->visualizer_height = tmp;
 
         tmp = get_number(settings->visualizer_bar_width);
         if (tmp >= 0)
-                ui->visualizer_bar_mode = tmp;
+                ui_settings->visualizer_bar_mode = tmp;
 
         tmp = get_number(settings->titleDelay);
         if (tmp >= 0)
-                ui->titleDelay = tmp;
+                ui_settings->titleDelay = tmp;
 
-        snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
+        snprintf(ui_settings->theme_name, sizeof(ui_settings->theme_name), "%s", settings->theme);
 
-        if (!(ui->colorMode >= 0 && ui->colorMode <= 4)) {
+        if (!(ui_settings->colorMode >= 0 && ui_settings->colorMode <= 4)) {
                 bool useConfigColors = (settings->useConfigColors[0] == '1');
 
                 if (useConfigColors)
-                        ui->colorMode = COLOR_MODE_DEFAULT;
+                        ui_settings->colorMode = COLOR_MODE_DEFAULT;
                 else
-                        ui->colorMode = COLOR_MODE_ALBUM;
+                        ui_settings->colorMode = COLOR_MODE_ALBUM;
         }
 }
 
