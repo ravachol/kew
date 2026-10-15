@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-29 18:22+0200\n"
+"POT-Creation-Date: 2026-10-14 19:57+0200\n"
 "PO-Revision-Date: 2026-09-28 22:02+0400\n"
 "Last-Translator: Andrei Stepanov <adem4ik@gmail.com>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -23,42 +23,41 @@ msgstr ""
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr " [F2 Плейлист|F3 Фонотека|F4 Трек|F5 Поиск|F6 Справка]"
 
-#: src/data/playlist.c:237
+#: src/data/playlist.c:238
 #, c-format
 msgid "Playlist too large to allocate.\n"
 msgstr "Плейлист слишком велик для выделения памяти.\n"
 
-#: src/data/playlist.c:244
+#: src/data/playlist.c:245
 #, c-format
 msgid "Memory allocation error.\n"
 msgstr "Ошибка выделения памяти.\n"
 
-#: src/data/playlist.c:334 src/data/playlist.c:347
-#, fuzzy
+#: src/data/playlist.c:335 src/data/playlist.c:348
 msgid "Memory allocation error."
-msgstr "Ошибка выделения памяти.\n"
+msgstr "Ошибка выделения памяти."
 
-#: src/data/playlist.c:416
+#: src/data/playlist.c:417
 #, c-format
 msgid "Failed to allocate memory."
 msgstr "Не удалось выделить память."
 
-#: src/data/playlist.c:526 src/data/playlist.c:718
+#: src/data/playlist.c:528 src/data/playlist.c:720
 #, c-format
 msgid "Failed to open directory: %s\n"
 msgstr "Не удалось открыть каталог: %s\n"
 
-#: src/data/playlist.c:591 src/data/playlist.c:725
+#: src/data/playlist.c:593 src/data/playlist.c:727
 #, c-format
 msgid "Failed to compile regular expression\n"
 msgstr "Не удалось скомпилировать регулярное выражение\n"
 
-#: src/data/playlist.c:736
+#: src/data/playlist.c:738
 #, c-format
 msgid "Failed to scan directory: %s\n"
 msgstr "Не удалось просканировать каталог: %s\n"
 
-#: src/data/playlist.c:1045
+#: src/data/playlist.c:1047
 #, c-format
 msgid "Music not found\n"
 msgstr "Музыка не найдена\n"
@@ -72,10 +71,265 @@ msgstr ""
 "Не удалось найти ни одного трека в специальном плейлисте. Добавьте трек, "
 "нажав «.» во время его воспроизведения. \n"
 
-#: src/sys/mpris.c:1183
+#: src/sys/mpris.c:1644
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "Не удалось занять имя D-Bus: %s\n"
+
+#: src/ui/render_ui.c:152
+#, c-format
+msgid "Run man kew for help.\n"
+msgstr "Запустите man kew для получения справки.\n"
+
+#: src/ui/render_ui.c:277
+#, c-format
+msgid "   kew version: "
+msgstr "   версия kew: "
+
+#: src/ui/settings.c:447
+#, c-format
+msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
+msgstr "%s Плейлист|%s Фонотека|%s Трек|%s Поиск|%s Справка"
+
+#: src/ui/components.c:559
+msgid "─ MUSIC LIBRARY ─"
+msgstr "─ ФОНОТЕКА ─"
+
+#: src/ui/components.c:1721
+msgid "─ PLAYLIST ─"
+msgstr "─ ПЛЕЙЛИСТ ─"
+
+#: src/ui/components.c:1902
+#, c-format
+msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
+msgstr " Выбор:↑/↓ или k/j. Принять:%s. Очистить:%s."
+
+#: src/ui/components.c:1907
+#, c-format
+msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s. Save:%s"
+msgstr " Прокрутка:PgUp/PgDn. Удалить:%s. Сдвиг треков:%s/%s. Сохранить:%s"
+
+#: src/ui/components.c:1913
+#, c-format
+msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"
+msgstr " Прокрутка:Fn+↑/↓. Удалить:%s. Сдвиг треков:%s/%s. Сохранить:%s"
+
+#: src/ui/components.c:1944
+#, c-format
+msgid " Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."
+msgstr " Выбор:↑/↓ или k/j. В/из очереди:%s. Играть:%s."
+
+#: src/ui/components.c:1949
+#, c-format
+msgid " Scroll:Fn+↑/↓. Update:%s. Sort:%s."
+msgstr " Прокрутка:Fn+↑/↓. Обновить:%s. Сортировка:%s."
+
+#: src/ui/components.c:1951
+#, c-format
+msgid " Scroll:PgUp/PgDn. Update:%s. Sort:%s."
+msgstr " Прокрутка:PgUp/PgDn. Обновить:%s. Сортировка:%s."
+
+#: src/ui/components.c:1976
+#, c-format
+msgid "Select:↑/↓. Enqueue:%s. Play:%s."
+msgstr "Выбор:↑/↓. В очередь:%s. Играть:%s."
+
+#: src/ui/components.c:2701
+#, c-format
+msgid "No lyrics available. Press %s to go back."
+msgstr "Текст песни недоступен. Нажмите %s для возврата."
+
+#: src/ui/components.c:3075
+msgid "kew version: "
+msgstr "версия kew: "
+
+#: src/ui/components.c:3114 src/ui/components.c:3115
+msgid " Love kew? ❤️ "
+msgstr " Нравится kew? ❤️ "
+
+#: src/ui/components.c:3144 src/ui/components.c:3145 src/ui/components.c:3152
+#: src/ui/components.c:3153 src/ui/components.c:3160
+#, c-format
+msgid " Theme: "
+msgstr " Тема: "
+
+#: src/ui/components.c:3146 src/ui/components.c:3147 src/ui/components.c:3154
+#: src/ui/components.c:3155
+msgid "Using "
+msgstr "использует "
+
+#: src/ui/components.c:3148 src/ui/components.c:3149
+msgid "One Color "
+msgstr "один цвет "
+
+#: src/ui/components.c:3150 src/ui/components.c:3158
+msgid "From Track Covers"
+msgstr "из обложек треков"
+
+#: src/ui/components.c:3156 src/ui/components.c:3157
+msgid "Colors "
+msgstr "цвета "
+
+#: src/ui/components.c:3166 src/ui/components.c:3167
+msgid " Author: "
+msgstr " Автор: "
+
+#: src/ui/components.c:3183
+msgid " Basic"
+msgstr " Основные"
+
+#: src/ui/components.c:3190
+#, c-format
+msgid " · Play/Pause: %s"
+msgstr " · Играть/Пауза: %s"
+
+#: src/ui/components.c:3191
+#, c-format
+msgid " · Enqueue/Dequeue: %s"
+msgstr " · Добавить/убрать из очереди: %s"
+
+#: src/ui/components.c:3192
+#, c-format
+msgid " · Immediate Play: %s"
+msgstr " · Играть немедленно: %s"
+
+#: src/ui/components.c:3193
+#, c-format
+msgid " · Switch tracks: %s and %s"
+msgstr " · Переключение треков: %s и %s"
+
+#: src/ui/components.c:3196
+#, c-format
+msgid " · Volume: %s and %s"
+msgstr " · Громкость: %s и %s"
+
+#: src/ui/components.c:3199
+#, c-format
+msgid " · Shuffle: %s"
+msgstr " · Перемешивание: %s"
+
+#: src/ui/components.c:3200
+#, c-format
+msgid " · Repeat: %s (repeat/repeat list/off)"
+msgstr " · Повтор: %s (повтор / повтор списка / откл.)"
+
+#: src/ui/components.c:3202
+#, c-format
+msgid " · Clear Playlist: %s"
+msgstr " · Очистить плейлист: %s"
+
+#: src/ui/components.c:3203
+#, c-format
+msgid " · Scroll: %s, %s"
+msgstr " · Прокрутка: %s, %s"
+
+#: src/ui/components.c:3206
+#, c-format
+msgid " · Stop: %s"
+msgstr " · Остановить: %s"
+
+#: src/ui/components.c:3215
+#, c-format
+msgid " · Change View: %s or %s, %s, %s, %s, %s or click the footer"
+msgstr " · Сменить вид: %s или %s, %s, %s, %s, %s либо щелчок по низу"
+
+#: src/ui/components.c:3229
+#, c-format
+msgid " · Quit: %s"
+msgstr " · Выход: %s"
+
+#: src/ui/components.c:3237
+msgid " Advanced"
+msgstr " Дополнительные"
+
+#: src/ui/components.c:3244
+#, c-format
+msgid " · Toggle Lyrics Page: %s"
+msgstr " · Переключить страницу текста песни: %s"
+
+#: src/ui/components.c:3246
+#, c-format
+msgid " · Seek: %s and %s"
+msgstr " · Перемотка: %s и %s"
+
+#: src/ui/components.c:3249
+#, c-format
+msgid " · Update Library: %s"
+msgstr " · Обновить фонотеку: %s"
+
+#: src/ui/components.c:3250
+#, c-format
+msgid " · Sort Library: %s"
+msgstr " · Сортировать фонотеку: %s"
+
+#: src/ui/components.c:3251
+#, c-format
+msgid " · Move songs: %s/%s"
+msgstr " · Переместить треки: %s/%s"
+
+#: src/ui/components.c:3254
+#, c-format
+msgid " · Delete from Playlist: %s"
+msgstr " · Удалить из плейлиста: %s"
+
+#: src/ui/components.c:3255
+#, c-format
+msgid " · Cycle Color Mode: %s"
+msgstr " · Переключить цветовой режим: %s"
+
+#: src/ui/components.c:3257
+#, c-format
+msgid " · Cycle Themes: %s"
+msgstr " · Сменить тему: %s"
+
+#: src/ui/components.c:3258
+#, c-format
+msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
+msgstr " · Переключить визуализацию Chroma: %s (требуется Chroma)"
+
+#: src/ui/components.c:3260
+#, c-format
+msgid " · Cycle Visualizer Mode: %s"
+msgstr " · Переключить режим визуализатора: %s"
+
+#: src/ui/components.c:3262
+#, c-format
+msgid " · Toggle ASCII Cover: %s (disables Chroma)"
+msgstr " · Переключить ASCII-обложку: %s (отключает Chroma)"
+
+#: src/ui/components.c:3264
+#, c-format
+msgid " · Toggle Notifications: %s"
+msgstr " · Переключить уведомления: %s"
+
+#: src/ui/components.c:3266
+#, c-format
+msgid " · Toggle Crossfade (experimental) On: %s"
+msgstr " · Включить кроссфейд (экспериментально): %s"
+
+#: src/ui/components.c:3269
+#, c-format
+msgid " · Crossfade (experimental): quick %s medium %s slow %s"
+msgstr " · Кроссфейд (экспериментально): быстро %s средне %s медленно %s"
+
+#: src/ui/components.c:3274
+#, c-format
+msgid " · Export Playlist: %s"
+msgstr " · Экспортировать плейлист: %s"
+
+#: src/ui/components.c:3276
+#, c-format
+msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
+msgstr " · Добавить трек в 'kew favorites.m3u': %s (запускать с 'kew .')"
+
+#: src/ui/components.c:3289 src/ui/components.c:3290
+msgid " Homepage: "
+msgstr " Домашняя страница: "
+
+#: src/ui/components.c:3406
+#, c-format
+msgid "Search:"
+msgstr "Поиск:"
 
 #: src/ui/cli.c:157
 #, c-format
@@ -100,12 +354,12 @@ msgstr ""
 "Или введите путь:\n"
 "\n"
 
-#: src/ui/cli.c:171 src/ui/cli.c:195
+#: src/ui/cli.c:171 src/ui/cli.c:197
 #, c-format
 msgid "Error reading input.\n"
 msgstr "Ошибка чтения ввода.\n"
 
-#: src/ui/cli.c:189
+#: src/ui/cli.c:191
 #, c-format
 msgid ""
 "Type a path:\n"
@@ -113,262 +367,6 @@ msgid ""
 msgstr ""
 "Введите путь:\n"
 "\n"
-
-#: src/ui/render_ui.c:152
-#, c-format
-msgid "Run man kew for help.\n"
-msgstr "Запустите man kew для получения справки.\n"
-
-#: src/ui/render_ui.c:277
-#, c-format
-msgid "   kew version: "
-msgstr "   версия kew: "
-
-#: src/ui/settings.c:447
-#, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s Плейлист|%s Фонотека|%s Трек|%s Поиск|%s Справка"
-
-#: src/ui/components.c:557
-msgid "─ MUSIC LIBRARY ─"
-msgstr "─ ФОНОТЕКА ─"
-
-#: src/ui/components.c:1713
-msgid "─ PLAYLIST ─"
-msgstr "─ ПЛЕЙЛИСТ ─"
-
-#: src/ui/components.c:1893
-#, c-format
-msgid " Select:↑/↓ or k/j. Accept:%s. Clear:%s."
-msgstr " Выбор:↑/↓ или k/j. Принять:%s. Очистить:%s."
-
-#: src/ui/components.c:1898
-#, c-format
-msgid " Scroll:PgUp/PgDn. Remove:%s. Move songs:%s/%s. Save:%s"
-msgstr " Прокрутка:PgUp/PgDn. Удалить:%s. Сдвиг треков:%s/%s. Сохранить:%s"
-
-#: src/ui/components.c:1904
-#, c-format
-msgid " Scroll:Fn+↑/↓. Remove:%s. Move songs:%s/%s. Save:%s"
-msgstr " Прокрутка:Fn+↑/↓. Удалить:%s. Сдвиг треков:%s/%s. Сохранить:%s"
-
-#: src/ui/components.c:1935
-#, c-format
-msgid " Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."
-msgstr " Выбор:↑/↓ или k/j. В/из очереди:%s. Играть:%s."
-
-#: src/ui/components.c:1940
-#, c-format
-msgid " Scroll:Fn+↑/↓. Update:%s. Sort:%s."
-msgstr " Прокрутка:Fn+↑/↓. Обновить:%s. Сортировка:%s."
-
-#: src/ui/components.c:1942
-#, c-format
-msgid " Scroll:PgUp/PgDn. Update:%s. Sort:%s."
-msgstr " Прокрутка:PgUp/PgDn. Обновить:%s. Сортировка:%s."
-
-#: src/ui/components.c:1967
-#, c-format
-msgid "Select:↑/↓. Enqueue:%s. Play:%s."
-msgstr "Выбор:↑/↓. В очередь:%s. Играть:%s."
-
-#: src/ui/components.c:2692
-#, c-format
-msgid "No lyrics available. Press %s to go back."
-msgstr "Текст песни недоступен. Нажмите %s для возврата."
-
-#: src/ui/components.c:3029
-msgid "kew version: "
-msgstr "версия kew: "
-
-#: src/ui/components.c:3068 src/ui/components.c:3069
-#, fuzzy
-msgid " Love kew? ❤️ "
-msgstr " Нравится kew? ❤️  "
-
-#: src/ui/components.c:3098 src/ui/components.c:3099 src/ui/components.c:3106
-#: src/ui/components.c:3107 src/ui/components.c:3114
-#, c-format
-msgid " Theme: "
-msgstr " Тема: "
-
-#: src/ui/components.c:3100 src/ui/components.c:3101 src/ui/components.c:3108
-#: src/ui/components.c:3109
-msgid "Using "
-msgstr "использует "
-
-#: src/ui/components.c:3102 src/ui/components.c:3103
-msgid "One Color "
-msgstr "один цвет "
-
-#: src/ui/components.c:3104 src/ui/components.c:3112
-msgid "From Track Covers"
-msgstr "из обложек треков"
-
-#: src/ui/components.c:3110 src/ui/components.c:3111
-msgid "Colors "
-msgstr "цвета "
-
-#: src/ui/components.c:3120 src/ui/components.c:3121
-msgid " Author: "
-msgstr " Автор: "
-
-#: src/ui/components.c:3137
-msgid " Basic"
-msgstr " Основные"
-
-#: src/ui/components.c:3144
-#, c-format
-msgid " · Play/Pause: %s"
-msgstr " · Играть/Пауза: %s"
-
-#: src/ui/components.c:3145
-#, c-format
-msgid " · Enqueue/Dequeue: %s"
-msgstr " · Добавить/убрать из очереди: %s"
-
-#: src/ui/components.c:3146
-#, c-format
-msgid " · Immediate Play: %s"
-msgstr " · Играть немедленно: %s"
-
-#: src/ui/components.c:3147
-#, c-format
-msgid " · Switch tracks: %s and %s"
-msgstr " · Переключение треков: %s и %s"
-
-#: src/ui/components.c:3150
-#, c-format
-msgid " · Volume: %s and %s"
-msgstr " · Громкость: %s и %s"
-
-#: src/ui/components.c:3153
-#, c-format
-msgid " · Shuffle: %s"
-msgstr " · Перемешивание: %s"
-
-#: src/ui/components.c:3154
-#, c-format
-msgid " · Repeat: %s (repeat/repeat list/off)"
-msgstr " · Повтор: %s (повтор / повтор списка / откл.)"
-
-#: src/ui/components.c:3156
-#, c-format
-msgid " · Clear Playlist: %s"
-msgstr " · Очистить плейлист: %s"
-
-#: src/ui/components.c:3157
-#, c-format
-msgid " · Scroll: %s, %s"
-msgstr " · Прокрутка: %s, %s"
-
-#: src/ui/components.c:3160
-#, c-format
-msgid " · Stop: %s"
-msgstr " · Остановить: %s"
-
-#: src/ui/components.c:3169
-#, c-format
-msgid " · Change View: %s or %s, %s, %s, %s, %s or click the footer"
-msgstr " · Сменить вид: %s или %s, %s, %s, %s, %s либо щелчок по низу"
-
-#: src/ui/components.c:3183
-#, c-format
-msgid " · Quit: %s"
-msgstr " · Выход: %s"
-
-#: src/ui/components.c:3191
-msgid " Advanced"
-msgstr " Дополнительные"
-
-#: src/ui/components.c:3198
-#, c-format
-msgid " · Toggle Lyrics Page: %s"
-msgstr " · Переключить страницу текста песни: %s"
-
-#: src/ui/components.c:3200
-#, c-format
-msgid " · Seek: %s and %s"
-msgstr " · Перемотка: %s и %s"
-
-#: src/ui/components.c:3203
-#, c-format
-msgid " · Update Library: %s"
-msgstr " · Обновить фонотеку: %s"
-
-#: src/ui/components.c:3204
-#, c-format
-msgid " · Sort Library: %s"
-msgstr " · Сортировать фонотеку: %s"
-
-#: src/ui/components.c:3205
-#, c-format
-msgid " · Move songs: %s/%s"
-msgstr " · Переместить треки: %s/%s"
-
-#: src/ui/components.c:3208
-#, c-format
-msgid " · Delete from Playlist: %s"
-msgstr " · Удалить из плейлиста: %s"
-
-#: src/ui/components.c:3209
-#, c-format
-msgid " · Cycle Color Mode: %s"
-msgstr " · Переключить цветовой режим: %s"
-
-#: src/ui/components.c:3211
-#, c-format
-msgid " · Cycle Themes: %s"
-msgstr " · Сменить тему: %s"
-
-#: src/ui/components.c:3212
-#, c-format
-msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
-msgstr " · Переключить визуализацию Chroma: %s (требуется Chroma)"
-
-#: src/ui/components.c:3214
-#, c-format
-msgid " · Cycle Visualizer Mode: %s"
-msgstr " · Переключить режим визуализатора: %s"
-
-#: src/ui/components.c:3216
-#, c-format
-msgid " · Toggle ASCII Cover: %s (disables Chroma)"
-msgstr " · Переключить ASCII-обложку: %s (отключает Chroma)"
-
-#: src/ui/components.c:3218
-#, c-format
-msgid " · Toggle Notifications: %s"
-msgstr " · Переключить уведомления: %s"
-
-#: src/ui/components.c:3220
-#, c-format
-msgid " · Toggle Crossfade (experimental) On: %s"
-msgstr " · Включить кроссфейд (экспериментально): %s"
-
-#: src/ui/components.c:3223
-#, c-format
-msgid " · Crossfade (experimental): quick %s medium %s slow %s"
-msgstr " · Кроссфейд (экспериментально): быстро %s средне %s медленно %s"
-
-#: src/ui/components.c:3228
-#, c-format
-msgid " · Export Playlist: %s"
-msgstr " · Экспортировать плейлист: %s"
-
-#: src/ui/components.c:3230
-#, c-format
-msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
-msgstr " · Добавить трек в 'kew favorites.m3u': %s (запускать с 'kew .')"
-
-#: src/ui/components.c:3245 src/ui/components.c:3246
-msgid " Homepage: "
-msgstr " Домашняя страница: "
-
-#: src/ui/components.c:3359
-#, c-format
-msgid "Search:"
-msgstr "Поиск:"
 
 #: src/kew.c:215
 #, c-format
