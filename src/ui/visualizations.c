@@ -168,7 +168,7 @@ static void *visualizer_thread(void *arg)
         if (args->provider[0] == '\0')
                 return NULL;
 
-        snprintf(g_viz.provider, sizeof(g_viz.provider), args->provider);
+        snprintf(g_viz.provider, sizeof(g_viz.provider), "%s", args->provider);
 
         free(arg); // Caller must malloc the `VisualizerThreadArgs`
 
@@ -349,7 +349,7 @@ void visualizations_start(int height, int width)
 
         arg->height = height;
         arg->width = width;
-        snprintf(arg->provider, sizeof(arg->provider), model->state.ui.visualizations_provider);
+        snprintf(arg->provider, sizeof(arg->provider), "%s", model->state.ui.visualizations_provider);
 
         pthread_create(&g_viz.thread, NULL, visualizer_thread, arg);
 
