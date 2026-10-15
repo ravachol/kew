@@ -587,7 +587,7 @@ void free_image_payload(ImagePayload **img)
         *img = NULL;
 }
 
-int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
+int draw_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                               const unsigned char *pixels, int width, int height, int max_width,
                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
                               const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
@@ -598,7 +598,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         Model *model = get_model();
 
         if (model->state.settings.verbose_mode)
-                k_log("draw_square_bitmap_to_buf() entered");
+                k_log("draw_bitmap_to_buf() entered");
 
         // Validate arguments.
         if (!just_mark_cover && (!buf || !buf->cells || !term_size || !pixels)) {
@@ -761,7 +761,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 return 0;
 
         if (model->state.settings.verbose_mode)
-                k_log("draw_square_bitmap_to_buf() freeing payloads");
+                k_log("draw_bitmap_to_buf() freeing payloads");
 
         anchor->kind = CELL_NORMAL;
 
@@ -772,7 +772,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 free_link_payload(&anchor->link);
 
         if (model->state.settings.verbose_mode)
-                k_log("draw_square_bitmap_to_buf() freed payloads");
+                k_log("draw_bitmap_to_buf() freed payloads");
 
         anchor->kind = CELL_IMAGE_ANCHOR;
         anchor->image = img;
@@ -802,7 +802,7 @@ int draw_square_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
 
         if (model->state.settings.verbose_mode)
-                k_log("draw_square_bitmap_to_buf() done");
+                k_log("draw_bitmap_to_buf() done");
 
         return corrected_height;
 }

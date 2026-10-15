@@ -530,6 +530,8 @@ typedef struct
 
         int current_library_sort;
 
+        int visualizer_width;
+
         int has_visualizations;
         char visualizations_provider[256];
         bool visualizations_started;

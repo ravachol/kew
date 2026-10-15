@@ -792,7 +792,7 @@ void state_init(void)
         state->ui.last_search_parent = NULL;
         state->ui.chosen_dir = NULL;
         state->ui.aspect_ratio = 0;
-        state->ui.visualizations_width = 0;
+        state->ui.visualizer_width = 0;
         state->ui.previous_chosen_song = -1;
         state->ui.has_visualizations = -1;
         state->ui.check_collapse_top_level = false;

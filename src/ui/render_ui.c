@@ -1087,7 +1087,7 @@ void calc_visualizer_width(Model *model)
             (visualizer_width > model->term_w - 2) ? model->term_w - 2 : visualizer_width;
         visualizer_width -= 1;
 
-        model->state.ui.visualizations_width = visualizer_width;
+        model->state.ui.visualizer_width = visualizer_width;
 }
 
 void rebuild_layout(Model *model)
