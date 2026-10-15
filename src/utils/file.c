@@ -196,7 +196,7 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
                         bool nameMatch = exact_search
                                              ? (strcasecmp(folded_name, low_case_searching) == 0)
-                                             : (c_strcasestr(folded_name, low_case_searching, KEW_PATH_MAX) != NULL);
+                                             : (c_strcasecmp(folded_name, low_case_searching, KEW_PATH_MAX) != NULL);
 
                         free(folded_name);
 
@@ -230,7 +230,7 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
 
                         bool nameMatch = exact_search
                                              ? (strcasecmp(folded_name, low_case_searching) == 0)
-                                             : (c_strcasestr(folded_name, low_case_searching, KEW_PATH_MAX) != NULL);
+                                             : (c_strcasecmp(folded_name, low_case_searching, KEW_PATH_MAX) != NULL);
 
                         free(folded_name);
 

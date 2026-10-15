@@ -50,7 +50,7 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         int idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasestr(argv[i], no_ui_option, max_len)) {
+                if (c_strcasecmp(argv[i], no_ui_option, max_len)) {
                         ui->uiEnabled = false;
                         idx = i;
                 }
@@ -60,7 +60,7 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasestr(argv[i], no_cover_option, max_len)) {
+                if (c_strcasecmp(argv[i], no_cover_option, max_len)) {
                         ui->coverEnabled = false;
                         idx = i;
                 }
@@ -70,8 +70,8 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasestr(argv[i], quit_on_stop, max_len) ||
-                    c_strcasestr(argv[i], quit_on_stop2, max_len)) {
+                if (c_strcasecmp(argv[i], quit_on_stop, max_len) ||
+                    c_strcasecmp(argv[i], quit_on_stop2, max_len)) {
                         ui->quitAfterStopping = true;
                         idx = i;
                 }
@@ -81,8 +81,8 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasestr(argv[i], exact_option, max_len) ||
-                    c_strcasestr(argv[i], exact_option2, max_len)) {
+                if (c_strcasecmp(argv[i], exact_option, max_len) ||
+                    c_strcasecmp(argv[i], exact_option2, max_len)) {
                         *exact_search = true;
                         idx = i;
                 }
@@ -92,7 +92,7 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasestr(argv[i], verbose_option, max_len)) {
+                if (c_strcasecmp(argv[i], verbose_option, max_len)) {
                         ui->verbose_mode = true;
                         idx = i;
                 }
@@ -110,24 +110,24 @@ void set_music_path(void)
         if (model->settings.path[0] != '\0')
                 return;
 
-        AppState *state = get_app_state();
-        UISettings *ui = &(state->settings);
+        AppSettings *settings = &(model->settings);
+        UISettings *ui_settings = &(model->state.settings);
 
         clear_screen();
         set_term_size();
 
-        ui->color.r = ui->kewColorRGB.r;
-        ui->color.g = ui->kewColorRGB.g;
-        ui->color.b = ui->kewColorRGB.b;
+        ui_settings->color.r = ui_settings->kewColorRGB.r;
+        ui_settings->color.g = ui_settings->kewColorRGB.g;
+        ui_settings->color.b = ui_settings->kewColorRGB.b;
 
         int row = 4;
         int col = 1;
 
-        print_logo_art(row, col, ui, true, true, false);
+        print_logo_art(row, col, ui_settings, true, true, false);
 
         printf("\033[%d;%dH", row + 4, col);
 
-        apply_color(ui->defaultColorRGB);
+        apply_color(ui_settings->defaultColorRGB);
 
         int indent = calc_indent_normal() + 1;
 
@@ -142,7 +142,6 @@ void set_music_path(void)
         int found = -1;
         char choice[KEW_PATH_MAX];
 
-        AppSettings *settings = get_app_settings();
         for (size_t i = 0;
              i < sizeof(music_folder_names) / sizeof(music_folder_names[0]); i++) {
                 snprintf(path, sizeof(path), "~/%s",
@@ -155,16 +154,16 @@ void set_music_path(void)
 
                         print_blank_spaces(indent);
                         printf(_("Music Library: "));
-                        apply_color(ui->kewColorRGB);
+                        apply_color(ui_settings->kewColorRGB);
                         printf("%s\n\n", path);
-                        apply_color(ui->defaultColorRGB);
+                        apply_color(ui_settings->defaultColorRGB);
                         print_blank_spaces(indent);
                         printf(_("Is this correct? Press Enter.\n\n"));
                         print_blank_spaces(indent);
                         printf(_("Or type a path:\n\n"));
                         print_blank_spaces(indent);
 
-                        apply_color(ui->kewColorRGB);
+                        apply_color(ui_settings->kewColorRGB);
 
                         if (fgets(choice, sizeof(choice), stdin) == NULL) {
                                 print_blank_spaces(indent);
@@ -174,7 +173,7 @@ void set_music_path(void)
 
                         if (choice[0] == '\n' || choice[0] == '\0') {
                                 c_strcpy(settings->path, path, sizeof(settings->path));
-                                print_blank_spaces(indent);
+                                set_path(settings->path);
                                 return;
                         } else {
                                 break;
@@ -189,9 +188,9 @@ void set_music_path(void)
         // No standard music folder was found
         if (found < 1) {
                 printf(_("Music Library: "));
-                apply_color(ui->kewColorRGB);
+                apply_color(ui_settings->kewColorRGB);
                 printf("Default path not found\n\n");
-                apply_color(ui->defaultColorRGB);
+                apply_color(ui_settings->defaultColorRGB);
                 print_blank_spaces(indent);
                 printf(_("Type a path to your music folder:\n\n"));
                 print_blank_spaces(indent);
@@ -224,7 +223,7 @@ void set_music_path(void)
 
         if (found == -1)
         {
-                apply_color(ui->defaultColorRGB);
+                apply_color(ui_settings->defaultColorRGB);
                 clear_screen();
                 printf(_("Music Library not found.\n"));
                 exit(1);

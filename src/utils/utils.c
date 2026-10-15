@@ -125,7 +125,7 @@ char *string_to_upper(const char *str)
     return g_utf8_strup(str, -1);
 }
 
-char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len)
+char *c_strcasecmp(const char *haystack, const char *needle, int max_scan_len)
 {
         if (!haystack || !needle || max_scan_len <= 0)
                 return NULL;

@@ -53,7 +53,7 @@ void advance_name_scroll_anim(Model *model)
         UIState *uis = &model->state.ui;
 
         static int num_skips = 0;
-        int skips_per_frame = 1;
+        int skips_per_frame = 3;
         int start_scrolling_delay = 10;
         bool same_name = false;
         int *previous = &uis->treeCtx.previous_chosen_row;
@@ -73,6 +73,7 @@ void advance_name_scroll_anim(Model *model)
                 *previous = *chosen;
                 reset_animation(&model->name_scroll);
                 model->name_scroll.active = true;
+                num_skips = 0;
         }
 
         if (!model->name_scroll.active)
@@ -81,7 +82,7 @@ void advance_name_scroll_anim(Model *model)
         if (model->name_scroll.pre_anim_delay_frame < start_scrolling_delay)
                 model->name_scroll.pre_anim_delay_frame++;
         else {
-                if (num_skips > skips_per_frame) {
+                if (num_skips >= skips_per_frame) {
                         num_skips = 0;
                         model->name_scroll.frame++;
                 } else
@@ -96,7 +97,7 @@ void advance_name_scroll_anim(Model *model)
         }
 
         if (model->state.currentView == PLAYLIST_VIEW) {
-                if (model->name_scroll.frame > 256) {
+                if (model->name_scroll.frame >= (int)sizeof(model->songdata->metadata->title)) {
                         model->name_scroll.active = false;
                         set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
                 }

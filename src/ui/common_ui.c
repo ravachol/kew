@@ -107,9 +107,12 @@ int get_bytes_in_first_char(const char *str)
         mbstate_t state;
         memset(&state, 0, sizeof(state));
         wchar_t wc;
-        int num_bytes = mbrtowc(&wc, str, MB_CUR_MAX, &state);
+        size_t n = mbrtowc(&wc, str, MB_CUR_MAX, &state);
 
-        return num_bytes;
+        if (n == (size_t)-1 || n == (size_t)-2)
+                return 0;
+
+        return (int)n;
 }
 
 void enable_mouse(UISettings *ui)
@@ -394,6 +397,8 @@ void process_name_strip_suffix(const char *name, char *output)
                 gchar *tmp = g_utf8_substring(name, 0, g_utf8_pointer_to_offset(name, last_dot));
                 g_utf8_strncpy(output, tmp, g_utf8_strlen(tmp, -1));
                 g_free(tmp);
+        } else {
+                g_utf8_strncpy(output, name, g_utf8_strlen(name, -1));
         }
 }
 
@@ -447,6 +452,8 @@ int process_name_scroll(const Model *model, const char *name, char *output, int 
                 gchar *tmp = g_utf8_substring(output, model->name_scroll.frame, -1);
                 str_truncate_display_width(tmp, output, max_width);
                 g_free(tmp);
+        } else {
+                str_truncate_display_width(output, output, max_width);
         }
 
         return name_width;
@@ -455,6 +462,11 @@ int process_name_scroll(const Model *model, const char *name, char *output, int 
 PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, bool reversed)
 {
         PixelData pixel2 = {0};
+
+        if (height <= 0) {
+                pixel.a = 255;
+                return pixel;
+        }
 
         // Calculate how much each color can be lightened, based on how far the color is from white (255)
         float lightening_factor_r = (255 - pixel.r) / 255.0f;
@@ -519,9 +531,13 @@ PixelData decrease_luminosity_pct(PixelData base, float pct)
         int g = (int)((float)base.g * pct);
         int b = (int)((float)base.b * pct);
 
-        c.r = (r < MIN_CHANNEL) ? MIN_CHANNEL : r;
-        c.g = (g < MIN_CHANNEL) ? MIN_CHANNEL : g;
-        c.b = (b < MIN_CHANNEL) ? MIN_CHANNEL : b;
+        int min_r = base.r < MIN_CHANNEL ? base.r : MIN_CHANNEL;
+        int min_g = base.g < MIN_CHANNEL ? base.g : MIN_CHANNEL;
+        int min_b = base.b < MIN_CHANNEL ? base.b : MIN_CHANNEL;
+
+        c.r = (r < min_r) ? min_r : r;
+        c.g = (g < min_g) ? min_g : g;
+        c.b = (b < min_b) ? min_b : b;
 
         c.a = 255;
 
@@ -553,9 +569,9 @@ PixelData get_gradient_color(PixelData base_color, int row, int max_list_size,
 }
 
 const char *get_lyrics_line(const Lyrics *lyrics,
-                    int* lyricIndex,
-                    double elapsed_seconds
-) {
+                            int *lyricIndex,
+                            double elapsed_seconds)
+{
         if (!lyrics || lyrics->count == 0)
                 return "";
 
@@ -586,7 +602,8 @@ const char *get_lyrics_line(const Lyrics *lyrics,
         return line;
 }
 
-int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds) {
+int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds)
+{
         if (lyric_line.numberOfTimestamps == 0)
                 return 0;
         int i = 0;
@@ -598,21 +615,29 @@ int get_word_offset(const LyricsLine lyric_line, double elapsed_seconds) {
                 }
         }
 
-        if (i == 0) return 0;
+        if (i == 0)
+                return 0;
 
         char *ptr = lyric_line.text;
         int countedSpaces = 0;
         while (*ptr != '\0') {
-            if (countedSpaces == i - 1) return ptr - lyric_line.text;
-            if (*ptr == ' ') countedSpaces++;
-            ptr++;
+                if (countedSpaces == i - 1)
+                        return ptr - lyric_line.text;
+                if (*ptr == ' ')
+                        countedSpaces++;
+                ptr++;
         }
         return -1;
 }
 
-int get_word_length(const LyricsLine lyric_line, int offset) {
-        char* ptr = lyric_line.text + offset;
-        for (; *ptr != '\0' && *ptr != ' '; ptr++);
+int get_word_length(const LyricsLine lyric_line, int offset)
+{
+        if (offset < 0)
+                return 0;
+
+        char *ptr = lyric_line.text + offset;
+        for (; *ptr != '\0' && *ptr != ' '; ptr++)
+                ;
         return ptr - (lyric_line.text + offset);
 }
 
@@ -910,33 +935,30 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
 
         Cell *anchor = &buf->cells[row * buf->cols + col];
 
-        size_t ulen = strlen(url);
-        size_t tlen = strlen(title);
         bool draw_title = true;
         bool draw_url = true;
 
         if (anchor->kind == CELL_LINK && anchor->link) {
-                if (strcmp(anchor->link->title, title) == 0) {
+                if (anchor->link->title && strcmp(anchor->link->title, title) == 0) {
                         draw_title = false;
-                } else if (anchor->link->title != NULL) {
+                } else {
                         free(anchor->link->title);
                         anchor->link->title = NULL;
                 }
 
-                if (strcmp(anchor->link->url, url) == 0) {
+                if (anchor->link->url && strcmp(anchor->link->url, url) == 0) {
                         draw_url = false;
-                } else if (anchor->link->url != NULL) {
+                } else {
                         free(anchor->link->url);
                         anchor->link->url = NULL;
                 }
-        } else if (anchor->kind != CELL_LINK || !anchor->link) {
-                LinkPayload *link = calloc(1, sizeof(LinkPayload));
-
-                if (!link) {
+        } else {
+                free_link_payload(&anchor->link);
+                anchor->link = calloc(1, sizeof(LinkPayload));
+                if (!anchor->link) {
                         k_log("draw_link_to_buffer: failed to allocate LinkPayload");
                         return;
                 }
-                anchor->link = link;
         }
 
         style.attrs |= ATTR_UNDERLINE;
@@ -946,13 +968,11 @@ void draw_link_to_buffer(DrawBuffer *buf, int row, int col, int width,
         anchor->attrs = style.attrs;
 
         if (draw_title) {
-                anchor->link->title = calloc(1, tlen + 1);
-                snprintf(anchor->link->title, tlen + 1, "%s", title);
+                anchor->link->title = strdup(title);
         }
 
         if (draw_url) {
-                anchor->link->url = calloc(1, ulen + 1);
-                snprintf(anchor->link->url, ulen + 1, "%s", url);
+                anchor->link->url = strdup(url);
         }
 
         // Mark occupied region
@@ -1114,6 +1134,9 @@ bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
         if (mouse_y + 1 < region.row || mouse_y > region.row + region.height)
                 return false;
 
+        if (region.height <= 0)
+                return false;
+
         return true;
 }
 
@@ -1139,6 +1162,9 @@ void scrollbar_scroll(int mouse_y, bool dragging)
 
                         if (delta_row < 0)
                                 delta_row = 0;
+
+                        if (height <= 0)
+                                return;
 
                         double position = (double)delta_row / (double)height;
 
@@ -1168,6 +1194,9 @@ void scrollbar_scroll(int mouse_y, bool dragging)
 
                         if (delta_row < 0)
                                 delta_row = 0;
+
+                        if (height <= 0)
+                                return;
 
                         double position = (double)delta_row / (double)height;
 
@@ -1208,6 +1237,9 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                         if (delta_row < 0)
                                 delta_row = 0;
 
+                        if (height <= 0)
+                                return;
+
                         double position = (double)delta_row / (double)height;
                         model->state.ui.chosen_search_result_row = round(numRows * position);
 
@@ -1237,6 +1269,9 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                         if (delta_row < 0)
                                 delta_row = 0;
 
+                        if (height <= 0)
+                                return;
+
                         double position = (double)delta_row / (double)height;
 
                         new_help_row = round(numRows * position);
@@ -1247,8 +1282,8 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                                 : new_help_row;
 
                         new_help_row = (new_help_row < 0)
-                                          ? 0
-                                          : new_help_row;
+                                           ? 0
+                                           : new_help_row;
 
                         if (dragging && model->state.ui.chosen_help_row > 0) { // Move one step at a time
                                 if (new_help_row > model->state.ui.chosen_help_row + model->state.ui.help_region.height)
@@ -1261,6 +1296,9 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 }
                 set_dirty(DIRTY_HELP);
         }
+
+        if (!scrollbar)
+                return;
 
         scrollbar->last_position = scrollbar->position;
         scrollbar->position = mouse_y;
