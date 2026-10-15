@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 03:48+0200\n"
+"POT-Creation-Date: 2026-10-15 06:14+0200\n"
 "PO-Revision-Date: 2026-09-29 19:15+0200\n"
 "Last-Translator: victorhck <victorhck@mailbox.org>\n"
 "Language-Team: Spanish <victorhck@mailbox.org>\n"
@@ -76,20 +76,45 @@ msgstr ""
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "No se pudo obtener el nombre del D-Bus: %s\n"
 
-#: src/ui/render_ui.c:152
+#: src/ui/cli.c:157 src/ui/cli.c:191
 #, c-format
-msgid "Run man kew for help.\n"
-msgstr "Para obtener  ayuda, ejecuta man kew. \n"
+msgid "Music Library: "
+msgstr "Biblioteca musical: "
 
-#: src/ui/render_ui.c:277
+#: src/ui/cli.c:162
 #, c-format
-msgid "   kew version: "
-msgstr "   Versión de kew: "
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+"¿Es correcto? Pulsa Enter.\n"
+"\n"
 
-#: src/ui/settings.c:447
+#: src/ui/cli.c:164
 #, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s Lista|%s Biblioteca|%s Pista|%s Buscar|%s Ayuda"
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"O escribe una ruta:\n"
+"\n"
+
+#: src/ui/cli.c:171 src/ui/cli.c:201
+#, c-format
+msgid "Error reading input.\n"
+msgstr "Ocurrió un error al leer la entrada. \n"
+
+#: src/ui/cli.c:196
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:229
+#, c-format
+msgid "Music Library not found.\n"
+msgstr "No se encontró la biblioteca de música.\n"
 
 #: src/ui/components.c:559
 msgid "─ MUSIC LIBRARY ─"
@@ -331,45 +356,20 @@ msgstr "Página de inicio:"
 msgid "Search:"
 msgstr "Buscar:"
 
-#: src/ui/cli.c:157 src/ui/cli.c:191
+#: src/ui/render_ui.c:152
 #, c-format
-msgid "Music Library: "
-msgstr "Biblioteca musical: "
+msgid "Run man kew for help.\n"
+msgstr "Para obtener  ayuda, ejecuta man kew. \n"
 
-#: src/ui/cli.c:162
+#: src/ui/render_ui.c:277
 #, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-"¿Es correcto? Pulsa Enter.\n"
-"\n"
+msgid "   kew version: "
+msgstr "   Versión de kew: "
 
-#: src/ui/cli.c:164
+#: src/ui/settings.c:447
 #, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-"O escribe una ruta:\n"
-"\n"
-
-#: src/ui/cli.c:171 src/ui/cli.c:201
-#, c-format
-msgid "Error reading input.\n"
-msgstr "Ocurrió un error al leer la entrada. \n"
-
-#: src/ui/cli.c:196
-#, c-format
-msgid ""
-"Type a path to your music folder:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:229
-#, c-format
-msgid "Music Library not found.\n"
-msgstr "No se encontró la biblioteca de música.\n"
+msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
+msgstr "%s Lista|%s Biblioteca|%s Pista|%s Buscar|%s Ayuda"
 
 #: src/kew.c:215
 #, c-format
