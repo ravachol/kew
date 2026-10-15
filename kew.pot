@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 03:58+0200\n"
+"POT-Creation-Date: 2026-10-15 06:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,7 +72,7 @@ msgstr ""
 msgid "Failed to own D-Bus name: %s\n"
 msgstr ""
 
-#: src/ui/cli.c:157
+#: src/ui/cli.c:157 src/ui/cli.c:191
 #, c-format
 msgid "Music Library: "
 msgstr ""
@@ -91,16 +91,21 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/cli.c:171 src/ui/cli.c:197
+#: src/ui/cli.c:171 src/ui/cli.c:201
 #, c-format
 msgid "Error reading input.\n"
 msgstr ""
 
-#: src/ui/cli.c:191
+#: src/ui/cli.c:196
 #, c-format
 msgid ""
-"Type a path:\n"
+"Type a path to your music folder:\n"
 "\n"
+msgstr ""
+
+#: src/ui/cli.c:229
+#, c-format
+msgid "Music Library not found.\n"
 msgstr ""
 
 #: src/ui/components.c:559
@@ -343,7 +348,7 @@ msgstr ""
 msgid "Search:"
 msgstr ""
 
-#: src/ui/cli.c:157 src/ui/cli.c:191
+#: src/ui/render_ui.c:152
 #, c-format
 msgid "Run man kew for help.\n"
 msgstr ""
@@ -355,26 +360,7 @@ msgstr ""
 
 #: src/ui/settings.c:447
 #, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:171 src/ui/cli.c:201
-#, c-format
-msgid "Error reading input.\n"
-msgstr ""
-
-#: src/ui/cli.c:196
-#, c-format
-msgid ""
-"Type a path to your music folder:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:229
-#, c-format
-msgid "Music Library not found.\n"
+msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
 msgstr ""
 
 #: src/kew.c:215
