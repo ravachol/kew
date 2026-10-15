@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 19:57+0200\n"
+"POT-Creation-Date: 2026-10-14 16:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -71,20 +71,42 @@ msgstr "在特殊播放列表中未找到任何歌曲。播放时按 '.' 添加�
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "获取 D-Bus 名称失败：%s\n"
 
-#: src/ui/render_ui.c:152
+#: src/ui/cli.c:157
 #, c-format
-msgid "Run man kew for help.\n"
-msgstr "运行 man kew 获取帮助。\n"
+msgid "Music Library: "
+msgstr "音乐库："
 
-#: src/ui/render_ui.c:277
+#: src/ui/cli.c:162
 #, c-format
-msgid "   kew version: "
-msgstr "   kew 版本："
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+"是否正确？按回车确认。\n"
+"\n"
 
-#: src/ui/settings.c:447
+#: src/ui/cli.c:164
 #, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s 播放列表|%s 音乐库|%s 曲目|%s 搜索|%s 帮助"
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"或者输入路径：\n"
+"\n"
+
+#: src/ui/cli.c:171 src/ui/cli.c:197
+#, c-format
+msgid "Error reading input.\n"
+msgstr "读取输入时出错。\n"
+
+#: src/ui/cli.c:191
+#, c-format
+msgid ""
+"Type a path:\n"
+"\n"
+msgstr ""
+"输入路径：\n"
+"\n"
 
 #: src/ui/components.c:559
 msgid "─ MUSIC LIBRARY ─"
@@ -326,42 +348,20 @@ msgstr " 首页： "
 msgid "Search:"
 msgstr "搜索："
 
-#: src/ui/cli.c:157
+#: src/ui/render_ui.c:152
 #, c-format
-msgid "Music Library: "
-msgstr "音乐库："
+msgid "Run man kew for help.\n"
+msgstr "运行 man kew 获取帮助。\n"
 
-#: src/ui/cli.c:162
+#: src/ui/render_ui.c:277
 #, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-"是否正确？按回车确认。\n"
-"\n"
+msgid "   kew version: "
+msgstr "   kew 版本："
 
-#: src/ui/cli.c:164
+#: src/ui/settings.c:447
 #, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-"或者输入路径：\n"
-"\n"
-
-#: src/ui/cli.c:171 src/ui/cli.c:197
-#, c-format
-msgid "Error reading input.\n"
-msgstr "读取输入时出错。\n"
-
-#: src/ui/cli.c:191
-#, c-format
-msgid ""
-"Type a path:\n"
-"\n"
-msgstr ""
-"输入路径：\n"
-"\n"
+msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
+msgstr "%s 播放列表|%s 音乐库|%s 曲目|%s 搜索|%s 帮助"
 
 #: src/kew.c:215
 #, c-format

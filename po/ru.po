@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 19:57+0200\n"
+"POT-Creation-Date: 2026-10-14 16:28+0200\n"
 "PO-Revision-Date: 2026-09-28 22:02+0400\n"
 "Last-Translator: Andrei Stepanov <adem4ik@gmail.com>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -76,20 +76,42 @@ msgstr ""
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "Не удалось занять имя D-Bus: %s\n"
 
-#: src/ui/render_ui.c:152
+#: src/ui/cli.c:157
 #, c-format
-msgid "Run man kew for help.\n"
-msgstr "Запустите man kew для получения справки.\n"
+msgid "Music Library: "
+msgstr "Фонотека: "
 
-#: src/ui/render_ui.c:277
+#: src/ui/cli.c:162
 #, c-format
-msgid "   kew version: "
-msgstr "   версия kew: "
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+"Это верно? Нажмите Enter.\n"
+"\n"
 
-#: src/ui/settings.c:447
+#: src/ui/cli.c:164
 #, c-format
-msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s Плейлист|%s Фонотека|%s Трек|%s Поиск|%s Справка"
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"Или введите путь:\n"
+"\n"
+
+#: src/ui/cli.c:171 src/ui/cli.c:197
+#, c-format
+msgid "Error reading input.\n"
+msgstr "Ошибка чтения ввода.\n"
+
+#: src/ui/cli.c:191
+#, c-format
+msgid ""
+"Type a path:\n"
+"\n"
+msgstr ""
+"Введите путь:\n"
+"\n"
 
 #: src/ui/components.c:559
 msgid "─ MUSIC LIBRARY ─"
@@ -331,42 +353,20 @@ msgstr " Домашняя страница: "
 msgid "Search:"
 msgstr "Поиск:"
 
-#: src/ui/cli.c:157
+#: src/ui/render_ui.c:152
 #, c-format
-msgid "Music Library: "
-msgstr "Фонотека: "
+msgid "Run man kew for help.\n"
+msgstr "Запустите man kew для получения справки.\n"
 
-#: src/ui/cli.c:162
+#: src/ui/render_ui.c:277
 #, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-"Это верно? Нажмите Enter.\n"
-"\n"
+msgid "   kew version: "
+msgstr "   версия kew: "
 
-#: src/ui/cli.c:164
+#: src/ui/settings.c:447
 #, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-"Или введите путь:\n"
-"\n"
-
-#: src/ui/cli.c:171 src/ui/cli.c:197
-#, c-format
-msgid "Error reading input.\n"
-msgstr "Ошибка чтения ввода.\n"
-
-#: src/ui/cli.c:191
-#, c-format
-msgid ""
-"Type a path:\n"
-"\n"
-msgstr ""
-"Введите путь:\n"
-"\n"
+msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
+msgstr "%s Плейлист|%s Фонотека|%s Трек|%s Поиск|%s Справка"
 
 #: src/kew.c:215
 #, c-format
