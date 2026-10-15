@@ -420,9 +420,11 @@ typedef struct
         PixelData defaultColorRGB;   /**< Default RGB color value. */
         PixelData kewColorRGB;       /**< Primary application accent RGB color. */
 
-        int chromaPreset; /**< Preset index for chroma-based coloring. */
+        int visualizationsPreset; /**< Preset index for chroma-based coloring. */
         char chromaPath[KEW_PATH_MAX];
-        char chromaDevice[KEW_PATH_MAX];
+        char visualizationsPath[KEW_PATH_MAX];
+        char visualizationsDevice[KEW_PATH_MAX];
+        int visualizationsMode; // 0 = ASCII, 1 = SIXELS
         bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
         bool visualizations_instead_of_cover; /**< Show visualizer instead of album cover. */
 
@@ -511,8 +513,6 @@ typedef struct
         int footer_row;
         int footer_col;
 
-        int visualizer_width;
-
         const char *lyrics_line;
         int wordOffset;
         int wordLength;
@@ -531,12 +531,15 @@ typedef struct
 
         int current_library_sort;
 
-        int has_chroma;
-        bool chroma_started;
-        bool chroma_next_preset_requested;
-        bool chroma_start_requested;
-        int chroma_height;
-        int chroma_width;
+        int visualizer_width;
+
+        int has_visualizations;
+        char visualizations_provider[256];
+        bool visualizations_started;
+        bool visualizations_next_preset_requested;
+        bool visualizations_start_requested;
+        int visualizations_height;
+        int visualizations_width;
 
         bool link_clicked;
 
@@ -723,9 +726,11 @@ typedef struct
         char trackTitleAsWindowTitle[2];
         char showLyricsPage[6];
         char stripTrackNumbers[2];
-        char chromaPreset[6];
+        char visualizationsPreset[6];
         char chromaPath[KEW_PATH_MAX];
-        char chromaDevice[KEW_PATH_MAX];
+        char visualizationsPath[KEW_PATH_MAX];
+        char visualizationsDevice[KEW_PATH_MAX];
+        char visualizationsMode[6];
         char fade_enter_song_ms[12];
         char fade_quick[6];
         char fade_medium[6];

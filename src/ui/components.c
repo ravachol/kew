@@ -1047,7 +1047,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                 corrected_height = target_height + 1;
                         } else {
 
-                                corrected_height = draw_square_bitmap_to_buf(buf,
+                                corrected_height = draw_bitmap_to_buf(buf,
                                                                              row, col,
                                                                              songdata->cover,
                                                                              songdata->coverWidth,
@@ -1168,11 +1168,11 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
                                  region.height, false, buf, dirty);
         }
 
-        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        draw_square_bitmap_to_buf(buf,
+        draw_bitmap_to_buf(buf,
                                   row, region.col,
                                   songdata->cover,
                                   songdata->coverWidth,
@@ -1206,11 +1206,11 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
                                  region.height, true, buf, dirty);
         }
 
-        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_cover_marker = model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.chroma_started || model->state.ui.chroma_start_requested;
+        bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        draw_square_bitmap_to_buf(buf,
+        draw_bitmap_to_buf(buf,
                                   region.row, region.col,
                                   songdata->cover,
                                   songdata->coverWidth,
@@ -1317,15 +1317,15 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
 
         bool draw_cover_marker =
             model->state.settings.coverAnsi ||
-            model->state.ui.chroma_started ||
-            model->state.ui.chroma_start_requested;
+            model->state.ui.visualizations_started ||
+            model->state.ui.visualizations_start_requested;
 
         bool draw_occupied_markers =
             !model->state.settings.coverAnsi ||
-            model->state.ui.chroma_started ||
-            model->state.ui.chroma_start_requested;
+            model->state.ui.visualizations_started ||
+            model->state.ui.visualizations_start_requested;
 
-        draw_square_bitmap_to_buf(buf,
+        draw_bitmap_to_buf(buf,
                                   row,
                                   col,
                                   songdata->cover,

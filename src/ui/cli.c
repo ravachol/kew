@@ -133,7 +133,7 @@ void set_music_path(void)
 
         // Music folder names in different languages
         const char *music_folder_names[] = {
-            "Musixc", "storage/music", "Música", "Musique", "Musik", "Musica", "Muziek",
+            "Music", "storage/music", "storage/shared/music", "Música", "Musique", "Musik", "Musica", "Muziek",
             "Музыка", "音乐", "音楽", "음악", "موسيقى", "संगीत",
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
             "Zene", "Muzică", "เพลง", "מוזיקה"};
@@ -188,9 +188,13 @@ void set_music_path(void)
 
         // No standard music folder was found
         if (found < 1) {
-                printf(_("Type a path:\n\n"));
-                print_blank_spaces(indent);
+                printf(_("Music Library: "));
                 apply_color(ui->kewColorRGB);
+                printf("Default path not found\n\n");
+                apply_color(ui->defaultColorRGB);
+                print_blank_spaces(indent);
+                printf(_("Type a path to your music folder:\n\n"));
+                print_blank_spaces(indent);
 
                 if (fgets(choice, sizeof(choice), stdin) == NULL) {
                         print_blank_spaces(indent);
@@ -219,5 +223,10 @@ void set_music_path(void)
         }
 
         if (found == -1)
+        {
+                apply_color(ui->defaultColorRGB);
+                clear_screen();
+                printf(_("Music Library not found.\n"));
                 exit(1);
+        }
 }

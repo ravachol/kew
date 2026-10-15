@@ -9,7 +9,7 @@
 #include "control_ui.h"
 
 #include "ops/playlist_ops.h"
-#include "ui/chroma.h"
+#include "ui/visualizations.h"
 #include "ui/queue_ui.h"
 #include "ui/render_ui.h"
 
@@ -187,21 +187,33 @@ void cycle_visualization(void)
 
         if (model->songdata_ok && model->state.settings.coverEnabled) {
 
-                if (model->state.ui.has_chroma == -1)
-                        model->state.ui.has_chroma = chroma_is_installed();
+                if (model->state.ui.has_visualizations == -1)
+                {
+                        bool has_pmstream = visualizations_are_installed("pmstream");
+                        bool has_chroma = visualizations_are_installed("chroma");
 
-                if (model->state.ui.has_chroma == 1) {
+                        model->state.ui.has_visualizations = has_chroma || has_pmstream;
 
-                        if (model->state.ui.chroma_started) {
+                        if (!has_pmstream)
+                                snprintf(model->state.ui.visualizations_provider, sizeof(model->state.ui.visualizations_provider),
+                                 "%s", "chroma");
+                        else
+                                snprintf(model->state.ui.visualizations_provider, sizeof(model->state.ui.visualizations_provider),
+                                 "%s", "pmstream");
+                }
 
-                                model->state.ui.chroma_next_preset_requested = true;
+                if (model->state.ui.has_visualizations == 1) {
+
+                        if (model->state.ui.visualizations_started) {
+
+                                model->state.ui.visualizations_next_preset_requested = true;
 
                         } else {
 
-                                if (model->state.settings.chromaPreset >= 0)
-                                        chroma_set_current_preset(model->state.settings.chromaPreset);
+                                if (model->state.settings.visualizationsPreset >= 0)
+                                        visualizations_set_current_preset(model->state.settings.visualizationsPreset);
 
-                                model->state.ui.chroma_start_requested = true;
+                                model->state.ui.visualizations_start_requested = true;
                         }
 
                         model->state.settings.visualizations_instead_of_cover = true;
@@ -302,7 +314,7 @@ void cycle_themes(void)
 
 void toggle_ascii(void)
 {
-        if (chroma_is_started()) {
+        if (visualizations_are_started()) {
                 request_stop_visualization();
                 set_dirty(DIRTY_ALL);
                 return;
