@@ -42,34 +42,30 @@ void realloc_results()
 }
 
 void set_result_fields(FileSystemEntry *entry, int distance,
-                       FileSystemEntry *parent)
+                       FileSystemEntry *group)
 {
         Model *model = get_model();
 
         model->search_results[model->state.ui.search_results_count].distance = distance;
         model->search_results[model->state.ui.search_results_count].entry = entry;
-        model->search_results[model->state.ui.search_results_count].parent = parent;
+        model->search_results[model->state.ui.search_results_count].group = group;
         model->search_results[model->state.ui.search_results_count].num_children = 0;
 }
 
-bool is_duplicate(const FileSystemEntry *entry)
+static int find_result(const FileSystemEntry *entry)
 {
         Model *model = get_model();
 
         for (int i = 0; i < model->state.ui.search_results_count; i++) {
-                const FileSystemEntry *other = model->search_results[i].entry;
-
-                if (!entry->is_directory)
-                        return false;
-
-                if (entry == other)
-                        return true;
+                if (entry == model->search_results[i].entry)
+                        return i;
         }
 
-        return false;
+        return -1;
 }
 
-int add_result_dir_contents(FileSystemEntry *entry, int distance)
+static int add_result_dir_contents(FileSystemEntry *entry, int distance,
+                                   FileSystemEntry *group)
 {
         Model *model = get_model();
         int num_children = 0;
@@ -82,12 +78,12 @@ int add_result_dir_contents(FileSystemEntry *entry, int distance)
                         while (child) {
                                 model->state.ui.search_results_count++;
                                 realloc_results();
-                                set_result_fields(child, distance, entry);
+                                set_result_fields(child, distance, group);
 
                                 if (!child->is_directory)
                                         num_children++;
 
-                                num_children += add_result_dir_contents(child, distance);
+                                num_children += add_result_dir_contents(child, distance, group);
 
                                 child = child->next;
                         }
@@ -110,18 +106,23 @@ void add_result(FileSystemEntry *entry, int distance)
         if (num_search_letters < min_search_letters)
                 return;
 
-        if (model->state.ui.search_results_count > terminal_height * 10)
-                return;
-
         if (entry->parent == NULL) // Root
                 return;
 
-        if (is_duplicate(entry))
+        int existing = find_result(entry);
+        if (existing >= 0) {
+                if (distance < model->search_results[existing].distance)
+                        model->search_results[existing].distance = distance;
+                return;
+        }
+
+        if (model->state.ui.search_results_count > terminal_height * 10)
                 return;
 
+        FileSystemEntry *group = entry->is_directory ? entry : entry->parent;
         realloc_results();
-        set_result_fields(entry, distance, NULL);
-        add_result_dir_contents(entry, distance);
+        set_result_fields(entry, distance, group);
+        add_result_dir_contents(entry, distance, group);
         model->state.ui.search_results_count++;
 }
 
@@ -147,7 +148,7 @@ void search_shutdown(void)
 
         if (model->search_results != NULL) {
                 model->search_results->entry = NULL;
-                model->search_results->parent = NULL;
+                model->search_results->group = NULL;
                 free(model->search_results);
                 model->search_results = NULL;
         }
@@ -165,37 +166,15 @@ void calculate_group_distances(void)
         Model *model = get_model();
 
         for (int i = 0; i < model->state.ui.search_results_count; i++) {
-                // Find top-level parent (entry with no parent, or root)
-                FileSystemEntry *root = model->search_results[i].entry;
-                while (root->parent != NULL) {
-                        root = root->parent;
-                }
-
-                // Find if this root appears in results, and use ITS distance
-                // Otherwise use minimum distance among descendants
+                FileSystemEntry *group = model->search_results[i].group;
                 int minDist = model->search_results[i].distance;
 
                 for (int j = 0; j < model->state.ui.search_results_count; j++) {
-                        FileSystemEntry *otherRoot = model->search_results[j].entry;
-                        while (otherRoot->parent != NULL) {
-                                otherRoot = otherRoot->parent;
-                        }
-
-                        if (otherRoot == root) {
-                                if (model->search_results[j].entry == root) {
-                                        // The root itself is in results - use
-                                        // its distance
-                                        minDist = model->search_results[j].distance;
-                                        break;
-                                }
-                                if (model->search_results[j].distance < minDist) {
-                                        minDist = model->search_results[j].distance + 1;
-                                }
-                        }
+                        if (model->search_results[j].group == group &&
+                            model->search_results[j].distance < minDist)
+                                minDist = model->search_results[j].distance;
                 }
 
-                // If root is in results, use only its distance for grouping
-                // Otherwise use the best child distance
                 model->search_results[i].groupDistance = minDist;
         }
 }
@@ -216,13 +195,15 @@ int compare_results(const void *a, const void *b)
         const SearchResult *A = a;
         const SearchResult *B = b;
 
-        int rel = ancestor_compare(A->entry, B->entry);
-        if (rel != 0)
-                return rel;
-
-        // Sort by best distance in the top-level group first
+        // Keep album/folder groups together and rank them by their best match.
         if (A->groupDistance != B->groupDistance)
                 return (A->groupDistance < B->groupDistance) ? -1 : 1;
+
+        if (A->group == B->group) {
+                int rel = ancestor_compare(A->entry, B->entry);
+                if (rel != 0)
+                        return rel;
+        }
 
         // If different parents, compare by hierarchy (path)
         if (A->entry->parent != B->entry->parent) {
@@ -285,7 +266,7 @@ void sort_search_results(void)
         qsort(model->search_results, model->state.ui.search_results_count, sizeof(SearchResult), compare_results);
 }
 
-void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
+void fuzzy_search(char *search_term, FileSystemEntry *root)
 {
         Model *model = get_model();
         terminal_height = model->term_h;
@@ -293,7 +274,8 @@ void fuzzy_search(char *search_term, FileSystemEntry *root, int threshold)
         search_shutdown();
 
         if (num_search_letters > min_search_letters) {
-                fuzzy_search_recursive(root, search_term, threshold,
+                fuzzy_search_recursive(root, search_term,
+                                       model->state.settings.searchHierarchy,
                                        collect_result);
         }
 

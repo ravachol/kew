@@ -111,19 +111,19 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename);
 /**
  * Recursively performs a fuzzy search on a FileSystemEntry tree.
  *
- * Traverses the tree and applies a fuzzy matching algorithm
- * to each node's name. If a match within the given threshold
- * is found, the provided callback function is invoked.
+ * Traverses the tree and applies normalized, ordered-token matching to each
+ * node's name. Directory hierarchy matching can be enabled separately. The
+ * callback is invoked for every match.
  *
- * @param node        The current node to evaluate
- * @param search_term The search string
- * @param threshold   Maximum allowed distance for a match
- * @param callback    Function invoked for each matching entry,
- *                    receiving the node and its match distance
+ * @param node             The current node to evaluate
+ * @param search_term      The search string
+ * @param search_hierarchy Whether terms may match across folders and filenames
+ * @param callback         Function invoked for each matching entry,
+ *                         receiving the node and its match score
  */
 void fuzzy_search_recursive(FileSystemEntry *node,
                             const char *search_term,
-                            int threshold,
+                            bool search_hierarchy,
                             void (*callback)(FileSystemEntry *, int));
 
 /**

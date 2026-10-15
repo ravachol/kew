@@ -53,8 +53,6 @@ const int COOLDOWNDIGITS_MS = 1500;
 const int MOUSE_DRAG = 32;
 const int MOUSE_CLICK = 0;
 const int max_digits_pressed_count = 9;
-const int fuzzy_search_threshold = 100;
-
 EventMapping key_mappings[NUM_KEY_MAPPINGS];
 struct timespec last_input_time;
 char digits_pressed[MAX_SEQ_LEN];
@@ -153,7 +151,7 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
                 if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2) {
                         remove_from_search_text(model);
                         reset_search_result(model);
-                        fuzzy_search(model->state.ui.search_text, get_library(), fuzzy_search_threshold);
+                        fuzzy_search(model->state.ui.search_text, get_library());
                         event.type = MSG_SEARCH;
                 }
                 // Printable character (not escape, enter, tab, carriage return)
@@ -165,7 +163,7 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
                                 tb_utf8_unicode_to_char(keybuf, ev->ch);
                                 add_to_search_text(model, keybuf);
                                 reset_search_result(model);
-                                fuzzy_search(model->state.ui.search_text, get_library(), fuzzy_search_threshold);
+                                fuzzy_search(model->state.ui.search_text, get_library());
                                 event.type = MSG_SEARCH;
                         }
                 }
@@ -176,7 +174,7 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
                         tb_utf8_unicode_to_char(keybuf, ev->ch);
                         add_to_search_text(model, keybuf);
                         reset_search_result(model);
-                        fuzzy_search(model->state.ui.search_text, model->library, fuzzy_search_threshold);
+                        fuzzy_search(model->state.ui.search_text, model->library);
                         event.type = MSG_SEARCH;
                 }
 #endif

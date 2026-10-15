@@ -383,6 +383,7 @@ typedef struct
         bool simpleTimeStatus;          /**< Shows only elapsed seconds and total seconds. */
         bool hideSideCover;             /**< Hide side cover panel. */
         bool collapseTopLevel;          /**< Hide contents of top level folders. */
+        bool searchHierarchy;           /**< Match search terms across folders and filenames. */
         bool allowNotifications;        /**< Enable desktop notifications. */
 
         int visualizer_height;      /**< Height (in terminal rows) of the spectrum visualizer. */
@@ -693,6 +694,7 @@ typedef struct
         char hideFooter[2];
         char hideSideCover[2];
         char collapseTopLevel[2];
+        char searchHierarchy[2];
         char hideTimeStatus[2];
         char simpleTimeStatus[2];
         char quitAfterStopping[2];
@@ -804,7 +806,7 @@ typedef struct
 
 typedef struct SearchResult {
         FileSystemEntry *entry;
-        struct FileSystemEntry *parent;
+        struct FileSystemEntry *group; /*Direct match whose rows stay grouped together.*/
         int distance;
         int groupDistance;
         int num_children;

@@ -142,16 +142,16 @@ static int set_generic_cmd_string(char *cmd, int cmd_size)
                                      g_viz.provider, g_viz.width, g_viz.height, extra);
                 else
                         n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --audio-device \"%s\" %s",
+                                     "%s --stream %dx%d --audio-device \"%s\" --sendinfo %s",
                                      g_viz.provider, g_viz.width, g_viz.height, settings->visualizationsDevice, extra);
         } else {
                 if (settings->visualizationsDevice[0] == '\0')
                         n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --presets \"%s\" %s",
+                                     "%s --stream %dx%d --presets \"%s\" --sendinfo %s",
                                      g_viz.provider, g_viz.width, g_viz.height, settings->visualizationsPath, extra);
                 else
                         n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --presets \"%s\" --audio-device \"%s\" %s",
+                                     "%s --stream %dx%d --presets \"%s\" --audio-device \"%s\" --sendinfo %s",
                                      g_viz.provider, g_viz.width, g_viz.height, settings->visualizationsPath,
                                      settings->visualizationsDevice, extra);
         }
