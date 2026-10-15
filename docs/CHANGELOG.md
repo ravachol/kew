@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.4.2
+
+#### Enhancements:
+
+- Fuzzy search. by @superb-striker.
+
 ## kew 4.4.1
 
 - Fixes termux package not running. By @ravachol.
