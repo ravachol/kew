@@ -48,6 +48,8 @@ Node *determine_start_node(Node *head, int *found_at, int list_size)
 
 void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list)
 {
+        if (!chosen_song) return;
+
         if (list == NULL) {
                 *chosen_song = 0;
         } else if (*chosen_song >= list->count) {
@@ -102,7 +104,7 @@ int determine_playlist_start(int *previous_start_iter, int found_at, int max_lis
         }
 
 
-        if (*chosen_song > start_iter + max_list_size) {
+        if (*chosen_song >= start_iter + max_list_size) {
                 start_iter = *previous_start_iter;
 
                 if (*chosen_song < start_iter || *chosen_song > start_iter + max_list_size)
@@ -110,10 +112,12 @@ int determine_playlist_start(int *previous_start_iter, int found_at, int max_lis
         }
 
         if (reset && !end_of_list_reached) {
-                if (found_at > max_list_size)
+                if (found_at >= max_list_size)
                         start_iter = *previous_start_iter = *chosen_song = found_at;
-                else
-                        start_iter = *chosen_song = 0;
+                else {
+                        start_iter = *previous_start_iter = 0;
+                        *chosen_song = (found_at >= 0) ? found_at : 0;
+                }
         }
 
 
