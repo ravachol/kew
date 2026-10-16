@@ -138,7 +138,7 @@ static int set_generic_cmd_string(char *cmd, int cmd_size)
         if (settings->visualizationsPath[0] == '\0') {
                 if (settings->visualizationsDevice[0] == '\0')
                         n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d %s",
+                                     "%s --stream %dx%d --sendinfo %s",
                                      g_viz.provider, g_viz.width, g_viz.height, extra);
                 else
                         n = snprintf(cmd, cmd_size,
