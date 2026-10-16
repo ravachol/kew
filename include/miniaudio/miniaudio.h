@@ -1,6 +1,6 @@
 /*
 Audio playback and capture library. Choice of public domain or MIT-0. See license statements at the end of this file.
-miniaudio - v0.11.24 - 2026-01-17
+miniaudio - v0.11.25 - 2026-03-04
 
 David Reid - mackron@gmail.com
 
@@ -3747,7 +3747,7 @@ extern "C" {
 
 #define MA_VERSION_MAJOR    0
 #define MA_VERSION_MINOR    11
-#define MA_VERSION_REVISION 24
+#define MA_VERSION_REVISION 25
 #define MA_VERSION_STRING   MA_XSTRINGIFY(MA_VERSION_MAJOR) "." MA_XSTRINGIFY(MA_VERSION_MINOR) "." MA_XSTRINGIFY(MA_VERSION_REVISION)
 
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -11249,7 +11249,7 @@ struct ma_sound
     float* pProcessingCache;            /* Will be null if pDataSource is null. */
     ma_uint32 processingCacheFramesRemaining;
     ma_uint32 processingCacheCap;
-    ma_bool8 ownsDataSource;
+    ma_bool8 ownsDataSource;    
 
     /*
     We're declaring a resource manager data source object here to save us a malloc when loading a
@@ -11596,7 +11596,7 @@ IMPLEMENTATION
 
     #include <sys/time.h>   /* select() (used for ma_sleep()). */
     #include <time.h>       /* For nanosleep() */
-    #include <unistd.h>
+    #include <unistd.h> 
 #endif
 
 /* For fstat(), etc. */
@@ -17622,7 +17622,7 @@ static ma_result ma_thread_create__posix(ma_thread* pThread, ma_thread_priority 
             (void)stackSize;  /* Suppress unused parameter warning. */
         }
         #endif
-
+        
 
         if (scheduler != -1) {
             int priorityMin = sched_get_priority_min(scheduler);
@@ -19358,7 +19358,7 @@ MA_API ma_handle ma_dlopen(ma_log* pLog, const char* filename)
             #else
                 /* *sigh* It appears there is no ANSI version of LoadPackagedLibrary()... */
                 WCHAR filenameW[4096];
-                if (MultiByteToWideChar(CP_UTF8, 0, filename, -1, filenameW, sizeof(filenameW) / sizeof(WCHAR)) == 0) {
+                if (MultiByteToWideChar(CP_UTF8, 0, filename, -1, filenameW, ma_countof(filenameW)) == 0) {
                     handle = NULL;
                 } else {
                     handle = (ma_handle)LoadPackagedLibrary(filenameW, 0);
@@ -23061,7 +23061,7 @@ static ma_result ma_context_get_MMDevice__wasapi(ma_context* pContext, ma_device
     CoInitializeResult = ma_CoInitializeEx(pContext, NULL, MA_COINIT_VALUE);
     {
         hr = ma_CoCreateInstance(pContext, &MA_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &MA_IID_IMMDeviceEnumerator, (void**)&pDeviceEnumerator);
-    }
+    }    
     if (CoInitializeResult == S_OK || CoInitializeResult == S_FALSE) { ma_CoUninitialize(pContext); }
 
     if (FAILED(hr)) {   /* <-- This is checking the call above to ma_CoCreateInstance(). */
@@ -29687,7 +29687,7 @@ static ma_result ma_device_start__alsa(ma_device* pDevice)
     }
 
     if (pDevice->type == ma_device_type_playback || pDevice->type == ma_device_type_duplex) {
-        /*
+        /*        
         When data is written to the device we wait for the device to get ready to receive data with poll(). In my testing
         I have observed that poll() can sometimes block forever unless the device is started explicitly with snd_pcm_start()
         or some data is written with snd_pcm_writei().
@@ -29734,9 +29734,7 @@ static ma_result ma_device_stop__alsa(ma_device* pDevice)
         if (resultPoll > 0) {
             ma_uint64 t;
             resultRead = read(((struct pollfd*)pDevice->alsa.pPollDescriptorsCapture)[0].fd, &t, sizeof(t));
-            if (resultRead == -1) {
-                perror("read error");
-            } else if (resultRead != sizeof(t)) {
+            if (resultRead != sizeof(t)) {
                 ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_DEBUG, "[ALSA] Failed to read from capture wakeupfd. read() = %d\n", resultRead);
             }
         }
@@ -29760,9 +29758,7 @@ static ma_result ma_device_stop__alsa(ma_device* pDevice)
         if (resultPoll > 0) {
             ma_uint64 t;
             resultRead = read(((struct pollfd*)pDevice->alsa.pPollDescriptorsPlayback)[0].fd, &t, sizeof(t));
-            if (resultRead == -1) {
-                perror("read error");
-            } else if (resultRead != sizeof(t)) {
+            if (resultRead != sizeof(t)) {
                 ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_DEBUG, "[ALSA] Failed to read from playback wakeupfd. read() = %d\n", resultRead);
             }
         }
@@ -36000,7 +35996,7 @@ static ma_result ma_device_init_internal__coreaudio(ma_context* pContext, ma_dev
             #endif
         }
 
-
+        
         status = ((ma_AudioUnitSetProperty_proc)pContext->coreaudio.AudioUnitSetProperty)(pData->audioUnit, kAudioUnitProperty_StreamFormat, formatScope, formatElement, &bestFormat, sizeof(bestFormat));
         if (status != noErr) {
             ((ma_AudioComponentInstanceDispose_proc)pContext->coreaudio.AudioComponentInstanceDispose)(pData->audioUnit);
@@ -39314,7 +39310,7 @@ static void ma_stream_error_callback__aaudio(ma_AAudioStream* pStream, void* pUs
 
     (void)error;
     ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_INFO, "[AAudio] ERROR CALLBACK: error=%d, AAudioStream_getState()=%d\n", error, ((MA_PFN_AAudioStream_getState)pDevice->pContext->aaudio.AAudioStream_getState)(pStream));
-
+    
     /*
     When we get an error, we'll assume that the stream is in an erroneous state and needs to be restarted. From the documentation,
     we cannot do this from the error callback. Therefore we are going to use an event thread for the AAudio backend to do this
@@ -39326,13 +39322,13 @@ static void ma_stream_error_callback__aaudio(ma_AAudioStream* pStream, void* pUs
     else {
         job = ma_job_init(MA_JOB_TYPE_DEVICE_AAUDIO_REROUTE);
         job.data.device.aaudio.reroute.pDevice = pDevice;
-
+    
         if (pStream == pDevice->aaudio.pStreamCapture) {
             job.data.device.aaudio.reroute.deviceType = ma_device_type_capture;
         } else {
             job.data.device.aaudio.reroute.deviceType = ma_device_type_playback;
         }
-
+    
         result = ma_device_job_thread_post(&pDevice->pContext->aaudio.jobThread, &job);
         if (result != MA_SUCCESS) {
             ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_INFO, "[AAudio] Device Disconnected. Failed to post job for rerouting.\n");
@@ -39929,7 +39925,7 @@ static ma_result ma_device_reinit__aaudio(ma_device* pDevice, ma_device_type dev
 
     /* We got disconnected! Retry a few times, until we find a connected device! */
     iAttempt = 0;
-    while (iAttempt++ < maxAttempts) {
+    while (iAttempt++ < maxAttempts) {        
         /* Device tearing down? No need to reroute! */
         if (ma_atomic_bool32_get(&pDevice->aaudio.isTearingDown)) {
             result = MA_SUCCESS; /* Caller should continue as normal. */
@@ -40027,7 +40023,7 @@ static ma_result ma_device_reinit__aaudio(ma_device* pDevice, ma_device_type dev
             break;
         }
     }
-
+    
     return result;
 }
 
@@ -41499,18 +41495,37 @@ Web Audio Backend
 #ifdef MA_HAS_WEBAUDIO
 #include <emscripten/emscripten.h>
 
-#if (__EMSCRIPTEN_major__ > 3) || (__EMSCRIPTEN_major__ == 3 && (__EMSCRIPTEN_minor__ > 1 || (__EMSCRIPTEN_minor__ == 1 && __EMSCRIPTEN_tiny__ >= 32)))
+#ifndef MA_EMSCRIPTEN_MAJOR
+    #if defined(__EMSCRIPTEN_MAJOR__)
+        #define MA_EMSCRIPTEN_MAJOR __EMSCRIPTEN_MAJOR__
+    #else
+        #define MA_EMSCRIPTEN_MAJOR __EMSCRIPTEN_major__
+    #endif
+#endif
+#ifndef MA_EMSCRIPTEN_MINOR
+    #if defined(__EMSCRIPTEN_MINOR__)
+        #define MA_EMSCRIPTEN_MINOR __EMSCRIPTEN_MINOR__
+    #else
+        #define MA_EMSCRIPTEN_MINOR __EMSCRIPTEN_minor__
+    #endif
+#endif
+#ifndef MA_EMSCRIPTEN_TINY
+    #if defined(__EMSCRIPTEN_TINY__)
+        #define MA_EMSCRIPTEN_TINY __EMSCRIPTEN_TINY__
+    #else
+        #define MA_EMSCRIPTEN_TINY __EMSCRIPTEN_tiny__
+    #endif
+#endif
+
+#if (MA_EMSCRIPTEN_MAJOR > 3) || (MA_EMSCRIPTEN_MAJOR == 3 && (MA_EMSCRIPTEN_MINOR > 1 || (MA_EMSCRIPTEN_MINOR == 1 && MA_EMSCRIPTEN_TINY >= 32)))
     #include <emscripten/webaudio.h>
     #define MA_SUPPORT_AUDIO_WORKLETS
 
-    #if (__EMSCRIPTEN_major__ > 3) || (__EMSCRIPTEN_major__ == 3 && (__EMSCRIPTEN_minor__ > 1 || (__EMSCRIPTEN_minor__ == 1 && __EMSCRIPTEN_tiny__ >= 70)))
+    #if (MA_EMSCRIPTEN_MAJOR > 3) || (MA_EMSCRIPTEN_MAJOR == 3 && (MA_EMSCRIPTEN_MINOR > 1 || (MA_EMSCRIPTEN_MINOR == 1 && MA_EMSCRIPTEN_TINY >= 70)))
         #define MA_SUPPORT_AUDIO_WORKLETS_VARIABLE_BUFFER_SIZE
     #endif
 #endif
 
-/*
-TODO: Version 0.12: Swap this logic around so that AudioWorklets are used by default. Add MA_NO_AUDIO_WORKLETS.
-*/
 #if defined(MA_ENABLE_AUDIO_WORKLETS) && defined(MA_SUPPORT_AUDIO_WORKLETS)
     #define MA_USE_AUDIO_WORKLETS
 #endif
@@ -59247,6 +59262,10 @@ static ma_result ma_data_source_read_pcm_frames_within_range(ma_data_source* pDa
     ma_uint64 framesRead = 0;
     ma_bool32 loop = ma_data_source_is_looping(pDataSource);
 
+    if (pFramesRead != NULL) {
+        *pFramesRead = 0;
+    }
+
     if (pDataSourceBase == NULL) {
         return MA_AT_END;
     }
@@ -59361,7 +59380,7 @@ MA_API ma_result ma_data_source_read_pcm_frames(ma_data_source* pDataSource, voi
 
     /* Keep reading until we've read as many frames as possible. */
     while (totalFramesProcessed < frameCount) {
-        ma_uint64 framesProcessed = 0;
+        ma_uint64 framesProcessed;
         ma_uint64 framesRemaining = frameCount - totalFramesProcessed;
 
         /* We need to resolve the data source that we'll actually be reading from. */
@@ -61708,7 +61727,7 @@ static ma_result ma_default_vfs_info(ma_vfs* pVFS, ma_vfs_file file, ma_file_inf
         /* Not implemented. Fall back to seek/tell/seek. */
         ma_int64 cursor;
         ma_int64 sizeInBytes;
-
+        
         result = ma_default_vfs_tell(pVFS, file, &cursor);
         if (result != MA_SUCCESS) {
             return result;
@@ -61925,7 +61944,7 @@ extern "C" {
 #define MA_DR_WAV_XSTRINGIFY(x)     MA_DR_WAV_STRINGIFY(x)
 #define MA_DR_WAV_VERSION_MAJOR     0
 #define MA_DR_WAV_VERSION_MINOR     14
-#define MA_DR_WAV_VERSION_REVISION  4
+#define MA_DR_WAV_VERSION_REVISION  5
 #define MA_DR_WAV_VERSION_STRING    MA_DR_WAV_XSTRINGIFY(MA_DR_WAV_VERSION_MAJOR) "." MA_DR_WAV_XSTRINGIFY(MA_DR_WAV_VERSION_MINOR) "." MA_DR_WAV_XSTRINGIFY(MA_DR_WAV_VERSION_REVISION)
 #include <stddef.h>
 #define MA_DR_WAVE_FORMAT_PCM          0x1
@@ -76941,7 +76960,7 @@ static void ma_engine_node_process_pcm_frames__sound(ma_node* pNode, const float
                 if (pSound->processingCacheFramesRemaining > 0) {
                     MA_MOVE_MEMORY(pSound->pProcessingCache, ma_offset_pcm_frames_ptr_f32(pSound->pProcessingCache, frameCountIn, dataSourceChannels), pSound->processingCacheFramesRemaining * ma_get_bytes_per_frame(ma_format_f32, dataSourceChannels));
                 }
-
+                
                 totalFramesRead += (ma_uint32)frameCountOut;   /* Safe cast. */
 
                 if (result != MA_SUCCESS || ma_sound_at_end(pSound)) {
@@ -78443,7 +78462,7 @@ static ma_result ma_sound_init_from_data_source_internal(ma_engine* pEngine, con
         if (pSound->processingCacheCap == 0) {
             pSound->processingCacheCap = 512;
         }
-
+        
         pSound->pProcessingCache = (float*)ma_calloc(pSound->processingCacheCap * ma_get_bytes_per_frame(ma_format_f32, engineNodeConfig.channelsIn), &pEngine->allocationCallbacks);
         if (pSound->pProcessingCache == NULL) {
             ma_engine_node_uninit(&pSound->engineNode, &pEngine->allocationCallbacks);
@@ -80507,6 +80526,13 @@ MA_PRIVATE ma_uint64 ma_dr_wav__read_smpl_to_metadata_obj(ma_dr_wav__metadata_pa
     MA_DR_WAV_ASSERT(pChunkHeader != NULL);
     if (pMetadata != NULL && bytesJustRead == sizeof(smplHeaderData)) {
         ma_uint32 iSampleLoop;
+        ma_uint32 loopCount;
+        ma_uint32 calculatedLoopCount;
+        loopCount = ma_dr_wav_bytes_to_u32(smplHeaderData + 28);
+        calculatedLoopCount = (pChunkHeader->sizeInBytes - MA_DR_WAV_SMPL_BYTES) / MA_DR_WAV_SMPL_LOOP_BYTES;
+        if (loopCount != calculatedLoopCount) {
+            return totalBytesRead;
+        }
         pMetadata->type                                     = ma_dr_wav_metadata_type_smpl;
         pMetadata->data.smpl.manufacturerId                 = ma_dr_wav_bytes_to_u32(smplHeaderData + 0);
         pMetadata->data.smpl.productId                      = ma_dr_wav_bytes_to_u32(smplHeaderData + 4);
@@ -80517,7 +80543,7 @@ MA_PRIVATE ma_uint64 ma_dr_wav__read_smpl_to_metadata_obj(ma_dr_wav__metadata_pa
         pMetadata->data.smpl.smpteOffset                    = ma_dr_wav_bytes_to_u32(smplHeaderData + 24);
         pMetadata->data.smpl.sampleLoopCount                = ma_dr_wav_bytes_to_u32(smplHeaderData + 28);
         pMetadata->data.smpl.samplerSpecificDataSizeInBytes = ma_dr_wav_bytes_to_u32(smplHeaderData + 32);
-        if (pMetadata->data.smpl.sampleLoopCount == (pChunkHeader->sizeInBytes - MA_DR_WAV_SMPL_BYTES) / MA_DR_WAV_SMPL_LOOP_BYTES) {
+        if (pMetadata->data.smpl.sampleLoopCount == calculatedLoopCount) {
             pMetadata->data.smpl.pLoops = (ma_dr_wav_smpl_loop*)ma_dr_wav__metadata_get_memory(pParser, sizeof(ma_dr_wav_smpl_loop) * pMetadata->data.smpl.sampleLoopCount, MA_DR_WAV_METADATA_ALIGNMENT);
             for (iSampleLoop = 0; iSampleLoop < pMetadata->data.smpl.sampleLoopCount; ++iSampleLoop) {
                 ma_uint8 smplLoopData[MA_DR_WAV_SMPL_LOOP_BYTES];
@@ -80538,6 +80564,8 @@ MA_PRIVATE ma_uint64 ma_dr_wav__read_smpl_to_metadata_obj(ma_dr_wav__metadata_pa
                 MA_DR_WAV_ASSERT(pMetadata->data.smpl.pSamplerSpecificData != NULL);
                 ma_dr_wav__metadata_parser_read(pParser, pMetadata->data.smpl.pSamplerSpecificData, pMetadata->data.smpl.samplerSpecificDataSizeInBytes, &totalBytesRead);
             }
+        } else {
+            MA_DR_WAV_ZERO_OBJECT(&pMetadata->data.smpl);
         }
     }
     return totalBytesRead;
@@ -83153,19 +83181,13 @@ MA_PRIVATE ma_uint64 ma_dr_wav_read_pcm_frames_s16__msadpcm(ma_dr_wav* pWav, ma_
                     newSample0  = ((pWav->msadpcm.prevFrames[0][1] * coeff1Table[pWav->msadpcm.predictor[0]]) + (pWav->msadpcm.prevFrames[0][0] * coeff2Table[pWav->msadpcm.predictor[0]])) >> 8;
                     newSample0 += nibble0 * pWav->msadpcm.delta[0];
                     newSample0  = ma_dr_wav_clamp(newSample0, -32768, 32767);
-                    pWav->msadpcm.delta[0] = (adaptationTable[((nibbles & 0xF0) >> 4)] * pWav->msadpcm.delta[0]) >> 8;
-                    if (pWav->msadpcm.delta[0] < 16) {
-                        pWav->msadpcm.delta[0] = 16;
-                    }
+                    pWav->msadpcm.delta[0] = (ma_int32)ma_dr_wav_clamp(((ma_int64)adaptationTable[((nibbles & 0xF0) >> 4)] * pWav->msadpcm.delta[0]) >> 8, 16, 0x7FFFFFFF);
                     pWav->msadpcm.prevFrames[0][0] = pWav->msadpcm.prevFrames[0][1];
                     pWav->msadpcm.prevFrames[0][1] = newSample0;
                     newSample1  = ((pWav->msadpcm.prevFrames[0][1] * coeff1Table[pWav->msadpcm.predictor[0]]) + (pWav->msadpcm.prevFrames[0][0] * coeff2Table[pWav->msadpcm.predictor[0]])) >> 8;
                     newSample1 += nibble1 * pWav->msadpcm.delta[0];
                     newSample1  = ma_dr_wav_clamp(newSample1, -32768, 32767);
-                    pWav->msadpcm.delta[0] = (adaptationTable[((nibbles & 0x0F) >> 0)] * pWav->msadpcm.delta[0]) >> 8;
-                    if (pWav->msadpcm.delta[0] < 16) {
-                        pWav->msadpcm.delta[0] = 16;
-                    }
+                    pWav->msadpcm.delta[0] = (ma_int32)ma_dr_wav_clamp(((ma_int64)adaptationTable[((nibbles & 0x0F) >> 0)] * pWav->msadpcm.delta[0]) >> 8, 16, 0x7FFFFFFF);
                     pWav->msadpcm.prevFrames[0][0] = pWav->msadpcm.prevFrames[0][1];
                     pWav->msadpcm.prevFrames[0][1] = newSample1;
                     pWav->msadpcm.cachedFrames[2] = newSample0;
@@ -83180,10 +83202,7 @@ MA_PRIVATE ma_uint64 ma_dr_wav_read_pcm_frames_s16__msadpcm(ma_dr_wav* pWav, ma_
                     newSample0  = ((pWav->msadpcm.prevFrames[0][1] * coeff1Table[pWav->msadpcm.predictor[0]]) + (pWav->msadpcm.prevFrames[0][0] * coeff2Table[pWav->msadpcm.predictor[0]])) >> 8;
                     newSample0 += nibble0 * pWav->msadpcm.delta[0];
                     newSample0  = ma_dr_wav_clamp(newSample0, -32768, 32767);
-                    pWav->msadpcm.delta[0] = (adaptationTable[((nibbles & 0xF0) >> 4)] * pWav->msadpcm.delta[0]) >> 8;
-                    if (pWav->msadpcm.delta[0] < 16) {
-                        pWav->msadpcm.delta[0] = 16;
-                    }
+                    pWav->msadpcm.delta[0] = (ma_int32)ma_dr_wav_clamp(((ma_int64)adaptationTable[((nibbles & 0xF0) >> 4)] * pWav->msadpcm.delta[0]) >> 8, 16, 0x7FFFFFFF);
                     pWav->msadpcm.prevFrames[0][0] = pWav->msadpcm.prevFrames[0][1];
                     pWav->msadpcm.prevFrames[0][1] = newSample0;
                     if (pWav->msadpcm.predictor[1] >= ma_dr_wav_countof(coeff1Table) || pWav->msadpcm.predictor[1] >= ma_dr_wav_countof(coeff2Table)) {
@@ -83192,10 +83211,7 @@ MA_PRIVATE ma_uint64 ma_dr_wav_read_pcm_frames_s16__msadpcm(ma_dr_wav* pWav, ma_
                     newSample1  = ((pWav->msadpcm.prevFrames[1][1] * coeff1Table[pWav->msadpcm.predictor[1]]) + (pWav->msadpcm.prevFrames[1][0] * coeff2Table[pWav->msadpcm.predictor[1]])) >> 8;
                     newSample1 += nibble1 * pWav->msadpcm.delta[1];
                     newSample1  = ma_dr_wav_clamp(newSample1, -32768, 32767);
-                    pWav->msadpcm.delta[1] = (adaptationTable[((nibbles & 0x0F) >> 0)] * pWav->msadpcm.delta[1]) >> 8;
-                    if (pWav->msadpcm.delta[1] < 16) {
-                        pWav->msadpcm.delta[1] = 16;
-                    }
+                    pWav->msadpcm.delta[1] = (ma_int32)ma_dr_wav_clamp(((ma_int64)adaptationTable[((nibbles & 0x0F) >> 0)] * pWav->msadpcm.delta[1]) >> 8, 16, 0x7FFFFFFF);
                     pWav->msadpcm.prevFrames[1][0] = pWav->msadpcm.prevFrames[1][1];
                     pWav->msadpcm.prevFrames[1][1] = newSample1;
                     pWav->msadpcm.cachedFrames[2] = newSample0;
@@ -92937,9 +92953,7 @@ static unsigned ma_dr_mp3_hdr_frame_samples(const ma_uint8 *h)
 }
 static int ma_dr_mp3_hdr_frame_bytes(const ma_uint8 *h, int free_format_size)
 {
-    unsigned int sampleRate = ma_dr_mp3_hdr_sample_rate_hz(h);
-    if (sampleRate == 0) return 0;
-    int frame_bytes = ma_dr_mp3_hdr_frame_samples(h)*ma_dr_mp3_hdr_bitrate_kbps(h)*125/sampleRate;
+    int frame_bytes = ma_dr_mp3_hdr_frame_samples(h)*ma_dr_mp3_hdr_bitrate_kbps(h)*125/ma_dr_mp3_hdr_sample_rate_hz(h);
     if (MA_DR_MP3_HDR_IS_LAYER_1(h))
     {
         frame_bytes &= ~3;
@@ -94504,8 +94518,6 @@ static size_t ma_dr_mp3__on_read(ma_dr_mp3* pMP3, void* pBufferOut, size_t bytes
     size_t bytesRead;
     MA_DR_MP3_ASSERT(pMP3         != NULL);
     MA_DR_MP3_ASSERT(pMP3->onRead != NULL);
-    if (pMP3->pUserData == NULL)
-        return 0;
     if (bytesToRead == 0) {
         return 0;
     }
@@ -95833,7 +95845,7 @@ For more information, please refer to <http://unlicense.org/>
 ===============================================================================
 ALTERNATIVE 2 - MIT No Attribution
 ===============================================================================
-Copyright 2025 David Reid
+Copyright 2026 David Reid
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
