@@ -461,9 +461,7 @@ MA_API ma_result m4a_decoder_init(
 
         k_log(" m4a_decoder_init: Not Implemented");
 
-        exit(0);
-
-        return MA_SUCCESS;
+        return MA_ERROR;
 }
 
 static ma_result build_adts_index(m4a_decoder *decoder)
