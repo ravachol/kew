@@ -71,9 +71,9 @@ struct Msg map_tb_key_to_event(struct tb_event *ev)
         for (size_t i = 0; i < keybinding_count; i++) {
                 TBKeyBinding *b = &key_bindings[i];
 
-                if (isupper((unsigned char)ev->ch)) {
+                if (ev->ch >= 'A' && ev->ch <= 'Z') {
                         ev->mod |= TB_MOD_SHIFT;
-                        ev->ch = tolower(ev->ch);
+                        ev->ch += 'a' - 'A';
                 }
 
                 bool keyMatch = (b->key && ev->key == b->key) || (b->ch && ev->ch == b->ch);
@@ -587,13 +587,11 @@ bool handle_mouse_event(struct tb_event *ev, struct Msg *event, bool do_scroll)
                 return true;
         }
 
-        if (!model->state.ui.link_clicked) {
+        if (!model->state.ui.link_clicked && mouse_key == TB_KEY_MOUSE_LEFT) {
                 char *link = url_at_pos(mouse_y - 1, mouse_x - 1);
 
                 if (link) {
                         open_url(link);
-
-                        Model *model = get_model();
                         model->state.ui.link_clicked = true;
                 }
         }
@@ -825,7 +823,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         }
                 }
 
-                if (isdigit(ev.ch) && msg.type == MSG_NONE) {
+                if (ev.ch >= '0' && ev.ch <= '9' && msg.type == MSG_NONE) {
 
                         if (digits_pressed_count == 0) {
                                 update_last_input_time();
@@ -906,7 +904,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
         // Drain all available input
         while (1) {
                 if (model->state.ui.resumed_in_background)
-                        return FALSE;
+                        return TRUE;
 
                 if (!is_input_available())
                         break;
@@ -994,7 +992,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         }
                 }
 
-                if (isdigit(ev.ch) && msg.type == MSG_NONE) {
+                if (ev.ch >= '0' && ev.ch <= '9' && msg.type == MSG_NONE) {
 
                         if (digits_pressed_count == 0) {
                                 update_last_input_time();
@@ -1059,8 +1057,8 @@ static volatile int idle_pending = 0;
 
 static gboolean on_tb_input_idle(gpointer data)
 {
-        on_tb_input(NULL, 0, data);
         g_atomic_int_set(&idle_pending, 0);
+        on_tb_input(NULL, 0, data);
 
         return FALSE;
 }
