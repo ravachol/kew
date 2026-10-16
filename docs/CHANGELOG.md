@@ -6,6 +6,12 @@
 
 - Fuzzy search. by @superb-striker.
 
+#### Bug fixes:
+
+- Fixed many minor issues in the UI layer. By @ravachol.
+
+- Bumped miniaudio to v0.11.25. By @ravachol. Suggested by @Surneval.
+
 ## kew 4.4.1
 
 - Fixes termux package not running. By @ravachol.
