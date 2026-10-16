@@ -2,8 +2,8 @@
 
 #include "common/model.h"
 
-#include "ui/visualizations.h"
 #include "ui/common_ui.h"
+#include "ui/visualizations.h"
 #include "utils/img_utils.h"
 #include "utils/term.h"
 
@@ -362,7 +362,13 @@ void terminal_backend_commit(const DrawBuffer *buf,
 
                                 emit_utf8_string(cell->link->title);
 
-                                int link_width = utf8_display_width(cell->link->title);
+                                int link_width = cell->link->title ? utf8_display_width(cell->link->title) : 0;
+
+                                if (link_width <= 0) { // NULL, empty or undrawable title
+                                        col++;
+                                        continue;
+                                }
+
                                 cur_row = row;
                                 cur_col = col + link_width;
                                 col += link_width;
