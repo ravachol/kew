@@ -541,7 +541,6 @@ int load_theme(const char *theme_name,
 
         if (!loaded) {
                 free(config_path);
-                g_free(lower_filename);
                 return 0; // failed to load
         }
 
@@ -574,7 +573,6 @@ int load_theme(const char *theme_name,
         }
 
         free(config_path);
-        g_free(lower_filename);
 
         return 1;
 }
