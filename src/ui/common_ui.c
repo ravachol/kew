@@ -195,7 +195,7 @@ void transfer_settings_to_ui(void)
                 ui_settings->repeatState = tmp;
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp < 4) {
+        if (tmp >= 0 && tmp <= COLOR_MODE_NEUTRAL) {
                 ui_settings->colorMode = tmp;
         }
 

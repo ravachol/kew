@@ -9,9 +9,9 @@
 #include "control_ui.h"
 
 #include "ops/playlist_ops.h"
-#include "ui/visualizations.h"
 #include "ui/queue_ui.h"
 #include "ui/render_ui.h"
+#include "ui/visualizations.h"
 
 #include "common/appstate.h"
 #include "ops/playback_ops.h"
@@ -113,67 +113,65 @@ void cycle_color_mode(void)
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
-
-        switch (ui->colorMode) {
-        case COLOR_MODE_DEFAULT:
-                ui->colorMode = COLOR_MODE_ALBUM_ONE;
-                break;
-        case COLOR_MODE_ALBUM_ONE:
-                ui->colorMode = COLOR_MODE_ALBUM;
-                break;
-        case COLOR_MODE_ALBUM:
-                ui->colorMode = COLOR_MODE_THEME;
-                break;
-        case COLOR_MODE_THEME:
-                ui->colorMode = COLOR_MODE_NEUTRAL;
-                break;
-        case COLOR_MODE_NEUTRAL:
-                ui->colorMode = COLOR_MODE_DEFAULT;
-                break;
-        }
-
         bool themeLoaded = false;
         bool set_info_message = true;
 
-        switch (ui->colorMode) {
-        case COLOR_MODE_DEFAULT:
-                if (load_theme("default", true, set_info_message)) {
-                        themeLoaded = true;
-                        if (ui->visualizer_mode > VIZ_REVERSED)
-                                ui->visualizer_mode = VIZ_REVERSED;
-                }
-                break;
-        case COLOR_MODE_ALBUM_ONE:
-                if (load_theme("onealbumcolor", false, set_info_message)) {
-                        themeLoaded = true;
-                        if (ui->visualizer_mode > VIZ_REVERSED)
-                                ui->visualizer_mode = VIZ_REVERSED;
-                }
-                break;
-        case COLOR_MODE_ALBUM:
-                if (load_theme("albumcolors", false, set_info_message)) {
-                        themeLoaded = true;
-                        if (ui->visualizer_mode != VIZ_KMEANS_CLUSTERING)
-                                ui->visualizer_mode = VIZ_KMEANS_CLUSTERING;
-                }
-                break;
-        case COLOR_MODE_THEME:
-                if (ui->theme_name[0] != '\0' &&
-                    load_theme(ui->theme_name, false, set_info_message)) {
-                        themeLoaded = true;
-                        if (ui->visualizer_mode > VIZ_REVERSED)
-                                ui->visualizer_mode = VIZ_REVERSED;
-                }
-                break;
-        case COLOR_MODE_NEUTRAL:
-                if (load_theme("neutral", false, set_info_message)) {
-                        themeLoaded = true;
-                }
-                break;
-        }
+        for (int attempt = 0; attempt < 5 && !themeLoaded; attempt++) {
 
-        if (!themeLoaded) {
-                cycle_color_mode();
+                switch (ui->colorMode) {
+                case COLOR_MODE_DEFAULT:
+                        ui->colorMode = COLOR_MODE_ALBUM_ONE;
+                        break;
+                case COLOR_MODE_ALBUM_ONE:
+                        ui->colorMode = COLOR_MODE_ALBUM;
+                        break;
+                case COLOR_MODE_ALBUM:
+                        ui->colorMode = COLOR_MODE_THEME;
+                        break;
+                case COLOR_MODE_THEME:
+                        ui->colorMode = COLOR_MODE_NEUTRAL;
+                        break;
+                case COLOR_MODE_NEUTRAL:
+                        ui->colorMode = COLOR_MODE_DEFAULT;
+                        break;
+                }
+
+                switch (ui->colorMode) {
+                case COLOR_MODE_DEFAULT:
+                        if (load_theme("default", true, set_info_message)) {
+                                themeLoaded = true;
+                                if (ui->visualizer_mode > VIZ_REVERSED)
+                                        ui->visualizer_mode = VIZ_REVERSED;
+                        }
+                        break;
+                case COLOR_MODE_ALBUM_ONE:
+                        if (load_theme("onealbumcolor", false, set_info_message)) {
+                                themeLoaded = true;
+                                if (ui->visualizer_mode > VIZ_REVERSED)
+                                        ui->visualizer_mode = VIZ_REVERSED;
+                        }
+                        break;
+                case COLOR_MODE_ALBUM:
+                        if (load_theme("albumcolors", false, set_info_message)) {
+                                themeLoaded = true;
+                                if (ui->visualizer_mode != VIZ_KMEANS_CLUSTERING)
+                                        ui->visualizer_mode = VIZ_KMEANS_CLUSTERING;
+                        }
+                        break;
+                case COLOR_MODE_THEME:
+                        if (ui->theme_name[0] != '\0' &&
+                            load_theme(ui->theme_name, false, set_info_message)) {
+                                themeLoaded = true;
+                                if (ui->visualizer_mode > VIZ_REVERSED)
+                                        ui->visualizer_mode = VIZ_REVERSED;
+                        }
+                        break;
+                case COLOR_MODE_NEUTRAL:
+                        if (load_theme("neutral", false, set_info_message)) {
+                                themeLoaded = true;
+                        }
+                        break;
+                }
         }
 
         set_dirty(DIRTY_ALL);
@@ -187,19 +185,21 @@ void cycle_visualization(void)
 
         if (model->songdata_ok && model->state.settings.coverEnabled) {
 
-                if (model->state.ui.has_visualizations == -1)
-                {
+                if (model->state.ui.has_visualizations == -1) {
                         bool has_pmstream = visualizations_are_installed("pmstream");
                         bool has_chroma = visualizations_are_installed("chroma");
 
                         model->state.ui.has_visualizations = has_chroma || has_pmstream;
 
+                        if (model->state.ui.has_visualizations == 0)
+                                model->state.ui.has_visualizations = -1;
+
                         if (!has_pmstream)
                                 snprintf(model->state.ui.visualizations_provider, sizeof(model->state.ui.visualizations_provider),
-                                 "%s", "chroma");
+                                         "%s", "chroma");
                         else
                                 snprintf(model->state.ui.visualizations_provider, sizeof(model->state.ui.visualizations_provider),
-                                 "%s", "pmstream");
+                                         "%s", "pmstream");
                 }
 
                 if (model->state.ui.has_visualizations == 1) {
@@ -221,6 +221,11 @@ void cycle_visualization(void)
         }
 }
 
+static int cmp_str(const void *a, const void *b)
+{
+        return strcmp(*(char *const *)a, *(char *const *)b);
+}
+
 void cycle_themes(void)
 {
         AppState *state = get_app_state();
@@ -238,6 +243,7 @@ void cycle_themes(void)
 
         if (!dir) {
                 perror("Failed to open themes directory");
+                free(config_path);
                 return;
         }
 
@@ -247,11 +253,19 @@ void cycle_themes(void)
 
         // Collect all *.theme files
         while ((entry = readdir(dir)) != NULL) {
-                if (strstr(entry->d_name, ".theme") && !strstr(entry->d_name, ".theme.bak")) {
-                        themes[theme_count++] = strdup(entry->d_name);
+                size_t n = strlen(entry->d_name);
+                if (n > 6 && strcmp(entry->d_name + n - 6, ".theme") == 0) {
+                        if (theme_count >= (int)(sizeof(themes) / sizeof(themes[0])))
+                                break;
+                        char *dup = strdup(entry->d_name);
+                        if (dup)
+                                themes[theme_count++] = dup;
                 }
         }
+
         closedir(dir);
+
+        qsort(themes, theme_count, sizeof(themes[0]), cmp_str);
 
         if (theme_count == 0) {
                 set_error_message("No themes found.");
@@ -508,11 +522,23 @@ int load_theme(const char *theme_name,
                 return 0;
         }
 
-        char *lower_filename = string_to_lower(filename);
-
         // Call the loader
         int loaded =
-            load_theme_from_file(themes_dir, lower_filename, &state->settings.theme);
+            load_theme_from_file(themes_dir, filename, &state->settings.theme);
+
+        if (!loaded) {
+                char *lower_filename = string_to_lower(filename);
+                if (lower_filename) {
+                        if (strcmp(lower_filename, filename) != 0)
+                                loaded = load_theme_from_file(themes_dir, lower_filename, &state->settings.theme);
+
+                        if (loaded) // remember the name that actually worked
+                                snprintf(filename, sizeof(filename), "%s", lower_filename);
+
+                        g_free(lower_filename);
+                }
+        }
+
         if (!loaded) {
                 free(config_path);
                 g_free(lower_filename);
@@ -521,16 +547,22 @@ int load_theme(const char *theme_name,
 
         state->settings.themeIsSet = true;
 
+        char base[KEW_NAME_MAX];
+        snprintf(base, sizeof(base), "%s", theme_name);
+
+        if (has_extension)
+                base[themeNameLen - extLen] = '\0';
+
         if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme
                 snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
-                         theme_name);
+                         base);
                 snprintf(settings->theme, sizeof(settings->theme), "%s",
-                         theme_name);
+                         base);
         } else {
                 // Truecolor theme: store in settings->theme
                 snprintf(settings->theme, sizeof(settings->theme), "%s",
-                         theme_name);
+                         base);
         }
 
         if (set_info_message) {
@@ -542,7 +574,7 @@ int load_theme(const char *theme_name,
         }
 
         free(config_path);
-        free(lower_filename);
+        g_free(lower_filename);
 
         return 1;
 }
