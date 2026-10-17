@@ -1270,6 +1270,9 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
             (float)songdata->coverWidth /
             (float)songdata->coverHeight;
 
+        if (isnan(image_aspect))
+                image_aspect = 1.0;
+
         // Width in terminal columns for a given number of rows.
         float terminal_aspect =
             image_aspect * (float)cell_height /
@@ -2867,7 +2870,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
 
         int info_box_col = 0;
 
-        if (model->songdata && model->songdata->cover && state->settings.coverEnabled) {
+        if (model->songdata && (model->songdata->cover || model->state.settings.visualizationsEnabled) && state->settings.coverEnabled) {
 
                 float aspect = get_aspect_ratio();
 
@@ -2877,7 +2880,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
                 info_box_col = region.height * aspect;
         }
 
-        if (model->songdata && model->songdata->cover && state->settings.coverEnabled && (dirty & DIRTY_SONG)) {
+        if (model->songdata && (model->songdata->cover || model->state.settings.visualizationsEnabled) && state->settings.coverEnabled && (dirty & DIRTY_SONG)) {
 
                 float aspect = get_aspect_ratio();
 
