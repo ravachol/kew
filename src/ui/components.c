@@ -1210,19 +1210,10 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
         bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        float image_ratio = (float)songdata->coverWidth / (float)songdata->coverHeight;
-        int image_width = songdata->coverWidth;
-
-        if (image_ratio >= 0.9 && image_ratio <= 1.1 && model->state.settings.visualizationsEnabled)
-        {
-                image_ratio = 1.5; // Show visualizations in wide mode.
-                image_width = songdata->coverWidth * image_ratio;
-        }
-
         draw_bitmap_to_buf(buf,
                            region.row, region.col,
                            songdata->cover,
-                           image_width,
+                           songdata->coverWidth,
                            songdata->coverHeight,
                            region.width,
                            region.height,
