@@ -17,6 +17,8 @@
 
 - Bumped miniaudio to v0.11.25. By @ravachol. Suggested by @Surneval.
 
+- In playlist the 100th song was off by a column. By @ehatch.
+
 ## kew 4.4.1
 
 - Fixes termux package not running. By @ravachol.
