@@ -4,24 +4,6 @@
 
 <br>
 
-<div align="center">
-  <a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">
-    <img src="images/beyond-the-pale-walk-the-plank.gif" alt="kew terminal music player screenshot">
-  </a>
-  <br>
-  <i><a href="https://beyondthepalemetal.bandcamp.com/album/monument-in-time">Beyond the Pale - Walk the Plank</a>.</i>
-</div>
-<br /><br />
-
-<div align="center">
-  <a href="https://liminal-band.bandcamp.com/track/the-crop-3">
-    <img src="images/kew-terminal-music-player.gif" alt="kew terminal music player screenshot">
-  </a>
-  <br>
-  <i><a href="https://liminal-band.bandcamp.com/track/the-crop-3">Liminal - The Crop</a>.</i>
-</div>
-<br /><br />
-
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
 kew (/kjuː/, variant of cue) is a terminal music player.
