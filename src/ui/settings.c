@@ -966,6 +966,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->fade_quick_ms, "3000", sizeof(settings->fade_quick_ms));
         c_strcpy(settings->fade_medium_ms, "5000", sizeof(settings->fade_medium_ms));
         c_strcpy(settings->fade_slow_ms, "10000", sizeof(settings->fade_slow_ms));
+        c_strcpy(settings->visualizationsMode, "1", sizeof(settings->visualizationsMode));
 
         memcpy(settings->ansiTheme, "default", 8);
 }
