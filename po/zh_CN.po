@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 06:14+0200\n"
+"POT-Creation-Date: 2026-10-17 16:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -70,46 +70,6 @@ msgstr "在特殊播放列表中未找到任何歌曲。播放时按 '.' 添加�
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "获取 D-Bus 名称失败：%s\n"
-
-#: src/ui/cli.c:157 src/ui/cli.c:191
-#, c-format
-msgid "Music Library: "
-msgstr "音乐库："
-
-#: src/ui/cli.c:162
-#, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-"是否正确？按回车确认。\n"
-"\n"
-
-#: src/ui/cli.c:164
-#, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-"或者输入路径：\n"
-"\n"
-
-#: src/ui/cli.c:171 src/ui/cli.c:201
-#, c-format
-msgid "Error reading input.\n"
-msgstr "读取输入时出错。\n"
-
-#: src/ui/cli.c:196
-#, c-format
-msgid ""
-"Type a path to your music folder:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:229
-#, c-format
-msgid "Music Library not found.\n"
-msgstr "未找到音乐库。\n"
 
 #: src/ui/components.c:559
 msgid "─ MUSIC LIBRARY ─"
@@ -304,8 +264,8 @@ msgstr " · 切换主题：%s"
 
 #: src/ui/components.c:3258
 #, c-format
-msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
-msgstr " · 循环色度可视化：%s（需要 chroma)"
+msgid " · Cycle Visualization: %s (requires plugin)"
+msgstr " · 周期可视化：%s（需安装插件）"
 
 #: src/ui/components.c:3260
 #, c-format
@@ -314,8 +274,8 @@ msgstr " · 循环可视化模式：%s"
 
 #: src/ui/components.c:3262
 #, c-format
-msgid " · Toggle ASCII Cover: %s (disables Chroma)"
-msgstr " · 切换 ASCII 封面：%s (禁用 Chroma)"
+msgid " · Toggle ASCII Cover: %s (disables visualizations)"
+msgstr " · 切换 ASCII 封面：%s（禁用可视化效果）"
 
 #: src/ui/components.c:3264
 #, c-format
@@ -350,6 +310,46 @@ msgstr " 首页： "
 #, c-format
 msgid "Search:"
 msgstr "搜索："
+
+#: src/ui/cli.c:156 src/ui/cli.c:190
+#, c-format
+msgid "Music Library: "
+msgstr "音乐库："
+
+#: src/ui/cli.c:161
+#, c-format
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+"是否正确？按回车确认。\n"
+"\n"
+
+#: src/ui/cli.c:163
+#, c-format
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"或者输入路径：\n"
+"\n"
+
+#: src/ui/cli.c:170 src/ui/cli.c:200
+#, c-format
+msgid "Error reading input.\n"
+msgstr "读取输入时出错。\n"
+
+#: src/ui/cli.c:195
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:228
+#, c-format
+msgid "Music Library not found.\n"
+msgstr "未找到音乐库。\n"
 
 #: src/ui/render_ui.c:152
 #, c-format

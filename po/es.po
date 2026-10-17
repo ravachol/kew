@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 06:14+0200\n"
+"POT-Creation-Date: 2026-10-17 16:14+0200\n"
 "PO-Revision-Date: 2026-09-29 19:15+0200\n"
 "Last-Translator: victorhck <victorhck@mailbox.org>\n"
 "Language-Team: Spanish <victorhck@mailbox.org>\n"
@@ -75,46 +75,6 @@ msgstr ""
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "No se pudo obtener el nombre del D-Bus: %s\n"
-
-#: src/ui/cli.c:157 src/ui/cli.c:191
-#, c-format
-msgid "Music Library: "
-msgstr "Biblioteca musical: "
-
-#: src/ui/cli.c:162
-#, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-"¿Es correcto? Pulsa Enter.\n"
-"\n"
-
-#: src/ui/cli.c:164
-#, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-"O escribe una ruta:\n"
-"\n"
-
-#: src/ui/cli.c:171 src/ui/cli.c:201
-#, c-format
-msgid "Error reading input.\n"
-msgstr "Ocurrió un error al leer la entrada. \n"
-
-#: src/ui/cli.c:196
-#, c-format
-msgid ""
-"Type a path to your music folder:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:229
-#, c-format
-msgid "Music Library not found.\n"
-msgstr "No se encontró la biblioteca de música.\n"
 
 #: src/ui/components.c:559
 msgid "─ MUSIC LIBRARY ─"
@@ -309,8 +269,8 @@ msgstr "· Tema del ciclo: %s"
 
 #: src/ui/components.c:3258
 #, c-format
-msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
-msgstr "· Visualización de Chroma en ciclo: %s (requiere Chroma)"
+msgid " · Cycle Visualization: %s (requires plugin)"
+msgstr "· Visualización de ciclos: %s (requiere un plugin)"
 
 #: src/ui/components.c:3260
 #, c-format
@@ -319,8 +279,8 @@ msgstr "· Modo ciclo del visualizador: %s"
 
 #: src/ui/components.c:3262
 #, c-format
-msgid " · Toggle ASCII Cover: %s (disables Chroma)"
-msgstr "· Cambiar a portada en ASCII: %s (desactiva Chroma)"
+msgid " · Toggle ASCII Cover: %s (disables visualizations)"
+msgstr "· Cambiar a portada en ASCII: %s (desactiva visualización)"
 
 #: src/ui/components.c:3264
 #, c-format
@@ -355,6 +315,46 @@ msgstr "Página de inicio:"
 #, c-format
 msgid "Search:"
 msgstr "Buscar:"
+
+#: src/ui/cli.c:156 src/ui/cli.c:190
+#, c-format
+msgid "Music Library: "
+msgstr "Biblioteca musical: "
+
+#: src/ui/cli.c:161
+#, c-format
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+"¿Es correcto? Pulsa Enter.\n"
+"\n"
+
+#: src/ui/cli.c:163
+#, c-format
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"O escribe una ruta:\n"
+"\n"
+
+#: src/ui/cli.c:170 src/ui/cli.c:200
+#, c-format
+msgid "Error reading input.\n"
+msgstr "Ocurrió un error al leer la entrada. \n"
+
+#: src/ui/cli.c:195
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:228
+#, c-format
+msgid "Music Library not found.\n"
+msgstr "No se encontró la biblioteca de música.\n"
 
 #: src/ui/render_ui.c:152
 #, c-format

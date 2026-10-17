@@ -3255,11 +3255,11 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         HELP_LINE(_(" · Cycle Color Mode: %s"),
                   get_binding_string(MSG_CYCLECOLORMODE, false));
         HELP_LINE(_(" · Cycle Themes: %s"), get_binding_string(MSG_CYCLETHEMES, false));
-        HELP_LINE(_(" · Cycle Chroma Visualization: %s (requires Chroma)"),
+        HELP_LINE(_(" · Cycle Visualization: %s (requires plugin)"),
                   get_binding_string(MSG_CYCLEVISUALIZATION, false));
         HELP_LINE(_(" · Cycle Visualizer Mode: %s"), get_binding_string(MSG_CYCLEVISUALIZERMODE, false));
 
-        HELP_LINE(_(" · Toggle ASCII Cover: %s (disables Chroma)"),
+        HELP_LINE(_(" · Toggle ASCII Cover: %s (disables visualizations)"),
                   get_binding_string(MSG_TOGGLEASCII, false));
         HELP_LINE(_(" · Toggle Notifications: %s"),
                   get_binding_string(MSG_TOGGLENOTIFICATIONS, false));

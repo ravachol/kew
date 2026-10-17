@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 06:14+0200\n"
+"POT-Creation-Date: 2026-10-17 16:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -70,42 +70,6 @@ msgstr ""
 #: src/sys/mpris.c:1644
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
-msgstr ""
-
-#: src/ui/cli.c:157 src/ui/cli.c:191
-#, c-format
-msgid "Music Library: "
-msgstr ""
-
-#: src/ui/cli.c:162
-#, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:164
-#, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:171 src/ui/cli.c:201
-#, c-format
-msgid "Error reading input.\n"
-msgstr ""
-
-#: src/ui/cli.c:196
-#, c-format
-msgid ""
-"Type a path to your music folder:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:229
-#, c-format
-msgid "Music Library not found.\n"
 msgstr ""
 
 #: src/ui/components.c:559
@@ -301,7 +265,7 @@ msgstr ""
 
 #: src/ui/components.c:3258
 #, c-format
-msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
+msgid " · Cycle Visualization: %s (requires plugin)"
 msgstr ""
 
 #: src/ui/components.c:3260
@@ -311,7 +275,7 @@ msgstr ""
 
 #: src/ui/components.c:3262
 #, c-format
-msgid " · Toggle ASCII Cover: %s (disables Chroma)"
+msgid " · Toggle ASCII Cover: %s (disables visualizations)"
 msgstr ""
 
 #: src/ui/components.c:3264
@@ -346,6 +310,42 @@ msgstr ""
 #: src/ui/components.c:3406
 #, c-format
 msgid "Search:"
+msgstr ""
+
+#: src/ui/cli.c:156 src/ui/cli.c:190
+#, c-format
+msgid "Music Library: "
+msgstr ""
+
+#: src/ui/cli.c:161
+#, c-format
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:163
+#, c-format
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:170 src/ui/cli.c:200
+#, c-format
+msgid "Error reading input.\n"
+msgstr ""
+
+#: src/ui/cli.c:195
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:228
+#, c-format
+msgid "Music Library not found.\n"
 msgstr ""
 
 #: src/ui/render_ui.c:152

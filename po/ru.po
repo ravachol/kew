@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 06:14+0200\n"
+"POT-Creation-Date: 2026-10-17 16:14+0200\n"
 "PO-Revision-Date: 2026-09-28 22:02+0400\n"
 "Last-Translator: Andrei Stepanov <adem4ik@gmail.com>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -75,46 +75,6 @@ msgstr ""
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
 msgstr "Не удалось занять имя D-Bus: %s\n"
-
-#: src/ui/cli.c:157 src/ui/cli.c:191
-#, c-format
-msgid "Music Library: "
-msgstr "Фонотека: "
-
-#: src/ui/cli.c:162
-#, c-format
-msgid ""
-"Is this correct? Press Enter.\n"
-"\n"
-msgstr ""
-"Это верно? Нажмите Enter.\n"
-"\n"
-
-#: src/ui/cli.c:164
-#, c-format
-msgid ""
-"Or type a path:\n"
-"\n"
-msgstr ""
-"Или введите путь:\n"
-"\n"
-
-#: src/ui/cli.c:171 src/ui/cli.c:201
-#, c-format
-msgid "Error reading input.\n"
-msgstr "Ошибка чтения ввода.\n"
-
-#: src/ui/cli.c:196
-#, c-format
-msgid ""
-"Type a path to your music folder:\n"
-"\n"
-msgstr ""
-
-#: src/ui/cli.c:229
-#, c-format
-msgid "Music Library not found.\n"
-msgstr "Музыкальная библиотека не найдена.\n"
 
 #: src/ui/components.c:559
 msgid "─ MUSIC LIBRARY ─"
@@ -308,9 +268,9 @@ msgid " · Cycle Themes: %s"
 msgstr " · Сменить тему: %s"
 
 #: src/ui/components.c:3258
-#, c-format
-msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
-msgstr " · Переключить визуализацию Chroma: %s (требуется Chroma)"
+#, fuzzy, c-format
+msgid " · Cycle Visualization: %s (requires plugin)"
+msgstr " · Визуализация цикла: %s (требуется плагин)"
 
 #: src/ui/components.c:3260
 #, c-format
@@ -319,8 +279,8 @@ msgstr " · Переключить режим визуализатора: %s"
 
 #: src/ui/components.c:3262
 #, c-format
-msgid " · Toggle ASCII Cover: %s (disables Chroma)"
-msgstr " · Переключить ASCII-обложку: %s (отключает Chroma)"
+msgid " · Toggle ASCII Cover: %s (disables visualizations)"
+msgstr " · Переключить ASCII-обложку: %s (отключает визуализации)"
 
 #: src/ui/components.c:3264
 #, c-format
@@ -355,6 +315,46 @@ msgstr " Домашняя страница: "
 #, c-format
 msgid "Search:"
 msgstr "Поиск:"
+
+#: src/ui/cli.c:156 src/ui/cli.c:190
+#, c-format
+msgid "Music Library: "
+msgstr "Фонотека: "
+
+#: src/ui/cli.c:161
+#, c-format
+msgid ""
+"Is this correct? Press Enter.\n"
+"\n"
+msgstr ""
+"Это верно? Нажмите Enter.\n"
+"\n"
+
+#: src/ui/cli.c:163
+#, c-format
+msgid ""
+"Or type a path:\n"
+"\n"
+msgstr ""
+"Или введите путь:\n"
+"\n"
+
+#: src/ui/cli.c:170 src/ui/cli.c:200
+#, c-format
+msgid "Error reading input.\n"
+msgstr "Ошибка чтения ввода.\n"
+
+#: src/ui/cli.c:195
+#, c-format
+msgid ""
+"Type a path to your music folder:\n"
+"\n"
+msgstr ""
+
+#: src/ui/cli.c:228
+#, c-format
+msgid "Music Library not found.\n"
+msgstr "Музыкальная библиотека не найдена.\n"
 
 #: src/ui/render_ui.c:152
 #, c-format
