@@ -1048,16 +1048,16 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                         } else {
 
                                 corrected_height = draw_bitmap_to_buf(buf,
-                                                                             row, col,
-                                                                             songdata->cover,
-                                                                             songdata->coverWidth,
-                                                                             songdata->coverHeight,
-                                                                             corrected_width,
-                                                                             target_height,
-                                                                             term_size,
-                                                                             false,
-                                                                             model->current_hash,
-                                                                             ui->coverStyle, false, true) +
+                                                                      row, col,
+                                                                      songdata->cover,
+                                                                      songdata->coverWidth,
+                                                                      songdata->coverHeight,
+                                                                      corrected_width,
+                                                                      target_height,
+                                                                      term_size,
+                                                                      false,
+                                                                      model->current_hash,
+                                                                      ui->coverStyle, false, true) +
                                                    1;
                         }
                 }
@@ -1173,16 +1173,16 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
         bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
         draw_bitmap_to_buf(buf,
-                                  row, region.col,
-                                  songdata->cover,
-                                  songdata->coverWidth,
-                                  songdata->coverHeight,
-                                  region.width,
-                                  region.height,
-                                  &model->term_size,
-                                  false,
-                                  model->current_hash,
-                                  state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
+                           row, region.col,
+                           songdata->cover,
+                           songdata->coverWidth,
+                           songdata->coverHeight,
+                           region.width,
+                           region.height,
+                           &model->term_size,
+                           false,
+                           model->current_hash,
+                           state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
 
         return (ComponentMsg){0};
 }
@@ -1210,23 +1210,26 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
         bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
-        float image_ratio = 1.0;
-        if (model->state.settings.visualizationsEnabled)
-                image_ratio = 1.77777779; // Show visualizations in wide mode.
+        float image_ratio = (float)songdata->coverWidth / (float)songdata->coverHeight;
+        int image_width = songdata->coverWidth;
 
-        int image_width = songdata->coverWidth * image_ratio;
+        if (image_ratio >= 0.9 && image_ratio <= 1.1 && model->state.settings.visualizationsEnabled)
+        {
+                image_ratio = 1.5; // Show visualizations in wide mode.
+                image_width = songdata->coverWidth * image_ratio;
+        }
 
         draw_bitmap_to_buf(buf,
-                                  region.row, region.col,
-                                  songdata->cover,
-                                  image_width,
-                                  songdata->coverHeight,
-                                  region.width,
-                                  region.height,
-                                  &model->term_size,
-                                  true,
-                                  model->current_hash,
-                                  state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
+                           region.row, region.col,
+                           songdata->cover,
+                           image_width,
+                           songdata->coverHeight,
+                           region.width,
+                           region.height,
+                           &model->term_size,
+                           true,
+                           model->current_hash,
+                           state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
 
         return (ComponentMsg){0};
 }
@@ -1332,19 +1335,19 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
             model->state.ui.visualizations_start_requested;
 
         draw_bitmap_to_buf(buf,
-                                  row,
-                                  col,
-                                  songdata->cover,
-                                  songdata->coverWidth,
-                                  songdata->coverHeight,
-                                  corrected_width,
-                                  target_height,
-                                  term_size,
-                                  false,
-                                  model->current_hash,
-                                  state->settings.coverStyle,
-                                  draw_cover_marker,
-                                  draw_occupied_markers);
+                           row,
+                           col,
+                           songdata->cover,
+                           songdata->coverWidth,
+                           songdata->coverHeight,
+                           corrected_width,
+                           target_height,
+                           term_size,
+                           false,
+                           model->current_hash,
+                           state->settings.coverStyle,
+                           draw_cover_marker,
+                           draw_occupied_markers);
 
         return (ComponentMsg){0};
 }
