@@ -673,6 +673,9 @@ int draw_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                 image_ratio = 1.0;
         }
 
+        if (model->state.settings.visualizationsEnabled)
+                image_ratio = 1.77777779; // Show visualizations in wide mode.
+
         // Keep requested height.
         int corrected_height = base_height;
 
