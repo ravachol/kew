@@ -1057,7 +1057,7 @@ ComponentMsg component_side_cover(const Model *model, k_Rect region, DrawBuffer 
                                                                       term_size,
                                                                       false,
                                                                       model->current_hash,
-                                                                      ui->coverStyle, false, true) +
+                                                                      ui->coverStyle, false, true, false) +
                                                    1;
                         }
                 }
@@ -1182,7 +1182,7 @@ ComponentMsg component_cover(const Model *model, k_Rect region, DrawBuffer *buf,
                            &model->term_size,
                            false,
                            model->current_hash,
-                           state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
+                           state->settings.coverStyle, draw_cover_marker, draw_occupied_markers, false);
 
         return (ComponentMsg){0};
 }
@@ -1210,6 +1210,15 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
 
         bool draw_occupied_markers = !model->state.settings.coverAnsi || model->state.ui.visualizations_started || model->state.ui.visualizations_start_requested;
 
+        // draw visualizations wider
+        float image_ratio = (float)songdata->coverWidth / (float)songdata->coverHeight;
+        bool draw_wide = false;
+
+        if (image_ratio >= 0.9 && image_ratio <= 1.1 && model->state.settings.visualizationsEnabled)
+        {
+                draw_wide = true;
+        }
+
         draw_bitmap_to_buf(buf,
                            region.row, region.col,
                            songdata->cover,
@@ -1220,7 +1229,7 @@ ComponentMsg component_cover_centered(const Model *model, k_Rect region, DrawBuf
                            &model->term_size,
                            true,
                            model->current_hash,
-                           state->settings.coverStyle, draw_cover_marker, draw_occupied_markers);
+                           state->settings.coverStyle, draw_cover_marker, draw_occupied_markers, draw_wide);
 
         return (ComponentMsg){0};
 }
@@ -1338,7 +1347,7 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
                            model->current_hash,
                            state->settings.coverStyle,
                            draw_cover_marker,
-                           draw_occupied_markers);
+                           draw_occupied_markers, false);
 
         return (ComponentMsg){0};
 }

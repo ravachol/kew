@@ -590,7 +590,7 @@ void free_image_payload(ImagePayload **img)
 int draw_bitmap_to_buf(DrawBuffer *buf, int row, int col,
                               const unsigned char *pixels, int width, int height, int max_width,
                               int base_height, const TermSize *term_size, bool centered, size_t img_hash,
-                              const char *cover_style, int just_mark_cover, bool draw_occupied_markers)
+                              const char *cover_style, int just_mark_cover, bool draw_occupied_markers, bool draw_wide)
 {
         int cell_width = 8;
         int cell_height = 16;
@@ -680,6 +680,11 @@ int draw_bitmap_to_buf(DrawBuffer *buf, int row, int col,
         int corrected_width = (int)(corrected_height *
                                     image_ratio *
                                     cell_ratio);
+
+        if (draw_wide)
+        {
+                corrected_width = max_width - 2;
+        }
 
         // If too wide, limit width and reduce height.
         if (corrected_width > max_width) {
