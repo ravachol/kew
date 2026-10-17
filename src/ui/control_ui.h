@@ -138,4 +138,4 @@ int load_theme(const char *theme_name,
 /**
  * @brief Cycles visualizations (Chroma).
  */
-void cycle_visualization(void);
+void start_or_cycle_visualization(void);

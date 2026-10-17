@@ -1223,6 +1223,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "visualizationsmode") == 0) {
                         snprintf(settings->visualizationsMode, sizeof(settings->visualizationsMode), "%s",
                                  pair->value);
+                } else if (strcmp(lowercase_key, "visualizationsenabled") == 0) {
+                        snprintf(settings->visualizationsEnabled, sizeof(settings->visualizationsEnabled), "%s",
+                                 pair->value);
                 } else if (strcmp(lowercase_key, "coverenabled") == 0) {
                         snprintf(settings->coverEnabled,
                                  sizeof(settings->coverEnabled), "%s",
@@ -1924,6 +1927,10 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui_settings)
         if (tmp >= 0)
                 ui_settings->visualizationsMode = tmp;
 
+        tmp = get_number(settings->visualizationsEnabled);
+        if (tmp >= 0)
+                ui_settings->visualizationsEnabled = tmp;
+
         if (ui_settings->colorMode != COLOR_MODE_ALBUM &&
             ui_settings->colorMode != COLOR_MODE_ALBUM_ONE &&
             ui_settings->colorMode != COLOR_MODE_DEFAULT &&
@@ -2035,6 +2042,12 @@ void set_prefs(AppSettings *settings, UISettings *ui_settings)
                               : c_strcpy(settings->coverAnsi, "0",
                                          sizeof(settings->coverAnsi));
 
+         ui_settings->visualizationsEnabled ? c_strcpy(settings->visualizationsEnabled, "1",
+                                            sizeof(settings->visualizationsEnabled))
+                                 : c_strcpy(settings->visualizationsEnabled, "0",
+                                            sizeof(settings->visualizationsEnabled));
+
+
         snprintf(settings->visualizer_mode,
                  sizeof(settings->visualizer_mode), "%d",
                  ui_settings->visualizer_mode);
@@ -2070,6 +2083,7 @@ void set_prefs(AppSettings *settings, UISettings *ui_settings)
         fprintf(file, "visualizerColortype=%s\n\n", settings->visualizer_mode);
         fprintf(file, "[visualizations]\n\n");
         fprintf(file, "chromaPreset=%d\n\n", ui_settings->visualizationsPreset);
+        fprintf(file, "visualizationsEnabled=%s\n\n", settings->visualizationsEnabled);
 
         fprintf(file, "[colors]\n\n");
         fprintf(file, "colorMode=%d\n\n", ui_settings->colorMode);

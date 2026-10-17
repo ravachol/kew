@@ -59,7 +59,7 @@ static bool rendering = false;
 void request_stop_visualization(void)
 {
         AppState *state = get_app_state();
-        state->settings.visualizations_instead_of_cover = false;
+        state->settings.visualizationsEnabled = false;
         state->ui.visualizations_next_preset_requested = false;
         visualizations_shutdown();
 }

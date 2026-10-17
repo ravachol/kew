@@ -177,7 +177,7 @@ void cycle_color_mode(void)
         set_dirty(DIRTY_ALL);
 }
 
-void cycle_visualization(void)
+void start_or_cycle_visualization(void)
 {
         Model *model = get_model();
 
@@ -216,7 +216,7 @@ void cycle_visualization(void)
                                 model->state.ui.visualizations_start_requested = true;
                         }
 
-                        model->state.settings.visualizations_instead_of_cover = true;
+                        model->state.settings.visualizationsEnabled = true;
                 }
         }
 }

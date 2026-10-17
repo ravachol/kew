@@ -18,6 +18,7 @@
 #include "data/theme.h"
 
 #include "ui/components.h"
+#include "ui/control_ui.h"
 
 #include "ops/search_ops.h"
 
@@ -1089,6 +1090,13 @@ void view_changed(Model *model)
 
         if (model->state.currentView == LIBRARY_VIEW)
                 component_library_helper_update_view_state(model);
+
+        if (model->state.currentView == TRACK_VIEW)
+        {
+                if (model->state.settings.visualizationsEnabled && !model->state.ui.visualizations_started)
+                        start_or_cycle_visualization();
+
+        }
 
         clear_search_query();
 

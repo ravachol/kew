@@ -421,12 +421,12 @@ typedef struct
         PixelData kewColorRGB;       /**< Primary application accent RGB color. */
 
         int visualizationsPreset; /**< Preset index for chroma-based coloring. */
+        bool visualizationsEnabled;
         char chromaPath[KEW_PATH_MAX];
         char visualizationsPath[KEW_PATH_MAX];
         char visualizationsDevice[KEW_PATH_MAX];
         int visualizationsMode; // 0 = ASCII, 1 = SIXELS
         bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
-        bool visualizations_instead_of_cover; /**< Show visualizer instead of album cover. */
 
         PixelData footer_color;
 
@@ -731,6 +731,7 @@ typedef struct
         char visualizationsPath[KEW_PATH_MAX];
         char visualizationsDevice[KEW_PATH_MAX];
         char visualizationsMode[6];
+        char visualizationsEnabled[6];
         char fade_enter_song_ms[12];
         char fade_quick[6];
         char fade_medium[6];

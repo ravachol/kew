@@ -255,7 +255,6 @@ void kew_shutdown()
 
         songdata_shutdown();
         sound_system_shutdown();
-        visualizations_shutdown();
         chafa_shutdown();
         input_shutdown();
         discord_rpc_shutdown();
@@ -760,7 +759,6 @@ void state_init(void)
         state->settings.kewColorRGB.b = 77;
         state->settings.kewColorRGB.a = 255;
         state->settings.visualizationsPreset = -1;
-        state->settings.visualizations_instead_of_cover = false;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
         state->settings.colorMode = COLOR_MODE_ALBUM;
@@ -769,6 +767,7 @@ void state_init(void)
         state->settings.fade_medium_ms = 3000;
         state->settings.fade_slow_ms = 5000;
         state->settings.visualizationsMode = 1;
+        state->settings.visualizationsEnabled = false;
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
         state->ui.chosen_node_id = 0;

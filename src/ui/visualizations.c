@@ -353,6 +353,7 @@ void visualizations_start(int height, int width)
 
         pthread_create(&g_viz.thread, NULL, visualizer_thread, arg);
 
+        model->state.settings.visualizationsEnabled = true;
         model->state.ui.visualizations_started = true;
         model->state.ui.visualizations_start_requested = false;
         model->state.ui.visualizations_height = height;

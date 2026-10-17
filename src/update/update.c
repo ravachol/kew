@@ -528,7 +528,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (model->state.currentView != PLAYLIST_VIEW)
                         model->state.ui.resetPlaylistDisplay = true;
 
-                if (model->state.ui.visualizations_start_requested && !model->state.ui.visualizations_started && visualizations_are_installed("pmstream") &&
+                if (model->state.ui.visualizations_start_requested && !model->state.ui.visualizations_started && (visualizations_are_installed("pmstream") || visualizations_are_installed("chroma")) &&
                     model->state.currentView == TRACK_VIEW)
                         set_dirty(DIRTY_ALL);
 
@@ -653,7 +653,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 break;
 
         case MSG_CYCLEVISUALIZATION:
-                cycle_visualization();
+                start_or_cycle_visualization();
                 result.cmd.type = CMD_CYCLE_VISUALIZATION;
                 break;
 

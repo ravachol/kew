@@ -91,4 +91,4 @@ void handle_cooldown(void);
  * This function cycles through the different visualizations (e.g., for music)
  * that can be displayed in the application.
  */
-void cycle_visualization(void);
+void start_or_cycle_visualization(void);

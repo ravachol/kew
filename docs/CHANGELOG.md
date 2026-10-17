@@ -4,7 +4,12 @@
 
 #### Enhancements:
 
-- Fuzzy search. by @superb-striker.
+- Fuzzy search. By @superb-striker.
+
+- Winamp-style (projectm/milkdrop) visualizations on linux through a new plugin, pmstream. By @ravachol.
+  How to install: https://codeberg.org/ravachol/pmstream
+
+- Track if visualizations are enabled. By @ravachol.
 
 #### Bug fixes:
 
