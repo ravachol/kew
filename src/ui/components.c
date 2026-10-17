@@ -1795,7 +1795,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
 
                 if (num < 10)
                         spaces = 2;
-                else if (i < 100)
+                else if (num < 100)
                         spaces = 1;
                 else
                         spaces = 0;
