@@ -18,6 +18,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifndef _WIN32
+#include <poll.h>
+#include <errno.h>
+#endif
+
 enum viz_type {
         VIZ_ASCII = 0,
         VIZ_SIXELS = 1
@@ -126,8 +131,8 @@ static int set_generic_cmd_string(char *cmd, int cmd_size)
 
         TermSize ts;
         get_tty_size(&ts);
-        int cw = ts.width_pixels / ts.cols;
-        int ch = ts.height_pixels / ts.rows;
+        int cw = (ts.width_pixels > 0 && ts.cols > 0) ? ts.width_pixels / ts.cols : 8;
+        int ch = (ts.height_pixels > 0 && ts.rows > 0) ? ts.height_pixels / ts.rows : 16;
 
         char extra[96];
         snprintf(extra, sizeof(extra), " --mode %s --cell-size %dx%d",
@@ -165,12 +170,12 @@ static void *visualizer_thread(void *arg)
         int height = args->height;
         int width = args->width;
 
-        if (args->provider[0] == '\0')
-                return NULL;
-
         snprintf(g_viz.provider, sizeof(g_viz.provider), "%s", args->provider);
 
         free(arg); // Caller must malloc the `VisualizerThreadArgs`
+
+        if (g_viz.provider[0] == '\0')
+                return NULL;
 
         if (height <= 0)
                 height = 1;
@@ -195,8 +200,8 @@ static void *visualizer_thread(void *arg)
                 g_viz.width = width;
                 pthread_mutex_unlock(&g_viz.lock);
 
-                int cmd_size = 512;
                 char cmd[1024];
+                int cmd_size = (int)sizeof(cmd);
                 int n;
 
                 char preset_arg[32];
@@ -241,6 +246,19 @@ static void *visualizer_thread(void *arg)
                 int nl_streak = 0;
 
                 while (g_viz.running) {
+
+#ifndef _WIN32
+                        struct pollfd pfd = {.fd = fileno(fp), .events = POLLIN};
+                        int pr = poll(&pfd, 1, 100);
+
+                        if (pr == 0)
+                                continue; // timeout, re-check g_viz.running
+                        if (pr < 0) {
+                                if (errno == EINTR)
+                                        continue;
+                                break;
+                        }
+#endif
                         ssize_t r = read(fileno(fp), buf + pos, VISUALIZATIONS_MAX_BUF - pos);
                         if (r <= 0)
                                 break; // EOF or error
@@ -296,6 +314,9 @@ static void *visualizer_thread(void *arg)
                 if (buf)
                         free(buf);
                 pclose(fp);
+
+                if (g_viz.running)
+                        usleep(200 * 1000); // don't respawn in a tight loop
         }
 
         return NULL;
@@ -337,21 +358,32 @@ void visualizations_start(int height, int width)
 {
         if (g_viz.running)
                 return;
-        g_viz.running = 1;
 
-        visualizations_set_current_preset(visualizations_get_current_preset());
+        Model *model = get_model();
+
+        if (model->state.ui.visualizations_provider[0] == '\0')
+                return;
 
         VisualizationsThreadArgs *arg = malloc(sizeof(VisualizationsThreadArgs));
         if (!arg)
                 return;
 
-        Model *model = get_model();
-
         arg->height = height;
         arg->width = width;
         snprintf(arg->provider, sizeof(arg->provider), "%s", model->state.ui.visualizations_provider);
 
-        pthread_create(&g_viz.thread, NULL, visualizer_thread, arg);
+        // Set provider here, before the thread exists and before the preset message.
+        snprintf(g_viz.provider, sizeof(g_viz.provider), "%s", arg->provider);
+
+        g_viz.running = 1;
+
+        visualizations_set_current_preset(visualizations_get_current_preset());
+
+        if (pthread_create(&g_viz.thread, NULL, visualizer_thread, arg) != 0) {
+                g_viz.running = 0;
+                free(arg);
+                return;
+        }
 
         model->state.settings.visualizationsEnabled = true;
         model->state.ui.visualizations_started = true;
@@ -389,7 +421,7 @@ void visualizations_shutdown()
 
 void visualizations_start_with_preset(int preset)
 {
-        if (preset == 25)
+        if (preset == chroma_max_prests)
                 preset = -1;
 
         visualizations_set_current_preset(preset);
@@ -482,7 +514,7 @@ void visualizations_print_frame(int row, int col, int height, int width,
                                 p++;
 
                         if (*p == '\n') {
-                                printf("\033[%d;%dH", row_pos, col + 1);
+                                printf("\033[%d;%dH", row_pos, col);
                                 fwrite(start, 1, p - start, stdout);
                                 p++;
                                 row_pos++;
