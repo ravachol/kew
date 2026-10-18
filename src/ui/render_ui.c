@@ -103,6 +103,9 @@ bool themes_init(int argc, char *argv[])
                                 ui->colorMode = COLOR_MODE_ALBUM;
                         if (strcmp(ui->theme_name, "neutral") == 0)
                                 ui->colorMode = COLOR_MODE_NEUTRAL;
+
+                } else {
+                        ui->colorMode = COLOR_MODE_DEFAULT; // Fall back to the default ANSI theme
                 }
         }
 
@@ -110,28 +113,28 @@ bool themes_init(int argc, char *argv[])
         if (ui->colorMode == COLOR_MODE_DEFAULT && !themeLoaded) {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
-                if (load_theme("default", true, set_info_message)) {
+                if (load_theme("default", true, set_info_message) > 0) {
                         themeLoaded = true;
                 }
         }
 
         if (ui->colorMode == COLOR_MODE_NEUTRAL && !themeLoaded) {
 
-                if (load_theme("neutral", true, set_info_message)) {
+                if (load_theme("neutral", true, set_info_message) > 0) {
                         themeLoaded = true;
                 }
         }
 
         if (ui->colorMode == COLOR_MODE_ALBUM_ONE && !themeLoaded) {
 
-                if (load_theme("onealbumcolor", true, set_info_message)) {
+                if (load_theme("onealbumcolor", true, set_info_message) > 0) {
                         themeLoaded = true;
                 }
         }
 
         if (ui->colorMode == COLOR_MODE_ALBUM && !themeLoaded) {
 
-                if (load_theme("albumcolors", true, set_info_message)) {
+                if (load_theme("albumcolors", true, set_info_message) > 0) {
                         themeLoaded = true;
                 }
         }
@@ -478,7 +481,7 @@ void set_model_attributes(Pane *pane)
                 model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
                 model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
 
-                if (model->state.ui.chosen_row >= 0 && (double)model->unshuffled_playlist->count > 0) {
+                if (model->state.ui.chosen_row >= 0 && model->state.ui.help_region.height > 0) {
                         double position =
                             (double)model->state.ui.chosen_row /
                             (double)model->unshuffled_playlist->count;
@@ -622,6 +625,8 @@ void layout_reflow(Model *model,
             auto_count > 0
                 ? (total_rows - fixed_rows) / auto_count
                 : 0;
+        if (auto_height < 0)
+                auto_height = 0;
 
         int current_row = 0;
 
@@ -722,6 +727,8 @@ void layout_reflow(Model *model,
                     auto_cols > 0
                         ? (available_cols - fixed_cols) / auto_cols
                         : 0;
+                if (auto_width < 0)
+                        auto_width = 0;
 
                 int current_col = col;
 
@@ -762,6 +769,9 @@ void layout_reflow(Model *model,
 
 static Pane *find_pane(Layout *layout, ComponentFn fn)
 {
+        if (!layout)
+                return NULL;
+
         Pane *res = {0};
 
         for (int r = 0; r < layout->row_count; r++) {
@@ -869,6 +879,8 @@ void draw_buffer_resize(int cols, int rows)
         if (!new_dirty) {
                 // dirty_rows is unchanged, so leave cols/rows unchanged too.
                 buf->cells = new_cells;
+                buf->cols = 0;
+                buf->rows = 0;
                 pthread_mutex_unlock(&(model->state.drawbuffer_mutex));
                 return;
         }
@@ -1333,34 +1345,24 @@ void layout_render_dirty(const Layout *layout,
 
 char *url_at_pos(int row, int col)
 {
-        bool link_active = false;
+        if (!s_buf || !s_buf->cells ||
+            row < 0 || row >= s_buf->rows ||
+            col < 0 || col >= s_buf->cols)
+                return NULL;
+
         char *link = NULL;
 
-        for (int r = 0; r < s_buf->rows; r++) {
+        for (int c = 0; c <= col; c++) {
+                Cell *cell = &s_buf->cells[row * s_buf->cols + c];
 
-                for (int c = 0; c < s_buf->cols; c++) {
-
-                        if (r == row) {
-
-                                Cell *cell = &s_buf->cells[r * s_buf->cols + c];
-
-                                if (cell->kind == CELL_LINK) {
-
-                                        link_active = true;
-                                        link = cell->link->url;
-                                }
-
-                                if (cell->kind != CELL_OCCUPIED && cell->kind != CELL_LINK && link_active) {
-                                        link_active = false;
-                                }
-
-                                if (link_active && c >= col)
-                                        return link;
-                        }
+                if (cell->kind == CELL_LINK && cell->link) {
+                        link = cell->link->url;
+                } else if (cell->kind != CELL_OCCUPIED) {
+                        link = NULL; // link ended
                 }
         }
 
-        return NULL;
+        return link;
 }
 
 void render_ui(Model *model, RenderContext *ctx)
