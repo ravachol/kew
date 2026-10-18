@@ -34,10 +34,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 #define MAX_BARS 26 // Counting 1/3 octave per bar, 50hz-10000hz range
 
 float *blackman_harris_window;
@@ -225,8 +221,7 @@ static int insert_vib_entry(VibEntry *entries, int count, int max, float vibranc
                 return count;
 
         for (int p = 0; p < count; p++) {
-                if (p == pos)
-                        continue;
+
                 float dr = (float)r - entries[p].r;
                 float dg = (float)g - entries[p].g;
                 float db = (float)b - entries[p].b;
@@ -494,6 +489,7 @@ void generate_all_visualizer_palettes(Model *model, int height)
                 model->state.ui.visualizer_palettes[VIZ_BINNING].count = 0;
                 model->state.ui.visualizer_palettes[VIZ_VIBRANT].count = 0;
                 model->state.ui.visualizer_palettes[VIZ_KMEANS_CLUSTERING].count = 0;
+                model->state.ui.visualizer_palettes[VIZ_GRADIENT].count = 0;
         }
 }
 
@@ -705,6 +701,10 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
                      float *magnitudes, fftwf_plan plan,
                      float *display_magnitudes)
 {
+
+        if (sample_rate == 0 || fft_size <= 0 || !fft_input || !fft_output || !plan)
+                return;
+
         // Only execute when we get the signal that we have enough samples
         // (fft_size)
         if (!sound_system_is_buffer_ready(sound_s))
@@ -717,7 +717,8 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
 
         sound_system_set_buffer_ready(sound_s, false);
 
-        normalize_audio_samples(audio_buffer, fft_input, fft_size, bit_depth);
+        if (normalize_audio_samples(audio_buffer, fft_input, fft_size, bit_depth) != 0)
+                return;
 
         // Apply Blackman Harris window function
         apply_blackman_harris(fft_input, blackman_harris_window, fft_size);
@@ -739,7 +740,7 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
                            // increase with 1/3 octave per bar
 
         // Compute center frequencies for EQ bands
-        compute_band_centers(min_freq, max_freq, num_bars, center_freqs);
+        compute_band_centers(min_freq, (float)sample_rate, num_bars, center_freqs);
 
         // Fill magnitudes for EQ bands from FFT output
         fill_eq_bands(fft_output, fft_size, sample_rate, magnitudes, num_bars,
@@ -830,6 +831,10 @@ char *get_inbetween_char(float prev, float next)
 
 void free_visuals(void)
 {
+        if (fft_plan != NULL) {
+                fftwf_destroy_plan(fft_plan);
+                fft_plan = NULL;
+        }
         if (fft_input != NULL) {
                 free(fft_input);
                 fft_input = NULL;
@@ -838,14 +843,12 @@ void free_visuals(void)
                 fftwf_free(fft_output);
                 fft_output = NULL;
         }
-        if (fft_plan != NULL) {
-                fftwf_destroy_plan(fft_plan);
-                fft_plan = NULL;
-        }
-
         if (blackman_harris_window != NULL) {
                 free(blackman_harris_window);
+                blackman_harris_window = NULL;
         }
+
+        prev_fft_size = 0; // forces a rebuild on the next draw
 }
 
 static PixelData interpolate_color(PixelData a, PixelData b, float t)
@@ -1007,7 +1010,9 @@ void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
                                 // 1.0 = change starts at top
                                 float gradient_start = 0.4f;
 
-                                float position = (float)(height - j) / (float)(height - 1);
+                                float position = (height > 1)
+                                                     ? (float)(height - j) / (float)(height - 1)
+                                                     : 1.0f;
 
                                 float t = (position - gradient_start) /
                                           (1.0f - gradient_start);
@@ -1177,6 +1182,9 @@ void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_
 
         int fft_size = sound_system_get_fft_size(sound_s);
 
+        if (fft_size <= 0)
+                return;
+
         if (fft_size != prev_fft_size) {
                 free_visuals();
 
@@ -1199,7 +1207,7 @@ void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_
                 fft_output = (fftwf_complex *)fftwf_malloc(
                     sizeof(fftwf_complex) * fft_size);
                 if (fft_output == NULL) {
-                        fftwf_free(fft_input);
+                        free(fft_input);
                         fft_input = NULL;
                         for (int i = 0; i <= height; i++) {
                                 printf("\n");
@@ -1213,6 +1221,10 @@ void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_
                 }
 
                 fft_plan = fftwf_plan_dft_r2c_1d(fft_size, fft_input, fft_output, FFTW_ESTIMATE);
+                if (!fft_plan) {
+                        free_visuals();
+                        return;
+                }
                 prev_fft_size = fft_size;
         }
 
