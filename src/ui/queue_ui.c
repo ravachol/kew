@@ -195,8 +195,6 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                         if (state->currentView == LIBRARY_VIEW && entry->parent != NULL)
                                 uis->allowChooseSongs = true;
 
-                        if (state->currentView == SEARCH_VIEW && entry->parent != NULL)
-                                uis->allowChooseSearchSongs = true;
                 } else {
                         if (!entry->is_enqueued) {
                                 set_next_song(NULL);

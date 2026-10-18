@@ -462,7 +462,6 @@ typedef struct
         volatile bool refresh;
         int chosen_node_id;
         bool allowChooseSongs;
-        bool allowChooseSearchSongs;
 
         int numDirectoryTreeEntries;
         int num_progress_bars;
@@ -810,7 +809,7 @@ typedef struct SearchResult {
         struct FileSystemEntry *group; /*Direct match whose rows stay grouped together.*/
         int distance;
         int groupDistance;
-        int num_children;
+        bool matched;
 } SearchResult;
 
 typedef struct Model {

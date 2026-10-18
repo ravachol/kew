@@ -133,7 +133,7 @@ static void draw_search_row(DrawBuffer *buf, int row, int col, int width,
         draw_buffer_set_string(buf, row, indent_col, plain_part, plain_style);
 
         // Write reversed remainder of prefix + name
-        char rest[512];
+        char rest[1030];
         snprintf(rest, sizeof(rest), "%.*s%s",
                  3 - plain_prefix_len, prefix + plain_prefix_len,
                  name);
@@ -3425,34 +3425,6 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
         return (ComponentMsg){0};
 }
 
-void component_search_helper_collapse_view(Model *model, int diff_rows)
-{
-        UIState *uis = &model->state.ui;
-
-        if (uis->allowChooseSearchSongs && (model->state.ui.chosen_search_dir == NULL ||
-                                            (uis->current_search_entry != NULL && uis->current_search_entry->parent != NULL &&
-                                             model->state.ui.chosen_search_dir != NULL))) {
-
-                set_dirty(DIRTY_LIBRARY);
-
-                uis->allowChooseSearchSongs = false;
-
-                int num_children = 0;
-                if (model->state.ui.chosen_search_dir != NULL && diff_rows > 0) {
-                        FileSystemEntry *child = model->state.ui.chosen_search_dir->children;
-
-                        while (child != NULL) {
-                                child = child->next;
-                                num_children++;
-                        }
-                }
-
-                model->state.ui.chosen_search_dir = NULL;
-
-                model->state.ui.chosen_search_result_row -= num_children;
-        }
-}
-
 size_t utf8_truncate(const char *s, int max_width)
 {
         mbstate_t st = {0};
@@ -3488,206 +3460,252 @@ size_t utf8_truncate(const char *s, int max_width)
         return pos; /* byte offset */
 }
 
+static bool search_directory_is_open(const FileSystemEntry *dir,
+                                     const FileSystemEntry *chosen_dir)
+{
+        for (const FileSystemEntry *p = chosen_dir; p; p = p->parent)
+                if (p == dir)
+                        return true;
+        return false;
+}
+
+static bool search_result_is_visible(GHashTable *results,
+                                     const FileSystemEntry *chosen_dir,
+                                     const SearchResult *result)
+{
+        if (result->matched)
+                return true;
+
+        const FileSystemEntry *entry = result->entry;
+        for (const FileSystemEntry *parent = entry->parent; parent && parent->parent;
+             parent = parent->parent) {
+                if (g_hash_table_contains(results, parent) &&
+                    !search_directory_is_open(parent, chosen_dir))
+                        return false;
+        }
+        return true;
+}
+
+static const FileSystemEntry *search_display_parent(GHashTable *results,
+                                                     const FileSystemEntry *chosen_dir,
+                                                     const FileSystemEntry *entry)
+{
+        for (const FileSystemEntry *parent = entry->parent; parent && parent->parent;
+             parent = parent->parent) {
+                if (g_hash_table_contains(results, parent) &&
+                    search_directory_is_open(parent, chosen_dir))
+                        return parent;
+        }
+        return NULL;
+}
+
+static void append_search_rows(const Model *model, GHashTable *results,
+                               const FileSystemEntry *parent, int *visible,
+                               int *visible_count)
+{
+        int count = model->state.ui.search_results_count;
+        int passes = parent ? 2 : 1;
+        for (int pass = 0; pass < passes; pass++) {
+                for (int i = 0; i < count; i++) {
+                        SearchResult *result = &model->search_results[i];
+                        FileSystemEntry *entry = result->entry;
+                        if (!search_result_is_visible(results, model->state.ui.chosen_search_dir, result) ||
+                            search_display_parent(results, model->state.ui.chosen_search_dir, entry) != parent ||
+                            (parent && entry->is_directory != (pass == 0)))
+                                continue;
+                        visible[(*visible_count)++] = i;
+                        if (entry->is_directory &&
+                            search_directory_is_open(entry, model->state.ui.chosen_search_dir))
+                                append_search_rows(model, results, entry, visible, visible_count);
+                }
+        }
+}
+
+static int build_search_visible_rows(const Model *model, GHashTable *results,
+                                     int *visible)
+{
+        int visible_count = 0;
+        if (visible)
+                append_search_rows(model, results, NULL, visible, &visible_count);
+        return visible_count;
+}
+
+static bool folder_contains(const FileSystemEntry *folder, const FileSystemEntry *entry)
+{
+        for (const FileSystemEntry *parent = entry; parent; parent = parent->parent)
+                if (parent == folder)
+                        return true;
+        return false;
+}
+
+static void reselect_search_folder(Model *model, FileSystemEntry *entry)
+{
+        int count = model->state.ui.search_results_count;
+        GHashTable *results = g_hash_table_new(g_direct_hash, g_direct_equal);
+        for (int i = 0; i < count; i++)
+                g_hash_table_add(results, model->search_results[i].entry);
+        int *visible = count > 0 ? malloc((size_t)count * sizeof(*visible)) : NULL;
+        int visible_count = build_search_visible_rows(model, results, visible);
+        for (int row = 0; row < visible_count; row++) {
+                if (model->search_results[visible[row]].entry == entry) {
+                        model->state.ui.chosen_search_result_row = row;
+                        break;
+                }
+        }
+        free(visible);
+        g_hash_table_destroy(results);
+}
+
+void component_search_collapse_if_outside(Model *model, FileSystemEntry *entry)
+{
+        UIState *ui = &model->state.ui;
+        if (!ui->chosen_search_dir || folder_contains(ui->chosen_search_dir, entry))
+                return;
+        ui->chosen_search_dir = NULL;
+        reselect_search_folder(model, entry);
+        set_dirty(DIRTY_SEARCH);
+}
+
+void component_search_move_selection(Model *model, int delta)
+{
+        UIState *ui = &model->state.ui;
+        int count = ui->search_results_count;
+        if (count <= 0)
+                return;
+
+        GHashTable *results = g_hash_table_new(g_direct_hash, g_direct_equal);
+        for (int i = 0; i < count; i++)
+                g_hash_table_add(results, model->search_results[i].entry);
+        int *visible = malloc((size_t)count * sizeof(*visible));
+        int visible_count = build_search_visible_rows(model, results, visible);
+        if (visible_count > 0) {
+                int row = ui->chosen_search_result_row + delta;
+                if (row < 0)
+                        row = 0;
+                if (row >= visible_count)
+                        row = visible_count - 1;
+                FileSystemEntry *target = model->search_results[visible[row]].entry;
+                if (ui->chosen_search_dir && !folder_contains(ui->chosen_search_dir, target)) {
+                        ui->chosen_search_dir = NULL;
+                        visible_count = build_search_visible_rows(model, results, visible);
+                        for (int i = 0; i < visible_count; i++) {
+                                if (model->search_results[visible[i]].entry == target) {
+                                        row = i;
+                                        break;
+                                }
+                        }
+                }
+                ui->chosen_search_result_row = row;
+                set_dirty(DIRTY_SEARCH);
+        }
+        free(visible);
+        g_hash_table_destroy(results);
+}
+
+static int search_result_indent(GHashTable *results,
+                                const FileSystemEntry *chosen_dir,
+                                const FileSystemEntry *entry)
+{
+        int indent = 0;
+        for (const FileSystemEntry *parent = entry->parent; parent && parent->parent;
+             parent = parent->parent) {
+                if (g_hash_table_contains(results, parent) &&
+                    search_directory_is_open(parent, chosen_dir))
+                        indent += 2;
+        }
+        return indent;
+}
+
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
 
-        ComponentMsg result = (ComponentMsg){0};
+        const UISettings *ui = &model->state.settings;
+        const UIState *uis = &model->state.ui;
+        int count = uis->search_results_count;
+        int *visible = count > 0 ? malloc((size_t)count * sizeof(*visible)) : NULL;
+        int visible_count = 0;
+        GHashTable *results = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-        const AppState *state = &model->state;
-        const UISettings *ui = &state->settings;
-        const UIState *uis = &state->ui;
+        for (int i = 0; i < count; i++)
+                g_hash_table_add(results, model->search_results[i].entry);
 
-        int max_list_size = region.height;
-        int max_name_width = region.width - 2;
+        visible_count = build_search_visible_rows(model, results, visible);
 
+        int chosen_row = uis->chosen_search_result_row;
+        if (chosen_row >= visible_count)
+                chosen_row = visible_count - 1;
+        if (chosen_row < 0)
+                chosen_row = 0;
+
+        int start = chosen_row > region.height / 2
+                        ? chosen_row - region.height / 2 : 0;
+        int max_name_width = region.width - 5;
         if (!ui->hideSideCover)
                 max_name_width -= region.col / 4;
         if (max_name_width < 0)
                 max_name_width = 0;
 
-        int chosen_row = uis->chosen_search_result_row;
-
-        FileSystemEntry *chosen_dir = model->state.ui.chosen_search_dir;
-        FileSystemEntry *current_search_entry = model->state.ui.current_search_entry;
-
-        // Clamp chosen row
-        if (chosen_row >= (int)model->state.ui.search_results_count - 1)
-                chosen_row = (int)model->state.ui.search_results_count - 1;
-        if (chosen_row < 0)
-                chosen_row = 0;
-
-        // Calculate start iterator
-        int start_search_iter = 0;
-
-        if (chosen_row > (int)(start_search_iter + round(max_list_size / 2)))
-                start_search_iter = chosen_row - (int)round(max_list_size / 2) + 1;
-
-        if (chosen_row < start_search_iter)
-                start_search_iter = chosen_row;
-
-        if (chosen_row < 0)
-                start_search_iter = chosen_row = 0;
-
-        int iter = start_search_iter;
-
-        // First pass, count total rows, skip directory entries if dir not open
-        int total_rows = 0;
-
-        for (int i = 0; i < model->state.ui.search_results_count; i++) {
-                if (start_search_iter >= model->state.ui.search_results_count)
-                        start_search_iter = model->state.ui.search_results_count - 1;
-
-                if (i < start_search_iter && model->search_results[i].entry->is_directory && model->search_results[i].entry->parent != NULL && model->search_results[i].entry->parent->parent != NULL) {
-
-                        int num = model->search_results[i].num_children;
-
-                        if (!uis->allowChooseSearchSongs || (chosen_dir != NULL && model->search_results[i].entry->id != chosen_dir->id && !is_contained_within(chosen_dir, model->search_results[i].entry))) {
-                                if (i < start_search_iter) {
-                                        start_search_iter += num;
-                                        i += num;
-                                }
-                                total_rows += num;
-                        }
-                }
-
-                total_rows++;
-        }
-
-        // Second pass, use total_rows as upper bound, not results_count
-        int printed_rows = 0;
-        int draw_row = region.row;
-        bool clicked_song = false;
+        FileSystemEntry *current_search_entry = NULL;
         int chosen_name_len = 0;
+        bool clicked_song = false;
         bool found_chosen = false;
-        int visible_count = total_rows;
+        int printed_rows = 0;
 
-        for (int i = start_search_iter; i < total_rows; i++) {
-
-                if (printed_rows >= max_list_size)
-                        break;
-
-                // Clamp chosen row at end of results
-                if (((model->state.ui.search_results_count <= i + 1) ||
-                     (model->search_results[i].entry->is_directory &&
-                      !uis->allowChooseSearchSongs &&
-                      model->state.ui.search_results_count == i + 1 + model->search_results[i].num_children)) &&
-                    chosen_row > iter) {
-
-                        chosen_row = iter;
-                }
-
-                FileSystemEntry *entry = model->search_results[i].entry;
-                int depth = determine_depth(entry);
-                int extra_indent = depth;
-                int name_width = max_name_width - extra_indent;
+        for (int row = start; row < visible_count && printed_rows < region.height; row++) {
+                FileSystemEntry *entry = model->search_results[visible[row]].entry;
+                int indent = search_result_indent(results, uis->chosen_search_dir,
+                                                  entry);
+                int name_width = max_name_width - indent;
                 if (name_width < 0)
                         name_width = 0;
-                // Build display name
-                char name[KEW_PATH_MAX];
-                name[0] = '\0';
 
-                char tmp[1024];
-
+                char label[1024];
                 if (entry->is_directory) {
-
-                        if (entry->parent != NULL &&
-                            entry->parent->parent == NULL) {
-
-                                char *upper = string_to_upper(
-                                    entry->name);
-
-                                snprintf(tmp, sizeof(tmp), "%s", upper);
-                                g_free(upper);
-
-                        } else {
-                                snprintf(tmp, sizeof(tmp), "[%s]",
-                                         entry->name);
-                        }
-
+                        snprintf(label, sizeof(label), "%s", entry->name);
                 } else {
-                        snprintf(tmp, sizeof(tmp), "%s [%s]",
-                                 entry->name,
-                                 entry->parent != NULL
-                                     ? entry->parent->name
-                                     : "Root");
+                        snprintf(label, sizeof(label), "%s [%s]", entry->name,
+                                 entry->parent ? entry->parent->name : "Root");
                 }
 
-                int length = (int)utf8_truncate(tmp, name_width);
-
-                bool is_chosen = false;
-                if (!found_chosen) {
-                        if (model->mouse_x >= 0 && model->mouse_y >= 0) {
-                                is_chosen = (model->mouse_y >= region.row &&
-                                             model->mouse_y <= region.row + region.height) &&
-                                            (model->mouse_x > region.col + extra_indent + (entry->is_enqueued ? 0 : 3) &&
-                                             model->mouse_x <= region.col + extra_indent + 3 + length) &&
-                                            printed_rows == model->mouse_y - region.row - 1;
-
-                                if (is_chosen) {
-                                        clicked_song = true;
-                                }
-
-                                if (model->mouse_y < region.row)
-                                        is_chosen = true;
-                        } else {
-                                is_chosen = (chosen_row == iter);
-                        }
-                }
-
-                // Skip children of collapsed directory
-                if (entry->is_directory &&
-                    entry->parent != NULL &&
-                    entry->parent->parent != NULL &&
-                    (!uis->allowChooseSearchSongs || (chosen_dir && entry->id != chosen_dir->id))) {
-
-                        FileSystemEntry *child = entry->children;
-
-                        int count = model->state.ui.search_results_count;
-                        while (child != NULL) {
-                                if (!child->is_directory && i + 1 < count && model->search_results[i + 1].entry->id == child->id) {
-                                        i++;
-                                        visible_count--;
-                                }
-                                child = child->next;
-                        }
+                int length = (int)utf8_truncate(label, name_width);
+                bool is_chosen = row == chosen_row;
+                if (model->mouse_x >= 0 && model->mouse_y >= 0) {
+                        is_chosen = model->mouse_y == region.row + printed_rows + 1 &&
+                                    model->mouse_x >= region.col + indent &&
+                                    model->mouse_x < region.col + region.width;
+                        if (is_chosen)
+                                clicked_song = true;
                 }
 
                 if (is_chosen) {
+                        chosen_row = row;
                         current_search_entry = entry;
                         chosen_name_len = length;
                         found_chosen = true;
                 }
 
                 Node *current = get_current_song();
-                bool is_playing = current != NULL && strcmp(current->song.file_path,
-                                                            entry->full_path) == 0;
-
-                memcpy(name, tmp, length);
+                bool is_playing = current && strcmp(current->song.file_path,
+                                                    entry->full_path) == 0;
+                char name[1024];
+                memcpy(name, label, length);
                 name[length] = '\0';
-
-                draw_search_row(buf, draw_row, region.col, region.width,
-                                name, extra_indent,
-                                entry, ui, is_chosen, is_playing);
-
-                draw_row++;
+                draw_search_row(buf, region.row + printed_rows, region.col,
+                                region.width, name, indent, entry, ui,
+                                is_chosen, is_playing);
                 printed_rows++;
-
-                iter++;
         }
 
-        // Blank remaining rows
         CellStyle plain = cell_style_plain();
-        int empty_rows = 0;
-        while (empty_rows < max_list_size - printed_rows) {
-                draw_buffer_set_string_truncated(buf, draw_row++, region.col,
-                                                 "", region.width, plain);
-                empty_rows++;
-        }
+        for (int row = printed_rows; row < region.height; row++)
+                draw_buffer_set_string_truncated(buf, region.row + row,
+                                                 region.col, "", region.width, plain);
+        render_scroll_bar(buf, region, uis->search_scrollbar, plain);
+        g_hash_table_destroy(results);
+        free(visible);
 
-        CellStyle plain_style = cell_style_plain();
-        render_scroll_bar(buf, region, model->state.ui.search_scrollbar, plain_style);
-
+        ComponentMsg result = {0};
         result.has_msg = true;
         result.msg = (struct Msg){
             .type = MSG_SEARCH_ROW_SELECTED,
@@ -3697,7 +3715,6 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
             .clicked_song = clicked_song,
             .num_rows = visible_count,
             .found_chosen = found_chosen};
-
         return result;
 }
 

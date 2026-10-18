@@ -773,7 +773,6 @@ void state_init(void)
         state->ui.chosen_node_id = 0;
         state->ui.resetPlaylistDisplay = true;
         state->ui.allowChooseSongs = false;
-        state->ui.allowChooseSearchSongs = false;
         state->ui.resizeFlag = 0;
         state->ui.refresh = true;
         state->ui.isFastForwarding = false;

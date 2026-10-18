@@ -228,14 +228,7 @@ void scroll_next(Model *model)
 
                 set_dirty(DIRTY_LIBRARY);
         } else if (model->state.currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row++;
-
-                if ((model->state.ui.current_search_entry && (model->state.ui.current_search_entry->next == NULL || !is_contained_within(model->state.ui.current_search_entry, model->state.ui.chosen_search_dir)) &&
-                     ((model->state.ui.chosen_search_dir && model->state.ui.current_search_entry->id != model->state.ui.chosen_search_dir->id))))
-                        component_search_helper_collapse_view(model, 1);
-
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, 1);
         } else if (model->state.currentView == HELP_VIEW) {
 
                 model->state.ui.chosen_help_row++;
@@ -270,16 +263,7 @@ void scroll_prev(Model *model)
                 set_dirty(DIRTY_LIBRARY);
 
         } else if (model->state.currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row > 0) ? model->state.ui.chosen_search_result_row - 1 : 0;
-
-                if (model->state.ui.current_lib_entry && (model->state.ui.current_search_entry && model->state.ui.current_search_entry->parent &&
-                                                          (model->state.ui.current_search_entry == model->state.ui.current_search_entry->parent->children ||
-                                                           (model->state.ui.current_search_entry && model->state.ui.chosen_search_dir &&
-                                                                model->state.ui.current_search_entry->id == model->state.ui.chosen_search_dir->id))))
-                        component_search_helper_collapse_view(model, -1);
-
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, -1);
         } else if (model->state.currentView == HELP_VIEW) {
 
                 model->state.ui.chosen_help_row--;
@@ -318,13 +302,7 @@ void flip_next_page(Model *model)
                 set_dirty(DIRTY_PLAYLIST);
 
         } else if (state->currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row += model->state.ui.max_search_rows - 1;
-                model->state.ui.chosen_search_result_row =
-                    (model->state.ui.chosen_search_result_row >= model->state.ui.search_results_count)
-                        ? model->state.ui.search_results_count - 1
-                        : model->state.ui.chosen_search_result_row;
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, model->state.ui.max_search_rows - 1);
         }
 }
 
@@ -346,11 +324,7 @@ void flip_prev_page(Model *model)
                 set_dirty(DIRTY_PLAYLIST);
 
         } else if (model->state.currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row -= (model->state.ui.max_search_rows - 1);
-                model->state.ui.chosen_search_result_row =
-                    (model->state.ui.chosen_search_result_row > 0) ? model->state.ui.chosen_search_result_row : 0;
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, -(model->state.ui.max_search_rows - 1));
         }
 }
 
@@ -934,6 +908,10 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (msg->current_search_entry) {
                         model->state.ui.current_search_entry = msg->current_search_entry;
                         model->state.ui.chosen_search_result_row = msg->chosen_row;
+                        component_search_collapse_if_outside(model, msg->current_search_entry);
+                } else if (msg->num_rows == 0) {
+                        model->state.ui.current_search_entry = NULL;
+                        model->state.ui.chosen_search_result_row = 0;
                 }
 
                 model->state.ui.search_visible_count = msg->num_rows;
