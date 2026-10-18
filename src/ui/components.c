@@ -521,11 +521,25 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         draw_buffer_set_string(buf, draw_row, draw_col, empty_space, item_style);
 
                         char prefix[8];
+                        if (entry->is_directory) {
+                                bool expanded = entry == model->library;
+                                for (FileSystemEntry *dir = ctx.chosen_dir; dir; dir = dir->parent)
+                                        if (dir == entry)
+                                                expanded = true;
+                                if (!model->state.settings.collapseTopLevel) {
+                                        for (FileSystemEntry *child = entry->children; child; child = child->next)
+                                                if (child->is_directory)
+                                                        expanded = true;
+                                }
+                                snprintf(prefix, sizeof(prefix), "%s%s ",
+                                         entry->is_enqueued ? "*" : " ",
+                                         expanded ? "\u25BE" : "\u25B8");
+                        } else {
+                                snprintf(prefix, sizeof(prefix), "%s",
+                                         entry->is_enqueued ? " * " : "   ");
+                        }
 
-                        snprintf(prefix, sizeof(prefix), "%s",
-                                 entry->is_enqueued ? " * " : "   ");
-
-                        int prefix_len = (int)strnlen(prefix, sizeof(prefix));
+                        int prefix_len = 3;
 
                         if (max_name_width < extra_indent)
                                 max_name_width = extra_indent;
@@ -3662,7 +3676,10 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
                 char label[1024];
                 if (entry->is_directory) {
-                        snprintf(label, sizeof(label), "%s", entry->name);
+                        snprintf(label, sizeof(label), "%s %s",
+                                 search_directory_is_open(entry, uis->chosen_search_dir)
+                                     ? "\u25BE" : "\u25B8",
+                                 entry->name);
                 } else {
                         snprintf(label, sizeof(label), "%s [%s]", entry->name,
                                  entry->parent ? entry->parent->name : "Root");
