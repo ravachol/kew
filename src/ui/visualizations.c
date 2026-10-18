@@ -21,7 +21,24 @@
 #ifndef _WIN32
 #include <poll.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#define VIZ_MAX_ARGS 32
+
+extern char **environ;
 #endif
+
+typedef struct {
+        const char *argv[VIZ_MAX_ARGS];
+        int argc;
+        char stream[32];
+        char preset[32];
+        char cellsize[32];
+} VizCmd;
 
 enum viz_type {
         VIZ_ASCII = 0,
@@ -65,6 +82,131 @@ static int centered_indent = 0;
 
 int chroma_max_prests = 25;
 
+static void viz_push(VizCmd *c, const char *s)
+{
+        if (c->argc < VIZ_MAX_ARGS - 1)
+                c->argv[c->argc++] = s;
+        c->argv[c->argc] = NULL;
+}
+
+static void build_chroma_cmd(VizCmd *c)
+{
+        AppSettings *settings = get_app_settings();
+        bool has_device = settings->visualizationsDevice[0] != '\0';
+
+        snprintf(c->stream, sizeof(c->stream), "%dx%d", g_viz.width, g_viz.height);
+
+        if (g_viz.preset == -1)
+                snprintf(c->preset, sizeof(c->preset), "random");
+        else
+                snprintf(c->preset, sizeof(c->preset), "%d", g_viz.preset);
+
+        viz_push(c, g_viz.provider);
+        viz_push(c, "--stream");
+        viz_push(c, c->stream);
+
+        if (settings->chromaPath[0] == '\0') {
+                viz_push(c, "--preset");
+                viz_push(c, c->preset);
+                if (has_device) {
+                        viz_push(c, "--audio-device");
+                        viz_push(c, settings->visualizationsDevice);
+                } else {
+                        viz_push(c, "--preset-interval");
+                        viz_push(c, "30");
+                }
+        } else {
+                viz_push(c, "-c");
+                viz_push(c, settings->chromaPath);
+                if (has_device) {
+                        viz_push(c, "--presets");
+                        viz_push(c, "--audio-device");
+                        viz_push(c, settings->visualizationsDevice);
+                }
+        }
+}
+
+static void build_generic_cmd(VizCmd *c)
+{
+        Model *model = get_model();
+        AppSettings *settings = get_app_settings();
+
+        TermSize ts;
+        get_tty_size(&ts);
+        int cw = (ts.width_pixels > 0 && ts.cols > 0) ? ts.width_pixels / ts.cols : 8;
+        int ch = (ts.height_pixels > 0 && ts.rows > 0) ? ts.height_pixels / ts.rows : 16;
+
+        g_viz.mode = model->state.settings.visualizationsMode;
+
+        snprintf(c->stream, sizeof(c->stream), "%dx%d", g_viz.width, g_viz.height);
+        snprintf(c->cellsize, sizeof(c->cellsize), "%dx%d", cw, ch);
+
+        viz_push(c, g_viz.provider);
+        viz_push(c, "--stream");
+        viz_push(c, c->stream);
+
+        if (settings->visualizationsPath[0] != '\0') {
+                viz_push(c, "--presets");
+                viz_push(c, settings->visualizationsPath);
+        }
+        if (settings->visualizationsDevice[0] != '\0') {
+                viz_push(c, "--audio-device");
+                viz_push(c, settings->visualizationsDevice);
+        }
+
+        viz_push(c, "--sendinfo");
+        viz_push(c, "--mode");
+        viz_push(c, g_viz.mode == VIZ_SIXELS ? "sixels" : "ascii");
+        viz_push(c, "--cell-size");
+        viz_push(c, c->cellsize);
+}
+
+// Starts the child with its stdout connected to a pipe. Returns the pid
+// (or -1) and puts the read end of the pipe in *out_fd. No shell is involved.
+static pid_t viz_spawn(const char *const argv[], int *out_fd)
+{
+        int fds[2];
+        if (pipe(fds) != 0)
+                return -1;
+
+        fcntl(fds[0], F_SETFD, FD_CLOEXEC); // don't leak the read end into later children
+
+        posix_spawn_file_actions_t fa;
+        posix_spawn_file_actions_init(&fa);
+        posix_spawn_file_actions_adddup2(&fa, fds[1], STDOUT_FILENO);
+        posix_spawn_file_actions_addclose(&fa, fds[1]);
+        posix_spawn_file_actions_addopen(&fa, STDIN_FILENO, "/dev/null", O_RDONLY, 0);
+
+        pid_t pid;
+        int rc = posix_spawnp(&pid, argv[0], &fa, NULL, (char *const *)argv, environ);
+
+        posix_spawn_file_actions_destroy(&fa);
+        close(fds[1]);
+
+        if (rc != 0) {
+                close(fds[0]);
+                return -1;
+        }
+
+        *out_fd = fds[0];
+        return pid;
+}
+
+static void viz_stop(pid_t pid, int fd)
+{
+        close(fd);
+        kill(pid, SIGTERM);
+
+        for (int i = 0; i < 50; i++) { // up to ~1 second
+                if (waitpid(pid, NULL, WNOHANG) != 0)
+                        return; // reaped, or already gone
+                usleep(20 * 1000);
+        }
+
+        kill(pid, SIGKILL);
+        waitpid(pid, NULL, 0);
+}
+
 int calc_visualizations_width(int height)
 {
         TermSize ts;
@@ -89,79 +231,6 @@ int calc_visualizations_width(int height)
                 width = 1;
 
         return width;
-}
-
-static int set_chroma_cmd_string(char *cmd, int cmd_size, char *preset_arg)
-{
-
-        AppSettings *settings = get_app_settings();
-        int n;
-
-        if (settings->chromaPath[0] == '\0') {
-                if (settings->visualizationsDevice[0] == '\0')
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --preset %s --preset-interval 30",
-                                     g_viz.provider, g_viz.width, g_viz.height, preset_arg);
-                else
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --preset %s --audio-device \"%s\"",
-                                     g_viz.provider, g_viz.width, g_viz.height, preset_arg,
-                                     settings->visualizationsDevice);
-        } else {
-                if (settings->visualizationsDevice[0] == '\0')
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d -c \"%s\"",
-                                     g_viz.provider, g_viz.width, g_viz.height, settings->chromaPath);
-                else
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d -c \"%s\" --presets --audio-device \"%s\"",
-                                     g_viz.provider, g_viz.width, g_viz.height, settings->chromaPath,
-                                     settings->visualizationsDevice);
-        }
-
-        return n;
-}
-
-static int set_generic_cmd_string(char *cmd, int cmd_size)
-{
-
-        Model *model = get_model();
-        AppSettings *settings = get_app_settings();
-        int n;
-
-        TermSize ts;
-        get_tty_size(&ts);
-        int cw = (ts.width_pixels > 0 && ts.cols > 0) ? ts.width_pixels / ts.cols : 8;
-        int ch = (ts.height_pixels > 0 && ts.rows > 0) ? ts.height_pixels / ts.rows : 16;
-
-        char extra[96];
-        snprintf(extra, sizeof(extra), " --mode %s --cell-size %dx%d",
-                 model->state.settings.visualizationsMode == VIZ_SIXELS ? "sixels" : "ascii", cw, ch);
-
-        g_viz.mode = model->state.settings.visualizationsMode;
-
-        if (settings->visualizationsPath[0] == '\0') {
-                if (settings->visualizationsDevice[0] == '\0')
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --sendinfo %s",
-                                     g_viz.provider, g_viz.width, g_viz.height, extra);
-                else
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --audio-device \"%s\" --sendinfo %s",
-                                     g_viz.provider, g_viz.width, g_viz.height, settings->visualizationsDevice, extra);
-        } else {
-                if (settings->visualizationsDevice[0] == '\0')
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --presets \"%s\" --sendinfo %s",
-                                     g_viz.provider, g_viz.width, g_viz.height, settings->visualizationsPath, extra);
-                else
-                        n = snprintf(cmd, cmd_size,
-                                     "%s --stream %dx%d --presets \"%s\" --audio-device \"%s\" --sendinfo %s",
-                                     g_viz.provider, g_viz.width, g_viz.height, settings->visualizationsPath,
-                                     settings->visualizationsDevice, extra);
-        }
-
-        return n;
 }
 
 static void *visualizer_thread(void *arg)
@@ -200,37 +269,19 @@ static void *visualizer_thread(void *arg)
                 g_viz.width = width;
                 pthread_mutex_unlock(&g_viz.lock);
 
-                char cmd[1024];
-                int cmd_size = (int)sizeof(cmd);
-                int n;
-
-                char preset_arg[32];
-                if (g_viz.preset == -1)
-                        snprintf(preset_arg, sizeof(preset_arg), "random");
-                else
-                        snprintf(preset_arg, sizeof(preset_arg), "%d", g_viz.preset);
+                VizCmd cmd = {0};
 
                 if (strcmp(g_viz.provider, "chroma") == 0) {
                         g_viz.mode = VIZ_ASCII;
-                        n = set_chroma_cmd_string(cmd, cmd_size, preset_arg);
+                        build_chroma_cmd(&cmd);
                 } else {
-                        n = set_generic_cmd_string(cmd, cmd_size);
+                        build_generic_cmd(&cmd);
                 }
 
-                //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
-
-                //n = snprintf(cmd, sizeof(cmd),
-                //      "chroma --stream %dx%d --audio-device PipeWire\\ Sound\\ Server -c %s ", g_viz.width, g_viz.height, settings->visualizerPath);
-
-                if (n < 0 || n >= (int)sizeof(cmd)) {
-                        // Truncated or error; skip this iteration
-                        usleep(1000);
-                        continue;
-                }
-
-                FILE *fp = popen(cmd, "r");
-                if (!fp) {
-                        usleep(1000);
+                int fd = -1;
+                pid_t pid = viz_spawn(cmd.argv, &fd);
+                if (pid < 0) {
+                        usleep(200 * 1000);
                         continue;
                 }
 
@@ -238,8 +289,8 @@ static void *visualizer_thread(void *arg)
                 char *buf = malloc(VISUALIZATIONS_MAX_BUF);
 
                 if (!buf) {
-                        pclose(fp);
-                        usleep(1000);
+                        viz_stop(pid, fd);
+                        usleep(200 * 1000);
                         continue;
                 }
 
@@ -248,7 +299,7 @@ static void *visualizer_thread(void *arg)
                 while (g_viz.running) {
 
 #ifndef _WIN32
-                        struct pollfd pfd = {.fd = fileno(fp), .events = POLLIN};
+                        struct pollfd pfd = {.fd = fd, .events = POLLIN};
                         int pr = poll(&pfd, 1, 100);
 
                         if (pr == 0)
@@ -259,7 +310,7 @@ static void *visualizer_thread(void *arg)
                                 break;
                         }
 #endif
-                        ssize_t r = read(fileno(fp), buf + pos, VISUALIZATIONS_MAX_BUF - pos);
+                        ssize_t r = read(fd, buf + pos, VISUALIZATIONS_MAX_BUF - pos);
                         if (r <= 0)
                                 break; // EOF or error
 
@@ -313,7 +364,7 @@ static void *visualizer_thread(void *arg)
 
                 if (buf)
                         free(buf);
-                pclose(fp);
+                viz_stop(pid, fd);
 
                 if (g_viz.running)
                         usleep(200 * 1000); // don't respawn in a tight loop
