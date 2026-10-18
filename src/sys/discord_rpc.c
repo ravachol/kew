@@ -23,8 +23,11 @@
 #endif
 
 #define DISCORD_CLIENT_ID "1472901833633693696"
+#define DISCORD_RECONNECT_INTERVAL_US (5 * G_USEC_PER_SEC)
+#define DISCORD_MIN_UPDATE_INTERVAL_US (15 * G_USEC_PER_SEC)
 #define DISCORD_OP_HANDSHAKE 0
 #define DISCORD_OP_FRAME 1
+#define DISCORD_SEEK_TOLERANCE_S 2
 
 #ifndef _WIN32
 static GSocketConnection *discord_conn = NULL; // Unix only. owns the stream
@@ -34,6 +37,12 @@ static HANDLE discord_pipe = INVALID_HANDLE_VALUE; // Windows only; raw handle f
 static GOutputStream *discord_out = NULL; // Unix: borrowed from discord_conn. Windows: owned.
 static gboolean discord_available = FALSE;
 static time_t track_start_time = 0;
+static char last_track_key[600] = "";
+static gint64 next_connect_us = 0;
+
+static gint64 last_send_us = 0;
+static char pending_payload[4096];
+static gboolean has_pending = FALSE;
 
 static void json_escape(const char *src, char *dst, size_t size)
 {
@@ -94,7 +103,9 @@ static void disconnect(void)
         }
         discord_out = NULL;
 #endif
-        discord_available = FALSE;
+        discord_available = FALSE
+        ;
+        last_track_key[0] = '\0';
 }
 
 static void drain_responses(void)
@@ -131,17 +142,24 @@ static void drain_responses(void)
         GSocket *sock = g_socket_connection_get_socket(discord_conn);
 
         for (;;) {
-                gssize avail = g_socket_get_available_bytes(sock);
-                if (avail <= 0)
+                if (!(g_socket_condition_check(sock, G_IO_IN) & G_IO_IN))
                         return;
+
+                gssize avail = g_socket_get_available_bytes(sock);
+                if (avail <= 0) {
+                        disconnect();
+                        return;
+                }
 
                 gsize want = (gsize)avail < sizeof(buf) ? (gsize)avail : sizeof(buf);
                 GError *error = NULL;
                 gssize got = g_socket_receive(sock, buf, want, NULL, &error);
                 if (error)
                         g_error_free(error);
-                if (got <= 0)
+                if (got <= 0) {
+                        disconnect();
                         return;
+                }
         }
 #endif
 }
@@ -181,7 +199,36 @@ static void send_handshake(void)
         send_frame(DISCORD_OP_HANDSHAKE, handshake);
 }
 
-static gboolean try_connect_socket(void)
+static void send_activity(const char *payload, gboolean force)
+{
+        gint64 now = g_get_monotonic_time();
+
+        if (!force && last_send_us != 0 &&
+            now - last_send_us < DISCORD_MIN_UPDATE_INTERVAL_US) {
+                snprintf(pending_payload, sizeof(pending_payload), "%s", payload);
+                has_pending = TRUE;
+                return;
+        }
+
+        has_pending = FALSE;
+        send_frame(DISCORD_OP_FRAME, payload);
+        last_send_us = now;
+}
+
+// Same lookup order the official discord-rpc library uses.
+static const char *discord_ipc_dir(void)
+{
+        const char *vars[] = {"XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP"};
+
+        for (size_t i = 0; i < G_N_ELEMENTS(vars); i++) {
+                const char *v = g_getenv(vars[i]);
+                if (v && v[0])
+                        return v;
+        }
+        return "/tmp";
+}
+
+static gboolean try_connect_socket_now(void)
 {
         if (discord_available && discord_out)
                 return TRUE;
@@ -209,15 +256,8 @@ static gboolean try_connect_socket(void)
 
 #elif defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
-        gchar *runtime_alloc = NULL;
-        const char *runtime;
+        const char *runtime = discord_ipc_dir();
 
-#if defined(__APPLE__)
-        runtime_alloc = g_build_filename(g_get_home_dir(), "Library", "Application Support", "Discord", NULL);
-        runtime = runtime_alloc;
-#else
-        runtime = g_getenv("XDG_RUNTIME_DIR");
-#endif
         if (!runtime) {
                 discord_available = FALSE;
                 return FALSE;
@@ -246,16 +286,53 @@ static gboolean try_connect_socket(void)
 
                         send_handshake();
 
-                        g_free(runtime_alloc);
                         return discord_available;
                 }
         }
 
-        g_free(runtime_alloc);
 #endif
 
         discord_available = FALSE;
         return FALSE;
+}
+
+static gboolean try_connect_socket(void)
+{
+        if (discord_available && discord_out)
+                return TRUE;
+
+        gint64 now = g_get_monotonic_time();
+        if (now < next_connect_us)
+                return FALSE; // too soon after the last failure
+
+        if (try_connect_socket_now())
+                return TRUE;
+
+        next_connect_us = now + DISCORD_RECONNECT_INTERVAL_US;
+        return FALSE;
+}
+
+void discord_rpc_tick(void)
+{
+        if (!has_pending)
+                return;
+
+        if (g_get_monotonic_time() - last_send_us < DISCORD_MIN_UPDATE_INTERVAL_US)
+                return;
+
+        if (!discord_available) {
+                try_connect_socket();
+                if (!discord_available)
+                        return;
+        }
+
+        drain_responses();
+        if (!discord_available)
+                return;
+
+        has_pending = FALSE;
+        send_frame(DISCORD_OP_FRAME, pending_payload);
+        last_send_us = g_get_monotonic_time();
 }
 
 // Initialize Discord RPC (call at startup)
@@ -267,39 +344,38 @@ void discord_rpc_init(void)
                 try_connect_socket();
 }
 
-void discord_rpc_shutdown(void)
+static void clear_activity(gboolean force)
 {
-        Model *model = get_model();
-
-        if (!model->state.settings.discordRPCEnabled)
-                return;
+        last_track_key[0] = '\0'; // resuming must send a fresh update
+        has_pending = FALSE;      // a queued update is now obsolete
 
         if (!discord_available)
                 return;
 
-        // Clear any activity on Discord before disconnecting
-        discord_rpc_clear();
-
-        disconnect();
-}
-
-// Clear activity (pause)
-void discord_rpc_clear(void)
-{
-        if (!discord_available) {
-                try_connect_socket();
-                if (!discord_available)
-                        return;
-        }
-
         drain_responses();
+        if (!discord_available)
+                return;
 
         char payload[256];
         snprintf(payload, sizeof(payload),
                  "{\"cmd\":\"SET_ACTIVITY\",\"args\":{\"pid\":%d},\"nonce\":\"kew_clear\"}",
                  (int)getpid());
 
-        send_frame(DISCORD_OP_FRAME, payload);
+        send_activity(payload, force);
+}
+
+void discord_rpc_clear(void)
+{
+        clear_activity(FALSE);
+}
+
+void discord_rpc_shutdown(void)
+{
+        if (!discord_available)
+                return;
+
+        clear_activity(TRUE); // bypass the limiter so the presence really disappears
+        disconnect();
 }
 
 // Notify Discord of pause
@@ -308,11 +384,46 @@ void notify_discord_pause(void)
         discord_rpc_clear();
 }
 
+#define DISCORD_FIELD_MAX 128
+
+static void discord_field(const char *src, char *dst, size_t dst_size)
+{
+        size_t full = src ? strlen(src) : 0;
+        size_t len = full > DISCORD_FIELD_MAX ? DISCORD_FIELD_MAX : full;
+
+        if (len < full) {
+                // Back up if we landed in the middle of a multi-byte character
+                while (len > 0 && ((unsigned char)src[len] & 0xC0) == 0x80)
+                        len--;
+        }
+
+        if (len > 0)
+                memcpy(dst, src, len);
+
+        while (len < 2 && len + 1 < dst_size)
+                dst[len++] = ' ';
+
+        dst[len] = '\0';
+}
+
 // Notify Discord of player state changes
 void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_duration)
 {
         if (!song || !song->metadata)
                 return;
+
+        char track_key[600];
+        snprintf(track_key, sizeof(track_key), "%s\n%s\n%s\n%lld",
+                 or_default(song->metadata->title, ""),
+                 or_default(song->metadata->artist, ""),
+                 or_default(song->metadata->album, ""),
+                 (long long)song_duration);
+
+        time_t new_start = time(NULL) - elapsed_seconds;
+
+        if (strcmp(track_key, last_track_key) == 0 &&
+            llabs((long long)(new_start - track_start_time)) <= DISCORD_SEEK_TOLERANCE_S)
+                return; // same track
 
         if (!discord_available) {
                 try_connect_socket();
@@ -321,20 +432,24 @@ void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_d
         }
 
         drain_responses();
-        if (!discord_available)
-                return;
+        if (!discord_available) {
+                try_connect_socket();
+                if (!discord_available)
+                        return;
+        }
 
         track_start_time = time(NULL) - elapsed_seconds;
 
-        char escaped_title[512];
-        char escaped_artist[512];
-        char escaped_album[512];
+        char title[132], artist[132], album[132];
+        char escaped_title[800];
+        char escaped_artist[800];
+        char escaped_album[800];
         char nonce[32];
-        char payload[2048];
+        char payload[4096];
 
-        const char *title = or_default(song->metadata->title, "Unknown title");
-        const char *artist = or_default(song->metadata->artist, "Unknown artist");
-        const char *album = or_default(song->metadata->album, "Unknown album");
+        discord_field(or_default(song->metadata->title, "Unknown title"), title, sizeof(title));
+        discord_field(or_default(song->metadata->artist, "Unknown artist"), artist, sizeof(artist));
+        discord_field(or_default(song->metadata->album, "Unknown album"), album, sizeof(album));
 
         json_escape(title, escaped_title, sizeof(escaped_title));
         json_escape(artist, escaped_artist, sizeof(escaped_artist));
@@ -342,7 +457,21 @@ void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_d
 
         snprintf(nonce, sizeof(nonce), "%lld", (long long)g_get_monotonic_time());
 
-        snprintf(payload, sizeof(payload),
+        if (elapsed_seconds < 0)
+                elapsed_seconds = 0;
+        track_start_time = time(NULL) - elapsed_seconds;
+
+        char timestamps[96];
+        if (song_duration > 0)
+                snprintf(timestamps, sizeof(timestamps),
+                         "{\"start\":%lld,\"end\":%lld}",
+                         (long long)track_start_time,
+                         (long long)(track_start_time + song_duration));
+        else
+                snprintf(timestamps, sizeof(timestamps),
+                         "{\"start\":%lld}", (long long)track_start_time);
+
+        int n = snprintf(payload, sizeof(payload),
                  "{"
                  "\"cmd\":\"SET_ACTIVITY\","
                  "\"args\":{"
@@ -352,10 +481,7 @@ void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_d
                  "\"name\":\"%s\","
                  "\"details\":\"%s\","
                  "\"state\":\"%s\","
-                 "\"timestamps\":{"
-                 "\"start\":%lld,"
-                 "\"end\":%lld"
-                 "},"
+                 "\"timestamps\":%s,"
                  "\"assets\":{"
                  "\"large_image\":\"kew_logo\","
                  "\"large_text\":\"kew music player\""
@@ -368,9 +494,12 @@ void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_d
                  escaped_artist,
                  escaped_title,
                  escaped_album,
-                 (long long)track_start_time,
-                 (long long)(track_start_time + song_duration),
+                 timestamps,
                  nonce);
 
-        send_frame(DISCORD_OP_FRAME, payload);
+        if (n < 0 || n >= (int)sizeof(payload))
+                return;
+
+        snprintf(last_track_key, sizeof(last_track_key), "%s", track_key);
+        send_activity(payload, FALSE);
 }

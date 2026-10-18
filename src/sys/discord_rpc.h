@@ -61,6 +61,8 @@ void discord_rpc_shutdown(void);
  */
 void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_duration);
 
+void discord_rpc_tick(void);
+
 /**
  * @brief Notify Discord that playback has paused.
  *

@@ -156,6 +156,8 @@ void run_tick_commands(Model *model)
                 emit_playback_playing();
         }
 
+        discord_rpc_tick();
+
         if (ps->notifySwitch) {
                 ps->notifySwitch = false;
 
