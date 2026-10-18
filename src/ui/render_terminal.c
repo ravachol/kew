@@ -38,7 +38,7 @@ void emit_image(ImagePayload *image,
                 return;
 
         if (centered)
-                col = ((term_width_cells - corrected_width) / 2) + 1;
+                col = (term_width_cells - corrected_width) / 2;
         const char *p = (const char *)image->data;
         int current_row = row + 1;
         while (*p) {
@@ -237,6 +237,29 @@ static void emit_utf8_string(const char *s)
         while (*p) {
                 uint32_t cp;
 
+                int len = (*p < 0x80)           ? 1 :
+                          ((*p & 0xE0) == 0xC0) ? 2 :
+                          ((*p & 0xF0) == 0xE0) ? 3 :
+                          ((*p & 0xF8) == 0xF0) ? 4 : 0;
+
+                if (len == 0) {
+                        // Stray continuation byte or invalid lead byte
+                        emit_codepoint(0xFFFD);
+                        p++;
+                        continue;
+                }
+
+                int valid = 1;
+                while (valid < len && (p[valid] & 0xC0) == 0x80)
+                        valid++;
+
+                if (valid < len) {
+                        // Truncated sequence: skip only the bytes we validated
+                        emit_codepoint(0xFFFD);
+                        p += valid;
+                        continue;
+                }
+
                 if (*p < 0x80) {
                         cp = *p++;
                 } else if ((*p & 0xE0) == 0xC0) {
@@ -264,7 +287,7 @@ void terminal_backend_commit(const DrawBuffer *buf,
                              DirtyFlags dirty,
                              TerminalBackendState *state)
 {
-        if (dirty == DIRTY_ALL)
+        if ((dirty & DIRTY_ALL) == DIRTY_ALL)
                 clear_screen();
 
         RenderState style = {0};
