@@ -106,7 +106,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 'f', 0, MSG_MOVESONGUP, ""},
     {0, 'g', 0, MSG_MOVESONGDOWN, ""},
 
-    {TB_KEY_ENTER, 0, 0, MSG_ENQUEUE, ""},
+    {TB_KEY_ENTER, 0, 0, MSG_EXPAND_FOLDER, ""},
     {TB_KEY_BACKSPACE, 0, 0, MSG_CLEARPLAYLIST, ""},
 
     {TB_KEY_CTRL_G, 0, TB_MOD_CTRL, MSG_ENQUEUEANDPLAY, ""},
@@ -759,6 +759,8 @@ static const EventMap event_map[] = {
     {"prevPage", MSG_PREV_PAGE},
     {"remove", MSG_REMOVE},
     {"search", MSG_SEARCH},
+    {"expandFolder", MSG_EXPAND_FOLDER},
+    {"collapseFolder", MSG_COLLAPSE_FOLDER},
     {"nextView", MSG_NEXTVIEW},
     {"prevView", MSG_PREVVIEW},
     {"clearPlaylist", MSG_CLEARPLAYLIST},

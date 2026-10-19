@@ -54,6 +54,8 @@ void component_library_helper_update_view_state(Model *model);
 ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+bool component_expand_selected_folder(Model *model);
+void component_collapse_selected_folder(Model *model);
 
 ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 

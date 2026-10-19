@@ -546,6 +546,17 @@ UpdateResult update(Model *model, struct Msg *msg)
                 result.cmd.value = 0;
                 break;
 
+        case MSG_EXPAND_FOLDER:
+                if (!component_expand_selected_folder(model)) {
+                        result.cmd.type = CMD_VIEW_ENQUEUE;
+                        result.cmd.value = 0;
+                }
+                break;
+
+        case MSG_COLLAPSE_FOLDER:
+                component_collapse_selected_folder(model);
+                break;
+
         case MSG_ENQUEUEANDPLAY:
                 result.cmd.type = CMD_VIEW_ENQUEUE;
                 result.cmd.value = 1;

@@ -1925,7 +1925,7 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
                 char line2[256];
 
                 snprintf(line1, sizeof(line1), _(" Select:↑/↓ or k/j. Accept:%s. Clear:%s."),
-                         get_binding_string(MSG_ENQUEUE, true),
+                         get_binding_string(MSG_EXPAND_FOLDER, true),
                          get_binding_string(MSG_CLEARPLAYLIST, true));
 
 #ifndef __APPLE__
@@ -1966,8 +1966,8 @@ ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuf
                 char line1[256];
                 char line2[256];
 
-                snprintf(line1, sizeof(line1), _(" Select:↑/↓ or k/j. Enqueue/Dequeue:%s. Play:%s."),
-                         get_binding_string(MSG_ENQUEUE, true),
+                snprintf(line1, sizeof(line1), _(" Select:↑/↓ or k/j. Open/Enqueue:%s. Play:%s."),
+                         get_binding_string(MSG_EXPAND_FOLDER, true),
                          get_binding_string(MSG_ENQUEUEANDPLAY, true));
 
 #ifndef __APPLE__
@@ -1998,8 +1998,8 @@ ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuff
         if (model->term_w > MIN_HEADER_WIDTH && !ui->hideHelp) {
                 char line1[256];
 
-                snprintf(line1, sizeof(line1), _("Select:↑/↓. Enqueue:%s. Play:%s."),
-                         get_binding_string(MSG_ENQUEUE, true),
+                snprintf(line1, sizeof(line1), _("Select:↑/↓. Open/Enqueue:%s. Play:%s."),
+                         get_binding_string(MSG_EXPAND_FOLDER, true),
                          get_binding_string(MSG_ENQUEUEANDPLAY, true));
 
                 draw_buffer_set_string(buf, row, col, line1, style);
@@ -3213,7 +3213,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         row++;
 
         HELP_LINE(_(" · Play/Pause: %s"), get_binding_string(MSG_PLAY_PAUSE, false));
-        HELP_LINE(_(" · Enqueue/Dequeue: %s"), get_binding_string(MSG_ENQUEUE, false));
+        HELP_LINE(_(" · Open folder or Enqueue/Dequeue: %s"), get_binding_string(MSG_EXPAND_FOLDER, false));
         HELP_LINE(_(" · Immediate Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
         HELP_LINE(_(" · Switch tracks: %s and %s"),
                   get_binding_string(MSG_PREV, false),
@@ -3614,6 +3614,54 @@ void component_search_move_selection(Model *model, int delta)
         }
         free(visible);
         g_hash_table_destroy(results);
+}
+
+bool component_expand_selected_folder(Model *model)
+{
+        UIState *ui = &model->state.ui;
+        if (model->state.currentView == LIBRARY_VIEW) {
+                FileSystemEntry *entry = ui->current_lib_entry;
+                if (!entry || !entry->is_directory || !entry->children ||
+                    folder_contains(entry, ui->chosen_dir))
+                        return false;
+                ui->chosen_dir = ui->treeCtx.chosen_dir = entry;
+                ui->allowChooseSongs = entry->parent != NULL;
+                set_dirty(DIRTY_LIBRARY);
+                return true;
+        }
+        if (model->state.currentView == SEARCH_VIEW) {
+                FileSystemEntry *entry = ui->current_search_entry;
+                if (!entry || !entry->is_directory || !entry->children ||
+                    folder_contains(entry, ui->chosen_search_dir))
+                        return false;
+                ui->chosen_search_dir = entry;
+                reselect_search_folder(model, entry);
+                set_dirty(DIRTY_SEARCH);
+                return true;
+        }
+        return false;
+}
+
+void component_collapse_selected_folder(Model *model)
+{
+        UIState *ui = &model->state.ui;
+        if (model->state.currentView == LIBRARY_VIEW) {
+                FileSystemEntry *entry = ui->current_lib_entry;
+                if (!entry || !entry->is_directory || !folder_contains(entry, ui->chosen_dir))
+                        return;
+                FileSystemEntry *parent = entry->parent;
+                ui->chosen_dir = ui->treeCtx.chosen_dir = parent && parent->parent ? parent : NULL;
+                ui->allowChooseSongs = ui->chosen_dir != NULL;
+                set_dirty(DIRTY_LIBRARY);
+        } else if (model->state.currentView == SEARCH_VIEW) {
+                FileSystemEntry *entry = ui->current_search_entry;
+                if (!entry || !entry->is_directory || !folder_contains(entry, ui->chosen_search_dir))
+                        return;
+                FileSystemEntry *parent = entry->parent;
+                ui->chosen_search_dir = parent && parent->parent ? parent : NULL;
+                reselect_search_folder(model, entry);
+                set_dirty(DIRTY_SEARCH);
+        }
 }
 
 static int search_result_indent(GHashTable *results,
