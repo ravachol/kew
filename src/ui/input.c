@@ -143,6 +143,15 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
         AppState *state = get_app_state();
 
         if (state->currentView == SEARCH_VIEW) {
+                struct tb_event binding_event = *ev;
+                struct Msg binding = map_tb_key_to_event(&binding_event);
+                if (binding.type == MSG_SEARCH_FOCUS) {
+                        state->ui.search_input_focused = !state->ui.search_input_focused;
+                        set_dirty(DIRTY_SEARCH);
+                        return binding;
+                }
+                if (!state->ui.search_input_focused)
+                        return binding;
 
                 if (ev->key == TB_KEY_SPACE && ev->mod == 0)
                         ev->ch = ' ';

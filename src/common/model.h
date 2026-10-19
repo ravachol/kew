@@ -487,6 +487,7 @@ typedef struct
         FileSystemEntry *current_lib_entry;
         FileSystemEntry *current_search_entry;
         FileSystemEntry *chosen_search_dir;
+        bool search_input_focused;
         FileSystemEntry *chosen_dir;
         FileSystemEntry *last_search_parent;
 

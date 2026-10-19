@@ -557,6 +557,10 @@ UpdateResult update(Model *model, struct Msg *msg)
                 component_collapse_selected_folder(model);
                 break;
 
+        case MSG_SEARCH_FOCUS:
+                set_dirty(DIRTY_SEARCH);
+                break;
+
         case MSG_ENQUEUEANDPLAY:
                 result.cmd.type = CMD_VIEW_ENQUEUE;
                 result.cmd.value = 1;

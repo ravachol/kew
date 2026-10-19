@@ -47,6 +47,7 @@ enum MsgType {
         MSG_SEARCH,
         MSG_EXPAND_FOLDER,
         MSG_COLLAPSE_FOLDER,
+        MSG_SEARCH_FOCUS,
         MSG_NEXTVIEW,
         MSG_PREVVIEW,
         MSG_CLEARPLAYLIST,

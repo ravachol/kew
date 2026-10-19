@@ -3429,12 +3429,22 @@ ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer 
         int max_width = region.width;
 
         snprintf(line, sizeof(line), _("Search:"));
-        snprintf(query, sizeof(query), "%s█", model->state.ui.search_text);
+        snprintf(query, sizeof(query), "%s%s", model->state.ui.search_text,
+                 model->state.ui.search_input_focused ? "█" : "");
         ;
         int line_width = utf8_display_width(line);
         draw_buffer_set_string_truncated(buf, region.row, region.col, line, line_width, label_style);
         draw_buffer_set_string_truncated(buf, region.row, region.col + line_width + 1, query, max_width, query_style);
-        draw_buffer_set_string(buf, region.row + 2, region.col, "", label_style); // blank line below
+        const char *focus_key = get_binding_string(MSG_SEARCH_FOCUS, true);
+        if (strcmp(focus_key, "?") != 0) {
+                char hint[128];
+                snprintf(hint, sizeof(hint), _("%s: %s"), focus_key,
+                         model->state.ui.search_input_focused ? _("results") : _("edit search"));
+                draw_buffer_set_string_truncated(buf, region.row + 1, region.col,
+                                                 hint, max_width, label_style);
+        } else {
+                draw_buffer_set_string(buf, region.row + 1, region.col, "", label_style);
+        }
 
         return (ComponentMsg){0};
 }

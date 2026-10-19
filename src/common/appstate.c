@@ -347,6 +347,7 @@ void model_init(void)
 
         model.search_results = NULL;
         model.state.ui.chosen_search_dir = NULL;
+        model.state.ui.search_input_focused = true;
         model.state.ui.current_search_entry = NULL;
         model.state.ui.current_lib_entry = NULL;
         model.state.ui.chosen_dir = NULL;

@@ -761,6 +761,7 @@ static const EventMap event_map[] = {
     {"search", MSG_SEARCH},
     {"expandFolder", MSG_EXPAND_FOLDER},
     {"collapseFolder", MSG_COLLAPSE_FOLDER},
+    {"switchSearchFocus", MSG_SEARCH_FOCUS},
     {"nextView", MSG_NEXTVIEW},
     {"prevView", MSG_PREVVIEW},
     {"clearPlaylist", MSG_CLEARPLAYLIST},
