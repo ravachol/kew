@@ -253,6 +253,14 @@ const char *get_key_name(int key)
                         return key_map[i].name;
         }
 
+        // Ctrl+letter bindings use ASCII control codes rather than printable chars.
+        if (key >= TB_KEY_CTRL_A && key <= TB_KEY_CTRL_Z) {
+                static char ctrl_letter[2];
+                ctrl_letter[0] = 'a' + (key - TB_KEY_CTRL_A);
+                ctrl_letter[1] = '\0';
+                return ctrl_letter;
+        }
+
         // Printable ASCII fallback
         static char buf[2];
         if (key >= 32 && key <= 126) {
@@ -311,6 +319,13 @@ static const char *key_code_to_name(uint16_t code)
         for (int i = 0; key_map[i].name != NULL; i++) {
                 if (key_map[i].code == code)
                         return key_map[i].name;
+        }
+
+        if (code >= TB_KEY_CTRL_A && code <= TB_KEY_CTRL_Z) {
+                static char ctrl_letter[2];
+                ctrl_letter[0] = 'a' + (code - TB_KEY_CTRL_A);
+                ctrl_letter[1] = '\0';
+                return ctrl_letter;
         }
 
         // If code is printable ASCII, return it as a string
