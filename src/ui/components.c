@@ -457,9 +457,14 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
         // Visibility check
         bool show;
         if (!model->state.settings.autoCloseFolders) {
-                show = depth <= 1 ||
-                       (entry->parent && uis->open_library_dirs &&
-                        g_hash_table_contains(uis->open_library_dirs, entry->parent));
+                bool parent_open = entry->parent && uis->open_library_dirs &&
+                                   g_hash_table_contains(uis->open_library_dirs, entry->parent);
+                show = depth <= 1 || parent_open;
+                // Seeded artist layers show album folders, but direct tracks wait
+                // until the artist is explicitly opened.
+                if (show && depth == 2 && !entry->is_directory && parent_open &&
+                    !g_hash_table_lookup(uis->open_library_dirs, entry->parent))
+                        show = false;
         } else {
                 show = (entry->is_directory && depth == 1) ||
                        (entry->is_directory && !model->state.settings.collapseTopLevel) ||
