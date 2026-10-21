@@ -552,8 +552,17 @@ UpdateResult update(Model *model, struct Msg *msg)
 
         case MSG_EXPAND_FOLDER:
                 if (!component_expand_selected_folder(model)) {
-                        result.cmd.type = CMD_VIEW_ENQUEUE;
-                        result.cmd.value = 0;
+                        FileSystemEntry *entry = NULL;
+                        if (model->state.currentView == LIBRARY_VIEW)
+                                entry = model->state.ui.current_lib_entry;
+                        else if (model->state.currentView == SEARCH_VIEW)
+                                entry = model->state.ui.current_search_entry;
+
+                        if (!entry || !entry->is_directory || !entry->parent ||
+                            entry->parent->parent) {
+                                result.cmd.type = CMD_VIEW_ENQUEUE;
+                                result.cmd.value = 0;
+                        }
                 }
                 break;
 

@@ -560,23 +560,8 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                         char prefix[8];
                         if (entry->is_directory) {
-                                bool expanded = entry == model->library;
-                                if (!model->state.settings.autoCloseFolders)
-                                        expanded = expanded || (uis->open_library_dirs &&
-                                                       g_hash_table_contains(uis->open_library_dirs, entry));
-                                else {
-                                        for (FileSystemEntry *dir = ctx.chosen_dir; dir; dir = dir->parent)
-                                                if (dir == entry)
-                                                        expanded = true;
-                                        if (!model->state.settings.collapseTopLevel) {
-                                                for (FileSystemEntry *child = entry->children; child; child = child->next)
-                                                        if (child->is_directory)
-                                                                expanded = true;
-                                        }
-                                }
-                                snprintf(prefix, sizeof(prefix), "%s%s ",
-                                         entry->is_enqueued ? "*" : " ",
-                                         expanded ? "\u25BE" : "\u25B8");
+                                snprintf(prefix, sizeof(prefix), "%s",
+                                         entry->is_enqueued ? "*  " : "   ");
                         } else {
                                 snprintf(prefix, sizeof(prefix), "%s",
                                          entry->is_enqueued ? " * " : "   ");
@@ -599,7 +584,7 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         filename[0] = '\0';
                         bool strip_unneeded_chars = true;
                         bool strip_suffix = true;
-                        int text_col = draw_col + extra_indent + 3;
+                        int text_col = draw_col + extra_indent + prefix_len;
 
                         // playlist icon
                         if (is_m3u_file(entry)) {
@@ -1996,6 +1981,14 @@ ComponentMsg component_playlist_header(const Model *model, k_Rect region, DrawBu
         return (ComponentMsg){0};
 }
 
+static const char *open_enqueue_binding(void)
+{
+        const char *binding = get_binding_string(MSG_EXPAND_FOLDER, true);
+        if (strcmp(binding, "?") == 0)
+                binding = get_binding_string(MSG_ENQUEUE, true);
+        return binding;
+}
+
 ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty)
 {
         (void)dirty;
@@ -2011,7 +2004,7 @@ ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuf
                 char line2[256];
 
                 snprintf(line1, sizeof(line1), _(" Select:↑/↓ or k/j. Open/Enqueue:%s. Play:%s."),
-                         get_binding_string(MSG_EXPAND_FOLDER, true),
+                         open_enqueue_binding(),
                          get_binding_string(MSG_ENQUEUEANDPLAY, true));
 
 #ifndef __APPLE__
@@ -2043,7 +2036,7 @@ ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuff
                 char line1[256];
 
                 snprintf(line1, sizeof(line1), _("Select:↑/↓. Open/Enqueue:%s. Play:%s."),
-                         get_binding_string(MSG_EXPAND_FOLDER, true),
+                         open_enqueue_binding(),
                          get_binding_string(MSG_ENQUEUEANDPLAY, true));
 
                 draw_buffer_set_string(buf, row, col, line1, style);
@@ -3257,7 +3250,7 @@ ComponentMsg component_help(const Model *model, k_Rect region, DrawBuffer *buf,
         row++;
 
         HELP_LINE(_(" · Play/Pause: %s"), get_binding_string(MSG_PLAY_PAUSE, false));
-        HELP_LINE(_(" · Open folder or Enqueue/Dequeue: %s"), get_binding_string(MSG_EXPAND_FOLDER, false));
+        HELP_LINE(_(" · Open folder or Enqueue/Dequeue: %s"), open_enqueue_binding());
         HELP_LINE(_(" · Immediate Play: %s"), get_binding_string(MSG_ENQUEUEANDPLAY, false));
         HELP_LINE(_(" · Switch tracks: %s and %s"),
                   get_binding_string(MSG_PREV, false),
@@ -3839,10 +3832,13 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
                 char label[1024];
                 if (entry->is_directory) {
+                        char *upper = entry->parent == model->library
+                                          ? string_to_upper(entry->name) : NULL;
                         snprintf(label, sizeof(label), "%s %s",
                                  search_directory_is_open(model, entry)
-                                     ? "\u25BE" : "\u25B8",
-                                 entry->name);
+                                     ? "\uf07c" : "\uf07b",
+                                 upper ? upper : entry->name);
+                        g_free(upper);
                 } else {
                         snprintf(label, sizeof(label), "%s [%s]", entry->name,
                                  entry->parent ? entry->parent->name : "Root");
