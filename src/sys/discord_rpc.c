@@ -28,6 +28,8 @@
 #define DISCORD_OP_HANDSHAKE 0
 #define DISCORD_OP_FRAME 1
 #define DISCORD_SEEK_TOLERANCE_S 2
+// Three metadata fields, separators, a signed 64-bit duration, and the terminator.
+#define DISCORD_TRACK_KEY_SIZE (3 * (METADATA_MAX_LENGTH - 1) + 3 + 20 + 1)
 
 #ifndef _WIN32
 static GSocketConnection *discord_conn = NULL; // Unix only. owns the stream
@@ -37,7 +39,7 @@ static HANDLE discord_pipe = INVALID_HANDLE_VALUE; // Windows only; raw handle f
 static GOutputStream *discord_out = NULL; // Unix: borrowed from discord_conn. Windows: owned.
 static gboolean discord_available = FALSE;
 static time_t track_start_time = 0;
-static char last_track_key[600] = "";
+static char last_track_key[DISCORD_TRACK_KEY_SIZE] = "";
 static gint64 next_connect_us = 0;
 
 static gint64 last_send_us = 0;
@@ -412,7 +414,7 @@ void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_d
         if (!song || !song->metadata)
                 return;
 
-        char track_key[600];
+        char track_key[DISCORD_TRACK_KEY_SIZE];
         snprintf(track_key, sizeof(track_key), "%s\n%s\n%s\n%lld",
                  or_default(song->metadata->title, ""),
                  or_default(song->metadata->artist, ""),
