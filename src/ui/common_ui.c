@@ -150,6 +150,7 @@ void transfer_settings_to_ui(void)
         ui_settings->hideFooter = (settings->hideFooter[0] == '1');
         ui_settings->hideSideCover = (settings->hideSideCover[0] == '1');
         ui_settings->collapseTopLevel = (settings->collapseTopLevel[0] == '1');
+        ui_settings->autoCloseFolders = (settings->autoCloseFolders[0] != '0');
         ui_settings->searchHierarchy = (settings->searchHierarchy[0] == '1');
         ui_settings->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
         ui_settings->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');

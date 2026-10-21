@@ -164,7 +164,8 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
 
         if (entry != NULL) {
                 if (entry->is_directory) {
-                        if ((!has_song_children(entry) && !(model->state.settings.collapseTopLevel && model->state.currentView != SEARCH_VIEW)) ||
+                        if (!model->state.settings.autoCloseFolders ||
+                            (!has_song_children(entry) && !(model->state.settings.collapseTopLevel && model->state.currentView != SEARCH_VIEW)) ||
                             entry->parent == NULL ||
                             ((*chosen_dir) != NULL &&
                              (entry == *chosen_dir || is_contained_within(*chosen_dir, entry)))) {

@@ -761,6 +761,7 @@ void state_init(void)
         state->settings.visualizationsPreset = -1;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
+        state->settings.autoCloseFolders = true;
         state->settings.colorMode = COLOR_MODE_ALBUM;
         state->settings.fade_enter_song_ms = 0;
         state->settings.fade_quick_ms = 2000;

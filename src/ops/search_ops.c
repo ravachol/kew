@@ -147,6 +147,8 @@ void clear_search_query(void)
 void search_shutdown(void)
 {
         Model *model = get_model();
+        if (model->state.ui.open_search_dirs)
+                g_hash_table_remove_all(model->state.ui.open_search_dirs);
 
         if (model->search_results != NULL) {
                 model->search_results->entry = NULL;

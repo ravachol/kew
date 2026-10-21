@@ -202,10 +202,14 @@ void scroll_next(Model *model)
         } else if (model->state.currentView == LIBRARY_VIEW) {
                 model->state.ui.chosen_lib_row++;
 
-                if (model->state.ui.lib_row_count != 0 && model->state.ui.chosen_lib_row > model->state.ui.lib_row_count)
+                if (model->state.ui.lib_row_count != 0 &&
+                    (model->state.settings.autoCloseFolders
+                         ? model->state.ui.chosen_lib_row > model->state.ui.lib_row_count
+                         : model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count))
                         model->state.ui.chosen_lib_row = model->state.ui.lib_row_count - 1;
 
-                if ((model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
+                if (model->state.settings.autoCloseFolders &&
+                    (model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
                      ((model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id != model->state.ui.treeCtx.chosen_dir->id)))) {
 
                         if (model->state.settings.collapseTopLevel) {
@@ -255,7 +259,7 @@ void scroll_prev(Model *model)
 
                 model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row > 0) ? model->state.ui.chosen_lib_row - 1 : 0;
 
-                if (model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->parent &&
+                if (model->state.settings.autoCloseFolders && model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->parent &&
                                                           (model->state.ui.current_lib_entry == model->state.ui.current_lib_entry->parent->children ||
                                                            (model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id == model->state.ui.treeCtx.chosen_dir->id))))
                         library_collapse_view(model, -1);
@@ -877,7 +881,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
                 }
 
-                if (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory))
+                if (model->state.settings.autoCloseFolders &&
+                    (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory)))
                 {
                         if (model->state.ui.check_collapse_top_level ||
                                 (msg->current_lib_entry && msg->current_lib_entry->is_directory && model->state.ui.chosen_dir)) {

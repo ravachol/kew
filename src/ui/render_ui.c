@@ -1236,6 +1236,9 @@ void ui_shutdown(void)
         component_playlist_helper_reset(model);
         component_help_helper_reset(model);
 
+        g_clear_pointer(&model->state.ui.open_library_dirs, g_hash_table_destroy);
+        g_clear_pointer(&model->state.ui.open_search_dirs, g_hash_table_destroy);
+
         layout_destroy(model->library_layout);
         layout_destroy(model->playlist_layout);
         layout_destroy(model->search_layout);

@@ -952,6 +952,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
         c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
         c_strcpy(settings->collapseTopLevel, "0", sizeof(settings->collapseTopLevel));
+        c_strcpy(settings->autoCloseFolders, "1", sizeof(settings->autoCloseFolders));
         c_strcpy(settings->searchHierarchy, "0", sizeof(settings->searchHierarchy));
         c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
         c_strcpy(settings->simpleTimeStatus, "1", sizeof(settings->simpleTimeStatus));
@@ -1522,6 +1523,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "collapsetoplevel") == 0) {
                         snprintf(settings->collapseTopLevel, sizeof(settings->collapseTopLevel),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "autoclosefolders") == 0) {
+                        snprintf(settings->autoCloseFolders, sizeof(settings->autoCloseFolders),
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "searchhierarchy") == 0) {
                         if (!is_prefs)
@@ -2307,6 +2311,11 @@ void set_config(AppSettings *settings, UISettings *ui)
                                                 sizeof(settings->collapseTopLevel))
                                      : c_strcpy(settings->collapseTopLevel, "0",
                                                 sizeof(settings->collapseTopLevel));
+        if (settings->autoCloseFolders[0] == '\0')
+                ui->autoCloseFolders ? c_strcpy(settings->autoCloseFolders, "1",
+                                                sizeof(settings->autoCloseFolders))
+                                     : c_strcpy(settings->autoCloseFolders, "0",
+                                                sizeof(settings->autoCloseFolders));
 
         if (settings->visualizer_height[0] == '\0')
                 snprintf(settings->visualizer_height,
@@ -2360,6 +2369,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
         fprintf(file, "\n# Show only top level folders.\n\n");
         fprintf(file, "collapseTopLevel=%s\n\n", settings->collapseTopLevel);
+        fprintf(file, "# Keep independently opened folders visible in Library and Search when set to 0.\n\n");
+        fprintf(file, "autoCloseFolders=%s\n\n", settings->autoCloseFolders);
         fprintf(file, "\n# Resume last playing song when starting kew.\n\n");
         fprintf(file, "autoResume=%s\n\n", settings->auto_resume);
 
@@ -2513,7 +2524,10 @@ void set_config(AppSettings *settings, UISettings *ui)
                 settings->progressBarCurrentOddChar);
 
         fprintf(file, "\n[key bindings]\n\n");
-        fprintf(file, "Note:Ctrl+h/i/m are indistinguishable from Backspace/Tab/Enter\n\n");
+        fprintf(file, "# Optional actions without default keys; uncomment and change the keys to use them:\n");
+        fprintf(file, "# bind = Shift+e, collapseFolder\n");
+        fprintf(file, "# bind = Ctrl+f, switchSearchFocus      # toggles between editing the query and navigating results.\n");
+        fprintf(file, "#Note:Ctrl+h/i/m are indistinguishable from Backspace/Tab/Enter.\n\n");
 
         for (size_t i = 0; i < keybinding_count; i++) {
                 fprintf(file, "bind = ");

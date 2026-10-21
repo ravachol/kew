@@ -375,6 +375,9 @@ void library_collapse_view(Model *model, int diff_rows)
 
 void component_library_helper_reset(Model *model)
 {
+        if (model->state.ui.open_library_dirs)
+                g_hash_table_remove_all(model->state.ui.open_library_dirs);
+        model->state.ui.open_library_root = NULL;
         model->state.ui.chosen_dir = NULL;
         model->state.ui.chosen_lib_row = 0;
 
@@ -394,6 +397,34 @@ void component_library_helper_reset(Model *model)
         model->state.ui.search_scrollbar.last_position = model->state.ui.search_region.row;
 
         reset_msg_queue_pointers();
+}
+
+static void seed_library_directory_layers(GHashTable *open_dirs, FileSystemEntry *entry)
+{
+        if (!entry || !entry->is_directory)
+                return;
+        for (FileSystemEntry *child = entry->children; child; child = child->next) {
+                if (!child->is_directory)
+                        continue;
+                g_hash_table_add(open_dirs, entry);
+                seed_library_directory_layers(open_dirs, child);
+        }
+}
+
+static void ensure_library_open_dirs(Model *model)
+{
+        if (model->state.settings.autoCloseFolders || !model->library)
+                return;
+        UIState *ui = &model->state.ui;
+        if (ui->open_library_root == model->library)
+                return;
+        if (!ui->open_library_dirs)
+                ui->open_library_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
+        else
+                g_hash_table_remove_all(ui->open_library_dirs);
+        ui->open_library_root = model->library;
+        if (!model->state.settings.collapseTopLevel)
+                seed_library_directory_layers(ui->open_library_dirs, model->library);
 }
 
 static FileSystemEntry *component_library_helper_render_node(const Model *model, FileSystemEntry *entry, int depth,
@@ -424,14 +455,21 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                 is_playing = 1;
 
         // Visibility check
-        bool show = (entry->is_directory && depth == 1) ||
-                    (entry->is_directory && !model->state.settings.collapseTopLevel) ||
-                    (!entry->is_directory && depth == 1) ||
-                    (entry->is_directory && depth == 0) ||
-                    (ctx.chosen_dir != NULL && uis->allowChooseSongs && entry->parent != NULL &&
-                     (strcmp(entry->parent->full_path, ctx.chosen_dir->full_path) == 0 || strcmp(entry->full_path, ctx.chosen_dir->full_path) == 0));
+        bool show;
+        if (!model->state.settings.autoCloseFolders) {
+                show = depth <= 1 ||
+                       (entry->parent && uis->open_library_dirs &&
+                        g_hash_table_contains(uis->open_library_dirs, entry->parent));
+        } else {
+                show = (entry->is_directory && depth == 1) ||
+                       (entry->is_directory && !model->state.settings.collapseTopLevel) ||
+                       (!entry->is_directory && depth == 1) ||
+                       (entry->is_directory && depth == 0) ||
+                       (ctx.chosen_dir != NULL && uis->allowChooseSongs && entry->parent != NULL &&
+                        (strcmp(entry->parent->full_path, ctx.chosen_dir->full_path) == 0 || strcmp(entry->full_path, ctx.chosen_dir->full_path) == 0));
+        }
 
-        if (ctx.chosen_dir && model->state.settings.collapseTopLevel) {
+        if (model->state.settings.autoCloseFolders && ctx.chosen_dir && model->state.settings.collapseTopLevel) {
                 FileSystemEntry *artist = get_first_parent(ctx.chosen_dir);
                 FileSystemEntry *entry_artist = get_first_parent(entry);
 
@@ -523,13 +561,18 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
                         char prefix[8];
                         if (entry->is_directory) {
                                 bool expanded = entry == model->library;
-                                for (FileSystemEntry *dir = ctx.chosen_dir; dir; dir = dir->parent)
-                                        if (dir == entry)
-                                                expanded = true;
-                                if (!model->state.settings.collapseTopLevel) {
-                                        for (FileSystemEntry *child = entry->children; child; child = child->next)
-                                                if (child->is_directory)
+                                if (!model->state.settings.autoCloseFolders)
+                                        expanded = expanded || (uis->open_library_dirs &&
+                                                       g_hash_table_contains(uis->open_library_dirs, entry));
+                                else {
+                                        for (FileSystemEntry *dir = ctx.chosen_dir; dir; dir = dir->parent)
+                                                if (dir == entry)
                                                         expanded = true;
+                                        if (!model->state.settings.collapseTopLevel) {
+                                                for (FileSystemEntry *child = entry->children; child; child = child->next)
+                                                        if (child->is_directory)
+                                                                expanded = true;
+                                        }
                                 }
                                 snprintf(prefix, sizeof(prefix), "%s%s ",
                                          entry->is_enqueued ? "*" : " ",
@@ -689,6 +732,7 @@ traverse_children:
 
 void component_library_helper_update_view_state(Model *model)
 {
+        ensure_library_open_dirs(model);
         TreeContext *ctx = &model->state.ui.treeCtx;
 
         ctx->chosen_dir = model->state.ui.chosen_dir;
@@ -3369,6 +3413,8 @@ ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffe
 {
         (void)dirty;
 
+        ensure_library_open_dirs(get_model());
+
         ComponentMsg result = (ComponentMsg){0};
 
         if (model->library == NULL)
@@ -3484,17 +3530,18 @@ size_t utf8_truncate(const char *s, int max_width)
         return pos; /* byte offset */
 }
 
-static bool search_directory_is_open(const FileSystemEntry *dir,
-                                     const FileSystemEntry *chosen_dir)
+static bool search_directory_is_open(const Model *model, const FileSystemEntry *dir)
 {
-        for (const FileSystemEntry *p = chosen_dir; p; p = p->parent)
+        if (!model->state.settings.autoCloseFolders)
+                return model->state.ui.open_search_dirs &&
+                       g_hash_table_contains(model->state.ui.open_search_dirs, dir);
+        for (const FileSystemEntry *p = model->state.ui.chosen_search_dir; p; p = p->parent)
                 if (p == dir)
                         return true;
         return false;
 }
 
-static bool search_result_is_visible(GHashTable *results,
-                                     const FileSystemEntry *chosen_dir,
+static bool search_result_is_visible(const Model *model, GHashTable *results,
                                      const SearchResult *result)
 {
         if (result->matched)
@@ -3504,20 +3551,19 @@ static bool search_result_is_visible(GHashTable *results,
         for (const FileSystemEntry *parent = entry->parent; parent && parent->parent;
              parent = parent->parent) {
                 if (g_hash_table_contains(results, parent) &&
-                    !search_directory_is_open(parent, chosen_dir))
+                    !search_directory_is_open(model, parent))
                         return false;
         }
         return true;
 }
 
-static const FileSystemEntry *search_display_parent(GHashTable *results,
-                                                     const FileSystemEntry *chosen_dir,
+static const FileSystemEntry *search_display_parent(const Model *model, GHashTable *results,
                                                      const FileSystemEntry *entry)
 {
         for (const FileSystemEntry *parent = entry->parent; parent && parent->parent;
              parent = parent->parent) {
                 if (g_hash_table_contains(results, parent) &&
-                    search_directory_is_open(parent, chosen_dir))
+                    search_directory_is_open(model, parent))
                         return parent;
         }
         return NULL;
@@ -3533,13 +3579,13 @@ static void append_search_rows(const Model *model, GHashTable *results,
                 for (int i = 0; i < count; i++) {
                         SearchResult *result = &model->search_results[i];
                         FileSystemEntry *entry = result->entry;
-                        if (!search_result_is_visible(results, model->state.ui.chosen_search_dir, result) ||
-                            search_display_parent(results, model->state.ui.chosen_search_dir, entry) != parent ||
+                        if (!search_result_is_visible(model, results, result) ||
+                            search_display_parent(model, results, entry) != parent ||
                             (parent && entry->is_directory != (pass == 0)))
                                 continue;
                         visible[(*visible_count)++] = i;
                         if (entry->is_directory &&
-                            search_directory_is_open(entry, model->state.ui.chosen_search_dir))
+                            search_directory_is_open(model, entry))
                                 append_search_rows(model, results, entry, visible, visible_count);
                 }
         }
@@ -3562,6 +3608,18 @@ static bool folder_contains(const FileSystemEntry *folder, const FileSystemEntry
         return false;
 }
 
+static void close_folder_and_descendants(GHashTable *open_dirs, FileSystemEntry *entry)
+{
+        if (!open_dirs)
+                return;
+        GHashTableIter iter;
+        gpointer key;
+        g_hash_table_iter_init(&iter, open_dirs);
+        while (g_hash_table_iter_next(&iter, &key, NULL))
+                if (folder_contains(entry, key))
+                        g_hash_table_iter_remove(&iter);
+}
+
 static void reselect_search_folder(Model *model, FileSystemEntry *entry)
 {
         int count = model->state.ui.search_results_count;
@@ -3582,6 +3640,8 @@ static void reselect_search_folder(Model *model, FileSystemEntry *entry)
 
 void component_search_collapse_if_outside(Model *model, FileSystemEntry *entry)
 {
+        if (!model->state.settings.autoCloseFolders)
+                return;
         UIState *ui = &model->state.ui;
         if (!ui->chosen_search_dir || folder_contains(ui->chosen_search_dir, entry))
                 return;
@@ -3609,7 +3669,8 @@ void component_search_move_selection(Model *model, int delta)
                 if (row >= visible_count)
                         row = visible_count - 1;
                 FileSystemEntry *target = model->search_results[visible[row]].entry;
-                if (ui->chosen_search_dir && !folder_contains(ui->chosen_search_dir, target)) {
+                if (model->state.settings.autoCloseFolders && ui->chosen_search_dir &&
+                    !folder_contains(ui->chosen_search_dir, target)) {
                         ui->chosen_search_dir = NULL;
                         visible_count = build_search_visible_rows(model, results, visible);
                         for (int i = 0; i < visible_count; i++) {
@@ -3631,6 +3692,18 @@ bool component_expand_selected_folder(Model *model)
         UIState *ui = &model->state.ui;
         if (model->state.currentView == LIBRARY_VIEW) {
                 FileSystemEntry *entry = ui->current_lib_entry;
+                if (!model->state.settings.autoCloseFolders) {
+                        if (!entry || !entry->is_directory || !entry->children)
+                                return false;
+                        if (!ui->open_library_dirs)
+                                ui->open_library_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
+                        if (g_hash_table_contains(ui->open_library_dirs, entry))
+                                return false;
+                        g_hash_table_add(ui->open_library_dirs, entry);
+                        ui->chosen_dir = ui->treeCtx.chosen_dir = entry;
+                        set_dirty(DIRTY_LIBRARY);
+                        return true;
+                }
                 if (!entry || !entry->is_directory || !entry->children ||
                     folder_contains(entry, ui->chosen_dir))
                         return false;
@@ -3641,6 +3714,19 @@ bool component_expand_selected_folder(Model *model)
         }
         if (model->state.currentView == SEARCH_VIEW) {
                 FileSystemEntry *entry = ui->current_search_entry;
+                if (!model->state.settings.autoCloseFolders) {
+                        if (!entry || !entry->is_directory || !entry->children)
+                                return false;
+                        if (!ui->open_search_dirs)
+                                ui->open_search_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
+                        if (g_hash_table_contains(ui->open_search_dirs, entry))
+                                return false;
+                        g_hash_table_add(ui->open_search_dirs, entry);
+                        ui->chosen_search_dir = entry;
+                        reselect_search_folder(model, entry);
+                        set_dirty(DIRTY_SEARCH);
+                        return true;
+                }
                 if (!entry || !entry->is_directory || !entry->children ||
                     folder_contains(entry, ui->chosen_search_dir))
                         return false;
@@ -3657,6 +3743,16 @@ void component_collapse_selected_folder(Model *model)
         UIState *ui = &model->state.ui;
         if (model->state.currentView == LIBRARY_VIEW) {
                 FileSystemEntry *entry = ui->current_lib_entry;
+                if (!model->state.settings.autoCloseFolders) {
+                        if (!entry || !entry->is_directory || !ui->open_library_dirs ||
+                            !g_hash_table_contains(ui->open_library_dirs, entry))
+                                return;
+                        close_folder_and_descendants(ui->open_library_dirs, entry);
+                        if (folder_contains(entry, ui->chosen_dir))
+                                ui->chosen_dir = ui->treeCtx.chosen_dir = entry->parent;
+                        set_dirty(DIRTY_LIBRARY);
+                        return;
+                }
                 if (!entry || !entry->is_directory || !folder_contains(entry, ui->chosen_dir))
                         return;
                 FileSystemEntry *parent = entry->parent;
@@ -3665,6 +3761,17 @@ void component_collapse_selected_folder(Model *model)
                 set_dirty(DIRTY_LIBRARY);
         } else if (model->state.currentView == SEARCH_VIEW) {
                 FileSystemEntry *entry = ui->current_search_entry;
+                if (!model->state.settings.autoCloseFolders) {
+                        if (!entry || !entry->is_directory || !ui->open_search_dirs ||
+                            !g_hash_table_contains(ui->open_search_dirs, entry))
+                                return;
+                        close_folder_and_descendants(ui->open_search_dirs, entry);
+                        if (folder_contains(entry, ui->chosen_search_dir))
+                                ui->chosen_search_dir = entry->parent;
+                        reselect_search_folder(model, entry);
+                        set_dirty(DIRTY_SEARCH);
+                        return;
+                }
                 if (!entry || !entry->is_directory || !folder_contains(entry, ui->chosen_search_dir))
                         return;
                 FileSystemEntry *parent = entry->parent;
@@ -3674,15 +3781,14 @@ void component_collapse_selected_folder(Model *model)
         }
 }
 
-static int search_result_indent(GHashTable *results,
-                                const FileSystemEntry *chosen_dir,
+static int search_result_indent(const Model *model, GHashTable *results,
                                 const FileSystemEntry *entry)
 {
         int indent = 0;
         for (const FileSystemEntry *parent = entry->parent; parent && parent->parent;
              parent = parent->parent) {
                 if (g_hash_table_contains(results, parent) &&
-                    search_directory_is_open(parent, chosen_dir))
+                    search_directory_is_open(model, parent))
                         indent += 2;
         }
         return indent;
@@ -3726,8 +3832,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
 
         for (int row = start; row < visible_count && printed_rows < region.height; row++) {
                 FileSystemEntry *entry = model->search_results[visible[row]].entry;
-                int indent = search_result_indent(results, uis->chosen_search_dir,
-                                                  entry);
+                int indent = search_result_indent(model, results, entry);
                 int name_width = max_name_width - indent;
                 if (name_width < 0)
                         name_width = 0;
@@ -3735,7 +3840,7 @@ ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuf
                 char label[1024];
                 if (entry->is_directory) {
                         snprintf(label, sizeof(label), "%s %s",
-                                 search_directory_is_open(entry, uis->chosen_search_dir)
+                                 search_directory_is_open(model, entry)
                                      ? "\u25BE" : "\u25B8",
                                  entry->name);
                 } else {
