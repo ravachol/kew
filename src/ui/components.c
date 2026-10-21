@@ -406,7 +406,7 @@ static void seed_library_directory_layers(GHashTable *open_dirs, FileSystemEntry
         for (FileSystemEntry *child = entry->children; child; child = child->next) {
                 if (!child->is_directory)
                         continue;
-                g_hash_table_add(open_dirs, entry);
+                g_hash_table_insert(open_dirs, entry, NULL);
                 seed_library_directory_layers(open_dirs, child);
         }
 }
@@ -3690,10 +3690,12 @@ bool component_expand_selected_folder(Model *model)
                                 return false;
                         if (!ui->open_library_dirs)
                                 ui->open_library_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
-                        if (g_hash_table_contains(ui->open_library_dirs, entry))
+                        if (g_hash_table_lookup(ui->open_library_dirs, entry))
                                 return false;
-                        g_hash_table_add(ui->open_library_dirs, entry);
+                        // A non-NULL value records an explicit expansion.
+                        g_hash_table_insert(ui->open_library_dirs, entry, GINT_TO_POINTER(1));
                         ui->chosen_dir = ui->treeCtx.chosen_dir = entry;
+                        ui->allowChooseSongs = entry->parent != NULL;
                         set_dirty(DIRTY_LIBRARY);
                         return true;
                 }

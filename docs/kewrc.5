@@ -376,7 +376,9 @@ section holds custom key binding assignments.
 Enter is bound to
 .B expandFolder
 by default. It opens a selected folder; pressing it again enqueues or dequeues
-that folder. The
+that folder. If both actions are explicitly bound to the same key,
+.B expandFolder
+takes precedence so the first press still opens the folder. The
 .B collapseFolder
 and
 .B switchSearchFocus

@@ -1208,6 +1208,34 @@ static char *parse_field(char **s)
         return strdup(buffer); // return a copy
 }
 
+static bool has_matching_expand_binding(KeyValuePair *pairs, int count,
+                                        const TBKeyBinding *enqueue_binding)
+{
+        for (int i = 0; i < count; i++) {
+                if (k_stricmp(pairs[i].key, "bind") != 0)
+                        continue;
+
+                char value_copy[256];
+                c_strcpy(value_copy, pairs[i].value, sizeof(value_copy));
+                char *field = value_copy;
+                char *key = parse_field(&field);
+                char *action = parse_field(&field);
+                bool matches = false;
+
+                if (key && action && parse_to_event(action) == MSG_EXPAND_FOLDER) {
+                        TBKeyBinding expand = parse_binding(key, action, NULL);
+                        matches = expand.key == enqueue_binding->key &&
+                                  expand.ch == enqueue_binding->ch &&
+                                  expand.mods == enqueue_binding->mods;
+                }
+                free(key);
+                free(action);
+                if (matches)
+                        return true;
+        }
+        return false;
+}
+
 void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count, bool is_prefs)
 {
         if (pairs == NULL) {
@@ -1707,6 +1735,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                         args_str = "";
 
                                 TBKeyBinding kb = parse_binding(binding_str, event_str, args_str);
+                                if (kb.eventType == MSG_ENQUEUE &&
+                                    has_matching_expand_binding(pairs, count, &kb))
+                                        kb.eventType = MSG_EXPAND_FOLDER;
                                 add_key_binding(kb);
                         }
 
