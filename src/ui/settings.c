@@ -314,31 +314,6 @@ static uint16_t key_name_to_code(const char *name)
         return 0;
 }
 
-static const char *key_code_to_name(uint16_t code)
-{
-        for (int i = 0; key_map[i].name != NULL; i++) {
-                if (key_map[i].code == code)
-                        return key_map[i].name;
-        }
-
-        if (code >= TB_KEY_CTRL_A && code <= TB_KEY_CTRL_Z) {
-                static char ctrl_letter[2];
-                ctrl_letter[0] = 'a' + (code - TB_KEY_CTRL_A);
-                ctrl_letter[1] = '\0';
-                return ctrl_letter;
-        }
-
-        // If code is printable ASCII, return it as a string
-        static char buf[2];
-        if (code >= 32 && code <= 126) {
-                buf[0] = (char)code;
-                buf[1] = '\0';
-                return buf;
-        }
-
-        return "Unknown";
-}
-
 TBKeyBinding *get_key_bindings()
 {
         return key_bindings;
@@ -1204,6 +1179,10 @@ static char *parse_field(char **s)
                         break; // avoid overflow
         }
 
+        if (!in_quotes) {
+                while (idx > 0 && isspace((unsigned char)buffer[idx - 1]))
+                        idx--;
+        }
         buffer[idx] = '\0';
         return strdup(buffer); // return a copy
 }
@@ -2179,11 +2158,8 @@ static const char *key_binding_to_str(const TBKeyBinding kb)
         // Key
         if (kb.key != 0) {
                 // Special key
-                const char *key_name = key_code_to_name(kb.key);
-                if (key_name)
-                        strcat(buf, key_name);
-                else
-                        sprintf(buf + strlen(buf), "0x%x", kb.key);
+                const char *key_name = get_key_name(kb.key);
+                strcat(buf, *key_name ? key_name : "Unknown");
         } else if (kb.ch != 0) {
                 // Printable character
                 size_t len = strlen(buf);

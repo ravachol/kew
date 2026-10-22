@@ -490,7 +490,6 @@ typedef struct
         FileSystemEntry *chosen_search_dir;
         GHashTable *open_search_dirs;
         GHashTable *open_library_dirs;
-        FileSystemEntry *open_library_root;
         bool search_input_focused;
         FileSystemEntry *chosen_dir;
         FileSystemEntry *last_search_parent;

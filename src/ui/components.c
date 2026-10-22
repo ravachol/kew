@@ -375,9 +375,7 @@ void library_collapse_view(Model *model, int diff_rows)
 
 void component_library_helper_reset(Model *model)
 {
-        if (model->state.ui.open_library_dirs)
-                g_hash_table_remove_all(model->state.ui.open_library_dirs);
-        model->state.ui.open_library_root = NULL;
+        g_clear_pointer(&model->state.ui.open_library_dirs, g_hash_table_destroy);
         model->state.ui.chosen_dir = NULL;
         model->state.ui.chosen_lib_row = 0;
 
@@ -416,13 +414,9 @@ static void ensure_library_open_dirs(Model *model)
         if (model->state.settings.autoCloseFolders || !model->library)
                 return;
         UIState *ui = &model->state.ui;
-        if (ui->open_library_root == model->library)
+        if (ui->open_library_dirs)
                 return;
-        if (!ui->open_library_dirs)
-                ui->open_library_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
-        else
-                g_hash_table_remove_all(ui->open_library_dirs);
-        ui->open_library_root = model->library;
+        ui->open_library_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
         if (!model->state.settings.collapseTopLevel)
                 seed_library_directory_layers(ui->open_library_dirs, model->library);
 }
@@ -563,15 +557,8 @@ static FileSystemEntry *component_library_helper_render_node(const Model *model,
 
                         draw_buffer_set_string(buf, draw_row, draw_col, empty_space, item_style);
 
-                        char prefix[8];
-                        if (entry->is_directory) {
-                                snprintf(prefix, sizeof(prefix), "%s",
-                                         entry->is_enqueued ? "*  " : "   ");
-                        } else {
-                                snprintf(prefix, sizeof(prefix), "%s",
-                                         entry->is_enqueued ? " * " : "   ");
-                        }
-
+                        const char *prefix = entry->is_enqueued
+                                                 ? (entry->is_directory ? "*  " : " * ") : "   ";
                         int prefix_len = 3;
 
                         if (max_name_width < extra_indent)
@@ -722,7 +709,6 @@ traverse_children:
 
 void component_library_helper_update_view_state(Model *model)
 {
-        ensure_library_open_dirs(model);
         TreeContext *ctx = &model->state.ui.treeCtx;
 
         ctx->chosen_dir = model->state.ui.chosen_dir;
@@ -3606,6 +3592,14 @@ static bool folder_contains(const FileSystemEntry *folder, const FileSystemEntry
         return false;
 }
 
+static FileSystemEntry *search_open_ancestor_for_entry(FileSystemEntry *open_dir,
+                                                        const FileSystemEntry *entry)
+{
+        while (open_dir && open_dir->parent && !folder_contains(open_dir, entry))
+                open_dir = open_dir->parent;
+        return open_dir && open_dir->parent ? open_dir : NULL;
+}
+
 static void close_folder_and_descendants(GHashTable *open_dirs, FileSystemEntry *entry)
 {
         if (!open_dirs)
@@ -3641,9 +3635,10 @@ void component_search_collapse_if_outside(Model *model, FileSystemEntry *entry)
         if (!model->state.settings.autoCloseFolders)
                 return;
         UIState *ui = &model->state.ui;
-        if (!ui->chosen_search_dir || folder_contains(ui->chosen_search_dir, entry))
+        FileSystemEntry *open_dir = search_open_ancestor_for_entry(ui->chosen_search_dir, entry);
+        if (open_dir == ui->chosen_search_dir)
                 return;
-        ui->chosen_search_dir = NULL;
+        ui->chosen_search_dir = open_dir;
         reselect_search_folder(model, entry);
         set_dirty(DIRTY_SEARCH);
 }
@@ -3667,9 +3662,11 @@ void component_search_move_selection(Model *model, int delta)
                 if (row >= visible_count)
                         row = visible_count - 1;
                 FileSystemEntry *target = model->search_results[visible[row]].entry;
-                if (model->state.settings.autoCloseFolders && ui->chosen_search_dir &&
-                    !folder_contains(ui->chosen_search_dir, target)) {
-                        ui->chosen_search_dir = NULL;
+                FileSystemEntry *open_dir = model->state.settings.autoCloseFolders
+                                                ? search_open_ancestor_for_entry(ui->chosen_search_dir, target)
+                                                : ui->chosen_search_dir;
+                if (open_dir != ui->chosen_search_dir) {
+                        ui->chosen_search_dir = open_dir;
                         visible_count = build_search_visible_rows(model, results, visible);
                         for (int i = 0; i < visible_count; i++) {
                                 if (model->search_results[visible[i]].entry == target) {
@@ -3690,11 +3687,19 @@ bool component_expand_selected_folder(Model *model)
         UIState *ui = &model->state.ui;
         if (model->state.currentView == LIBRARY_VIEW) {
                 FileSystemEntry *entry = ui->current_lib_entry;
+                if (!entry || !entry->is_directory || !entry->children)
+                        return false;
+                if (!model->state.settings.autoCloseFolders)
+                        ensure_library_open_dirs(model);
+                if (entry->parent == model->library &&
+                    !model->state.settings.collapseTopLevel &&
+                    (model->state.settings.autoCloseFolders ||
+                     (ui->open_library_dirs && g_hash_table_contains(ui->open_library_dirs, entry))) &&
+                    !has_song_children(entry))
+                        return false; // Album folders are already visible.
                 if (!model->state.settings.autoCloseFolders) {
-                        if (!entry || !entry->is_directory || !entry->children)
-                                return false;
                         if (!ui->open_library_dirs)
-                                ui->open_library_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
+                                return false;
                         if (g_hash_table_lookup(ui->open_library_dirs, entry))
                                 return false;
                         // A non-NULL value records an explicit expansion.
@@ -3704,8 +3709,7 @@ bool component_expand_selected_folder(Model *model)
                         set_dirty(DIRTY_LIBRARY);
                         return true;
                 }
-                if (!entry || !entry->is_directory || !entry->children ||
-                    folder_contains(entry, ui->chosen_dir))
+                if (folder_contains(entry, ui->chosen_dir))
                         return false;
                 ui->chosen_dir = ui->treeCtx.chosen_dir = entry;
                 ui->allowChooseSongs = entry->parent != NULL;
@@ -3714,9 +3718,9 @@ bool component_expand_selected_folder(Model *model)
         }
         if (model->state.currentView == SEARCH_VIEW) {
                 FileSystemEntry *entry = ui->current_search_entry;
+                if (!entry || !entry->is_directory || !entry->children)
+                        return false;
                 if (!model->state.settings.autoCloseFolders) {
-                        if (!entry || !entry->is_directory || !entry->children)
-                                return false;
                         if (!ui->open_search_dirs)
                                 ui->open_search_dirs = g_hash_table_new(g_direct_hash, g_direct_equal);
                         if (g_hash_table_contains(ui->open_search_dirs, entry))
@@ -3727,8 +3731,7 @@ bool component_expand_selected_folder(Model *model)
                         set_dirty(DIRTY_SEARCH);
                         return true;
                 }
-                if (!entry || !entry->is_directory || !entry->children ||
-                    folder_contains(entry, ui->chosen_search_dir))
+                if (folder_contains(entry, ui->chosen_search_dir))
                         return false;
                 ui->chosen_search_dir = entry;
                 reselect_search_folder(model, entry);
