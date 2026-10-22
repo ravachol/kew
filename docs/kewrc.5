@@ -90,6 +90,12 @@ playing, in most views. Default:
 Show only top-level folders in the library view. Default:
 .IR 0 .
 .TP
+.BI autoCloseFolders " bool"
+Close opened folders when navigating away in Library and Search. Set to
+.I 0
+to keep multiple folders open until each is closed. Default:
+.IR 1 .
+.TP
 .BI autoResume " bool"
 Resume the last playing song automatically when kew starts. Default:
 .IR 0 .
@@ -366,6 +372,23 @@ styles.
 The
 .B [key\ bindings]
 section holds custom key binding assignments.
+.PP
+Enter is bound to
+.B expandFolder
+by default. It opens a selected folder; pressing it again enqueues or dequeues
+that folder. If both actions are explicitly bound to the same key,
+.B expandFolder
+takes precedence so the first press still opens the folder. The
+.B collapseFolder
+and
+.B switchSearchFocus
+actions have no default binding. The latter toggles between editing the search
+query and navigating results with printable keys. To enable them, add bindings
+such as:
+.PP
+.B bind = Shift+e, collapseFolder
+.br
+.B bind = Ctrl+f, switchSearchFocus
 .PP
 Note:
 .B Ctrl+h

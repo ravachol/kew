@@ -164,10 +164,11 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
 
         if (entry != NULL) {
                 if (entry->is_directory) {
-                        if ((!has_song_children(entry) && !(model->state.settings.collapseTopLevel && model->state.currentView != SEARCH_VIEW)) ||
+                        if (!model->state.settings.autoCloseFolders ||
+                            (!has_song_children(entry) && !(model->state.settings.collapseTopLevel && model->state.currentView != SEARCH_VIEW)) ||
                             entry->parent == NULL ||
                             ((*chosen_dir) != NULL &&
-                             strcmp(entry->full_path, (*chosen_dir)->full_path) == 0)) {
+                             (entry == *chosen_dir || is_contained_within(*chosen_dir, entry)))) {
                                 if (has_dequeued_children(entry) || dont_dequeue) {
                                         if (entry->parent == NULL) // Shuffle playlist if it's
                                                                    // the root
@@ -195,8 +196,6 @@ Node *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir, bool d
                         if (state->currentView == LIBRARY_VIEW && entry->parent != NULL)
                                 uis->allowChooseSongs = true;
 
-                        if (state->currentView == SEARCH_VIEW && entry->parent != NULL)
-                                uis->allowChooseSearchSongs = true;
                 } else {
                         if (!entry->is_enqueued) {
                                 set_next_song(NULL);

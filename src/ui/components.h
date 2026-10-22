@@ -54,6 +54,8 @@ void component_library_helper_update_view_state(Model *model);
 ComponentMsg component_library_header(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_library_rows(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+bool component_expand_selected_folder(Model *model);
+void component_collapse_selected_folder(Model *model);
 
 ComponentMsg component_metadata(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
@@ -97,7 +99,6 @@ ComponentMsg component_track(const Model *model, k_Rect region, DrawBuffer *buf,
 
 ComponentMsg component_version(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
-void component_search_helper_collapse_view(Model *model, int diff_rows);
 
 ComponentMsg component_search(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
@@ -106,6 +107,9 @@ ComponentMsg component_search_header(const Model *model, k_Rect region, DrawBuff
 ComponentMsg component_search_box(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
 
 ComponentMsg component_search_results(const Model *model, k_Rect region, DrawBuffer *buf, DirtyFlags dirty);
+
+void component_search_move_selection(Model *model, int delta);
+void component_search_collapse_if_outside(Model *model, FileSystemEntry *entry);
 
 void component_help_helper_reset(Model *model);
 

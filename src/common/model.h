@@ -383,6 +383,7 @@ typedef struct
         bool simpleTimeStatus;          /**< Shows only elapsed seconds and total seconds. */
         bool hideSideCover;             /**< Hide side cover panel. */
         bool collapseTopLevel;          /**< Hide contents of top level folders. */
+        bool autoCloseFolders;          /**< Close folders when navigating away. */
         bool searchHierarchy;           /**< Match search terms across folders and filenames. */
         bool allowNotifications;        /**< Enable desktop notifications. */
 
@@ -462,7 +463,6 @@ typedef struct
         volatile bool refresh;
         int chosen_node_id;
         bool allowChooseSongs;
-        bool allowChooseSearchSongs;
 
         int numDirectoryTreeEntries;
         int num_progress_bars;
@@ -488,6 +488,9 @@ typedef struct
         FileSystemEntry *current_lib_entry;
         FileSystemEntry *current_search_entry;
         FileSystemEntry *chosen_search_dir;
+        GHashTable *open_search_dirs;
+        GHashTable *open_library_dirs;
+        bool search_input_focused;
         FileSystemEntry *chosen_dir;
         FileSystemEntry *last_search_parent;
 
@@ -694,6 +697,7 @@ typedef struct
         char hideFooter[2];
         char hideSideCover[2];
         char collapseTopLevel[2];
+        char autoCloseFolders[2];
         char searchHierarchy[2];
         char hideTimeStatus[2];
         char simpleTimeStatus[2];
@@ -810,7 +814,7 @@ typedef struct SearchResult {
         struct FileSystemEntry *group; /*Direct match whose rows stay grouped together.*/
         int distance;
         int groupDistance;
-        int num_children;
+        bool matched;
 } SearchResult;
 
 typedef struct Model {

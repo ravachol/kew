@@ -761,6 +761,7 @@ void state_init(void)
         state->settings.visualizationsPreset = -1;
         state->settings.lastVolume = 100;
         state->settings.collapseTopLevel = true;
+        state->settings.autoCloseFolders = true;
         state->settings.colorMode = COLOR_MODE_ALBUM;
         state->settings.fade_enter_song_ms = 0;
         state->settings.fade_quick_ms = 2000;
@@ -773,7 +774,6 @@ void state_init(void)
         state->ui.chosen_node_id = 0;
         state->ui.resetPlaylistDisplay = true;
         state->ui.allowChooseSongs = false;
-        state->ui.allowChooseSearchSongs = false;
         state->ui.resizeFlag = 0;
         state->ui.refresh = true;
         state->ui.isFastForwarding = false;

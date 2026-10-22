@@ -143,6 +143,15 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
         AppState *state = get_app_state();
 
         if (state->currentView == SEARCH_VIEW) {
+                struct tb_event binding_event = *ev;
+                struct Msg binding = map_tb_key_to_event(&binding_event);
+                if (binding.type == MSG_SEARCH_FOCUS) {
+                        state->ui.search_input_focused = !state->ui.search_input_focused;
+                        set_dirty(DIRTY_SEARCH);
+                        return binding;
+                }
+                if (!state->ui.search_input_focused)
+                        return binding;
 
                 if (ev->key == TB_KEY_SPACE && ev->mod == 0)
                         ev->ch = ' ';
@@ -271,6 +280,7 @@ static gboolean should_throttle(struct Msg *msg)
 
         case MSG_ENQUEUE:
         case MSG_ENQUEUEANDPLAY:
+        case MSG_EXPAND_FOLDER:
                 delta = now - last_page_event_time;
                 if (delta < 100 * 1000)
                         return TRUE;
@@ -845,6 +855,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         case MSG_NEXT:
                         case MSG_PREV:
                         case MSG_ENQUEUE:
+                        case MSG_EXPAND_FOLDER:
                         case MSG_ENQUEUEANDPLAY:
                                 if (should_throttle(&msg))
                                         return FALSE;
@@ -864,7 +875,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         }
 
                         // Forget Numbers
-                        if (msg.type != MSG_ENQUEUE &&
+                        if (msg.type != MSG_ENQUEUE && msg.type != MSG_EXPAND_FOLDER &&
                             msg.type != MSG_GOTOENDOFPLAYLIST && msg.type != MSG_NONE) {
                                 reset_digits_pressed();
                         }
@@ -1014,6 +1025,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         case MSG_NEXT:
                         case MSG_PREV:
                         case MSG_ENQUEUE:
+                        case MSG_EXPAND_FOLDER:
                         case MSG_ENQUEUEANDPLAY:
                                 if (should_throttle(&msg))
                                         return TRUE;
@@ -1033,7 +1045,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         }
 
                         // Forget Numbers
-                        if (msg.type != MSG_ENQUEUE &&
+                        if (msg.type != MSG_ENQUEUE && msg.type != MSG_EXPAND_FOLDER &&
                             msg.type != MSG_GOTOENDOFPLAYLIST && msg.type != MSG_NONE) {
                                 reset_digits_pressed();
                         }

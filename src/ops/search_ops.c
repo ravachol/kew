@@ -7,6 +7,7 @@
  */
 
 #include "search_ops.h"
+#include "search_match.h"
 
 #include "common/appstate.h"
 #include "common/model.h"
@@ -42,14 +43,14 @@ void realloc_results()
 }
 
 void set_result_fields(FileSystemEntry *entry, int distance,
-                       FileSystemEntry *group)
+                       FileSystemEntry *group, bool matched)
 {
         Model *model = get_model();
 
         model->search_results[model->state.ui.search_results_count].distance = distance;
         model->search_results[model->state.ui.search_results_count].entry = entry;
         model->search_results[model->state.ui.search_results_count].group = group;
-        model->search_results[model->state.ui.search_results_count].num_children = 0;
+        model->search_results[model->state.ui.search_results_count].matched = matched;
 }
 
 static int find_result(const FileSystemEntry *entry)
@@ -64,40 +65,40 @@ static int find_result(const FileSystemEntry *entry)
         return -1;
 }
 
-static int add_result_dir_contents(FileSystemEntry *entry, int distance,
-                                   FileSystemEntry *group)
+static void add_result_dir_contents(FileSystemEntry *entry, int distance,
+                                    FileSystemEntry *group)
 {
         Model *model = get_model();
-        int num_children = 0;
-        int id = model->state.ui.search_results_count;
+        if (!entry->is_directory || !entry->children || !entry->parent)
+                return;
 
-        if (entry->is_directory) {
-                if (entry->children && entry->parent != NULL) {
-                        FileSystemEntry *child = entry->children;
-
-                        while (child) {
-                                model->state.ui.search_results_count++;
-                                realloc_results();
-                                set_result_fields(child, distance, group);
-
-                                if (!child->is_directory)
-                                        num_children++;
-
-                                num_children += add_result_dir_contents(child, distance, group);
-
-                                child = child->next;
-                        }
-                }
-
-                model->search_results[id].num_children = num_children;
+        for (FileSystemEntry *child = entry->children; child; child = child->next) {
+                model->state.ui.search_results_count++;
+                realloc_results();
+                set_result_fields(child, distance, group, false);
+                add_result_dir_contents(child, distance, group);
         }
-
-        return num_children;
 }
 
 static int num_search_letters = 0;
 static int num_search_bytes = 0;
 static int min_search_letters = 1;
+static const char *active_search_term;
+
+static bool is_independent_match(const FileSystemEntry *entry)
+{
+        if (search_match_entry(active_search_term, entry, false) != SEARCH_NO_MATCH)
+                return true;
+
+        // A hierarchy match is independent only when a parent does not
+        // already match the whole query by its own name.
+        for (const FileSystemEntry *parent = entry->parent;
+             parent && parent->parent; parent = parent->parent) {
+                if (search_match_entry(active_search_term, parent, false) != SEARCH_NO_MATCH)
+                        return false;
+        }
+        return true;
+}
 
 void add_result(FileSystemEntry *entry, int distance)
 {
@@ -111,6 +112,7 @@ void add_result(FileSystemEntry *entry, int distance)
 
         int existing = find_result(entry);
         if (existing >= 0) {
+                model->search_results[existing].matched = is_independent_match(entry);
                 if (distance < model->search_results[existing].distance)
                         model->search_results[existing].distance = distance;
                 return;
@@ -121,7 +123,7 @@ void add_result(FileSystemEntry *entry, int distance)
 
         FileSystemEntry *group = entry->is_directory ? entry : entry->parent;
         realloc_results();
-        set_result_fields(entry, distance, group);
+        set_result_fields(entry, distance, group, is_independent_match(entry));
         add_result_dir_contents(entry, distance, group);
         model->state.ui.search_results_count++;
 }
@@ -145,6 +147,8 @@ void clear_search_query(void)
 void search_shutdown(void)
 {
         Model *model = get_model();
+        if (model->state.ui.open_search_dirs)
+                g_hash_table_remove_all(model->state.ui.open_search_dirs);
 
         if (model->search_results != NULL) {
                 model->search_results->entry = NULL;
@@ -272,6 +276,8 @@ void fuzzy_search(char *search_term, FileSystemEntry *root)
         terminal_height = model->term_h;
 
         search_shutdown();
+        model->state.ui.chosen_search_dir = NULL;
+        active_search_term = search_term;
 
         if (num_search_letters > min_search_letters) {
                 fuzzy_search_recursive(root, search_term,

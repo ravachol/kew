@@ -202,10 +202,14 @@ void scroll_next(Model *model)
         } else if (model->state.currentView == LIBRARY_VIEW) {
                 model->state.ui.chosen_lib_row++;
 
-                if (model->state.ui.lib_row_count != 0 && model->state.ui.chosen_lib_row > model->state.ui.lib_row_count)
+                if (model->state.ui.lib_row_count != 0 &&
+                    (model->state.settings.autoCloseFolders
+                         ? model->state.ui.chosen_lib_row > model->state.ui.lib_row_count
+                         : model->state.ui.chosen_lib_row >= model->state.ui.lib_row_count))
                         model->state.ui.chosen_lib_row = model->state.ui.lib_row_count - 1;
 
-                if ((model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
+                if (model->state.settings.autoCloseFolders &&
+                    (model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->next == NULL || !is_contained_within(model->state.ui.current_lib_entry, model->state.ui.treeCtx.chosen_dir)) &&
                      ((model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id != model->state.ui.treeCtx.chosen_dir->id)))) {
 
                         if (model->state.settings.collapseTopLevel) {
@@ -228,14 +232,7 @@ void scroll_next(Model *model)
 
                 set_dirty(DIRTY_LIBRARY);
         } else if (model->state.currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row++;
-
-                if ((model->state.ui.current_search_entry && (model->state.ui.current_search_entry->next == NULL || !is_contained_within(model->state.ui.current_search_entry, model->state.ui.chosen_search_dir)) &&
-                     ((model->state.ui.chosen_search_dir && model->state.ui.current_search_entry->id != model->state.ui.chosen_search_dir->id))))
-                        component_search_helper_collapse_view(model, 1);
-
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, 1);
         } else if (model->state.currentView == HELP_VIEW) {
 
                 model->state.ui.chosen_help_row++;
@@ -262,7 +259,7 @@ void scroll_prev(Model *model)
 
                 model->state.ui.chosen_lib_row = (model->state.ui.chosen_lib_row > 0) ? model->state.ui.chosen_lib_row - 1 : 0;
 
-                if (model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->parent &&
+                if (model->state.settings.autoCloseFolders && model->state.ui.current_lib_entry && (model->state.ui.current_lib_entry->parent &&
                                                           (model->state.ui.current_lib_entry == model->state.ui.current_lib_entry->parent->children ||
                                                            (model->state.ui.treeCtx.chosen_dir && model->state.ui.current_lib_entry->id == model->state.ui.treeCtx.chosen_dir->id))))
                         library_collapse_view(model, -1);
@@ -270,16 +267,7 @@ void scroll_prev(Model *model)
                 set_dirty(DIRTY_LIBRARY);
 
         } else if (model->state.currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row = (model->state.ui.chosen_search_result_row > 0) ? model->state.ui.chosen_search_result_row - 1 : 0;
-
-                if (model->state.ui.current_lib_entry && (model->state.ui.current_search_entry && model->state.ui.current_search_entry->parent &&
-                                                          (model->state.ui.current_search_entry == model->state.ui.current_search_entry->parent->children ||
-                                                           (model->state.ui.current_search_entry && model->state.ui.chosen_search_dir &&
-                                                                model->state.ui.current_search_entry->id == model->state.ui.chosen_search_dir->id))))
-                        component_search_helper_collapse_view(model, -1);
-
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, -1);
         } else if (model->state.currentView == HELP_VIEW) {
 
                 model->state.ui.chosen_help_row--;
@@ -318,13 +306,7 @@ void flip_next_page(Model *model)
                 set_dirty(DIRTY_PLAYLIST);
 
         } else if (state->currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row += model->state.ui.max_search_rows - 1;
-                model->state.ui.chosen_search_result_row =
-                    (model->state.ui.chosen_search_result_row >= model->state.ui.search_results_count)
-                        ? model->state.ui.search_results_count - 1
-                        : model->state.ui.chosen_search_result_row;
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, model->state.ui.max_search_rows - 1);
         }
 }
 
@@ -346,11 +328,7 @@ void flip_prev_page(Model *model)
                 set_dirty(DIRTY_PLAYLIST);
 
         } else if (model->state.currentView == SEARCH_VIEW) {
-
-                model->state.ui.chosen_search_result_row -= (model->state.ui.max_search_rows - 1);
-                model->state.ui.chosen_search_result_row =
-                    (model->state.ui.chosen_search_result_row > 0) ? model->state.ui.chosen_search_result_row : 0;
-                set_dirty(DIRTY_SEARCH);
+                component_search_move_selection(model, -(model->state.ui.max_search_rows - 1));
         }
 }
 
@@ -570,6 +548,21 @@ UpdateResult update(Model *model, struct Msg *msg)
         case MSG_ENQUEUE:
                 result.cmd.type = CMD_VIEW_ENQUEUE;
                 result.cmd.value = 0;
+                break;
+
+        case MSG_EXPAND_FOLDER:
+                if (!component_expand_selected_folder(model)) {
+                        result.cmd.type = CMD_VIEW_ENQUEUE;
+                        result.cmd.value = 0;
+                }
+                break;
+
+        case MSG_COLLAPSE_FOLDER:
+                component_collapse_selected_folder(model);
+                break;
+
+        case MSG_SEARCH_FOCUS:
+                set_dirty(DIRTY_SEARCH);
                 break;
 
         case MSG_ENQUEUEANDPLAY:
@@ -888,7 +881,8 @@ UpdateResult update(Model *model, struct Msg *msg)
                                 dispatch_msg((struct Msg){.type = MSG_ENQUEUEANDPLAY});
                 }
 
-                if (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory))
+                if (model->state.settings.autoCloseFolders &&
+                    (!msg->clicked_song || (msg->current_lib_entry && msg->current_lib_entry->is_directory)))
                 {
                         if (model->state.ui.check_collapse_top_level ||
                                 (msg->current_lib_entry && msg->current_lib_entry->is_directory && model->state.ui.chosen_dir)) {
@@ -934,6 +928,10 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (msg->current_search_entry) {
                         model->state.ui.current_search_entry = msg->current_search_entry;
                         model->state.ui.chosen_search_result_row = msg->chosen_row;
+                        component_search_collapse_if_outside(model, msg->current_search_entry);
+                } else if (msg->num_rows == 0) {
+                        model->state.ui.current_search_entry = NULL;
+                        model->state.ui.chosen_search_result_row = 0;
                 }
 
                 model->state.ui.search_visible_count = msg->num_rows;
