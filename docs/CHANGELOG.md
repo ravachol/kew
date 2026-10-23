@@ -2,6 +2,11 @@
 
 ## kew 4.4.2
 
+#### Notice To Package Maintainers:
+
+Some very large animated gif histories and the website were removed from git history using git-filter-repo. There's a script attached to the v4.4.1 release that verifies that nothing else was touched. See here:
+https://codeberg.org/ravachol/kew/releases/tag/v4.4.1
+
 #### Enhancements:
 
 - Winamp-style (projectm/milkdrop) visualizations on linux through a new plugin, pmstream. By @ravachol.
