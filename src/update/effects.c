@@ -368,7 +368,7 @@ void run_command(UpdateResult result)
 
         case CMD_SORT_LIBRARY:
                 sort_library();
-                if (model->state.ui.current_library_sort == SORT_BY_NAME)
+                if (model->state.settings.current_library_sort == SORT_BY_NAME)
                         set_error_message("Sort Alphabetically");
                 else
                         set_error_message("Sort By Modified Date");

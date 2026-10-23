@@ -1260,6 +1260,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "coveransi") == 0) {
                         snprintf(settings->coverAnsi, sizeof(settings->coverAnsi),
                                  "%s", pair->value);
+                } else if (strcmp(lowercase_key, "librarysortorder") == 0) {
+                        snprintf(settings->librarySortOrder, sizeof(settings->librarySortOrder),
+                                 "%s", pair->value);
                 } else if (strcmp(lowercase_key, "coverstyle") == 0) {
                         if (!is_prefs)
                                 snprintf(settings->coverStyle, sizeof(settings->coverStyle),
@@ -2108,6 +2111,8 @@ void set_prefs(AppSettings *settings, UISettings *ui_settings)
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
                 fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
         }
+
+        fprintf(file, "librarySortOrder=%d\n\n", ui_settings->current_library_sort);
 
         fprintf(file, "lastVolume=%s\n\n", settings->lastVolume);
         fprintf(file, "[track cover]\n\n");

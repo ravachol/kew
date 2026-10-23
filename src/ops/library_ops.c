@@ -43,23 +43,22 @@ void reset_sort_library(void)
         Model *model = get_model();
         FileSystemEntry *library = get_library();
 
-        if (model->state.ui.current_library_sort == SORT_BY_DATE) {
+        if (model->state.settings.current_library_sort == SORT_BY_DATE) {
                 sort_file_system_tree(library, compare_entry_natural);
-                model->state.ui.current_library_sort = SORT_BY_NAME;
+                model->state.settings.current_library_sort = SORT_BY_NAME;
         }
 }
 
-void sort_library_by(enum sort_by_t sort_by)
+void sort_library_by(FileSystemEntry *library, enum sort_by_t sort_by)
 {
         Model *model = get_model();
-        FileSystemEntry *library = get_library();
 
         if (sort_by == SORT_BY_NAME) {
                 sort_file_system_tree(library, compare_entry_natural);
-                model->state.ui.current_library_sort = SORT_BY_NAME;
+                model->state.settings.current_library_sort = SORT_BY_NAME;
         } else {
                 sort_file_system_tree(library, compare_folders_by_age_files_alphabetically);
-                model->state.ui.current_library_sort = SORT_BY_DATE;
+                model->state.settings.current_library_sort = SORT_BY_DATE;
         }
 
         set_dirty(DIRTY_LIBRARY);
@@ -69,10 +68,10 @@ void sort_library(void)
 {
         Model *model = get_model();
 
-        if (model->state.ui.current_library_sort == SORT_BY_NAME) {
-                sort_library_by(SORT_BY_DATE);
+        if (model->state.settings.current_library_sort == SORT_BY_NAME) {
+                sort_library_by(model->library, SORT_BY_DATE);
         } else {
-                sort_library_by(SORT_BY_NAME);
+                sort_library_by(model->library, SORT_BY_NAME);
         }
 
         set_dirty(DIRTY_LIBRARY);
@@ -247,7 +246,7 @@ void *update_library_thread(void *arg)
 
         model->library = tmp;
 
-        sort_library_by(model->state.ui.current_library_sort);
+        sort_library_by(tmp, model->state.settings.current_library_sort);
 
         model->library_updated = true;
 
@@ -457,6 +456,9 @@ void library_init(bool set_enqueued_status)
 
         pthread_mutex_lock(&(model->state.library_mutex));
 
+        if (model->state.settings.current_library_sort != 0)
+                sort_library_by(library, model->state.settings.current_library_sort);
+
         model->library = library;
 
         pthread_mutex_unlock(&(model->state.library_mutex));
@@ -476,7 +478,7 @@ void library_init(bool set_enqueued_status)
 
                 FileSystemEntry *tmp = create_directory_tree(expanded, &(state->ui.numDirectoryTreeEntries));
 
-                sort_file_system_tree(tmp, compare_folders_by_age_files_alphabetically);
+                sort_library_by(tmp, model->state.settings.current_library_sort);
 
                 pthread_mutex_lock(&(model->state.library_mutex));
 
@@ -509,7 +511,7 @@ void enqueue_song(FileSystemEntry *child)
                 return;
 
         Model *model = get_model();
-        
+
         if (model->state.settings.verbose_mode)
                 k_log("enqueue_album() entered");
 

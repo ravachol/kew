@@ -18,6 +18,8 @@ https://codeberg.org/ravachol/kew/releases/tag/v4.4.1
 
 - Improved search result hierarchy and folder navigation. By @superb-striker.
 
+- Remembers your library sort order. By @ravachol.
+
 #### Bug fixes:
 
 - Fixed many minor issues in the UI layer. By @ravachol.

@@ -10,6 +10,9 @@
 #ifndef LIBRARY_OPS_H
 #define LIBRARY_OPS_H
 
+
+#include "common/model.h"
+
 #include "data/directorytree.h"
 #include "data/playlist_type.h"
 
@@ -53,6 +56,8 @@ void ask_if_cache_library(void);
  * (e.g., folders by age and files alphabetically), then refreshes the UI.
  */
 void sort_library(void);
+
+void sort_library_by(FileSystemEntry *library, enum sort_by_t sort_by);
 
 /**
  * @brief Reset the library sorting to the default (natural) order.

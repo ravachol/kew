@@ -201,6 +201,11 @@ void transfer_settings_to_ui(void)
                 ui_settings->colorMode = tmp;
         }
 
+        tmp = get_number(settings->librarySortOrder);
+        if (tmp >= 0) {
+                ui_settings->current_library_sort = tmp;
+        }
+
         tmp = get_number(settings->replayGainCheckFirst);
         if (tmp >= 0)
                 ui_settings->replayGainCheckFirst = tmp;

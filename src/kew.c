@@ -769,6 +769,7 @@ void state_init(void)
         state->settings.fade_slow_ms = 5000;
         state->settings.visualizationsMode = 1;
         state->settings.visualizationsEnabled = false;
+        state->settings.current_library_sort = SORT_BY_NAME;
         state->ui.numDirectoryTreeEntries = 0;
         state->ui.num_progress_bars = DEFAULT_NUM_PROGRESS_BARS;
         state->ui.chosen_node_id = 0;
@@ -824,7 +825,6 @@ void state_init(void)
         state->ui.search_scrollbar.last_position = 0;
         state->ui.help_scrollbar.position = 0;
         state->ui.help_scrollbar.last_position = 0;
-        state->ui.current_library_sort = SORT_BY_NAME;
 
         ps->lastPlayedId = -1;
         ps->nextSongNeedsRebuilding = false;

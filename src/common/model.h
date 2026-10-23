@@ -442,6 +442,8 @@ typedef struct
         int fade_slow_ms;
 
         bool verbose_mode;
+
+        int current_library_sort;
 } UISettings;
 
 typedef struct {
@@ -531,8 +533,6 @@ typedef struct
         bool check_collapse_top_level;
 
         int chosen_lyrics_row;
-
-        int current_library_sort;
 
         int visualizer_width;
 
@@ -743,6 +743,7 @@ typedef struct
         char fade_quick_ms[12];
         char fade_medium_ms[12];
         char fade_slow_ms[12];
+        char librarySortOrder[6];
 } AppSettings;
 
 /**
