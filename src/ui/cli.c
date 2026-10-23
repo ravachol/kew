@@ -38,19 +38,19 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
-        const char *no_ui_option = "--noui";
-        const char *no_cover_option = "--nocover";
-        const char *quit_on_stop = "--quitonstop";
-        const char *quit_on_stop2 = "-q";
-        const char *exact_option = "--exact";
-        const char *exact_option2 = "-e";
-        const char *verbose_option = "--verbose";
+        const char *no_ui_option = " --noui";
+        const char *no_cover_option = " --nocover";
+        const char *quit_on_stop = " --quitonstop";
+        const char *quit_on_stop2 = " -q";
+        const char *exact_option = " --exact";
+        const char *exact_option2 = " -e";
+        const char *verbose_option = " --verbose";
 
         int max_len = 1000;
 
         int idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasecmp(argv[i], no_ui_option, max_len)) {
+                if (c_strcasestr(argv[i], no_ui_option, max_len)) {
                         ui->uiEnabled = false;
                         idx = i;
                 }
@@ -60,7 +60,7 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasecmp(argv[i], no_cover_option, max_len)) {
+                if (c_strcasestr(argv[i], no_cover_option, max_len)) {
                         ui->coverEnabled = false;
                         idx = i;
                 }
@@ -70,8 +70,8 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasecmp(argv[i], quit_on_stop, max_len) ||
-                    c_strcasecmp(argv[i], quit_on_stop2, max_len)) {
+                if (c_strcasestr(argv[i], quit_on_stop, max_len) ||
+                    c_strcasestr(argv[i], quit_on_stop2, max_len)) {
                         ui->quitAfterStopping = true;
                         idx = i;
                 }
@@ -81,8 +81,8 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasecmp(argv[i], exact_option, max_len) ||
-                    c_strcasecmp(argv[i], exact_option2, max_len)) {
+                if (c_strcasestr(argv[i], exact_option, max_len) ||
+                    c_strcasestr(argv[i], exact_option2, max_len)) {
                         *exact_search = true;
                         idx = i;
                 }
@@ -92,7 +92,7 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 
         idx = -1;
         for (int i = 0; i < *argc; i++) {
-                if (c_strcasecmp(argv[i], verbose_option, max_len)) {
+                if (c_strcasestr(argv[i], verbose_option, max_len)) {
                         ui->verbose_mode = true;
                         idx = i;
                 }

@@ -178,7 +178,7 @@ char *utf8_strstr(const char *haystack, const char *needle);
  *
  * @return A pointer to the first occurrence of the needle, or NULL if not found.
  */
-char *c_strcasecmp(const char *haystack, const char *needle, int max_scan_len);
+char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len);
 
 /**
  * @brief Retrieves the path to the configuration directory.
