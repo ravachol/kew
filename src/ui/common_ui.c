@@ -455,8 +455,16 @@ int process_name_scroll(const Model *model, const char *name, char *output, int 
 
         if (name_width < max_width - 1) {
                 process_name(name, output, max_width, strip_unneeded_chars, strip_suffix);
-        } else if (model->name_scroll.frame >= 0 && model->name_scroll.frame + max_width <= name_width) {
-                gchar *tmp = g_utf8_substring(output, model->name_scroll.frame, -1);
+        } else if (model->name_scroll.frame >= 0) {
+                int max_start = name_width - max_width;
+                int scroll_start = model->name_scroll.frame;
+
+                if (max_start < 0)
+                        max_start = 0;
+                if (scroll_start > max_start)
+                        scroll_start = max_start;
+
+                gchar *tmp = g_utf8_substring(output, scroll_start, -1);
                 str_truncate_display_width(tmp, output, max_width);
                 g_free(tmp);
         } else {

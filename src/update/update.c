@@ -338,21 +338,35 @@ void set_scrollbar_positions()
         int new_pos = 0;
 
         if (model->state.currentView == PLAYLIST_VIEW) {
-                if (model->state.ui.chosen_row >= 0 && (double)model->unshuffled_playlist->count > 0) {
-                        double position =
-                            (double)model->state.ui.chosen_row /
-                            (double)model->unshuffled_playlist->count;
+                int count = model->unshuffled_playlist ? model->unshuffled_playlist->count : 0;
+                int old_pos = model->state.ui.playlist_scrollbar.position;
 
-                        new_pos = (int)model->state.ui.playlist_region.row + (int)round(position * model->state.ui.playlist_region.height);
+                if (model->state.ui.chosen_row >= 0 && count > 0) {
+                        int travel = model->state.ui.playlist_region.height - 3;
+                        int chosen = model->state.ui.chosen_row;
+                        int offset = 0;
+
+                        if (travel < 1)
+                                travel = 1;
+
+                        if (chosen >= count)
+                                chosen = count - 1;
+
+                        if (count > 1)
+                                offset = (int)(((long long)chosen * travel + (count - 1) / 2) / (count - 1));
+
+                        new_pos = model->state.ui.playlist_region.row + 2 + offset;
 
                         model->state.ui.playlist_scrollbar.position = new_pos;
 
-                        if (new_pos != model->state.ui.playlist_scrollbar.position)
+                        if (new_pos != old_pos)
                                 set_dirty(DIRTY_PLAYLIST);
                 }
         }
 
         if (model->state.currentView == LIBRARY_VIEW) {
+                int old_pos = model->state.ui.library_scrollbar.position;
+
                 if (model->state.ui.chosen_lib_row >= 0 && (double)model->state.ui.lib_row_count > 0) {
                         double position =
                             (double)model->state.ui.chosen_lib_row /
@@ -362,12 +376,14 @@ void set_scrollbar_positions()
 
                         model->state.ui.library_scrollbar.position = new_pos;
 
-                        if (new_pos != model->state.ui.library_scrollbar.position)
+                        if (new_pos != old_pos)
                                 set_dirty(DIRTY_LIBRARY);
                 }
         }
 
         if (model->state.currentView == SEARCH_VIEW) {
+                int old_pos = model->state.ui.search_scrollbar.position;
+
                 if (model->state.ui.chosen_search_result_row >= 0 && (double)model->state.ui.search_visible_count > 0) {
                         double position =
                             (double)model->state.ui.chosen_search_result_row /
@@ -377,7 +393,7 @@ void set_scrollbar_positions()
 
                         model->state.ui.search_scrollbar.position = new_pos;
 
-                        if (new_pos != model->state.ui.search_scrollbar.position)
+                        if (new_pos != old_pos)
                                 set_dirty(DIRTY_SEARCH);
                 }
         }
@@ -834,7 +850,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (msg->chosen_row >= 0)
                         model->state.ui.chosen_row = msg->chosen_row;
 
-                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len < model->state.ui.playlist_region.width))
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len + msg->chosen_name_col < model->state.ui.playlist_region.width))
                         model->name_scroll.active = false;
 
                 if (msg->clicked_song) {
