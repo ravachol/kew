@@ -480,15 +480,6 @@ void set_model_attributes(Pane *pane)
                 model->state.ui.playlist_region = pane->region;
                 model->state.ui.playlist_scrollbar.position = model->state.ui.playlist_region.row;
                 model->state.ui.playlist_scrollbar.last_position = model->state.ui.playlist_region.row;
-
-                if (model->state.ui.chosen_row >= 0 && model->state.ui.help_region.height > 0) {
-                        double position =
-                            (double)model->state.ui.chosen_row /
-                            (double)model->unshuffled_playlist->count;
-
-                        model->state.ui.playlist_scrollbar.position =
-                            (int)model->state.ui.playlist_region.row + (int)round(position * model->state.ui.playlist_region.height);
-                }
         }
 
         if (pane->fn == component_library_rows) {

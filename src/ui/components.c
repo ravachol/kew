@@ -1719,7 +1719,6 @@ void component_playlist_helper_update_view_state(Model *model, bool center)
 
                 if (i == model->state.ui.chosen_row) {
 
-                        model->state.ui.previous_chosen_song = model->state.ui.chosen_row;
                         model->state.ui.chosen_node_id = node->id;
                         break;
                 }
@@ -1757,6 +1756,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int chosen_row = -1;
         bool clicked_song = false;
         long chosen_name_len = 0;
+        int chosen_name_col = 0;
 
         Node *node = model->state.ui.playlist_node;
         Node *chosen_node = NULL;
@@ -1882,7 +1882,8 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                         is_playing = (current->id == node->id);
 
                 if (is_chosen) {
-                        process_name_scroll(model, buffer, filename, max_name_width, true, true);
+                        chosen_name_len = process_name_scroll(model, buffer, filename, max_name_width, true, true);
+                        chosen_name_col = col - region.col;
                         chosen_row = i;
                         chosen_node = node;
                         found_chosen = true;
@@ -1925,6 +1926,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
             .chosen_song = chosen_node,
             .chosen_row = chosen_row,
             .chosen_name_len = (int)chosen_name_len,
+            .chosen_name_col = chosen_name_col,
             .clicked_song = clicked_song};
 
         return result;

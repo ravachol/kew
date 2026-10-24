@@ -806,7 +806,6 @@ void state_init(void)
         state->ui.chosen_row = 0;
         state->ui.chosen_dir = NULL;
         state->ui.start_iter = 0;
-        state->ui.previous_chosen_song = 0;
         state->ui.render_often = false;
         state->ui.render_search = false;
         state->ui.chosen_lyrics_row = 0;

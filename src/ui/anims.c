@@ -97,7 +97,7 @@ void advance_name_scroll_anim(Model *model)
         }
 
         if (model->state.currentView == PLAYLIST_VIEW) {
-                if (model->name_scroll.frame >= (int)sizeof(model->songdata->metadata->title)) {
+                if (model->name_scroll.frame >= KEW_NAME_MAX) {
                         model->name_scroll.active = false;
                         set_dirty(DIRTY_LIBRARY | DIRTY_PLAYLIST | DIRTY_SEARCH);
                 }
