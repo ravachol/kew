@@ -1756,6 +1756,7 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
         int chosen_row = -1;
         bool clicked_song = false;
         long chosen_name_len = 0;
+        long name_len = 0;
         int chosen_name_col = 0;
 
         Node *node = model->state.ui.playlist_node;
@@ -1853,14 +1854,14 @@ ComponentMsg component_playlist_rows(const Model *model, k_Rect region, DrawBuff
                 if (max_name_width < 0)
                         max_name_width = 0;
 
-                chosen_name_len = process_name(buffer, filename, max_name_width, true, true);
+                name_len = process_name(buffer, filename, max_name_width, true, true);
 
                 int is_chosen = false;
                 if (!found_chosen) {
                         if (!skip_mouse_click && model->mouse_x >= 0 && model->mouse_y >= 0) {
                                 is_chosen = model->mouse_y >= region.row &&
                                             model->mouse_x > region.col &&
-                                            model->mouse_x <= region.col + rownum_len + spaces + chosen_name_len &&
+                                            model->mouse_x <= region.col + rownum_len + spaces + name_len &&
                                             i - start_iter == model->mouse_y - region.row - 2;
 
                                 if (is_chosen) {

@@ -32,6 +32,8 @@ https://codeberg.org/ravachol/kew/releases/tag/v4.4.1
 
 - Fix scrolling glitch in playlist view. By @arrbrants.
 
+- Re-enable name scrolling in playlist view. By @ravachol.
+
 ## kew 4.4.1
 
 - Fixes termux package not running. By @ravachol.
