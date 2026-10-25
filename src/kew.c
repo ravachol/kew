@@ -768,6 +768,7 @@ void state_init(void)
         state->settings.fade_medium_ms = 3000;
         state->settings.fade_slow_ms = 5000;
         state->settings.visualizationsMode = 1;
+        state->settings.visualizationsShowPresetInfo = 0;
         state->settings.visualizationsEnabled = false;
         state->settings.current_library_sort = SORT_BY_NAME;
         state->ui.numDirectoryTreeEntries = 0;

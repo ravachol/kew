@@ -154,7 +154,8 @@ static void build_generic_cmd(VizCmd *c)
                 viz_push(c, settings->visualizationsDevice);
         }
 
-        viz_push(c, "--sendinfo");
+        if (model->state.settings.visualizationsShowPresetInfo)
+                viz_push(c, "--sendinfo");
         viz_push(c, "--mode");
         viz_push(c, g_viz.mode == VIZ_SIXELS ? "sixels" : "ascii");
         viz_push(c, "--cell-size");
