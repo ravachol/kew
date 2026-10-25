@@ -427,6 +427,7 @@ typedef struct
         char visualizationsPath[KEW_PATH_MAX];
         char visualizationsDevice[KEW_PATH_MAX];
         int visualizationsMode; // 0 = ASCII, 1 = SIXELS
+        int visualizationsFps; /**< Frames per second */
         int visualizationsShowPresetInfo; /**< Show prest author and name. 0 = No, 1 = Yes */
         bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
 
@@ -737,6 +738,7 @@ typedef struct
         char visualizationsDevice[KEW_PATH_MAX];
         char visualizationsMode[6];
         char visualizationsEnabled[6];
+        char visualizationsFps[6];
         char visualizationsShowPresetInfo[6];
         char fade_enter_song_ms[12];
         char fade_quick[6];

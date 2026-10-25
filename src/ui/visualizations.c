@@ -91,6 +91,7 @@ static void viz_push(VizCmd *c, const char *s)
 
 static void build_chroma_cmd(VizCmd *c)
 {
+        Model *model = get_model();
         AppSettings *settings = get_app_settings();
         bool has_device = settings->visualizationsDevice[0] != '\0';
 
@@ -104,6 +105,14 @@ static void build_chroma_cmd(VizCmd *c)
         viz_push(c, g_viz.provider);
         viz_push(c, "--stream");
         viz_push(c, c->stream);
+
+        if (model->state.settings.visualizationsFps > 0)
+        {
+                viz_push(c, "--fps");
+                char fps[6];
+                snprintf(fps, sizeof(fps), "%d", model->state.settings.visualizationsFps);
+                viz_push(c, fps);
+        }
 
         if (settings->chromaPath[0] == '\0') {
                 viz_push(c, "--preset");
@@ -156,6 +165,14 @@ static void build_generic_cmd(VizCmd *c)
 
         if (model->state.settings.visualizationsShowPresetInfo)
                 viz_push(c, "--sendinfo");
+
+        if (model->state.settings.visualizationsFps > 0)
+        {
+                viz_push(c, "--fps");
+                char fps[6];
+                snprintf(fps, sizeof(fps), "%d", model->state.settings.visualizationsFps);
+                viz_push(c, fps);
+        }
         viz_push(c, "--mode");
         viz_push(c, g_viz.mode == VIZ_SIXELS ? "sixels" : "ascii");
         viz_push(c, "--cell-size");

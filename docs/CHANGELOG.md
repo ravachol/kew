@@ -20,6 +20,8 @@ https://codeberg.org/ravachol/kew/releases/tag/v4.4.1
 
 - Remembers your library sort order. By @ravachol. Suggested by @kase.
 
+- New settings visualizationsFps, visualizationsShowPresetInfo. By @ravachol.
+
 #### Bug fixes:
 
 - Fixed many minor issues in the UI layer. By @ravachol.
@@ -27,6 +29,8 @@ https://codeberg.org/ravachol/kew/releases/tag/v4.4.1
 - Bumped miniaudio to v0.11.25. By @ravachol. Suggested by @Surneval.
 
 - In playlist the 100th song was off by a column. By @ehatch.
+
+- Fix scrolling glitch in playlist view. By @arrbrants.
 
 ## kew 4.4.1
 

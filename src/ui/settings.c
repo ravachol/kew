@@ -962,6 +962,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->fade_slow_ms, "10000", sizeof(settings->fade_slow_ms));
         c_strcpy(settings->visualizationsMode, "1", sizeof(settings->visualizationsMode));
         c_strcpy(settings->visualizationsShowPresetInfo, "0", sizeof(settings->visualizationsShowPresetInfo));
+        c_strcpy(settings->visualizationsFps, "0", sizeof(settings->visualizationsFps));
 
         memcpy(settings->ansiTheme, "default", 8);
 }
@@ -1250,6 +1251,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  pair->value);
                 } else if (strcmp(lowercase_key, "visualizationsmode") == 0) {
                         snprintf(settings->visualizationsMode, sizeof(settings->visualizationsMode), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "visualizationsfps") == 0) {
+                        snprintf(settings->visualizationsFps, sizeof(settings->visualizationsFps), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "visualizationsshowpresetinfo") == 0) {
                         snprintf(settings->visualizationsShowPresetInfo, sizeof(settings->visualizationsShowPresetInfo), "%s",
@@ -1971,6 +1975,10 @@ void load_settings_into_ui(AppSettings *settings, UISettings *ui_settings)
         if (tmp >= 0)
                 ui_settings->visualizationsShowPresetInfo = tmp;
 
+        tmp = get_number(settings->visualizationsFps);
+        if (tmp > 0)
+                ui_settings->visualizationsFps = tmp;
+
 
 
         tmp = get_number(settings->visualizationsEnabled);
@@ -2494,6 +2502,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "visualizationsPath=%s\n", settings->visualizationsPath);
         fprintf(file, "\n# Visualizations mode 0 = ASCII 1 = SIXELS.\n\n");
         fprintf(file, "visualizationsMode=%d\n\n", ui->visualizationsMode);
+        fprintf(file, "\n# Visualizations Frames Per Second.\n\n");
+        fprintf(file, "visualizationsFps=%d\n\n", ui->visualizationsFps);
         fprintf(file, "\n# Visualizations Show Preset Author and Name (works in pmstream) 0 = No 1 = Yes.\n\n");
         fprintf(file, "visualizationsShowPresetInfo=%d\n\n", ui->visualizationsShowPresetInfo);
 
