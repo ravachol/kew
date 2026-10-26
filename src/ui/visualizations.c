@@ -769,17 +769,19 @@ void visualizations_print_frame(int row, int col, int height, int width,
 
 #include <windows.h>
 
-bool visualizations_are_installed(char *appname)
-{
+bool visualizations_are_installed(char *appname){
         char path[MAX_PATH];
+        char exe_name[MAX_PATH];
+
+        snprintf(exe_name, sizeof(exe_name), "%s.exe", appname);
 
         return SearchPathA(
-                   NULL,
-                   appname,
-                   NULL,
-                   sizeof(path),
-                   path,
-                   NULL) != 0;
+                NULL,
+                exe_name,
+                NULL,
+                sizeof(path),
+                path,
+                NULL) != 0;
 }
 
 #else
