@@ -26,11 +26,20 @@
 #include <spawn.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#else
+#include <windows.h>
+#include <fcntl.h>
+#include <io.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef HANDLE viz_proc_t; // Replaces pid_t; NULL means failure
+#endif
 
 #define VIZ_MAX_ARGS 32
 
 extern char **environ;
-#endif
 
 typedef struct {
         const char *argv[VIZ_MAX_ARGS];
@@ -179,6 +188,7 @@ static void build_generic_cmd(VizCmd *c)
         viz_push(c, c->cellsize);
 }
 
+#ifndef _WIN32
 // Starts the child with its stdout connected to a pipe. Returns the pid
 // (or -1) and puts the read end of the pipe in *out_fd. No shell is involved.
 static pid_t viz_spawn(const char *const argv[], int *out_fd)
@@ -224,6 +234,135 @@ static void viz_stop(pid_t pid, int fd)
         kill(pid, SIGKILL);
         waitpid(pid, NULL, 0);
 }
+
+#else
+
+static char *viz_build_cmdline(const char *const argv[])
+{
+        size_t cap = 1;
+        for (int i = 0; argv[i]; i++)
+                cap += 2 * strlen(argv[i]) + 3;
+
+        char *buf = malloc(cap);
+        if (!buf)
+                return NULL;
+
+        char *p = buf;
+        for (int i = 0; argv[i]; i++) {
+                const char *a = argv[i];
+                if (i > 0)
+                        *p++ = ' ';
+
+                if (*a && !strpbrk(a, " \t\n\v\"")) {
+                        size_t n = strlen(a);
+                        memcpy(p, a, n);
+                        p += n;
+                        continue;
+                }
+
+                *p++ = '"';
+                for (;; a++) {
+                        size_t bs = 0;
+                        while (*a == '\\') {
+                                a++;
+                                bs++;
+                        }
+                        if (*a == '\0') {
+                                // Backslashes before the closing quote must be doubled
+                                for (size_t k = 0; k < bs * 2; k++)
+                                        *p++ = '\\';
+                                break;
+                        } else if (*a == '"') {
+                                for (size_t k = 0; k < bs * 2 + 1; k++)
+                                        *p++ = '\\';
+                                *p++ = '"';
+                        } else {
+                                for (size_t k = 0; k < bs; k++)
+                                        *p++ = '\\';
+                                *p++ = *a;
+                        }
+                }
+                *p++ = '"';
+        }
+        *p = '\0';
+        return buf;
+}
+
+static viz_proc_t viz_spawn(const char *const argv[], int *out_fd)
+{
+        viz_proc_t result = NULL;
+        HANDLE rd = NULL, wr = NULL;
+        HANDLE nul = INVALID_HANDLE_VALUE;
+        PROCESS_INFORMATION pi = {0};
+        STARTUPINFOA si = {0};
+        SECURITY_ATTRIBUTES sa = {sizeof(sa), NULL, TRUE};
+        int fd;
+
+        char *cmd = viz_build_cmdline(argv);
+        if (!cmd)
+                return NULL;
+
+        if (!CreatePipe(&rd, &wr, &sa, 0))
+                goto done;
+
+        // Don't leak the read end into the child
+        if (!SetHandleInformation(rd, HANDLE_FLAG_INHERIT, 0))
+                goto done;
+
+        nul = CreateFileA("NUL", GENERIC_READ | GENERIC_WRITE,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE, &sa,
+                          OPEN_EXISTING, 0, NULL);
+        if (nul == INVALID_HANDLE_VALUE)
+                goto done;
+
+        si.cb = sizeof(si);
+        si.dwFlags = STARTF_USESTDHANDLES;
+        si.hStdInput = nul;   // Like /dev/null
+        si.hStdOutput = wr;
+        si.hStdError = nul;   // Keep child stderr from scribbling over the TUI
+
+        if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW,
+                            NULL, NULL, &si, &pi))
+                goto done;
+
+        CloseHandle(pi.hThread);
+
+        // The CRT fd now owns the read handle; close() will close it
+        fd = _open_osfhandle((intptr_t)rd, _O_RDONLY | _O_BINARY);
+        if (fd < 0) {
+                TerminateProcess(pi.hProcess, 1);
+                CloseHandle(pi.hProcess);
+                goto done;
+        }
+
+        rd = NULL; // Ownership transferred
+        *out_fd = fd;
+        result = pi.hProcess;
+
+done:
+        if (wr)
+                CloseHandle(wr);
+        if (rd)
+                CloseHandle(rd);
+        if (nul != INVALID_HANDLE_VALUE)
+                CloseHandle(nul);
+        free(cmd);
+        return result;
+}
+
+static void viz_stop(viz_proc_t proc, int fd)
+{
+        close(fd); // Similar to SIGTERM
+
+        if (WaitForSingleObject(proc, 1000) == WAIT_TIMEOUT) {
+                TerminateProcess(proc, 1); // the SIGKILL equivalent
+                WaitForSingleObject(proc, INFINITE);
+        }
+
+        CloseHandle(proc);
+}
+
+#endif
 
 int calc_visualizations_width(int height)
 {
