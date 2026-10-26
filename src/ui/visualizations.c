@@ -769,7 +769,7 @@ void visualizations_print_frame(int row, int col, int height, int width,
 
 #include <windows.h>
 
-bool visualizations_are_installed(const char *appname)
+bool visualizations_are_installed(char *appname)
 {
         char path[MAX_PATH];
 
