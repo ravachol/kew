@@ -128,6 +128,8 @@ LOCAL_INC = \
 
 ifeq ($(UNAME_S),Darwin)
     PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile ogg glib-2.0 taglib gdk-pixbuf-2.0
+else ifneq ($(findstring MINGW,$(UNAME_S))$(findstring MSYS,$(UNAME_S)),)
+    PKG_LIBS = gio-2.0 gio-windows-2.0 chafa fftw3f opus opusfile vorbis vorbisfile ogg glib-2.0 taglib
 else
     PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile ogg glib-2.0 taglib
 endif
