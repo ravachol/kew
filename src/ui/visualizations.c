@@ -414,12 +414,23 @@ static void *visualizer_thread(void *arg)
                 height = MAX_HEIGHT;
 
         int synced = 0;
+        int ok;
 
-        g_viz.frame_capacity = VISUALIZATIONS_MAX_BUF;
-        g_viz.frame = malloc(g_viz.frame_capacity);
+        pthread_mutex_lock(&g_viz.lock);
         if (!g_viz.frame) {
-                quit();
+                g_viz.frame = malloc(VISUALIZATIONS_MAX_BUF);
+                if (g_viz.frame)
+                        g_viz.frame_capacity = VISUALIZATIONS_MAX_BUF;
         }
+        ok = (g_viz.frame != NULL);
+        if (ok) {
+                g_viz.frame[0] = '\0';
+                visualizations_new_frame = 0; // don't show a stale frame from the previous run
+        }
+        pthread_mutex_unlock(&g_viz.lock);
+
+        if (!ok)
+                quit();
 
         g_viz.frame[0] = '\0';
 
@@ -482,7 +493,7 @@ static void *visualizer_thread(void *arg)
                         }
 #endif
                         ssize_t r = read(fd, buf + pos, VISUALIZATIONS_MAX_BUF - pos);
-                        
+
                         if (r <= 0)
                                 break; // EOF or error
 
@@ -490,11 +501,12 @@ static void *visualizer_thread(void *arg)
                         size_t start = 0;     // start of unprocessed bytes
 
                         for (size_t i = pos; i < end; i++) {
-                                if (buf[i] == '\n') {
+                                if (buf[i] == '\r')
+                                        continue; // tolerate CRLF from Windows children
+                                else if (buf[i] == '\n')
                                         nl_streak++;
-                                } else {
+                                else
                                         nl_streak = 0;
-                                }
 
                                 if (nl_streak == 2) {
                                         size_t frame_len = i - start + 1;
