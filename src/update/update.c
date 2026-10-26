@@ -850,8 +850,16 @@ UpdateResult update(Model *model, struct Msg *msg)
                 if (msg->chosen_row >= 0)
                         model->state.ui.chosen_row = msg->chosen_row;
 
-                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len + msg->chosen_name_col < model->state.ui.playlist_region.width))
+                if (msg->chosen_name_len + msg->chosen_name_col < model->state.ui.playlist_region.width)
                         model->name_scroll.active = false;
+
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame >= msg->chosen_name_len) && model->name_scroll.active)
+                {
+                        model->name_scroll.active = false;
+                        model->name_scroll.frame = 0;
+                        set_dirty(DIRTY_PLAYLIST);
+                        model->state.ui.rendered = false;
+                }
 
                 if (msg->clicked_song) {
 
@@ -866,12 +874,7 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->mouse_y = -1;
                 model->mouse_key = -1;
 
-                if (model->name_scroll.active &&
-                    model->state.ui.current_search_entry &&
-                    model->name_scroll.frame > KEW_NAME_MAX) {
-                        model->name_scroll.active = false;
-                        set_dirty(DIRTY_LIBRARY);
-                }
+
 
                 break;
 
@@ -887,8 +890,17 @@ UpdateResult update(Model *model, struct Msg *msg)
                         model->state.ui.chosen_lib_row = msg->chosen_row;
                 }
 
-                if (msg->chosen_name_len > 0 && (model->name_scroll.frame > msg->chosen_name_len || msg->chosen_name_len + msg->chosen_name_col < model->state.ui.library_region.width))
+                if (msg->chosen_name_len + msg->chosen_name_col < model->state.ui.library_region.width)
                         model->name_scroll.active = false;
+
+
+                if (msg->chosen_name_len > 0 && (model->name_scroll.frame >= msg->chosen_name_len) && model->name_scroll.active)
+                {
+                        model->name_scroll.active = false;
+                        model->name_scroll.frame = 0;
+                        set_dirty(DIRTY_LIBRARY);
+                        model->state.ui.rendered = false;
+                }
 
                 if (msg->clicked_song) {
                         if (model->mouse_key == TB_KEY_MOUSE_LEFT)
@@ -924,13 +936,6 @@ UpdateResult update(Model *model, struct Msg *msg)
                 model->mouse_key = -1;
 
                 model->state.ui.lib_row_count = msg->num_rows;
-
-                if (model->name_scroll.active &&
-                    model->state.ui.current_lib_entry &&
-                    model->name_scroll.frame > (int)strnlen(model->state.ui.current_lib_entry->name, 256)) {
-                        model->name_scroll.active = false;
-                        set_dirty(DIRTY_LIBRARY);
-                }
 
                 break;
 
