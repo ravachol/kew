@@ -19,22 +19,21 @@
 #include <unistd.h>
 
 #ifndef _WIN32
-#include <poll.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <spawn.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #else
-#include <windows.h>
 #include <fcntl.h>
 #include <io.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 
-typedef HANDLE viz_proc_t; // Replaces pid_t; NULL means failure
 #endif
 
 #define VIZ_MAX_ARGS 32
@@ -85,6 +84,14 @@ Visualizations g_viz = {
 #define VISUALIZATIONS_MAX_BUF (8 * 1024 * 1024)
 #define MAX_HEIGHT 4000
 
+#ifdef _WIN32
+typedef HANDLE viz_proc_t;
+#define VIZ_PROC_INVALID NULL
+#else
+typedef pid_t viz_proc_t;
+#define VIZ_PROC_INVALID ((pid_t) - 1)
+#endif
+
 volatile int visualizations_new_frame = 0;
 
 static int centered_indent = 0;
@@ -115,8 +122,7 @@ static void build_chroma_cmd(VizCmd *c)
         viz_push(c, "--stream");
         viz_push(c, c->stream);
 
-        if (model->state.settings.visualizationsFps > 0)
-        {
+        if (model->state.settings.visualizationsFps > 0) {
                 viz_push(c, "--fps");
                 char fps[6];
                 snprintf(fps, sizeof(fps), "%d", model->state.settings.visualizationsFps);
@@ -175,8 +181,7 @@ static void build_generic_cmd(VizCmd *c)
         if (model->state.settings.visualizationsShowPresetInfo)
                 viz_push(c, "--sendinfo");
 
-        if (model->state.settings.visualizationsFps > 0)
-        {
+        if (model->state.settings.visualizationsFps > 0) {
                 viz_push(c, "--fps");
                 char fps[6];
                 snprintf(fps, sizeof(fps), "%d", model->state.settings.visualizationsFps);
@@ -317,9 +322,9 @@ static viz_proc_t viz_spawn(const char *const argv[], int *out_fd)
 
         si.cb = sizeof(si);
         si.dwFlags = STARTF_USESTDHANDLES;
-        si.hStdInput = nul;   // Like /dev/null
+        si.hStdInput = nul; // Like /dev/null
         si.hStdOutput = wr;
-        si.hStdError = nul;   // Keep child stderr from scribbling over the TUI
+        si.hStdError = nul; // Keep child stderr from scribbling over the TUI
 
         if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW,
                             NULL, NULL, &si, &pi))
@@ -436,8 +441,9 @@ static void *visualizer_thread(void *arg)
                 }
 
                 int fd = -1;
-                pid_t pid = viz_spawn(cmd.argv, &fd);
-                if (pid < 0) {
+                viz_proc_t pid = viz_spawn(cmd.argv, &fd);
+
+                if (pid == VIZ_PROC_INVALID) {
                         usleep(200 * 1000);
                         continue;
                 }
@@ -455,12 +461,20 @@ static void *visualizer_thread(void *arg)
 
                 while (g_viz.running) {
 
-#ifndef _WIN32
+#ifdef _WIN32
+                        DWORD avail = 0;
+                        if (!PeekNamedPipe((HANDLE)_get_osfhandle(fd), NULL, 0,
+                                           NULL, &avail, NULL))
+                                break; // ERROR_BROKEN_PIPE: child exited
+                        if (avail == 0) {
+                                Sleep(10);
+                                continue; // re-check g_viz.running
+                        }
+#else
                         struct pollfd pfd = {.fd = fd, .events = POLLIN};
                         int pr = poll(&pfd, 1, 100);
-
                         if (pr == 0)
-                                continue; // timeout, re-check g_viz.running
+                                continue;
                         if (pr < 0) {
                                 if (errno == EINTR)
                                         continue;
@@ -468,6 +482,7 @@ static void *visualizer_thread(void *arg)
                         }
 #endif
                         ssize_t r = read(fd, buf + pos, VISUALIZATIONS_MAX_BUF - pos);
+                        
                         if (r <= 0)
                                 break; // EOF or error
 
@@ -548,8 +563,7 @@ void visualizations_set_current_preset(int preset)
                 else
                         snprintf(error_message, sizeof(error_message), "Visualizations Preset %d", preset);
 
-        }
-        else {
+        } else {
                 snprintf(error_message, sizeof(error_message), "Visualizations Switched Preset");
         }
 
