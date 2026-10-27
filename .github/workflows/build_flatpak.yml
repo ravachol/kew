@@ -28,6 +28,7 @@ jobs:
       - name: Check out kew
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.release.tag_name || inputs.release_tag }}
           fetch-depth: 0
 
       - name: Get latest dependency versions
