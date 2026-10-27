@@ -71,6 +71,49 @@ jobs:
             "s/tag: 2.11.4/tag: ${FAAD2_VERSION}/" \
             com.kewplayer.kew.yml
 
+      - name: Update Kew source
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          # Install yq explicitly so the step does not depend
+          # on what happens to be in the container image.
+          YQ_VERSION=v4.45.1
+          curl -fsSL \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+            -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+          # Checkout already points at the requested release tag.
+          COMMIT=$(git rev-parse HEAD)
+
+          # Confirm the checkout is actually the requested tag.
+          git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}" || {
+            echo "Tag ${RELEASE_TAG} is not available in this checkout"
+            exit 1
+          }
+
+          echo "Kew source: ${RELEASE_TAG} (${COMMIT})"
+
+          # Update only Kew's Git source in the manifest.
+          yq -i '
+            (.modules[].sources[] |
+              select(.url == "https://github.com/ravachol/kew.git") |
+              .tag) = strenv(RELEASE_TAG) |
+            (.modules[].sources[] |
+              select(.url == "https://github.com/ravachol/kew.git") |
+              .commit) = strenv(COMMIT)
+          ' com.kewplayer.kew.yml
+
+          # Show the updated source for verification.
+          yq '
+            .modules[].sources[] |
+            select(.url == "https://github.com/ravachol/kew.git") |
+            {url, tag, commit}
+          ' com.kewplayer.kew.yml
+
       - name: Build Flatpak bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
         with:
