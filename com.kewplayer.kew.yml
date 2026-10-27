@@ -69,7 +69,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/ravachol/kew.git
-        tag: v4.3.8
+        tag: v4.4.1
         commit: ff241fec593e6b2367fbdd199fa8ffae0f50778f
         x-checker-data:
           type: git
