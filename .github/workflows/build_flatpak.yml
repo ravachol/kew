@@ -35,6 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
           CHAPA_VERSION=$(curl -fsSL \
             https://api.github.com/repos/hpjansson/chafa/releases/latest \
