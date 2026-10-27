@@ -78,41 +78,67 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Install yq explicitly so the step does not depend
-          # on what happens to be in the container image.
-          YQ_VERSION=v4.45.1
-          curl -fsSL \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
-            -o /usr/local/bin/yq
-          chmod +x /usr/local/bin/yq
-
-          # Checkout already points at the requested release tag.
           COMMIT=$(git rev-parse HEAD)
+          export COMMIT
 
-          # Confirm the checkout is actually the requested tag.
-          git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}" || {
-            echo "Tag ${RELEASE_TAG} is not available in this checkout"
-            exit 1
-          }
+          python3 <<'PY'
+          import os
+          import re
+          from pathlib import Path
 
-          echo "Kew source: ${RELEASE_TAG} (${COMMIT})"
+          path = Path("com.kewplayer.kew.yml")
+          text = path.read_text()
 
-          # Update only Kew's Git source in the manifest.
-          yq -i '
-            (.modules[].sources[] |
-              select(.url == "https://github.com/ravachol/kew.git") |
-              .tag) = strenv(RELEASE_TAG) |
-            (.modules[].sources[] |
-              select(.url == "https://github.com/ravachol/kew.git") |
-              .commit) = strenv(COMMIT)
-          ' com.kewplayer.kew.yml
+          # Locate the Kew Git source block.
+          match = re.search(
+              r'(?m)^(\s*- type:\s*git\s*\n(?:(?!^\s*- type:).*\n)*?)',
+              text
+          )
 
-          # Show the updated source for verification.
-          yq '
-            .modules[].sources[] |
-            select(.url == "https://github.com/ravachol/kew.git") |
-            {url, tag, commit}
-          ' com.kewplayer.kew.yml
+          blocks = re.finditer(
+              r'(?ms)^(\s*- type:.*?)(?=^\s*- type:|\Z)',
+              text
+          )
+
+          found = False
+          result = text
+
+          for block_match in blocks:
+              block = block_match.group(0)
+              if "https://github.com/ravachol/kew.git" not in block:
+                  continue
+
+              block = re.sub(
+                  r'(?m)^(\s*tag:\s*).*$',
+                  lambda m: m.group(1) + os.environ["RELEASE_TAG"],
+                  block,
+                  count=1
+              )
+              block = re.sub(
+                  r'(?m)^(\s*commit:\s*).*$',
+                  lambda m: m.group(1) + os.environ["COMMIT"],
+                  block,
+                  count=1
+              )
+
+              result = (
+                  result[:block_match.start()]
+                  + block
+                  + result[block_match.end():]
+              )
+              found = True
+              break
+
+          if not found:
+              raise SystemExit("Kew Git source block not found")
+
+          path.write_text(result)
+          print(f"Updated Kew source to {os.environ['RELEASE_TAG']}")
+          print(f"Commit: {os.environ['COMMIT']}")
+          PY
+
+          grep -A 5 -B 2 'github.com/ravachol/kew.git' \
+            com.kewplayer.kew.yml
 
       - name: Build Flatpak bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
