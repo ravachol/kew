@@ -42,7 +42,7 @@ jobs:
       - name: Download pinned WinGetCreate
         shell: pwsh
         env:
-          WINGETCREATE_VERSION: 1.7.1.0
+          WINGETCREATE_VERSION: 1.12.13.0
         run: |
           $version = $env:WINGETCREATE_VERSION
           $url = "https://github.com/microsoft/winget-create/releases/download/v$version/wingetcreate.exe"
