@@ -39,10 +39,15 @@ jobs:
           Invoke-WebRequest -Uri $url -Method Head -ErrorAction Stop | Out-Null
           "Installer URL verified: $url"
 
-      - name: Download WinGetCreate
+      - name: Download pinned WinGetCreate
         shell: pwsh
+        env:
+          WINGETCREATE_VERSION: 1.7.1.0
         run: |
-          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          $version = $env:WINGETCREATE_VERSION
+          $url = "https://github.com/microsoft/winget-create/releases/download/v$version/wingetcreate.exe"
+          Invoke-WebRequest $url -OutFile wingetcreate.exe
+          .\wingetcreate.exe --version
 
       - name: Diagnose GitHub API
         shell: pwsh
