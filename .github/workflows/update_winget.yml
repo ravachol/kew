@@ -44,6 +44,31 @@ jobs:
         run: |
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
 
+      - name: Diagnose GitHub API
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_CREATE_GITHUB_TOKEN }}
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = "application/vnd.github+json"
+          }
+
+          try {
+            $response = Invoke-WebRequest `
+              -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/r/Ravachol/kew" `
+              -Headers $headers `
+              -ErrorAction Stop
+
+            Write-Host "GitHub API request succeeded: $($response.StatusCode)"
+          }
+          catch {
+            Write-Host "GitHub API request failed: $($_.Exception.Message)"
+            if ($_.Exception.Response) {
+              Write-Host "HTTP status: $([int]$_.Exception.Response.StatusCode)"
+            }
+          }
+
       - name: Submit WinGet update
         shell: pwsh
         env:
