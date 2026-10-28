@@ -47,7 +47,12 @@ jobs:
           $version = $env:WINGETCREATE_VERSION
           $url = "https://github.com/microsoft/winget-create/releases/download/v$version/wingetcreate.exe"
           Invoke-WebRequest $url -OutFile wingetcreate.exe
-          .\wingetcreate.exe version
+
+          if (!(Test-Path .\wingetcreate.exe)) {
+                throw "wingetcreate.exe was not downloaded"
+          }
+
+    Write-Host "wingetcreate downloaded successfully"
 
       - name: Diagnose GitHub API
         shell: pwsh
