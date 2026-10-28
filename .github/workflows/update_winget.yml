@@ -49,10 +49,8 @@ jobs:
           Invoke-WebRequest $url -OutFile wingetcreate.exe
 
           if (!(Test-Path .\wingetcreate.exe)) {
-          throw "wingetcreate.exe was not downloaded"
+            throw "wingetcreate.exe was not downloaded"
           }
-
-    Write-Host "wingetcreate downloaded successfully"
 
       - name: Diagnose GitHub API
         shell: pwsh
