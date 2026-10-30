@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.4.3
+
+#### Enhancements
+
+- Error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
+
 ## kew 4.4.2
 
 #### Notice To Package Maintainers:
