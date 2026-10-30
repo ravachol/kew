@@ -159,8 +159,10 @@ void add_to_favorites_playlist(void)
         Node *current = get_current_song();
         PlayList *favorites_playlist = get_favorites_playlist();
 
-        if (current == NULL)
+        if (current == NULL) {
+                set_error_message("Song file is missing, corrupt or the format is not supported!");
                 return;
+        }
 
         int id = current->id;
 
@@ -489,7 +491,7 @@ retry: {
         load_song(get_current_song(), false, true);
 
         if (ps->songHasErrors) {
-                 if (!(song == get_current_song() && retries > 0)) {
+                if (!(song == get_current_song() && retries > 0)) {
                         ps->songHasErrors = false;
                         ps->forceSkip = true;
                         retries++;
