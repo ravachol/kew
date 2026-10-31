@@ -6,6 +6,10 @@
 
 - Error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
 
+#### Bug fixes
+
+- Bumped miniaudio to v0.11.26. By @ravachol.
+
 ## kew 4.4.2
 
 #### Notice To Package Maintainers:
