@@ -63,14 +63,6 @@ void mark_error_message_as_printed(void);
 bool is_refresh_triggered(void);
 
 /**
- * Checks whether the current error message has already been printed.
- *
- * @return true if the error message has been printed,
- *         false otherwise
- */
-bool has_printed_error_message(void);
-
-/**
  * Returns the current error message.
  *
  * @return Pointer to the internal error message buffer.

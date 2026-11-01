@@ -37,12 +37,6 @@ void set_error_message(const char *message)
         set_dirty(DIRTY_FOOTER);
 }
 
-
-bool has_printed_error_message(void)
-{
-        return has_printed_error;
-}
-
 bool has_error_message(void)
 {
         return (current_error_message[0] != '\0');

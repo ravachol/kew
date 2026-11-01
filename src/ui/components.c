@@ -1664,7 +1664,7 @@ ComponentMsg component_error_row(const Model *model, k_Rect region, DrawBuffer *
                 return (ComponentMsg){0};
         }
 
-        if (!has_printed_error_message() && has_error_message()) {
+        if (has_error_message()) {
                 style = cell_style_from_theme(ui->theme.status_error);
 
                 char msg[256];
