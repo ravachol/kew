@@ -4,11 +4,13 @@
 
 #### Enhancements
 
-- Error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
+- Added error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
 
 #### Bug fixes
 
 - Bumped miniaudio to v0.11.26. By @ravachol.
+
+- Fix error message in some cases disappearing before the 3 second timeout. By @Erwin-Iosef.
 
 ## kew 4.4.2
 
