@@ -38,7 +38,7 @@ void reset_search_result(Model *model);
  *
  * @return Returns 0 on success.
  */
-int remove_from_search_text(Model *model);
+int remove_from_search_text(Model *model, bool remove_whole_word);
 
 /**
  * @brief Sets the chosen directory for search results.
