@@ -324,21 +324,35 @@ int add_to_search_text(Model *model, const char *str)
         return 0;
 }
 
-int remove_from_search_text(Model *model)
+static int remove_from_search_text_mechanism(Model *model)
 {
-        if (num_search_letters == 0)
-                return 0;
-
-        // Determine the number of bytes to remove for the last character
         int last_char_bytes = get_last_char_bytes(model->state.ui.search_text, num_search_bytes);
         if (last_char_bytes == 0)
                 return 0;
 
         // Remove the character from the buffer
         num_search_bytes -= last_char_bytes;
-        model->state.ui.search_text[num_search_bytes] = '\0';
-
         num_search_letters--;
+        return 1;
+}
+
+int remove_from_search_text(Model *model, bool remove_whole_word)
+{
+        if (num_search_letters == 0)
+                return 0;
+
+        // Determine the number of bytes to remove for the last character
+        if(remove_whole_word) {
+                while(model->state.ui.search_text[num_search_bytes] != ' ') {
+                        if(!remove_from_search_text_mechanism(model))
+                                return 0;
+                        model->state.ui.search_text[num_search_bytes*2] = '\0';
+                }
+        }
+        else if(!remove_from_search_text_mechanism(model))
+                return 0;
+
+        model->state.ui.search_text[num_search_bytes] = '\0';
 
         set_dirty(DIRTY_SEARCH);
 
