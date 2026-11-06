@@ -6,6 +6,8 @@
 
 - Added error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
 
+- Erase whole words from search query with CTRL+w. By @Erwin-Iosef.
+
 #### Bug fixes
 
 - Bumped miniaudio to v0.11.26. By @ravachol.
