@@ -8,6 +8,8 @@
 
 - Erase whole words from search query with CTRL+w. By @Erwin-Iosef.
 
+- Revert change that made some options stop working. By @Erwin-Iosef.
+
 #### Bug fixes
 
 - Bumped miniaudio to v0.11.26. By @ravachol.
