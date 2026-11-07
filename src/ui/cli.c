@@ -38,13 +38,13 @@ void transfer_args_to_settings(int *argc, char *argv[], bool *exact_search)
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->settings);
-        const char *no_ui_option = " --noui";
-        const char *no_cover_option = " --nocover";
-        const char *quit_on_stop = " --quitonstop";
-        const char *quit_on_stop2 = " -q";
-        const char *exact_option = " --exact";
-        const char *exact_option2 = " -e";
-        const char *verbose_option = " --verbose";
+        const char *no_ui_option = "--noui";
+        const char *no_cover_option = "--nocover";
+        const char *quit_on_stop = "--quitonstop";
+        const char *quit_on_stop2 = "-q";
+        const char *exact_option = "--exact";
+        const char *exact_option2 = "-e";
+        const char *verbose_option = "--verbose";
 
         int max_len = 1000;
 
