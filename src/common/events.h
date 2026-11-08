@@ -45,6 +45,7 @@ enum MsgType {
         MSG_PREV_PAGE,
         MSG_REMOVE,
         MSG_SEARCH,
+        MSG_WERASE,
         MSG_EXPAND_FOLDER,
         MSG_COLLAPSE_FOLDER,
         MSG_SEARCH_FOCUS,

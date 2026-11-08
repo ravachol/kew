@@ -18,7 +18,7 @@
 extern size_t keybinding_count;
 
 /**
- * @brief Retrieves the key bindings.
+ * @brief Retrieves the key bindings. Refer to definition in src/common/events.h
  *
  * This function returns the array of key bindings used in the application.
  *

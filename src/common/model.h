@@ -666,6 +666,7 @@ typedef struct
         char hardShowSearch[6];
         char hardShowSearchAlt[6];
         char showSearchAlt[6];
+        char eraseWord[6];
         char hardShowTrack[6];
         char hardShowTrackAlt[6];
         char showTrackAlt[6];
