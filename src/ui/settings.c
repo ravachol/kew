@@ -108,6 +108,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
 
     {TB_KEY_ENTER, 0, 0, MSG_EXPAND_FOLDER, ""},
     {TB_KEY_BACKSPACE, 0, 0, MSG_CLEARPLAYLIST, ""},
+    {TB_KEY_BACKSPACE, 0, TB_MOD_CTRL, MSG_WERASE, ""},
 
     {TB_KEY_CTRL_G, 0, TB_MOD_CTRL, MSG_ENQUEUEANDPLAY, ""},
 
@@ -734,6 +735,7 @@ static const EventMap event_map[] = {
     {"showHelp", MSG_SHOWHELP},
     {"showPlaylist", MSG_SHOWPLAYLIST},
     {"showSearch", MSG_SHOWSEARCH},
+    {"eraseWord", MSG_WERASE},
     {"enqueue", MSG_ENQUEUE},
     {"gotoBeginningOfPlaylist", MSG_GOTOBEGINNINGOFPLAYLIST},
     {"gotoEndOfPlaylist", MSG_GOTOENDOFPLAYLIST},
@@ -1627,6 +1629,12 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                          sizeof(settings->showSearchAlt), "%s",
                                          pair->value);
                         add_legacy_key_binding(MSG_SHOWSEARCH, pair->value);
+                } else if (strcmp(lowercase_key, "eraseword") == 0) {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings->eraseWord,
+                                         sizeof(settings->eraseWord), "%s",
+                                         pair->value);
+                        add_legacy_key_binding(MSG_WERASE, pair->value);
                 } else if (strcmp(lowercase_key, "showlyricspage") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showLyricsPage,
@@ -1889,6 +1897,7 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
         mappings[65] = (EventMapping){settings->fade_quick, MSG_CROSSFADE_QUICK};
         mappings[66] = (EventMapping){settings->fade_medium, MSG_CROSSFADE_MEDIUM};
         mappings[67] = (EventMapping){settings->fade_slow, MSG_CROSSFADE_SLOW};
+        mappings[68] = (EventMapping){settings->eraseWord, MSG_WERASE};
 }
 
 void migrate_prefs_file(char *new_filepath)
@@ -2577,6 +2586,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Optional actions without default keys; uncomment and change the keys to use them:\n");
         fprintf(file, "# bind = Shift+e, collapseFolder\n");
         fprintf(file, "# bind = Ctrl+f, switchSearchFocus      # toggles between editing the query and navigating results.\n");
+        fprintf(file, "# bind = Ctrl+Backspace, eraseWord\n");
         fprintf(file, "#Note:Ctrl+h/i/m are indistinguishable from Backspace/Tab/Enter.\n\n");
 
         for (size_t i = 0; i < keybinding_count; i++) {

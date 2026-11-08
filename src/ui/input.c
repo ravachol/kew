@@ -157,11 +157,10 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
                         ev->ch = ' ';
 
                 // Backspace
-                if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2 || ev->key == TB_KEY_CTRL_W) {
+                if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2 || binding.type == MSG_WERASE) {
                         bool remove_whole_word = false;
-                        if(ev->key == TB_KEY_CTRL_W)
+                        if(binding.type == MSG_WERASE)
                                 remove_whole_word = true;
-
                         remove_from_search_text(model,remove_whole_word);
 
                         reset_search_result(model);
