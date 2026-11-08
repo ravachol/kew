@@ -8,13 +8,13 @@
 
 - Erase whole words from search query with Ctrl+Backspace. By @Erwin-Iosef. Suggested by @yeka1063.
 
-- Revert change that made some options stop working. By @Erwin-Iosef.
-
 #### Bug fixes
 
 - Bumped miniaudio to v0.11.26. By @ravachol.
 
 - Fix error message in some cases disappearing before the 3 second timeout. By @Erwin-Iosef.
+
+- Revert change that made some options stop working. By @Erwin-Iosef. Reported by @washingmachine55.
 
 ## kew 4.4.2
 
