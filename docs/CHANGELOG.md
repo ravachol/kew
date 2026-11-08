@@ -6,7 +6,7 @@
 
 - Added error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
 
-- Erase whole words from search query with CTRL+w. By @Erwin-Iosef.
+- Erase whole words from search query with Ctrl+Backspace. By @Erwin-Iosef. Suggested by @yeka1063.
 
 - Revert change that made some options stop working. By @Erwin-Iosef.
 
