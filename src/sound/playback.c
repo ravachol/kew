@@ -33,21 +33,20 @@ static _Atomic bool EOF_reached = false;
 static _Atomic bool metadata_switch_reached = false;
 static _Atomic bool switch_reached = false;
 static _Atomic bool skip_to_next = false;
+static _Atomic double seek_elapsed = 0.0;
 
 static enum decoder_type_t current_decoder_type = NONE;
 
-static double seek_elapsed;
-
 ma_uint64 last_cursor = 0;
-
-double get_seek_elapsed(void)
-{
-        return seek_elapsed;
-}
 
 void set_seek_elapsed(double value)
 {
-        seek_elapsed = value;
+        atomic_store_explicit(&seek_elapsed, value, memory_order_relaxed);
+}
+
+double get_seek_elapsed(void)
+{
+        return atomic_load_explicit(&seek_elapsed, memory_order_relaxed);
 }
 
 float get_seek_percentage(void)

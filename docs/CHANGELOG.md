@@ -16,6 +16,10 @@
 
 - Revert change that made some options stop working. By @Erwin-Iosef. Reported by @washingmachine55.
 
+- Fix use after return in visualization build cmd functions. By @ravachol.
+
+- Fix data race related to seek_elapsed. By @ravachol.
+
 ## kew 4.4.2
 
 #### Notice To Package Maintainers:
