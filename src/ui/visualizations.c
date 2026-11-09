@@ -67,11 +67,11 @@ typedef struct {
         int width;
 #ifndef __cplusplus        
         atomic_bool running;
+        atomic_int mode;
 #endif        
         pthread_t thread;
         int preset;
         char provider[256];
-        int mode;
         size_t frame_capacity;
 } Visualizations;
 
@@ -162,7 +162,7 @@ static void build_generic_cmd(VizCmd *c)
         int cw = (ts.width_pixels > 0 && ts.cols > 0) ? ts.width_pixels / ts.cols : 8;
         int ch = (ts.height_pixels > 0 && ts.rows > 0) ? ts.height_pixels / ts.rows : 16;
 
-        g_viz.mode = model->state.settings.visualizationsMode;
+        atomic_store_explicit(&g_viz.mode, model->state.settings.visualizationsMode, memory_order_release);
 
         snprintf(c->stream, sizeof(c->stream), "%dx%d", g_viz.width, g_viz.height);
         snprintf(c->cellsize, sizeof(c->cellsize), "%dx%d", cw, ch);
@@ -446,7 +446,7 @@ static void *visualizer_thread(void *arg)
                 VizCmd cmd = {0};
 
                 if (strcmp(g_viz.provider, "chroma") == 0) {
-                        g_viz.mode = VIZ_ASCII;
+                        atomic_store_explicit(&g_viz.mode, VIZ_ASCII, memory_order_release);
                         build_chroma_cmd(&cmd);
                 } else {
                         build_generic_cmd(&cmd);
@@ -715,7 +715,7 @@ void visualizations_print_frame(int row, int col, int height, int width,
         if (centered)
                 col = centered_indent;
 
-        if (g_viz.mode == VIZ_SIXELS) {
+        if (atomic_load_explicit(&g_viz.mode, memory_order_acquire) == VIZ_SIXELS) {
                 /*
                  * SIXEL is one graphics sequence, not
                  * newline-separated text.
