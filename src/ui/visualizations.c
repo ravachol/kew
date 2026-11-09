@@ -65,7 +65,9 @@ typedef struct {
         pthread_mutex_t lock;
         int height;
         int width;
-        bool running;
+#ifndef __cplusplus        
+        atomic_bool running;
+#endif        
         pthread_t thread;
         int preset;
         char provider[256];
@@ -433,7 +435,7 @@ static void *visualizer_thread(void *arg)
 
         g_viz.frame[0] = '\0';
 
-        while (g_viz.running) {
+        while (atomic_load_explicit(&g_viz.running, memory_order_acquire)) {
 
                 pthread_mutex_lock(&g_viz.lock);
                 g_viz.height = height;
@@ -469,7 +471,7 @@ static void *visualizer_thread(void *arg)
 
                 int nl_streak = 0;
 
-                while (g_viz.running) {
+                while (atomic_load_explicit(&g_viz.running, memory_order_acquire)) {
 
 #ifdef _WIN32
                         DWORD avail = 0;
@@ -549,7 +551,7 @@ static void *visualizer_thread(void *arg)
                         free(buf);
                 viz_stop(pid, fd);
 
-                if (g_viz.running)
+                if (atomic_load_explicit(&g_viz.running, memory_order_acquire))
                         usleep(200 * 1000); // don't respawn in a tight loop
         }
 
@@ -589,7 +591,7 @@ bool visualizations_are_started(void)
 
 void visualizations_start(int height, int width)
 {
-        if (g_viz.running)
+        if (atomic_load_explicit(&g_viz.running, memory_order_acquire))
                 return;
 
         Model *model = get_model();
@@ -608,12 +610,12 @@ void visualizations_start(int height, int width)
         // Set provider here, before the thread exists and before the preset message.
         snprintf(g_viz.provider, sizeof(g_viz.provider), "%s", arg->provider);
 
-        g_viz.running = 1;
+        atomic_store_explicit(&g_viz.running, true, memory_order_release);
 
         visualizations_set_current_preset(visualizations_get_current_preset());
 
         if (pthread_create(&g_viz.thread, NULL, visualizer_thread, arg) != 0) {
-                g_viz.running = 0;
+                atomic_store_explicit(&g_viz.running, false, memory_order_release);
                 free(arg);
                 return;
         }
@@ -627,7 +629,7 @@ void visualizations_start(int height, int width)
 
 void visualizations_shutdown()
 {
-        if (!g_viz.running)
+        if (!atomic_load_explicit(&g_viz.running, memory_order_acquire))
                 return;
 
         Model *model = get_model();
@@ -638,7 +640,7 @@ void visualizations_shutdown()
         else
                 model->state.settings.visualizationsPreset = -1;
 
-        g_viz.running = 0;                // Tell thread to exit
+        atomic_store_explicit(&g_viz.running, false, memory_order_release);                // Tell thread to exit
         pthread_join(g_viz.thread, NULL); // Wait until it finishes
 
         pthread_mutex_lock(&g_viz.lock);

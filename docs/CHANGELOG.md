@@ -22,6 +22,8 @@
 
 - Fix data race related to seek_elapsed. By @ravachol.
 
+- Fix data race related to visualizations running variable. By @ravachol.
+
 ## kew 4.4.2
 
 #### Notice To Package Maintainers:
