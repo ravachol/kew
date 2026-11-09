@@ -1134,6 +1134,8 @@ void switch_view(ViewState view_to_show)
 
 bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
 {
+        (void)mouse_y;
+        
         Model *model = get_model();
 
         if (!dragging && mouse_x != model->term_w)
@@ -1152,9 +1154,6 @@ bool scrollbar_at_position(int mouse_x, int mouse_y, bool dragging)
 
         if (model->state.currentView == HELP_VIEW)
                 region = model->state.ui.help_region;
-
-        if (mouse_y + 1 < region.row || mouse_y > region.row + region.height)
-                return false;
 
         if (region.height <= 0)
                 return false;
@@ -1178,7 +1177,14 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 height = model->state.ui.playlist_region.height;
                 row = model->state.ui.playlist_region.row;
                 numRows = (int)model->unshuffled_playlist->count;
+
+                if (pos < model->state.ui.playlist_region.row)
+                        pos = model->state.ui.playlist_region.row;
+                
                 delta_row = (long long)pos - (long long)row;
+
+                if (scrollbar->position < model->state.ui.playlist_region.row)
+                        scrollbar->position = model->state.ui.playlist_region.row;                
 
                 if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
@@ -1209,8 +1215,15 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 height = model->state.ui.library_region.height;
                 row = model->state.ui.library_region.row;
                 numRows = model->state.ui.lib_row_count;
-                delta_row = (long long)pos - (long long)row;
                 int new_lib_row = 0;
+
+                if (pos < model->state.ui.library_region.row)
+                        pos = model->state.ui.library_region.row;
+
+                if (scrollbar->position < model->state.ui.library_region.row)
+                        scrollbar->position = model->state.ui.library_region.row;
+
+                delta_row = (long long)pos - (long long)row;
 
                 if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
@@ -1233,17 +1246,11 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                                           ? 0
                                           : new_lib_row;
 
-                        if (dragging && model->state.ui.chosen_lib_row > 0) { // Move one step at a time
-                                if (new_lib_row > model->state.ui.chosen_lib_row + model->state.ui.max_lib_rows)
-                                        new_lib_row = model->state.ui.chosen_lib_row + model->state.ui.max_lib_rows;
-                                else if (new_lib_row < model->state.ui.chosen_lib_row - model->state.ui.max_lib_rows)
-                                        new_lib_row = model->state.ui.chosen_lib_row - model->state.ui.max_lib_rows;
-                        }
-
                         model->state.ui.chosen_lib_row = new_lib_row;
 
                         component_library_helper_update_view_state(model);
                 }
+
                 set_dirty(DIRTY_LIBRARY);
         }
 
@@ -1252,7 +1259,14 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 height = model->state.ui.search_region.height;
                 row = model->state.ui.search_region.row;
                 numRows = model->state.ui.search_visible_count;
+
+                if (pos < model->state.ui.search_region.row)
+                        pos = model->state.ui.search_region.row;
+
                 delta_row = (long long)pos - (long long)row;
+
+                if (scrollbar->position < model->state.ui.search_region.row)
+                        scrollbar->position = model->state.ui.search_region.row;                
 
                 if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
@@ -1283,8 +1297,15 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 height = model->state.ui.help_region.height;
                 row = model->state.ui.help_region.row;
                 numRows = model->state.ui.help_region.height;
+
+                if (pos < model->state.ui.help_region.row)
+                        pos = model->state.ui.help_region.row;                
+
                 delta_row = (long long)pos - (long long)row;
                 int new_help_row = 0;
+
+                if (scrollbar->position < model->state.ui.help_region.row)
+                        scrollbar->position = model->state.ui.help_region.row;                
 
                 if (dragging || !(mouse_y >= scrollbar->position && mouse_y <= scrollbar->position + SCROLLBAR_HEIGHT)) {
 
@@ -1307,13 +1328,6 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                                            ? 0
                                            : new_help_row;
 
-                        if (dragging && model->state.ui.chosen_help_row > 0) { // Move one step at a time
-                                if (new_help_row > model->state.ui.chosen_help_row + model->state.ui.help_region.height)
-                                        new_help_row = model->state.ui.chosen_help_row + model->state.ui.help_region.height;
-                                else if (new_help_row < model->state.ui.chosen_help_row - model->state.ui.help_region.height)
-                                        new_help_row = model->state.ui.chosen_help_row - model->state.ui.help_region.height;
-                        }
-
                         model->state.ui.chosen_help_row = new_help_row;
                 }
                 set_dirty(DIRTY_HELP);
@@ -1323,7 +1337,7 @@ void scrollbar_scroll(int mouse_y, bool dragging)
                 return;
 
         scrollbar->last_position = scrollbar->position;
-        scrollbar->position = mouse_y;
+        scrollbar->position = mouse_y;                
 }
 
 void register_click(int mouse_x, int mouse_y, int mouse_key)
