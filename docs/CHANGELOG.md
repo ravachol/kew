@@ -8,6 +8,8 @@
 
 - Erase whole words from search query with Ctrl+Backspace. By @Erwin-Iosef. Suggested by @yeka1063.
 
+- Add DEBUG=3 mode which has fsanitize=thread enabled. By @®avachol.
+
 #### Bug fixes
 
 - Bumped miniaudio to v0.11.26. By @ravachol.

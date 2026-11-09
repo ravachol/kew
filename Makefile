@@ -150,6 +150,12 @@ else ifeq ($(DEBUG), 2)
           -fno-omit-frame-pointer \
           -fno-optimize-sibling-calls
     LDFLAGS += -fsanitize=address,undefined
+else ifeq ($(DEBUG), 3)
+    SYMBOL_FLAGS := -g -O0
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -Wformat -ffunction-sections -fdata-sections -Werror=format-security -fsanitize=thread,undefined \
+          -fno-omit-frame-pointer \
+          -fno-optimize-sibling-calls
+    LDFLAGS += -fsanitize=thread,undefined 
 else
     ifeq ($(IS_ANDROID), 1)
         COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -D_FORTIFY_SOURCE=2
