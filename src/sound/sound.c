@@ -274,7 +274,11 @@ void switch_current_decoder(sound_system_t *sound)
 
         PlaybackState *ps = get_playback_state();
 
-        pthread_mutex_lock(&ps->switch_mutex);
+        while (pthread_mutex_trylock(&ps->switch_mutex) != 0) {
+                if (!atomic_load(&sound->decode_thread_running))
+                        return; // shutting down. bail.
+                usleep(1000);
+        }
 
         atomic_store(&sound->drain_callbacks_remaining, 0);
 

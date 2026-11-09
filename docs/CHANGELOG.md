@@ -12,6 +12,8 @@
 
 #### Bug fixes
 
+- Fix kew sometimes hanging on end of song. By @ravachol.
+
 - Bumped miniaudio to v0.11.26. By @ravachol.
 
 - Fix error message in some cases disappearing before the 3 second timeout. By @Erwin-Iosef.
