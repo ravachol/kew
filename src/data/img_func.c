@@ -339,6 +339,13 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         ChafaPixelMode forced_mode = style_to_pixel_mode(cover_style);
         if (forced_mode != (ChafaPixelMode)-1) {
                 pixel_mode = forced_mode;
+                /* detect_terminal() chose passthrough for the mode it detected;
+                 * the forced mode may need it where that one did not (kitty
+                 * inside tmux, where tmux would otherwise read the raw APC as a
+                 * pane title). */
+                passthrough = chafa_term_info_get_is_pixel_passthrough_needed(term_info, pixel_mode)
+                                  ? chafa_term_info_get_passthrough_type(term_info)
+                                  : CHAFA_PASSTHROUGH_NONE;
                 if (forced_mode == CHAFA_PIXEL_MODE_SYMBOLS)
                         passthrough = CHAFA_PASSTHROUGH_NONE;
                 chafa_symbol_map_unref(symbol_map);
