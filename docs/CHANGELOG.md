@@ -2,17 +2,23 @@
 
 ## kew 4.4.3
 
+This release fixes kew sometimes hanging at the end of a song, the scrollbar not scrolling all the way to the top and a few other things.
+
+Special thanks to @Erwin-Iosef for making many PRs!
+
+/Ravachol
+
 #### Enhancements
 
 - Added error message if kew fails to play song because it's missing or corrupt. By @Erwin-Iosef.
 
 - Erase whole words from search query with Ctrl+Backspace. By @Erwin-Iosef. Suggested by @yeka1063.
 
-- Add DEBUG=3 mode which has fsanitize=thread enabled. By @®avachol.
+- Add build option DEBUG=3 mode which has fsanitize=thread enabled. By @ravachol.
 
 #### Bug fixes
 
-- Fix kew sometimes hanging on end of song. By @ravachol.
+- Fix kew sometimes hanging at the end of a song. By @ravachol.
 
 - Fix scrollbar not scrolling all the way. By @ravachol.
 
