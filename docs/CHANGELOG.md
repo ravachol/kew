@@ -30,6 +30,8 @@
 
 - Fix data race related to visualizations mode variable. By @ravachol.
 
+- Fix passthrough for forced coverStyle inside tmux. By @rdocksey.
+
 ## kew 4.4.2
 
 #### Notice To Package Maintainers:
