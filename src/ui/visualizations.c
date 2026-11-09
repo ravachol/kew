@@ -46,6 +46,7 @@ typedef struct {
         char stream[32];
         char preset[32];
         char cellsize[32];
+        char fps[16];
 } VizCmd;
 
 enum viz_type {
@@ -124,9 +125,8 @@ static void build_chroma_cmd(VizCmd *c)
 
         if (model->state.settings.visualizationsFps > 0) {
                 viz_push(c, "--fps");
-                char fps[6];
-                snprintf(fps, sizeof(fps), "%d", model->state.settings.visualizationsFps);
-                viz_push(c, fps);
+                snprintf(c->fps, sizeof(c->fps), "%d", model->state.settings.visualizationsFps);
+                viz_push(c, c->fps);
         }
 
         if (settings->chromaPath[0] == '\0') {
@@ -183,9 +183,8 @@ static void build_generic_cmd(VizCmd *c)
 
         if (model->state.settings.visualizationsFps > 0) {
                 viz_push(c, "--fps");
-                char fps[12];
-                snprintf(fps, sizeof(fps), "%d", model->state.settings.visualizationsFps);
-                viz_push(c, fps);
+                snprintf(c->fps, sizeof(c->fps), "%d", model->state.settings.visualizationsFps);
+                viz_push(c, c->fps);
         }
         viz_push(c, "--mode");
         viz_push(c, g_viz.mode == VIZ_SIXELS ? "sixels" : "ascii");
