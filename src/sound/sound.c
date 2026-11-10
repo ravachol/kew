@@ -840,7 +840,7 @@ void *decode_loop(void *arg)
 
                 decoder = get_current_decoder();
                 if (!decoder || !atomic_load(&sound->decode_thread_running)) {
-                        c_sleep(10);
+                        c_sleep(4);
                         continue;
                 }
 
