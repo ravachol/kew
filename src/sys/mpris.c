@@ -403,37 +403,6 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
-static void emit_seeked(gint64 position)
-{
-#ifdef USE_DBUS
-        GDBusConnection *connection = get_gd_bus_connection();
-
-        if (connection == NULL)
-                return;
-
-        GError *error = NULL;
-
-        gboolean result = g_dbus_connection_emit_signal(
-            connection,
-            NULL,
-            "/org/mpris/MediaPlayer2",
-            "org.mpris.MediaPlayer2.Player",
-            "Seeked",
-            g_variant_new("(x)", position),
-            &error);
-
-        if (!result) {
-                g_warning("Failed to emit Seeked signal: %s",
-                          error ? error->message : "unknown error");
-
-                if (error)
-                        g_error_free(error);
-        }
-#else
-        (void)position;
-#endif
-}
-
 static void handle_seek(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
@@ -457,7 +426,7 @@ static void handle_seek(GDBusConnection *connection, const gchar *sender,
                 gint64 new_position =
                     llround(get_elapsed_seconds() * G_USEC_PER_SEC);
 
-                emit_seeked(new_position);
+                emit_seeked_signal(new_position);
 
                 g_dbus_method_invocation_return_value(invocation, NULL);
         } else {
@@ -497,7 +466,7 @@ static void handle_set_position(GDBusConnection *connection,
                 gint64 actual_position =
                     llround(get_elapsed_seconds() * G_USEC_PER_SEC);
 
-                emit_seeked(actual_position);
+                emit_seeked_signal(actual_position);
 
                 g_dbus_method_invocation_return_value(invocation, NULL);
         } else {
@@ -1656,6 +1625,8 @@ void mpris_init(void)
                 set_g_main_context(g_main_context_new());
         }
 
+        g_main_context_push_thread_default(get_g_main_context()); 
+
         GDBusNodeInfo *introspection_data =
             g_dbus_node_info_new_for_xml(introspection_xml, NULL);
         GError *error = NULL;
@@ -1736,6 +1707,8 @@ void mpris_init(void)
         }
 
         g_dbus_node_info_unref(introspection_data);
+
+        g_main_context_pop_thread_default(get_g_main_context());
 #elif defined(USE_MACOS_MEDIA)
 
         init_macos_nowplaying();

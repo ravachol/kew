@@ -9,8 +9,8 @@
 #include "sys_integration.h"
 
 #include "common/appstate.h"
-#include "common/model.h"
 #include "common/common.h"
+#include "common/model.h"
 
 #include "discord_rpc.h"
 #include "mpris.h"
@@ -21,17 +21,23 @@
 #include "notifications.h"
 
 #include "utils/file.h"
+#include "utils/k_log.h"
 #include "utils/term.h"
 #include "utils/utils.h"
-#include "utils/k_log.h"
 
 #include "gio/gio.h"
 #include "math.h"
 #include <stdio.h>
+#include <limits.h>
+#include <signal.h>
+#include <errno.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #include "smtc.h"
+#else
+#include <unistd.h>
 #endif
 
 static GDBusConnection *connection = NULL;
@@ -168,7 +174,7 @@ void update_playback_position(double elapsed_seconds)
 #elif defined(USE_SMTC)
         if (elapsed_seconds < 0.0)
                 elapsed_seconds = 0.0;
-       smtc_set_playback_position(elapsed_seconds);
+        smtc_set_playback_position(elapsed_seconds);
 #else
         (void)elapsed_seconds;
 #endif
@@ -330,7 +336,7 @@ int is_kew_process(pid_t pid)
 
                         // Check if it's kew (process name might be truncated to
                         // 15 chars)
-                        if (strstr(process_name, "kew") != NULL) {
+                        if (strcmp(process_name, "kew") == 0) {
                                 return 1; // It's likely kew
                         }
                 } else {
@@ -374,20 +380,20 @@ pid_t read_pid_file()
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
                  getuid());
 
-        FILE *pidfile;
-        pid_t pid;
+        pid_t pid = -1;
+        FILE *pidfile = fopen(pidfile_path, "r");
 
-        pidfile = fopen(pidfile_path, "r");
-        if (pidfile != NULL) {
-                if (fscanf(pidfile, "%d", &pid) == 1) {
-                        fclose(pidfile);
-                }
-        } else {
-                {
-                        pid = -1;
-                        unlink(pidfile_path);
-                }
-        }
+        if (pidfile == NULL)
+                return -1;
+
+        int value = 0;
+        if (fscanf(pidfile, "%d", &value) == 1 && value > 0)
+                pid = (pid_t)value;
+
+        fclose(pidfile);
+
+        if (pid == -1)
+                unlink(pidfile_path); // corrupt file, remove it
 
         return pid;
 #endif
@@ -401,17 +407,24 @@ void create_pid_file()
         char pidfile_path[KEW_PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
-        snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
-                 getuid());
+        snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%u.pid", temp_dir,
+                 (unsigned)getuid());
 
-        FILE *pidfile = fopen(pidfile_path, "w");
-        if (pidfile == NULL) {
+        int fd = open(pidfile_path,
+                      O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW | O_CLOEXEC,
+                      0600);
+        if (fd == -1) {
                 perror("Unable to create PID file");
                 exit(1);
         }
 
-        fprintf(pidfile, "%d\n", getpid());
-        fclose(pidfile);
+        FILE *pidfile = fdopen(fd, "w");
+        if (pidfile == NULL) {
+                k_log("unable to create pidfile");
+        }
+
+        fprintf(pidfile, "%u\n", (int)getpid());
+        fclose(pidfile); // also closes fd
 #endif
 }
 
@@ -430,7 +443,7 @@ void restart_kew(char *argv[])
                         // Ask old instance to shut down cleanly
                         if (kill(oldpid, SIGUSR1) != 0) {
                                 k_log("Failed to signal old kew (pid %d): %s\n",
-                                        oldpid, strerror(errno));
+                                      oldpid, strerror(errno));
                         } else {
                                 // Wait up to 5 seconds for it to exit
                                 int retries = 50; // 50 × 100ms = 5s
@@ -445,7 +458,7 @@ void restart_kew(char *argv[])
                                 // If still running, force kill
                                 if (kill(oldpid, 0) == 0) {
                                         k_log("Old kew (pid %d) did not exit in time. Forcing termination.\n",
-                                                oldpid);
+                                              oldpid);
 
                                         kill(oldpid, SIGKILL);
 
@@ -457,21 +470,36 @@ void restart_kew(char *argv[])
                         k_log("No running kew process found.\n");
                 } else {
                         k_log("Error checking old kew (pid %d): %s\n",
-                                oldpid, strerror(errno));
+                              oldpid, strerror(errno));
                 }
 
                 delete_pid_file();
         }
 
         // Replace current process with new kew instance
-        execvp("kew", argv);
+        execv("/proc/self/exe", argv);
 
         // Only reached if exec fails
         k_log("Failed to restart kew via execvp: %s\n",
-                strerror(errno));
+              strerror(errno));
         _exit(1);
 #endif
 }
+
+#ifndef _WIN32
+// Install a signal handler with well-defined semantics on all POSIX systems.
+static void install_signal_handler(int signo, void (*handler)(int), int flags)
+{
+        struct sigaction sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = flags;
+
+        if (sigaction(signo, &sa, NULL) == -1)
+                k_log("sigaction(%d) failed: %s\n", signo, strerror(errno));
+}
+#endif
 
 // Ensures only a single instance of kew can run at a time for the current user.
 void restart_if_already_running(char *argv[])
@@ -479,16 +507,16 @@ void restart_if_already_running(char *argv[])
 #ifdef DEBUG // Only prevent multiple instances if not debugging.
         (void)argv;
         return;
-#endif
+#else
 
 #ifdef _WIN32
         (void)argv;
-#else
-        signal(SIGUSR1, handle_exit_signal);
+#else 
+        install_signal_handler(SIGUSR1, handle_exit_signal, SA_RESTART);
 
         pid_t pid = read_pid_file();
 
-#ifdef __ANDROID__
+#if defined(__linux__)
         (void)argv;
         if (is_process_running(pid) && is_kew_process(pid))
 #else
@@ -501,6 +529,7 @@ void restart_if_already_running(char *argv[])
         }
 
         create_pid_file();
+#endif
 #endif
 }
 
@@ -551,12 +580,7 @@ sig_atomic_t get_resize_flag()
 void resize_init(void)
 {
 #ifndef _WIN32
-        signal(SIGWINCH, handle_resize);
-
-        struct sigaction sa;
-        sa.sa_handler = reset_resize_flag;
-        sigemptyset(&(sa.sa_mask));
-        sa.sa_flags = 0;
-        sigaction(SIGALRM, &sa, NULL);
+        install_signal_handler(SIGWINCH, handle_resize, SA_RESTART);
+        install_signal_handler(SIGALRM, reset_resize_flag, 0);
 #endif
 }
