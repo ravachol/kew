@@ -23,11 +23,31 @@
 
 bool is_valid_filepath(const char *path)
 {
-        if (path == NULL || *path == '\0' || strnlen(path, KEW_PATH_MAX) >= PATH_MAX)
+        if (path == NULL || *path == '\0' || strnlen(path, KEW_PATH_MAX) >= KEW_PATH_MAX)
                 return false;
 
         struct stat st;
         return stat(path, &st) == 0 && S_ISREG(st.st_mode);
+}
+
+static int utf8_seq_len(const char *s)
+{
+        unsigned char c = (unsigned char)*s;
+        int len = 1;
+
+        if ((c & 0xe0) == 0xc0)
+                len = 2;
+        else if ((c & 0xf0) == 0xe0)
+                len = 3;
+        else if ((c & 0xf8) == 0xf0)
+                len = 4;
+
+        // Don't step past the terminator on a truncated sequence
+        for (int i = 1; i < len; i++)
+                if (s[i] == '\0')
+                        return i;
+
+        return len;
 }
 
 void remove_blacklisted_chars(
@@ -47,38 +67,13 @@ void remove_blacklisted_chars(
         size_t chars_copied = 0;
 
         while (*in_ptr && chars_copied < output_size - 1) {
-                const char *start = in_ptr;
-                unsigned char c = (unsigned char)*in_ptr;
-                int len = 1;
+                int len = utf8_seq_len(in_ptr);
 
-                // Determine UTF-8 character length
-                if ((c & 0x80) == 0x00) {
-                        len = 1;
-                } else if ((c & 0xe0) == 0xc0) {
-                        len = 2;
-                } else if ((c & 0xf0) == 0xe0) {
-                        len = 3;
-                } else if ((c & 0xf8) == 0xf0) {
-                        len = 4;
-                }
-
-                // Check if the character is blacklisted
                 bool blacklisted = false;
                 const char *bl_ptr = blacklist;
                 while (*bl_ptr) {
-                        const char *bl_start = bl_ptr;
-                        unsigned char bc = (unsigned char)*bl_ptr;
-                        int bl_len = 1;
-                        if ((bc & 0x80) == 0x00) {
-                                bl_len = 1;
-                        } else if ((bc & 0xe0) == 0xc0) {
-                                bl_len = 2;
-                        } else if ((bc & 0xf0) == 0xe0) {
-                                bl_len = 3;
-                        } else if ((bc & 0xf8) == 0xf0) {
-                                bl_len = 4;
-                        }
-                        if (len == bl_len && memcmp(start, bl_start, len) == 0) {
+                        int bl_len = utf8_seq_len(bl_ptr);
+                        if (len == bl_len && memcmp(in_ptr, bl_ptr, len) == 0) {
                                 blacklisted = true;
                                 break;
                         }
@@ -86,15 +81,14 @@ void remove_blacklisted_chars(
                 }
 
                 if (!blacklisted) {
-                        for (int i = 0; i < len; i++) {
-                                if (chars_copied >= output_size - 1)
-                                        break;
-                                *out_ptr++ = *in_ptr++;
-                                chars_copied++;
-                        }
-                } else {
-                        in_ptr += len;
+                        // Don't write half a character when the buffer is nearly full
+                        if (chars_copied + len > output_size - 1)
+                                break;
+                        memcpy(out_ptr, in_ptr, len);
+                        out_ptr += len;
+                        chars_copied += len;
                 }
+                in_ptr += len;
         }
 
         *out_ptr = '\0';
@@ -113,45 +107,8 @@ void ensure_non_empty(char *str, size_t buffer_size)
 
 #ifdef USE_DBUS
 
-#define NOTIFICATION_INTERVAL_MICROSECONDS 500000 // 0.5 seconds
-
-struct timeval last_notification_time = {0, 0};
 static char sanitized_artist[512];
 static char sanitized_title[512];
-
-static pthread_mutex_t notification_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-int can_show_notification(void)
-{
-        struct timeval now;
-        gettimeofday(&now, NULL);
-
-        pthread_mutex_lock(&notification_mutex);
-
-        // Calculate elapsed time in microseconds using 64-bit unsigned math
-        int64_t sec_diff = (int64_t)(now.tv_sec - last_notification_time.tv_sec);
-        int64_t usec_diff = (int64_t)(now.tv_usec - last_notification_time.tv_usec);
-
-        if (usec_diff < 0) {
-                usec_diff += 1000000;
-                sec_diff -= 1;
-        }
-
-        uint64_t elapsed = (uint64_t)(sec_diff * 1000000 + usec_diff);
-
-        if (elapsed >= NOTIFICATION_INTERVAL_MICROSECONDS) {
-                last_notification_time = now;
-                pthread_mutex_unlock(&notification_mutex);
-                return 1;
-        }
-
-        pthread_mutex_unlock(&notification_mutex);
-        return 0;
-}
-
-void on_notification_closed(void)
-{
-}
 
 static GDBusConnection *connection = NULL;
 static guint last_notification_id = 0;
@@ -171,8 +128,8 @@ static void on_dbus_call_complete(GObject *source_object,
         }
 
         // Extract the notification ID from the result
-        guint32 *last_notification_id = (guint32 *)user_data;
-        g_variant_get(result, "(u)", last_notification_id);
+        guint32 *out_id = (guint32 *)user_data;
+        g_variant_get(result, "(u)", out_id);
         g_variant_unref(result);
 }
 
@@ -222,6 +179,7 @@ typedef struct
         GMainLoop *loop;
         gboolean connected;
         GDBusConnection *connection;
+        GCancellable *cancellable;
         gboolean timeout_triggered;
         int ref_count;
 } BusConnectionData;
@@ -235,6 +193,7 @@ static void bus_connection_data_unref(BusConnectionData *data)
 {
         if (g_atomic_int_dec_and_test(&(data->ref_count))) {
                 g_main_loop_unref(data->loop);
+                g_clear_object(&data->cancellable);
                 g_free(data);
         }
 }
@@ -248,6 +207,7 @@ static gboolean on_timeout(gpointer user_data)
         if (!data->connected) {
                 k_log("on_timeout: D-Bus connection timed out.\n");
                 data->timeout_triggered = TRUE;
+                g_cancellable_cancel(data->cancellable);
                 g_main_loop_quit(data->loop);
                 k_log("on_timeout: called g_main_loop_quit()\n");
         }
@@ -291,8 +251,10 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
 
         g_main_context_push_thread_default(context);
 
+        data->cancellable = g_cancellable_new();
+
         // Start the asynchronous bus connection
-        g_bus_get(bus_type, NULL, on_bus_get_complete, data);
+        g_bus_get(bus_type, data->cancellable, on_bus_get_complete, data);
 
         g_main_context_pop_thread_default(context);
 
@@ -303,6 +265,10 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
 
         // Run the main loop
         g_main_loop_run(data->loop);
+
+        while (g_main_context_pending(context))
+                g_main_context_iteration(context, FALSE);
+
         // Store the connection result before cleaning up
         GDBusConnection *connection = data->connection;
 
@@ -338,7 +304,7 @@ void cleanup_previous_notification()
 
 int display_song_notification(const char *artist, const char *title, const char *cover, UISettings *ui)
 {
-        if (!ui->allowNotifications || !can_show_notification()) {
+        if (!ui || !ui->allowNotifications) {
                 return 0;
         }
 
@@ -363,7 +329,7 @@ int display_song_notification(const char *artist, const char *title, const char 
                     NULL);
         }
 
-        const char *blacklist = "&;|*~<>^()[]{}$\\\"";
+        const char *blacklist = "&<>";
 
         remove_blacklisted_chars(artist, blacklist, sanitized_artist, sizeof(sanitized_artist));
         remove_blacklisted_chars(title, blacklist, sanitized_title, sizeof(sanitized_title));
@@ -373,11 +339,9 @@ int display_song_notification(const char *artist, const char *title, const char 
 
         int coverExists = is_valid_filepath(cover);
 
-        cleanup_previous_notification();
-
         // Create a new notification
         const gchar *app_name = "kew";
-        const gchar *app_icon = (coverExists && cover) ? cover : "";
+        const gchar *app_icon = coverExists ? cover : "";
         const gchar *summary = sanitized_title;
         const gchar *body = sanitized_artist;
 
@@ -397,7 +361,7 @@ int display_song_notification(const char *artist, const char *title, const char 
             "Notify",
             g_variant_new("(susssasa{sv}i)",
                           app_name,
-                          0, // New notification, no replaces_id
+                          (guint32)last_notification_id, // replace the previous one
                           app_icon,
                           summary,
                           body,
@@ -419,7 +383,19 @@ int display_song_notification(const char *artist, const char *title, const char 
 void notifications_shutdown()
 {
 #ifdef USE_DBUS
-        cleanup_previous_notification();
+        if (connection != NULL && last_notification_id != 0) {
+                GVariant *r = g_dbus_connection_call_sync(
+                    connection,
+                    "org.freedesktop.Notifications",
+                    "/org/freedesktop/Notifications",
+                    "org.freedesktop.Notifications",
+                    "CloseNotification",
+                    g_variant_new("(u)", last_notification_id),
+                    NULL, G_DBUS_CALL_FLAGS_NONE, 100, NULL, NULL);
+                if (r)
+                        g_variant_unref(r);
+                last_notification_id = 0;
+        }
 
         // Unsubscribe from signals
         if (signal_subscription_id != 0) {
