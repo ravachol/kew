@@ -1281,10 +1281,10 @@ ComponentMsg component_landscape_cover(const Model *model, k_Rect region,
         if (!ui->coverEnabled || !songdata)
                 return (ComponentMsg){0};
 
-        int cover_indent = 1;
+        int cover_indent = 0;
         int vertical_indent = 1;
 
-        int available_height = region.height - 2 * vertical_indent;
+        int available_height = (region.height - 1) * vertical_indent;
         int available_width = region.width - cover_indent;
 
         if (available_height <= 0 || available_width <= 0)
@@ -2922,7 +2922,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
                 if (aspect == 0.0f)
                         aspect = 1.0f;
 
-                info_box_col = region.height * aspect;
+                info_box_col = region.height * aspect + 1;
         }
 
         if (model->songdata && (model->songdata->cover || model->state.settings.visualizationsEnabled) && state->settings.coverEnabled && (dirty & DIRTY_SONG)) {
@@ -2936,7 +2936,7 @@ ComponentMsg component_track_landscape(const Model *model, k_Rect region, DrawBu
                 k_Rect cover_rect = {
                     .row = region.row,
                     .col = region.col,
-                    .width = info_box_col,
+                    .width = info_box_col - 1,
                     .height = region.height,
                 };
 

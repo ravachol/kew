@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## kew 4.4.4
+
+#### Bug fixes
+
+- Fix cover being printed on the third columen instead of the second in landscape mode. By @ravachol.
+
 ## kew 4.4.3
 
 This release fixes kew sometimes hanging at the end of a song, the scrollbar not scrolling all the way to the top and a few other things.
