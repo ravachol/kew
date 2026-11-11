@@ -4,6 +4,8 @@
 
 #### Bug fixes
 
+- Fix many minor issues in the sys module (mpris, notifications, etc). By @ravachol.
+
 - Fix cover being printed on the third columen instead of the second in landscape mode. By @ravachol.
 
 ## kew 4.4.3
