@@ -372,8 +372,11 @@ void terminal_backend_commit(const DrawBuffer *buf,
                                                 cur_col = col;
                                         }
 
-                                        col++;
-                                        continue;
+                                        if (cell->image && cell->image->data) // Don't skip writing char for ascii images (empty sixel payload)
+                                        {
+                                                col++;
+                                                continue;
+                                        }
                                 }
                         }
 
