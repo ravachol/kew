@@ -2583,11 +2583,14 @@ void set_config(AppSettings *settings, UISettings *ui)
                 settings->progressBarCurrentOddChar);
 
         fprintf(file, "\n[key bindings]\n\n");
-        fprintf(file, "# Optional actions without default keys; uncomment and change the keys to use them:\n");
-        fprintf(file, "# bind = Shift+e, collapseFolder\n");
-        fprintf(file, "# bind = Ctrl+f, switchSearchFocus      # toggles between editing the query and navigating results.\n");
-        fprintf(file, "# bind = Ctrl+Backspace, eraseWord\n");
-        fprintf(file, "#Note:Ctrl+h/i/m are indistinguishable from Backspace/Tab/Enter.\n\n");
+        fprintf(file, "# Optional actions without default keys; uncomment and change the keys to use them:\n\n");
+        fprintf(file, "# Bind a seperate key for closing a folder.\n");
+        fprintf(file, "# bind = Shift+e, collapseFolder\n\n");
+        fprintf(file, "# Toggle between editing the query and navigating results.\n");
+        fprintf(file, "# bind = Ctrl+f, switchSearchFocus\n\n");
+        fprintf(file, "# Erase a search query word by word.\n");
+        fprintf(file, "# bind = Ctrl+Backspace, eraseWord\n\n");
+        fprintf(file, "\n# Note:Ctrl+h/i/m are indistinguishable from Backspace/Tab/Enter.\n\n");
 
         for (size_t i = 0; i < keybinding_count; i++) {
                 fprintf(file, "bind = ");
