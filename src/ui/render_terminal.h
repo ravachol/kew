@@ -9,7 +9,7 @@ typedef struct {
 /**
  * @brief Renders what's in the terminal to the buffer.
  *
- * @param bug
+ * @param buf
  * @param dirty The dirty flags that are set for this render
  * @param state Rendering-related information.
  */
