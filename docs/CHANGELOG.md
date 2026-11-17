@@ -46,6 +46,8 @@ Special thanks to @Erwin-Iosef for making many PRs!
 
 - Fix passthrough for forced coverStyle inside tmux. By @rdocksey.
 
+- Fix first ascii cover character being black. By @ravachol.
+
 ## kew 4.4.2
 
 #### Notice To Package Maintainers:
