@@ -8,6 +8,8 @@
 
 - Fix cover being printed on the third columen instead of the second in landscape mode. By @ravachol.
 
+- Fix first ascii cover character being black. By @ravachol.
+
 ## kew 4.4.3
 
 This release fixes kew sometimes hanging at the end of a song, the scrollbar not scrolling all the way to the top and a few other things.
@@ -45,8 +47,6 @@ Special thanks to @Erwin-Iosef for making many PRs!
 - Fix data race related to visualizations mode variable. By @ravachol.
 
 - Fix passthrough for forced coverStyle inside tmux. By @rdocksey.
-
-- Fix first ascii cover character being black. By @ravachol.
 
 ## kew 4.4.2
 
