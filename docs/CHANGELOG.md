@@ -10,6 +10,8 @@
 
 - Fix first ascii cover character being black. By @ravachol.
 
+- Fix mpris / playerctl not setting repeat state until the next song. By @ravachol. Found by @roadbloack.
+
 ## kew 4.4.3
 
 This release fixes kew sometimes hanging at the end of a song, the scrollbar not scrolling all the way to the top and a few other things.

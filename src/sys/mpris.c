@@ -1406,6 +1406,7 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                                     loop_status);
                                 return FALSE;
                         }
+                        set_dirty(DIRTY_FOOTER);
                         return TRUE;
                 } else if (g_strcmp0(property_name, "Shuffle") == 0) {
                         gboolean want;

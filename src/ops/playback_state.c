@@ -44,10 +44,12 @@ bool is_repeat_list_enabled(void)
 
 void set_repeat_state(int repeat_state)
 {
-        AppState *state = get_app_state();
+        Model *model = get_model();
 
-        state->settings.repeatState = repeat_state;
-        sound_system_set_repeat_state(repeat_state);
+        model->state.settings.repeatState = repeat_state;
+        model->playbackState.nextSongNeedsRebuilding = true;
+        
+        sound_system_set_repeat_state(repeat_state);        
 }
 
 int get_repeat_state(void)
