@@ -1028,9 +1028,19 @@ void play_command_with_playlist(int argc, char **argv)
         PlayList *playlist = get_playlist();
         const char *allowed_extensions = MUSIC_FILE_EXTENSIONS;
 
-        for (int i = 2; i < argc; i++) {
+        int i = 2;
+        bool shuffle_paths = false;
+        if(strcmp(argv[1], "shuffle") == 0) {
+                i++;
+                shuffle_paths = true;
+        }
+        for (; i < argc; i++) {
                 build_playlist_recursive(argv[i], allowed_extensions, playlist);
         }
+        if (shuffle_paths) {
+                shuffle_playlist(playlist);
+        }
+
 }
 
 int add_to_playlist_name(const char *str)

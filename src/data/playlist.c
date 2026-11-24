@@ -957,22 +957,32 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
                 shuffle = true;
         }
 
+        bool load_list = false;
         if (argc > 1) {
                 if (strcmp(argv[1], "list") == 0 && argc > 2) {
                         allowed_extensions = PLAYLIST_EXTENSIONS;
                         search_type = SearchPlayList;
+                        load_list = true;
                 }
-
                 if (strcmp(argv[1], "random") == 0 ||
                     strcmp(argv[1], "rand") == 0 ||
                     strcmp(argv[1], "shuffle") == 0) {
-                        int count = 0;
-                        while (argv[count] != NULL) {
-                                count++;
-                        }
-                        if (count > 2) {
-                                search_type_index = 2;
+                        if (argc > 3 && strcmp(argv[2], "list") == 0) {
+                                allowed_extensions = PLAYLIST_EXTENSIONS;
+                                search_type = SearchPlayList;
+                                load_list = true;
+                                search_type_index++;
                                 shuffle = true;
+                        }
+                        else {
+                                int count = 0;
+                                while (argv[count] != NULL) {
+                                        count++;
+                                }
+                                if (count > 2) {
+                                        search_type_index = 2;
+                                        shuffle = true;
+                                }
                         }
                 }
 
@@ -1022,7 +1032,7 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
 
                         if (walker(expanded_path, searching, buf, allowed_extensions,
                                    search_type, exact_search, 0) == 0) {
-                                if (strcmp(argv[1], "list") == 0) {
+                                if (load_list) {
                                         read_m3u_file(buf, *playlist);
                                 } else {
                                         pthread_mutex_lock(&((*playlist)->mutex));

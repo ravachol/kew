@@ -636,7 +636,6 @@ void kew_init(bool set_library_enqueued_status)
         terminal_init();
         favorites_init();
         discord_rpc_init();
-        rand_init();
         library_init(set_library_enqueued_status);
         artists_db_init();
         mpris_init();
@@ -687,7 +686,9 @@ static bool make_playlist_from_paths(int argc, char **argv)
         // Working with multiple files
         //validate all paths
 
-        for (int i = 2; i < argc; i++) {
+        int i = 2;
+        if (strcmp(argv[1], "shuffle") == 0) i = 3;
+        for (; i < argc; i++) {
                 if ((expand_path(argv[i], de_expanded, KEW_PATH_MAX) != 0) || (exists_file(de_expanded) == -1)) {
                         return false;
                 }
@@ -979,6 +980,7 @@ int main(int argc, char *argv[])
 
         tty_init();
         state_init();
+        rand_init();
         k_log_init();
         k_log("main: starting kew...");
         locale_init();
@@ -1004,7 +1006,15 @@ int main(int argc, char *argv[])
 
         k_log("main: themes loaded...");
 
+        bool play_paths = false;
         if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
+                 play_paths = true;
+        }
+        if (argc >= 4 &&
+            (strcmp(argv[1], "shuffle") == 0 && strcmp(argv[2], "play") == 0)) {
+                 play_paths = true;
+        }
+        if (play_paths) {
                  if (make_playlist_from_paths(argc, argv))
                  {
                         kew_init(false);
