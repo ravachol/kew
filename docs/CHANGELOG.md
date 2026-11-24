@@ -2,6 +2,10 @@
 
 ## kew 4.4.4
 
+#### Enhancement
+
+- kew shuffle list \<.m3u list name\> and kew shuffle play \<path\> are now possible. By @roverton.
+
 #### Bug fixes
 
 - Fix many minor issues in the sys module (mpris, notifications, etc). By @ravachol.
