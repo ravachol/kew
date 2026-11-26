@@ -124,11 +124,12 @@ int is_directory(const char *path);
  * @param search_type The type of search (e.g., directory or file search).
  * @param exact_search Flag indicating whether to use an exact search (false uses partial match).
  * @param depth The current recursion depth.
- *
+ * @param check_if_multiple_results set to true if you want to check if there is more than one hit
+ * @param num_results the number of hits
  * @return `0` if the search is successful, `1` if not found or if an error occurs.
  */
-int walker(const char *start_path, const char *searching, char *result,
-           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth);
+int walker(const char *start_path, const char *low_case_searching, char *result,
+           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth, bool check_if_multiple_results, int *num_found);
 
 
 /**

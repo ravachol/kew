@@ -299,6 +299,7 @@ void run_command(UpdateResult result)
                 break;
 
         case CMD_SEARCH:
+                fuzzy_search(model->state.ui.search_text, model->library);
                 break;
 
         case CMD_ADD_TO_FAVORITES:

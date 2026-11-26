@@ -19,14 +19,14 @@
  * @param str The string to add to the search text.
  * @return Returns 0 on success, or -1 if the string is NULL.
  */
-int add_to_search_text(Model *model, const char *str);
+int add_to_search_text(const char *str);
 
 /**
  * @brief Resets the search results.
  *
  * @param model
  */
-void reset_search_result(Model *model);
+void reset_search_result(void);
 
 /**
  * @brief Removes the last character from the search text.
@@ -38,7 +38,7 @@ void reset_search_result(Model *model);
  *
  * @return Returns 0 on success.
  */
-int remove_from_search_text(Model *model, bool remove_whole_word);
+int remove_from_search_text(bool remove_whole_word);
 
 /**
  * @brief Sets the chosen directory for search results.

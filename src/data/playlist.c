@@ -19,6 +19,7 @@
 #include "directorytree.h"
 
 #include "ops/library_ops.h"
+#include "ops/search_ops.h"
 
 #include "loader/tagLibWrapper.h"
 
@@ -1030,9 +1031,16 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
                         trim(token, KEW_PATH_MAX);
                         char *searching = g_utf8_casefold(token, -1);
 
+                        int num_hits = 0;
+
                         if (walker(expanded_path, searching, buf, allowed_extensions,
-                                   search_type, exact_search, 0) == 0) {
-                                if (load_list) {
+                                   search_type, exact_search, 0, true, &num_hits) == 0) {
+
+                                if (num_hits > 1) {                                                      
+                                        add_to_search_text(search); // Search instead of creating playlist if there are multiple hits
+                                        return 1;   
+                                }
+                                else if (load_list) {
                                         read_m3u_file(buf, *playlist);
                                 } else {
                                         pthread_mutex_lock(&((*playlist)->mutex));

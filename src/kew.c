@@ -514,6 +514,12 @@ void run(bool start_playing)
                 model->state.currentView = LIBRARY_VIEW;
         }
 
+        if (model->state.ui.search_text[0] != '\0') {
+                model->state.currentView = SEARCH_VIEW;
+                dispatch_msg((struct Msg){.type = MSG_SEARCH});
+                set_dirty(DIRTY_ALL);
+        }
+
         double seconds = 0.0;
         if (!start_playing) {
 
@@ -1040,9 +1046,9 @@ int main(int argc, char *argv[])
                 run(true);
         } else if (argc >= 2) {
                 kew_init(false);
-                make_playlist(&model->playlist, argc, argv, exact_search, model->settings.path);
+                int result = make_playlist(&model->playlist, argc, argv, exact_search, model->settings.path);
 
-                if (model->playlist->count == 0) {
+                if (model->playlist->count == 0 && result != 1) {
                         if (argc > 1 && argv[1] && strcmp(argv[1], "theme") != 0)
                                 state->ui.noPlaylist = true;
                         kew_shutdown();

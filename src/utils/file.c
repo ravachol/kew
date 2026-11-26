@@ -131,7 +131,7 @@ int directory_exists(const char *path)
 
 // Traverse a directory tree and search for a given file or directory
 int walker(const char *start_path, const char *low_case_searching, char *result,
-           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth)
+           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth, bool check_if_multiple_results, int *num_found)
 {
         if (depth > MAX_RECURSION_DEPTH) {
                 k_log("Maximum recursion depth exceeded\n");
@@ -201,16 +201,30 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                         free(folded_name);
 
                         if (nameMatch && search_type != FileOnly && search_type != SearchPlayList) {
-                                c_strcpy(result, entry_path, KEW_PATH_MAX - 1);
-                                result[KEW_PATH_MAX - 1] = '\0';
+
                                 found = true;
-                                break;
+                                (*num_found)++;
+
+                                if (result[0] == '\0') {
+                                        c_strcpy(result, entry_path, KEW_PATH_MAX - 1);
+                                        result[KEW_PATH_MAX - 1] = '\0';
+                                }
+
+                                if (!check_if_multiple_results || (check_if_multiple_results && *num_found > 1)) {
+                                        break;
+                                } else {
+                                        continue;
+                                }
                         }
 
                         // Recurse into subdirectory
-                        if (walker(entry_path, low_case_searching, result, allowed_extensions, search_type, exact_search, depth + 1) == 0) {
+                        if (walker(entry_path, low_case_searching, result, allowed_extensions, search_type, exact_search, depth + 1, check_if_multiple_results, num_found) == 0) {
                                 found = true;
-                                break;
+
+                                if (!check_if_multiple_results || (check_if_multiple_results && *num_found > 1))
+                                        break;
+                                else
+                                        continue;
                         }
                 } else {
                         // File handling
@@ -235,10 +249,20 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                         free(folded_name);
 
                         if (nameMatch) {
-                                c_strcpy(result, entry_path, KEW_PATH_MAX - 1);
-                                result[KEW_PATH_MAX - 1] = '\0';
                                 found = true;
-                                break;
+                                (*num_found)++;
+
+                                if (result[0] == '\0') {
+                                        c_strcpy(result, entry_path, KEW_PATH_MAX - 1);
+                                        result[KEW_PATH_MAX - 1] = '\0';
+                                }
+
+                                if (!check_if_multiple_results || (check_if_multiple_results && *num_found > 1)) {
+
+                                        break;
+                                } else {
+                                        continue;
+                                }
                         }
                 }
         }

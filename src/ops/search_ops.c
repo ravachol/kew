@@ -290,15 +290,18 @@ void fuzzy_search(char *search_term, FileSystemEntry *root)
         set_dirty(DIRTY_SEARCH);
 }
 
-void reset_search_result(Model *model)
+void reset_search_result(void)
 {
+        Model *model = get_model();
         model->state.ui.chosen_search_result_row = 0;
         model->state.ui.search_scrollbar.position = 0;
         model->state.ui.search_scrollbar.last_position = 0;
 }
 
-int add_to_search_text(Model *model, const char *str)
+int add_to_search_text(const char *str)
 {
+        Model *model = get_model();
+
         if (str == NULL) {
                 return -1;
         }
@@ -317,7 +320,7 @@ int add_to_search_text(Model *model, const char *str)
 
         model->state.ui.search_text[num_search_bytes] = '\0'; // Null-terminate the buffer
 
-        num_search_letters++;
+        num_search_letters += len;
 
         set_dirty(DIRTY_SEARCH);
 
@@ -336,8 +339,10 @@ static int remove_char_from_search_text(Model *model)
         return 1;
 }
 
-int remove_from_search_text(Model *model, bool remove_whole_word)
+int remove_from_search_text(bool remove_whole_word)
 {
+        Model *model = get_model();
+
         if (num_search_letters == 0)
                 return 0;
 
