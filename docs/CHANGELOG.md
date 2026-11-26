@@ -16,6 +16,8 @@
 
 - Fix mpris / playerctl not setting repeat state until the next song. By @ravachol. Found by @roadbloack.
 
+Thanks to new sponsor @zuusuuz!
+
 ## kew 4.4.3
 
 This release fixes kew sometimes hanging at the end of a song, the scrollbar not scrolling all the way to the top and a few other things.
