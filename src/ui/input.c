@@ -161,10 +161,9 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
                         bool remove_whole_word = false;
                         if(binding.type == MSG_WERASE)
                                 remove_whole_word = true;
-                        remove_from_search_text(model,remove_whole_word);
+                        remove_from_search_text(remove_whole_word);
 
-                        reset_search_result(model);
-                        fuzzy_search(model->state.ui.search_text, get_library());
+                        reset_search_result();
                         event.type = MSG_SEARCH;
                 }
                 // Printable character (not escape, enter, tab, carriage return)
@@ -185,9 +184,8 @@ struct Msg handle_search_event(struct tb_event *ev, Model *model)
                          ev->ch == ' ') {
                         char keybuf[5] = {0};
                         tb_utf8_unicode_to_char(keybuf, ev->ch);
-                        add_to_search_text(model, keybuf);
-                        reset_search_result(model);
-                        fuzzy_search(model->state.ui.search_text, model->library);
+                        add_to_search_text(keybuf);
+                        reset_search_result();
                         event.type = MSG_SEARCH;
                 }
 #endif
