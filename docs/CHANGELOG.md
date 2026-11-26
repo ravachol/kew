@@ -6,7 +6,7 @@
 
 - kew shuffle list \<.m3u list name\> and kew shuffle play \<path\> are now possible. By @roverton.
 
-- kew \<search term\> command now takes you to search view if there are multiple hits. By @ravachol.
+- kew \<search term\> command now takes you to search view if there are multiple hits. By @ravachol and @petoem.
 
 #### Bug fixes
 
