@@ -220,7 +220,6 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
                         // Recurse into subdirectory
                         if (walker(entry_path, low_case_searching, result, allowed_extensions, search_type, exact_search, depth + 1, check_if_multiple_results, num_found) == 0) {
                                 found = true;
-                                (*num_found)++;
 
                                 if (!check_if_multiple_results || (check_if_multiple_results && *num_found > 1))
                                         break;
